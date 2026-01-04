@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { Suspense, useEffect, useMemo, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import { useCartStore } from "@/store/cart"
 import { Button } from "@/components/ui/button"
@@ -33,6 +33,14 @@ type Category = Database['public']['Tables']['categorias']['Row']
 type SortValue = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc' | 'newest'
 
 export default function ProductosPage() {
+    return (
+        <Suspense fallback={<div className="p-6 text-muted-foreground">Cargando...</div>}>
+            <ProductosPageContent />
+        </Suspense>
+    )
+}
+
+function ProductosPageContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
 
