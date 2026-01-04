@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Tienda WhatsApp Pro",
-  description: "La mejor tienda online con pedidos directos a WhatsApp.",
+  description: "Tienda online con pedidos directos a WhatsApp.",
 };
 
 export default function RootLayout({
