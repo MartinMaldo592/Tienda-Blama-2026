@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/sheet"
 import { ProductForm } from "@/components/admin/product-form"
 
+import { formatCurrency } from "@/lib/utils"
+
 import { Plus, Search, Edit, Trash2, Image as ImageIcon, ShieldAlert } from "lucide-react"
 
 export default function ProductosPage() {
@@ -191,7 +193,7 @@ export default function ProductosPage() {
                                         </div>
                                     </TableCell>
                                     <TableCell className="font-medium">{producto.nombre}</TableCell>
-                                    <TableCell>${producto.precio.toFixed(2)}</TableCell>
+                                    <TableCell>{formatCurrency(producto.precio)}</TableCell>
                                     <TableCell>
                                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${producto.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                             {producto.stock} un.

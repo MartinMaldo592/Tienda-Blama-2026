@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import twilio from 'twilio'
 
+const currencyFormatter = new Intl.NumberFormat('es-PE', {
+    style: 'currency',
+    currency: 'PEN',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+})
+
 // Twilio credentials from environment variables
 const accountSid = process.env.TWILIO_ACCOUNT_SID
 const authToken = process.env.TWILIO_AUTH_TOKEN
@@ -31,10 +38,10 @@ export async function POST(request: NextRequest) {
         message += `*PRODUCTOS:*\n`
 
         items.forEach((item: any) => {
-            message += `• ${item.quantity}x ${item.nombre} ($${(item.precio * item.quantity).toFixed(2)})\n`
+            message += `• ${item.quantity}x ${item.nombre} (${currencyFormatter.format(Number(item.precio || 0) * Number(item.quantity || 0))})\n`
         })
 
-        message += `\n💰 *TOTAL: $${total.toFixed(2)}*\n`
+        message += `\n💰 *TOTAL: ${currencyFormatter.format(Number(total || 0))}*\n`
         message += `\n🔗 Ver pedido: ${panelLink}`
 
         // Initialize Twilio client

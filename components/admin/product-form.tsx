@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2, Save, UploadCloud } from "lucide-react"
+import { ArrowDown, ArrowUp, Loader2, Save, Star, Trash2, UploadCloud } from "lucide-react"
 import {
     Select,
     SelectContent,
@@ -33,6 +33,8 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
     const [price, setPrice] = useState("")
     const [stock, setStock] = useState("")
     const [imageUrl, setImageUrl] = useState("")
+    const [galleryImages, setGalleryImages] = useState<string[]>([])
+    const [newGalleryUrl, setNewGalleryUrl] = useState("")
     const [categoryId, setCategoryId] = useState<string>("default")
 
     // Create Category State
@@ -49,6 +51,16 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
             setPrice(productToEdit.precio?.toString() || "")
             setStock(productToEdit.stock?.toString() || "")
             setImageUrl(productToEdit.imagen_url || "")
+            const fromDb = Array.isArray(productToEdit.imagenes) ? (productToEdit.imagenes as string[]) : []
+            const normalized = [
+                ...(productToEdit.imagen_url ? [productToEdit.imagen_url] : []),
+                ...fromDb,
+            ]
+                .map((x) => String(x || "").trim())
+                .filter(Boolean)
+            const unique = Array.from(new Set(normalized)).slice(0, 10)
+            setGalleryImages(unique)
+            setNewGalleryUrl("")
             setCategoryId(productToEdit.categoria_id?.toString() || "default")
         } else {
             // Reset form when not editing (or switching to new)
@@ -56,9 +68,57 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
             setPrice("")
             setStock("")
             setImageUrl("")
+            setGalleryImages([])
+            setNewGalleryUrl("")
             setCategoryId("default")
         }
     }, [productToEdit])
+
+    function normalizeImages(input: string[]) {
+        const unique: string[] = []
+        for (const raw of input) {
+            const v = String(raw || "").trim()
+            if (!v) continue
+            if (!unique.includes(v)) unique.push(v)
+            if (unique.length >= 10) break
+        }
+        return unique
+    }
+
+    function addGalleryUrl(url: string) {
+        const next = normalizeImages([...galleryImages, url])
+        setGalleryImages(next)
+        if (!imageUrl && next.length > 0) {
+            setImageUrl(next[0])
+        }
+    }
+
+    function removeGalleryUrl(url: string) {
+        const next = galleryImages.filter((x) => x !== url)
+        setGalleryImages(next)
+
+        if (imageUrl === url) {
+            setImageUrl(next[0] || "")
+        }
+    }
+
+    function makeGalleryMain(url: string) {
+        const next = normalizeImages([url, ...galleryImages.filter((x) => x !== url)])
+        setGalleryImages(next)
+        setImageUrl(next[0] || "")
+    }
+
+    function moveGalleryIndex(fromIndex: number, toIndex: number) {
+        if (fromIndex === toIndex) return
+        if (fromIndex < 0 || toIndex < 0) return
+        if (fromIndex >= galleryImages.length || toIndex >= galleryImages.length) return
+
+        const next = [...galleryImages]
+        const [moved] = next.splice(fromIndex, 1)
+        next.splice(toIndex, 0, moved)
+        setGalleryImages(next)
+        if (next.length > 0) setImageUrl(next[0])
+    }
 
     async function fetchCategories() {
         const { data } = await supabase.from('categorias').select('*')
@@ -98,26 +158,41 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
 
         try {
             setUploading(true)
-            const file = e.target.files[0]
-            const fileExt = file.name.split('.').pop()
-            const fileName = `${Math.random()}.${fileExt}`
-            const filePath = `${fileName}`
+            const files = Array.from(e.target.files)
+            const remaining = Math.max(0, 10 - galleryImages.length)
+            const toUpload = files.slice(0, remaining)
 
-            const { error: uploadError } = await supabase.storage
-                .from('productos')
-                .upload(filePath, file)
+            const uploadedUrls: string[] = []
 
-            if (uploadError) {
-                throw uploadError
+            for (const file of toUpload) {
+                const fileExt = file.name.split('.').pop() || 'jpg'
+                const fileName = `${Date.now()}-${Math.random().toString(16).slice(2)}.${fileExt}`
+                const filePath = `${fileName}`
+
+                const { error: uploadError } = await supabase.storage
+                    .from('productos')
+                    .upload(filePath, file)
+
+                if (uploadError) {
+                    throw uploadError
+                }
+
+                const { data } = supabase.storage.from('productos').getPublicUrl(filePath)
+                if (data?.publicUrl) uploadedUrls.push(data.publicUrl)
             }
 
-            const { data } = supabase.storage.from('productos').getPublicUrl(filePath)
-            setImageUrl(data.publicUrl)
+            const next = normalizeImages([...galleryImages, ...uploadedUrls])
+            setGalleryImages(next)
+
+            if (!imageUrl && next.length > 0) {
+                setImageUrl(next[0])
+            }
 
         } catch (error: any) {
             alert("Error subiendo imagen: " + error.message)
         } finally {
             setUploading(false)
+            e.target.value = ''
         }
     }
 
@@ -126,27 +201,37 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
         setLoading(true)
 
         try {
+            const mergedImages = galleryImages.length > 0
+                ? normalizeImages(galleryImages)
+                : normalizeImages([...(imageUrl ? [imageUrl] : [])])
+            const mainImage = mergedImages[0] || (imageUrl ? imageUrl : null)
+
             const productData = {
                 nombre: name,
                 precio: parseFloat(price),
                 stock: parseInt(stock),
-                imagen_url: imageUrl,
+                imagen_url: mainImage,
+                imagenes: mergedImages,
                 categoria_id: categoryId === 'default' ? null : parseInt(categoryId)
             }
 
             let error;
 
-            if (productToEdit) {
-                const { error: updateError } = await supabase
-                    .from('productos')
-                    .update(productData)
-                    .eq('id', productToEdit.id)
-                error = updateError
-            } else {
-                const { error: insertError } = await supabase
-                    .from('productos')
-                    .insert(productData)
-                error = insertError
+            async function save(withGallery: boolean) {
+                const payload: any = { ...productData }
+                if (!withGallery) delete payload.imagenes
+
+                if (productToEdit) {
+                    return supabase.from('productos').update(payload).eq('id', productToEdit.id)
+                }
+                return supabase.from('productos').insert(payload)
+            }
+
+            const first = await save(true)
+            error = first.error
+            if (error && typeof (error as any).message === 'string' && (error as any).message.toLowerCase().includes('imagenes')) {
+                const second = await save(false)
+                error = second.error
             }
 
             if (error) throw error
@@ -272,14 +357,15 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
 
                 {/* Simple File Input for optional upload */}
                 <div className="mt-2">
-                    <Label htmlFor="file-upload" className="cursor-pointer inline-flex items-center gap-2 text-sm text-accent hover:text-accent-foreground bg-accent/10 px-3 py-2 rounded-md transition-colors">
+                    <Label htmlFor="file-upload" className="cursor-pointer inline-flex items-center gap-2 text-sm bg-primary text-primary-foreground px-3 py-2 rounded-md transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 shadow-sm">
                         <UploadCloud className="h-4 w-4" />
-                        {uploading ? "Subiendo..." : "Subir desde PC"}
+                        {uploading ? "Subiendo..." : "Subir desde PC (puedes seleccionar varias)"}
                     </Label>
                     <Input
                         id="file-upload"
                         type="file"
                         accept="image/*"
+                        multiple
                         className="hidden"
                         onChange={handleImageUpload}
                         disabled={uploading}
@@ -290,6 +376,102 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
                 {imageUrl && (
                     <div className="mt-2 h-32 w-32 rounded-lg border overflow-hidden relative bg-popover">
                         <img src={imageUrl} alt="Preview" className="h-full w-full object-cover" />
+                    </div>
+                )}
+            </div>
+
+            <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                    <Label>Galería (hasta 10)</Label>
+                    <span className="text-xs text-muted-foreground">{galleryImages.length}/10</span>
+                </div>
+
+                <div className="flex gap-2">
+                    <Input
+                        value={newGalleryUrl}
+                        onChange={(e) => setNewGalleryUrl(e.target.value)}
+                        placeholder="Pega otra URL de imagen..."
+                        className="flex-1"
+                    />
+                    <Button
+                        type="button"
+                        onClick={() => {
+                            if (!newGalleryUrl.trim()) return
+                            if (galleryImages.length >= 10) return
+                            addGalleryUrl(newGalleryUrl)
+                            setNewGalleryUrl("")
+                        }}
+                        disabled={!newGalleryUrl.trim() || galleryImages.length >= 10}
+                    >
+                        Agregar
+                    </Button>
+                </div>
+
+                {galleryImages.length > 0 && (
+                    <div className="space-y-2">
+                        {galleryImages.map((url, idx) => (
+                            <div key={`${url}-${idx}`} className="flex items-center gap-3 rounded-lg border bg-popover p-2">
+                                <div className="h-7 w-7 rounded-md bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
+                                    {idx + 1}
+                                </div>
+
+                                <div className="h-12 w-12 rounded-md overflow-hidden border bg-background flex-shrink-0">
+                                    <img src={url} alt="Imagen" className="h-full w-full object-cover" />
+                                </div>
+
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-xs text-muted-foreground truncate">{url}</p>
+                                    {idx === 0 && (
+                                        <p className="text-xs font-medium">Principal</p>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center gap-1">
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => makeGalleryMain(url)}
+                                        disabled={idx === 0}
+                                    >
+                                        <Star className="h-4 w-4" />
+                                    </Button>
+
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => moveGalleryIndex(idx, idx - 1)}
+                                        disabled={idx === 0}
+                                    >
+                                        <ArrowUp className="h-4 w-4" />
+                                    </Button>
+
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => moveGalleryIndex(idx, idx + 1)}
+                                        disabled={idx === galleryImages.length - 1}
+                                    >
+                                        <ArrowDown className="h-4 w-4" />
+                                    </Button>
+
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => removeGalleryUrl(url)}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>

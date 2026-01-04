@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DollarSign, ShoppingBag, Users, Package, ClipboardList } from "lucide-react"
+import { formatCurrency } from "@/lib/utils"
 import Link from "next/link"
 
 export default function AdminDashboard() {
@@ -103,7 +104,7 @@ export default function AdminDashboard() {
                     <>
                         <StatsCard
                             title="Ventas Totales"
-                            value={`$${stats.totalVentas.toFixed(2)}`}
+                            value={formatCurrency(stats.totalVentas)}
                             change="Ingresos Estimados"
                             icon={<DollarSign className="h-6 w-6 text-green-600" />}
                             wrapperClass="bg-green-50 border-green-100"

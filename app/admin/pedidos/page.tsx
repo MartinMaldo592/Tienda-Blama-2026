@@ -20,6 +20,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import { formatCurrency } from "@/lib/utils"
 import { Eye, Search, Filter, UserPlus, RefreshCw, User } from "lucide-react"
 import Link from "next/link"
 
@@ -35,6 +36,53 @@ export default function PedidosPage() {
     const [userRole, setUserRole] = useState<string>('worker')
     const [userId, setUserId] = useState<string>('')
     const [filterWorker, setFilterWorker] = useState<string>('all')
+
+    function csvEscape(value: unknown) {
+        const str = String(value ?? '')
+        if (/[\n\r,\"]/g.test(str)) {
+            return '"' + str.replace(/\"/g, '""') + '"'
+        }
+        return str
+    }
+
+    function downloadCsv(rows: Record<string, unknown>[], filename: string) {
+        const headers = rows.length > 0 ? Object.keys(rows[0]) : []
+        const csv =
+            '\ufeff' +
+            [
+                headers.join(','),
+                ...rows.map((row) => headers.map((h) => csvEscape(row[h])).join(',')),
+            ].join('\n')
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        URL.revokeObjectURL(url)
+    }
+
+    function handleExportCsv() {
+        const rows = filteredPedidos.map((p) => ({
+            id: p.id,
+            fecha: p.created_at,
+            cliente: p.clientes?.nombre || '',
+            telefono: p.clientes?.telefono || '',
+            total: p.total,
+            status: p.status,
+            pago_status: p.pago_status,
+            cupon_codigo: p.cupon_codigo || '',
+            descuento: p.descuento ?? '',
+            subtotal: p.subtotal ?? '',
+            asignado_a: p.asignado_a || '',
+        }))
+
+        const today = new Date().toISOString().slice(0, 10)
+        downloadCsv(rows, `pedidos-${today}.csv`)
+    }
 
     useEffect(() => {
         initPage()
@@ -160,9 +208,16 @@ export default function PedidosPage() {
                             : 'Pedidos que te han sido delegados.'}
                     </p>
                 </div>
-                <Button variant="outline" className="gap-2" onClick={() => fetchPedidos(userRole, userId)}>
-                    <RefreshCw className="h-4 w-4" /> Actualizar
-                </Button>
+                <div className="flex gap-2">
+                    {userRole === 'admin' && (
+                        <Button variant="outline" className="gap-2" onClick={handleExportCsv}>
+                            Exportar CSV
+                        </Button>
+                    )}
+                    <Button variant="outline" className="gap-2" onClick={() => fetchPedidos(userRole, userId)}>
+                        <RefreshCw className="h-4 w-4" /> Actualizar
+                    </Button>
+                </div>
             </div>
 
             {/* Admin Filters */}
@@ -239,7 +294,7 @@ export default function PedidosPage() {
                                             <div className="text-xs text-gray-500">{pedido.clientes?.telefono}</div>
                                         </TableCell>
                                         <TableCell>{new Date(pedido.created_at).toLocaleDateString()}</TableCell>
-                                        <TableCell className="font-bold">${pedido.total?.toFixed(2)}</TableCell>
+                                        <TableCell className="font-bold">{formatCurrency(pedido.total)}</TableCell>
                                         <TableCell>
                                             <StatusBadge status={pedido.status} />
                                         </TableCell>

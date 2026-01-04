@@ -23,6 +23,7 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
         { href: "/admin/pedidos", icon: ShoppingBag, label: "Pedidos", roles: ["admin", "worker"] },
         { href: "/admin/productos", icon: Package, label: "Productos", roles: ["admin"] }, // Solo admin
         { href: "/admin/clientes", icon: Users, label: "Clientes", roles: ["admin"] }, // Solo admin
+        { href: "/admin/usuarios", icon: Users, label: "Usuarios", roles: ["admin"] },
         { href: "/admin/incidencias", icon: AlertCircle, label: "Incidencias", roles: ["admin", "worker"] },
     ]
 

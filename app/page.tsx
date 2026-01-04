@@ -1,20 +1,49 @@
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabaseClient"
 import { ProductCard } from "@/components/product-card"
-import { CartButton } from "@/components/cart-button"
 import { Database } from "@/types/database.types"
+import Link from "next/link"
 
 // Types
 type Product = Database['public']['Tables']['productos']['Row']
+type Category = Database['public']['Tables']['categorias']['Row']
 
 export const revalidate = 0 // Disable cache for real-time feel (optional, better for dev)
 
-export default async function Home() {
-  // 1. Fetch products directly from Supabase
-  const { data: products, error } = await supabase
+export default async function Home({
+  searchParams,
+}: {
+  searchParams?:
+    | Record<string, string | string[] | undefined>
+    | Promise<Record<string, string | string[] | undefined>>
+}) {
+  const resolvedSearchParams =
+    searchParams && typeof (searchParams as any).then === 'function'
+      ? await (searchParams as Promise<Record<string, string | string[] | undefined>>)
+      : searchParams
+
+  const rawCat = resolvedSearchParams?.cat
+  const selectedCategorySlug = (Array.isArray(rawCat) ? rawCat[0] : rawCat || '').trim()
+
+  const { data: categories } = await supabase
+    .from('categorias')
+    .select('*')
+    .order('nombre', { ascending: true })
+
+  const selectedCategory = (categories as Category[] | null)?.find(
+    (c) => c.slug === selectedCategorySlug
+  )
+  
+  let productsQuery = supabase
     .from('productos')
     .select('*')
     .order('created_at', { ascending: false })
+
+  if (selectedCategory?.id) {
+    productsQuery = productsQuery.eq('categoria_id', selectedCategory.id)
+  }
+
+  const { data: products, error } = await productsQuery
   let bestSellers: Product[] = []
   try {
     const { data: soldItems, error: soldItemsError } = await supabase
@@ -98,6 +127,30 @@ export default async function Home() {
           <h3 className="text-lg font-bold text-foreground">Populares</h3>
           <Button variant="link" size="sm" className="text-muted-foreground hover:text-primary">Ver todo</Button>
         </div>
+
+        {categories && categories.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto px-2 pb-3">
+            <Button
+              asChild
+              variant={!selectedCategorySlug ? 'secondary' : 'outline'}
+              size="sm"
+              className="shrink-0"
+            >
+              <Link href="/">Todos</Link>
+            </Button>
+            {(categories as Category[]).map((cat) => (
+              <Button
+                key={cat.id}
+                asChild
+                variant={cat.slug === selectedCategorySlug ? 'secondary' : 'outline'}
+                size="sm"
+                className="shrink-0"
+              >
+                <Link href={`/?cat=${encodeURIComponent(cat.slug)}`}>{cat.nombre}</Link>
+              </Button>
+            ))}
+          </div>
+        )}
 
         {!products || products.length === 0 ? (
           <div className="text-center py-10 text-gray-500">

@@ -1,18 +1,56 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import { useCartStore } from "@/store/cart"
 import { Button } from "@/components/ui/button"
-import { ShoppingCart, Plus, Minus, Search, Filter } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import {
+    Sheet,
+    SheetContent,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@/components/ui/sheet"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
+import { formatCurrency } from "@/lib/utils"
+import { Database } from "@/types/database.types"
+import { Filter, Minus, Plus, Search, ShoppingCart, X } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { ProductImageCarousel } from "@/components/product-image-carousel"
+
+type Product = Database['public']['Tables']['productos']['Row']
+type Category = Database['public']['Tables']['categorias']['Row']
+
+type SortValue = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc' | 'newest'
 
 export default function ProductosPage() {
-    const [productos, setProductos] = useState<any[]>([])
-    const [categorias, setCategorias] = useState<any[]>([])
+    const router = useRouter()
+    const searchParams = useSearchParams()
+
+    const [productos, setProductos] = useState<Product[]>([])
+    const [categorias, setCategorias] = useState<Category[]>([])
     const [loading, setLoading] = useState(true)
     const [selectedCategory, setSelectedCategory] = useState<string>("all")
     const [searchQuery, setSearchQuery] = useState("")
+    const [sort, setSort] = useState<SortValue>('name-asc')
+    const [minPrice, setMinPrice] = useState<string>('')
+    const [maxPrice, setMaxPrice] = useState<string>('')
+    const [onlyInStock, setOnlyInStock] = useState<boolean>(false)
+    const [filtersOpen, setFiltersOpen] = useState(false)
+    const [draftCategory, setDraftCategory] = useState<string>('all')
+    const [draftSort, setDraftSort] = useState<SortValue>('name-asc')
+    const [draftMinPrice, setDraftMinPrice] = useState<string>('')
+    const [draftMaxPrice, setDraftMaxPrice] = useState<string>('')
+    const [draftOnlyInStock, setDraftOnlyInStock] = useState<boolean>(false)
 
     const { addItem, items, updateQuantity } = useCartStore()
 
@@ -27,7 +65,7 @@ export default function ProductosPage() {
         const { data: productosData } = await supabase
             .from('productos')
             .select('*')
-            .order('nombre', { ascending: true })
+            .order('created_at', { ascending: false })
 
         // Fetch categories
         const { data: categoriasData } = await supabase
@@ -35,18 +73,154 @@ export default function ProductosPage() {
             .select('*')
             .order('nombre', { ascending: true })
 
-        if (productosData) setProductos(productosData)
-        if (categoriasData) setCategorias(categoriasData)
+        if (productosData) setProductos(productosData as Product[])
+        if (categoriasData) setCategorias(categoriasData as Category[])
 
         setLoading(false)
     }
 
-    // Filter products
-    const filteredProducts = productos.filter(producto => {
-        const matchesCategory = selectedCategory === "all" || producto.categoria_id?.toString() === selectedCategory
-        const matchesSearch = producto.nombre.toLowerCase().includes(searchQuery.toLowerCase())
-        return matchesCategory && matchesSearch
-    })
+    function updateUrl(next: Record<string, string | undefined>, mode: 'push' | 'replace' = 'replace') {
+        const params = new URLSearchParams(searchParams?.toString())
+        for (const [key, value] of Object.entries(next)) {
+            if (!value) {
+                params.delete(key)
+            } else {
+                params.set(key, value)
+            }
+        }
+        const qs = params.toString()
+        const href = qs ? `/productos?${qs}` : '/productos'
+        if (mode === 'push') {
+            router.push(href)
+        } else {
+            router.replace(href)
+        }
+    }
+
+    const appliedFromUrl = useMemo(() => {
+        const cat = searchParams?.get('cat') ?? 'all'
+        const q = searchParams?.get('q') ?? ''
+        const s = (searchParams?.get('sort') ?? 'name-asc') as SortValue
+        const min = searchParams?.get('min') ?? ''
+        const max = searchParams?.get('max') ?? ''
+        const stock = searchParams?.get('stock') === '1'
+        return {
+            cat,
+            q,
+            sort: (['name-asc', 'name-desc', 'price-asc', 'price-desc', 'newest'] as const).includes(s) ? s : 'name-asc',
+            min,
+            max,
+            stock,
+        }
+    }, [searchParams])
+
+    useEffect(() => {
+        setSelectedCategory(appliedFromUrl.cat || 'all')
+        setSearchQuery(appliedFromUrl.q || '')
+        setSort(appliedFromUrl.sort)
+        setMinPrice(appliedFromUrl.min || '')
+        setMaxPrice(appliedFromUrl.max || '')
+        setOnlyInStock(Boolean(appliedFromUrl.stock))
+    }, [appliedFromUrl])
+
+    useEffect(() => {
+        const handle = setTimeout(() => {
+            updateUrl({ q: searchQuery || undefined }, 'replace')
+        }, 250)
+        return () => clearTimeout(handle)
+    }, [searchQuery])
+
+    useEffect(() => {
+        if (!filtersOpen) return
+        setDraftCategory(selectedCategory)
+        setDraftSort(sort)
+        setDraftMinPrice(minPrice)
+        setDraftMaxPrice(maxPrice)
+        setDraftOnlyInStock(onlyInStock)
+    }, [filtersOpen, selectedCategory, sort, minPrice, maxPrice, onlyInStock])
+
+    function applyFilters(list: Product[], opts: { cat: string; q: string; min: string; max: string; stock: boolean }) {
+        const q = (opts.q || '').trim().toLowerCase()
+        const min = opts.min ? Number(opts.min) : null
+        const max = opts.max ? Number(opts.max) : null
+
+        return list.filter((producto) => {
+            const matchesCategory = opts.cat === 'all' || producto.categoria_id?.toString() === opts.cat
+            const matchesSearch = !q || producto.nombre.toLowerCase().includes(q)
+            const matchesMin = min === null || producto.precio >= min
+            const matchesMax = max === null || producto.precio <= max
+            const matchesStock = !opts.stock || producto.stock > 0
+            return matchesCategory && matchesSearch && matchesMin && matchesMax && matchesStock
+        })
+    }
+
+    function applySort(list: Product[], sortValue: SortValue) {
+        const next = [...list]
+        if (sortValue === 'price-asc') next.sort((a, b) => a.precio - b.precio)
+        if (sortValue === 'price-desc') next.sort((a, b) => b.precio - a.precio)
+        if (sortValue === 'name-asc') next.sort((a, b) => a.nombre.localeCompare(b.nombre))
+        if (sortValue === 'name-desc') next.sort((a, b) => b.nombre.localeCompare(a.nombre))
+        if (sortValue === 'newest') next.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        return next
+    }
+
+    const filteredProducts = useMemo(() => {
+        const list = applyFilters(productos, {
+            cat: selectedCategory,
+            q: searchQuery,
+            min: minPrice,
+            max: maxPrice,
+            stock: onlyInStock,
+        })
+        return applySort(list, sort)
+    }, [productos, selectedCategory, searchQuery, minPrice, maxPrice, onlyInStock, sort])
+
+    const previewFilteredProducts = useMemo(() => {
+        const list = applyFilters(productos, {
+            cat: draftCategory,
+            q: searchQuery,
+            min: draftMinPrice,
+            max: draftMaxPrice,
+            stock: draftOnlyInStock,
+        })
+        return applySort(list, draftSort)
+    }, [productos, draftCategory, searchQuery, draftMinPrice, draftMaxPrice, draftOnlyInStock, draftSort])
+
+    const appliedBadges = useMemo(() => {
+        const badges: { key: string; label: string; onClear: () => void }[] = []
+
+        if (draftCategory !== 'all') {
+            const catName = categorias.find((c) => c.id.toString() === draftCategory)?.nombre || 'Categoría'
+            badges.push({
+                key: 'cat',
+                label: catName,
+                onClear: () => setDraftCategory('all'),
+            })
+        }
+        if (draftMinPrice) {
+            badges.push({
+                key: 'min',
+                label: `Desde $${draftMinPrice}`,
+                onClear: () => setDraftMinPrice(''),
+            })
+        }
+        if (draftMaxPrice) {
+            badges.push({
+                key: 'max',
+                label: `Hasta $${draftMaxPrice}`,
+                onClear: () => setDraftMaxPrice(''),
+            })
+        }
+        if (draftOnlyInStock) {
+            badges.push({
+                key: 'stock',
+                label: 'Solo en stock',
+                onClear: () => setDraftOnlyInStock(false),
+            })
+        }
+
+        return badges
+    }, [categorias, draftCategory, draftMinPrice, draftMaxPrice, draftOnlyInStock])
 
     const getItemQuantity = (productId: number) => {
         const item = items.find(i => i.id === productId)
@@ -80,12 +254,168 @@ export default function ProductosPage() {
                             />
                         </div>
 
+                        <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+                            <SheetTrigger asChild>
+                                <Button variant="outline" className="gap-2">
+                                    <Filter className="h-4 w-4" />
+                                    Filtrar y ordenar
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="right" className="p-0">
+                                <SheetHeader className="border-b">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <SheetTitle className="text-base tracking-wide">Filtrar y ordenar</SheetTitle>
+                                        <Button
+                                            type="button"
+                                            variant="link"
+                                            className="px-0"
+                                            onClick={() => {
+                                                setDraftCategory('all')
+                                                setDraftSort('name-asc')
+                                                setDraftMinPrice('')
+                                                setDraftMaxPrice('')
+                                                setDraftOnlyInStock(false)
+                                            }}
+                                        >
+                                            Borrar todo
+                                        </Button>
+                                    </div>
+                                </SheetHeader>
+
+                                <div className="px-4 pb-4 space-y-6 overflow-y-auto">
+                                    {appliedBadges.length > 0 && (
+                                        <div className="pt-4">
+                                            <div className="text-sm font-semibold mb-2">Filtros aplicados</div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {appliedBadges.map((b) => (
+                                                    <Badge key={b.key} variant="outline" className="rounded-md">
+                                                        <button
+                                                            type="button"
+                                                            className="inline-flex items-center gap-2"
+                                                            onClick={b.onClear}
+                                                        >
+                                                            <X className="h-3.5 w-3.5" />
+                                                            <span>{b.label}</span>
+                                                        </button>
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="space-y-2 pt-4 border-t">
+                                        <div className="text-sm font-semibold">Ordenar por</div>
+                                        <Select value={draftSort} onValueChange={(v) => setDraftSort(v as SortValue)}>
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="Selecciona" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="name-asc">Nombre: A → Z</SelectItem>
+                                                <SelectItem value="name-desc">Nombre: Z → A</SelectItem>
+                                                <SelectItem value="price-asc">Precio: menor → mayor</SelectItem>
+                                                <SelectItem value="price-desc">Precio: mayor → menor</SelectItem>
+                                                <SelectItem value="newest">Más nuevos</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="space-y-2 pt-4 border-t">
+                                        <div className="text-sm font-semibold">Categoría de producto</div>
+                                        <Select value={draftCategory} onValueChange={setDraftCategory}>
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="Selecciona" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">Todos</SelectItem>
+                                                {categorias.map((cat) => (
+                                                    <SelectItem key={cat.id} value={cat.id.toString()}>
+                                                        {cat.nombre}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="space-y-3 pt-4 border-t">
+                                        <div className="text-sm font-semibold">Precio</div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="space-y-1">
+                                                <div className="text-xs text-muted-foreground">Mínimo</div>
+                                                <Input
+                                                    inputMode="numeric"
+                                                    placeholder="0"
+                                                    value={draftMinPrice}
+                                                    onChange={(e) => setDraftMinPrice(e.target.value.replace(/[^0-9.]/g, ''))}
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <div className="text-xs text-muted-foreground">Máximo</div>
+                                                <Input
+                                                    inputMode="numeric"
+                                                    placeholder="9999"
+                                                    value={draftMaxPrice}
+                                                    onChange={(e) => setDraftMaxPrice(e.target.value.replace(/[^0-9.]/g, ''))}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-4 border-t">
+                                        <button
+                                            type="button"
+                                            className="w-full flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm"
+                                            onClick={() => setDraftOnlyInStock((v) => !v)}
+                                        >
+                                            <span className="font-medium">Solo en stock</span>
+                                            <span className={draftOnlyInStock ? 'text-primary font-semibold' : 'text-muted-foreground'}>
+                                                {draftOnlyInStock ? 'Sí' : 'No'}
+                                            </span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <SheetFooter className="border-t">
+                                    <div className="w-full space-y-2">
+                                        <div className="text-sm text-muted-foreground">
+                                            {previewFilteredProducts.length} artículos encontrados
+                                        </div>
+                                        <Button
+                                            className="w-full"
+                                            onClick={() => {
+                                                setSelectedCategory(draftCategory)
+                                                setSort(draftSort)
+                                                setMinPrice(draftMinPrice)
+                                                setMaxPrice(draftMaxPrice)
+                                                setOnlyInStock(draftOnlyInStock)
+                                                updateUrl(
+                                                    {
+                                                        cat: draftCategory !== 'all' ? draftCategory : undefined,
+                                                        sort: draftSort !== 'name-asc' ? draftSort : undefined,
+                                                        min: draftMinPrice || undefined,
+                                                        max: draftMaxPrice || undefined,
+                                                        stock: draftOnlyInStock ? '1' : undefined,
+                                                    },
+                                                    'push'
+                                                )
+                                                setFiltersOpen(false)
+                                            }}
+                                        >
+                                            Aplicar
+                                        </Button>
+                                    </div>
+                                </SheetFooter>
+                            </SheetContent>
+                        </Sheet>
+
                         {/* Category Filter */}
                         <div className="flex gap-2 flex-wrap">
                             <Button
                                 variant={selectedCategory === "all" ? "default" : "outline"}
                                 size="sm"
-                                onClick={() => setSelectedCategory("all")}
+                                onClick={() => {
+                                    setSelectedCategory("all")
+                                    updateUrl({ cat: undefined }, 'replace')
+                                }}
                             >
                                 Todos
                             </Button>
@@ -94,7 +424,10 @@ export default function ProductosPage() {
                                     key={cat.id}
                                     variant={selectedCategory === cat.id.toString() ? "default" : "outline"}
                                     size="sm"
-                                    onClick={() => setSelectedCategory(cat.id.toString())}
+                                    onClick={() => {
+                                        setSelectedCategory(cat.id.toString())
+                                        updateUrl({ cat: cat.id.toString() }, 'replace')
+                                    }}
                                 >
                                     {cat.nombre}
                                 </Button>
@@ -127,11 +460,19 @@ export default function ProductosPage() {
                                 <div key={producto.id} className="bg-card rounded-xl shadow-sm border border-border overflow-hidden group hover:shadow-lg transition-all">
                                     {/* Image */}
                                     <div className="aspect-square bg-popover relative overflow-hidden">
-                                        {producto.imagen_url ? (
-                                            <img
-                                                src={producto.imagen_url}
+                                        {((Array.isArray((producto as any).imagenes) && ((producto as any).imagenes as string[]).filter(Boolean).length > 0) || producto.imagen_url) ? (
+                                            <ProductImageCarousel
+                                                images={
+                                                    (Array.isArray((producto as any).imagenes)
+                                                        ? (((producto as any).imagenes as string[]) || []).filter(Boolean).slice(0, 10)
+                                                        : producto.imagen_url
+                                                            ? [producto.imagen_url]
+                                                            : [])
+                                                }
                                                 alt={producto.nombre}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                className="group-hover:scale-105 transition-transform duration-300"
+                                                autoPlay
+                                                intervalMs={2500}
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-muted-foreground">
@@ -148,7 +489,7 @@ export default function ProductosPage() {
                                     {/* Info */}
                                     <div className="p-4">
                                         <h3 className="font-semibold text-foreground mb-1 line-clamp-2">{producto.nombre}</h3>
-                                        <p className="text-xl font-bold text-primary mb-3">${producto.precio.toFixed(2)}</p>
+                                        <p className="text-xl font-bold text-primary mb-3">{formatCurrency(producto.precio)}</p>
 
                                         {producto.stock > 0 ? (
                                             quantity === 0 ? (

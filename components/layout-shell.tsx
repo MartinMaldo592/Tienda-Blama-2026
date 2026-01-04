@@ -13,15 +13,16 @@ type LayoutShellProps = {
 export function LayoutShell({ children }: LayoutShellProps) {
   const pathname = usePathname()
   const isAdmin = pathname?.startsWith("/admin")
+  const isAuth = pathname?.startsWith("/auth")
 
-  if (isAdmin) {
+  if (isAdmin || isAuth) {
     return <>{children}</>
   }
 
   return (
     <>
       <Header />
-      <AnnouncementBar className="sticky top-16 z-40" />
+      <AnnouncementBar className="sticky top-16 z-40" intervalMs={3000} />
       <div className="flex-1">{children}</div>
       <Footer />
     </>

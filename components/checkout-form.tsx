@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, Loader2, MapPin } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
+import { formatCurrency } from "@/lib/utils"
 
 // Define libraries array outside component to prevent re-renders
 const libraries: ("places")[] = ["places"];
@@ -186,13 +187,13 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
         if (locationLink) messageClientePreview += `Ubicación: ${locationLink}\n`;
         messageClientePreview += `\n*DETALLE DEL PEDIDO:*\n`;
         items.forEach(item => {
-            messageClientePreview += `• ${item.quantity} x ${item.nombre} - $${(item.precio * item.quantity).toFixed(2)}\n`;
+            messageClientePreview += `• ${item.quantity} x ${item.nombre} - ${formatCurrency(item.precio * item.quantity)}\n`;
         })
         if (finalDiscount > 0 && appliedCouponCode) {
-            messageClientePreview += `\n*SUBTOTAL: $${subtotalAmount.toFixed(2)}*`;
-            messageClientePreview += `\n*CUPÓN (${appliedCouponCode}): -$${finalDiscount.toFixed(2)}*`;
+            messageClientePreview += `\n*SUBTOTAL: ${formatCurrency(subtotalAmount)}*`;
+            messageClientePreview += `\n*CUPÓN (${appliedCouponCode}): -${formatCurrency(finalDiscount)}*`;
         }
-        messageClientePreview += `\n*TOTAL: $${finalTotal.toFixed(2)}*`;
+        messageClientePreview += `\n*TOTAL: ${formatCurrency(finalTotal)}*`;
 
         const phoneNumberClienteInit = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "982432561";
 
@@ -327,14 +328,14 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             messageCliente += `\n--------------------------------\n\n`
             messageCliente += `*DETALLE DEL PEDIDO:*\n`
             items.forEach(item => {
-                messageCliente += `• ${item.quantity} x ${item.nombre}\n   Sub: $${(item.precio * item.quantity).toFixed(2)}\n`
+                messageCliente += `• ${item.quantity} x ${item.nombre}\n   Sub: ${formatCurrency(item.precio * item.quantity)}\n`
             })
             messageCliente += `\n--------------------------------\n`
             if (finalDiscount > 0 && appliedCouponCode) {
-                messageCliente += `💵 *SUBTOTAL: $${subtotalAmount.toFixed(2)}*\n`
-                messageCliente += `🏷️ *CUPÓN (${appliedCouponCode}): -$${finalDiscount.toFixed(2)}*\n`
+                messageCliente += `💵 *SUBTOTAL: ${formatCurrency(subtotalAmount)}*\n`
+                messageCliente += `🏷️ *CUPÓN (${appliedCouponCode}): -${formatCurrency(finalDiscount)}*\n`
             }
-            messageCliente += `💰 *TOTAL A PAGAR: $${finalTotal.toFixed(2)}*`
+            messageCliente += `💰 *TOTAL A PAGAR: ${formatCurrency(finalTotal)}*`
 
             // F. ⭐ NOTIFICACIÓN AUTOMÁTICA AL ADMIN (Twilio)
             try {
@@ -500,15 +501,15 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                     <div className="text-sm font-medium space-y-1">
                         <div className="flex justify-between items-center">
                             <span>Subtotal:</span>
-                            <span>${subtotalAmount.toFixed(2)}</span>
+                            <span>{formatCurrency(subtotalAmount)}</span>
                         </div>
                         <div className="flex justify-between items-center">
                             <span>Descuento:</span>
-                            <span>-${discountAmount.toFixed(2)}</span>
+                            <span>-{formatCurrency(discountAmount)}</span>
                         </div>
                         <div className="flex justify-between items-center">
                             <span>Total a Pagar:</span>
-                            <span className="text-lg font-bold">${totalToPay.toFixed(2)}</span>
+                            <span className="text-lg font-bold">{formatCurrency(totalToPay)}</span>
                         </div>
                     </div>
                 </div>

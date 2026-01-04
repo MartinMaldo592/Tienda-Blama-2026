@@ -5,6 +5,7 @@ import { ShoppingCart, Trash2, Plus, Minus, Image as ImageIcon, CheckCircle } fr
 import { useCartStore } from "@/store/cart"
 import { useEffect, useState } from "react"
 import { CheckoutForm } from "@/components/checkout-form"
+import { formatCurrency } from "@/lib/utils"
 import {
     Sheet,
     SheetContent,
@@ -138,7 +139,7 @@ export function CartButton() {
                                             <div className="flex-1 flex flex-col justify-between">
                                             <div>
                                                 <h4 className="font-semibold text-sm line-clamp-1">{item.nombre}</h4>
-                                                <p className="text-xs text-muted-foreground">Unitario: ${item.precio.toFixed(2)}</p>
+                                                <p className="text-xs text-muted-foreground">Unitario: {formatCurrency(item.precio)}</p>
                                             </div>
 
                                             <div className="flex justify-between items-end">
@@ -182,7 +183,7 @@ export function CartButton() {
                                 <div className="p-4 border-t border-border bg-popover space-y-4">
                                 <div className="flex justify-between items-center text-lg font-bold">
                                     <span>Total:</span>
-                                    <span>${total.toFixed(2)}</span>
+                                    <span>{formatCurrency(total)}</span>
                                 </div>
                                     <Button
                                     onClick={() => setView('checkout')}

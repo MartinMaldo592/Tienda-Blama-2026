@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
-import { ChevronDown } from "lucide-react"
 
 type AnnouncementBarProps = {
   messages?: string[]
@@ -11,7 +10,7 @@ type AnnouncementBarProps = {
 
 export function AnnouncementBar({
   messages,
-  intervalMs = 3500,
+  intervalMs = 3000,
   className,
 }: AnnouncementBarProps) {
   const defaultMessages = useMemo(
@@ -58,7 +57,6 @@ export function AnnouncementBar({
         <span key={index} className="animate-in fade-in duration-300">
           {items[index]}
         </span>
-        <ChevronDown className="h-3.5 w-3.5 opacity-80" />
       </div>
     </div>
   )

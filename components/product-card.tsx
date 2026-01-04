@@ -4,9 +4,11 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Plus, Image as ImageIcon } from "lucide-react"
+import { formatCurrency } from "@/lib/utils"
 import { Database } from "@/types/database.types"
 import { useCartStore } from "@/store/cart"
 import { useState } from "react"
+import { ProductImageCarousel } from "@/components/product-image-carousel"
 
 type Product = Database['public']['Tables']['productos']['Row']
 
@@ -17,6 +19,13 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
     const addItem = useCartStore((state) => state.addItem)
     const [isAdded, setIsAdded] = useState(false)
+
+    const images = (
+        (Array.isArray((product as any).imagenes) ? ((product as any).imagenes as string[]) : [])
+            .filter(Boolean)
+            .slice(0, 10)
+    )
+    const fallbackImages = images.length > 0 ? images : product.imagen_url ? [product.imagen_url] : []
 
     const handleAddToCart = () => {
         addItem(product)
@@ -29,12 +38,13 @@ export function ProductCard({ product }: ProductCardProps) {
     return (
         <Card className="group overflow-hidden border-none shadow-sm hover:shadow-md transition-all duration-300 bg-card flex flex-col rounded-xl">
             <div className="aspect-square bg-popover relative overflow-hidden">
-                {product.imagen_url ? (
-                    <img
-                        src={product.imagen_url}
+                {fallbackImages.length > 0 ? (
+                    <ProductImageCarousel
+                        images={fallbackImages}
                         alt={product.nombre}
-                        className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
+                        className="group-hover:scale-105 transition-transform duration-300"
+                        autoPlay
+                        intervalMs={2500}
                     />
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-muted-foreground group-hover:scale-110 transition-transform duration-300">
@@ -50,7 +60,7 @@ export function ProductCard({ product }: ProductCardProps) {
                     <h4 className="font-medium text-sm line-clamp-2 leading-tight mb-1 text-gray-700">{product.nombre}</h4>
                 </div>
                 <div className="mt-1">
-                    <p className="text-lg font-bold text-foreground">${Number(product.precio).toFixed(2)}</p>
+                    <p className="text-lg font-bold text-foreground">{formatCurrency(product.precio)}</p>
                 </div>
             </CardContent>
 

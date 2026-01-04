@@ -14,6 +14,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { ArrowLeft, MapPin, Phone, User, Calendar, CreditCard, Save, UserCheck } from "lucide-react"
+import { formatCurrency } from "@/lib/utils"
 
 export default function PedidoDetallePage() {
     const params = useParams()
@@ -161,7 +162,16 @@ export default function PedidoDetallePage() {
                         Realizado el {new Date(pedido.created_at).toLocaleString()}
                     </p>
                 </div>
-                <div className="ml-auto flex gap-2 items-center bg-white p-2 rounded-lg border shadow-sm">
+                <div className="ml-auto flex gap-2 items-center">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push(`/admin/pedidos/${id}/ticket`)}
+                    >
+                        Ticket
+                    </Button>
+
+                    <div className="flex gap-2 items-center bg-white p-2 rounded-lg border shadow-sm">
                     <span className="text-sm font-medium">Estado:</span>
                     <Select value={status} onValueChange={setStatus}>
                         <SelectTrigger className="w-[180px]">
@@ -180,6 +190,7 @@ export default function PedidoDetallePage() {
                         <Save className="h-4 w-4 mr-2" />
                         Guardar
                     </Button>
+                    </div>
                 </div>
             </div>
 
@@ -206,15 +217,15 @@ export default function PedidoDetallePage() {
                                         <p className="text-sm text-gray-500">Cantidad: {item.cantidad}</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-medium">${(item.productos?.precio * item.cantidad).toFixed(2)}</p>
-                                        <p className="text-xs text-gray-400">${item.productos?.precio} c/u</p>
+                                        <p className="font-medium">{formatCurrency((item.productos?.precio || 0) * (item.cantidad || 0))}</p>
+                                        <p className="text-xs text-gray-400">{formatCurrency(item.productos?.precio || 0)} c/u</p>
                                     </div>
                                 </div>
                             ))}
                         </div>
                         <div className="mt-6 pt-4 border-t flex justify-between items-center text-lg font-bold">
                             <span>Total</span>
-                            <span>${pedido.total.toFixed(2)}</span>
+                            <span>{formatCurrency(pedido.total)}</span>
                         </div>
                     </div>
                 </div>

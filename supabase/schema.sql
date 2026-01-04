@@ -17,6 +17,7 @@ create table if not exists productos (
   precio numeric not null,
   stock integer not null default 0,
   imagen_url text,
+  imagenes text[],
   categoria_id bigint references categorias(id) on delete set null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
