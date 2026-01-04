@@ -17,10 +17,12 @@ export default async function Home({
     | Record<string, string | string[] | undefined>
     | Promise<Record<string, string | string[] | undefined>>
 }) {
-  const resolvedSearchParams =
+  const resolvedSearchParams:
+    | Record<string, string | string[] | undefined>
+    | undefined =
     searchParams && typeof (searchParams as any).then === 'function'
       ? await (searchParams as Promise<Record<string, string | string[] | undefined>>)
-      : searchParams
+      : (searchParams as Record<string, string | string[] | undefined> | undefined)
 
   const rawCat = resolvedSearchParams?.cat
   const selectedCategorySlug = (Array.isArray(rawCat) ? rawCat[0] : rawCat || '').trim()
