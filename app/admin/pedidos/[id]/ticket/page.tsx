@@ -20,6 +20,15 @@ export default function PedidoTicketPage() {
     fetchTicket()
   }, [id])
 
+  useEffect(() => {
+    if (!pedido) return
+    try {
+      const orderId = String(pedido.id).padStart(6, "0")
+      document.title = `Ticket Pedido #${orderId} - Blama Shop`
+    } catch (err) {
+    }
+  }, [pedido])
+
   async function fetchTicket() {
     setLoading(true)
 
@@ -74,7 +83,7 @@ export default function PedidoTicketPage() {
         </Button>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => window.print()}>
-            Imprimir / Guardar PDF
+            Descargar ticket
           </Button>
         </div>
       </div>

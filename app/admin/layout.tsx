@@ -15,6 +15,7 @@ export default function AdminLayout({
     const pathname = usePathname()
     const [loading, setLoading] = useState(true)
     const [userRole, setUserRole] = useState<string | null>(null)
+    const isTicketRoute = pathname?.includes('/admin/pedidos/') && pathname?.endsWith('/ticket')
 
     useEffect(() => {
         checkAuth()
@@ -52,6 +53,10 @@ export default function AdminLayout({
                 </div>
             </div>
         )
+    }
+
+    if (isTicketRoute) {
+        return <>{children}</>
     }
 
     return (

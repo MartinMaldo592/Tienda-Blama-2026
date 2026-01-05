@@ -50,8 +50,8 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
     const [reference, setReference] = useState("")
     const [locationLink, setLocationLink] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [popupBlocked, setPopupBlocked] = useState(false)
-    const [blockedUrl, setBlockedUrl] = useState<string | null>(null)
+    const [waPromptOpen, setWaPromptOpen] = useState(false)
+    const [waUrl, setWaUrl] = useState<string | null>(null)
     const [couponCode, setCouponCode] = useState("")
     const [couponDiscount, setCouponDiscount] = useState(0)
     const [couponApplying, setCouponApplying] = useState(false)
@@ -208,36 +208,27 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
 
         const phoneNumberClienteInit = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "982432561";
 
-        // Detectar móvil para construir la URL apropiada.
-        const isMobile = /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent)
-
-        // Intentamos priorizar la versión web. En escritorio redirigimos a web.whatsapp.com;
-        // en móvil usamos api.whatsapp.com con el parámetro `app_absent=1` para indicar
-        // preferencia por la web cuando sea posible (no es 100% garantizado).
-        const baseInit = isMobile
-            ? `https://api.whatsapp.com/send` // móvil: api con intento de app_absent
-            : `https://web.whatsapp.com/send` // escritorio: web.whatsapp.com
-
-        // Abrir diferente según dispositivo:
-        // - Desktop: abrir directamente web.whatsapp.com con el mensaje preview.
-        // - Móvil: abrir nuestra página interna `/open-wa` para que la tienda no se cierre.
-        let popup: Window | null = null
-        if (!isMobile) {
-            const initUrl = `${baseInit}?phone=${phoneNumberClienteInit}&text=${encodeURIComponent(messageClientePreview)}`
-            popup = window.open(initUrl, '_blank', 'noopener,noreferrer')
-            if (!popup) {
-                // popup was blocked on desktop (rare) — mark blocked and keep store open
-                setPopupBlocked(true)
-                setBlockedUrl(initUrl)
+        // Abrimos WhatsApp DIRECTO por API (sin páginas intermedias) en una pestaña nueva
+        // para que la tienda no se cierre.
+        // Pre-abrimos la pestaña en blanco durante el click del usuario para minimizar bloqueos.
+        const initialWhatsAppUrl = `https://api.whatsapp.com/send/?phone=${encodeURIComponent(phoneNumberClienteInit)}&text=${encodeURIComponent(messageClientePreview)}&type=phone_number&app_absent=0`
+        const popup = window.open('about:blank', '_blank')
+        if (popup) {
+            try {
+                try {
+                    ;(popup as any).opener = null
+                } catch (err) {
+                }
+                popup.location.href = initialWhatsAppUrl
+            } catch (err) {
+                // Fallback: si no podemos navegar, mostramos botón manual.
+                setWaUrl(initialWhatsAppUrl)
+                setWaPromptOpen(true)
             }
         } else {
-            const openUrl = `${window.location.origin}/open-wa?phone=${encodeURIComponent(phoneNumberClienteInit)}&text=${encodeURIComponent(messageClientePreview)}`
-            popup = window.open(openUrl, '_blank', 'noopener,noreferrer')
-            if (!popup) {
-                // popup blocked on mobile — mark blocked and keep store open
-                setPopupBlocked(true)
-                setBlockedUrl(openUrl)
-            }
+            // Popup bloqueado: mostramos botón manual.
+            setWaUrl(initialWhatsAppUrl)
+            setWaPromptOpen(true)
         }
 
 
@@ -363,42 +354,21 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 console.error('Error sending admin notification:', notifyError)
             }
 
-            // G. Preparar enlace de WhatsApp final (incluye id de pedido) y, si el popup
-            // se abrió inicialmente con la URL de previsualización, actualizaremos
-            // la pestaña del usuario a la URL final con el mensaje completo.
-            // Construir la URL final preferente (intentar priorizar la versión web cuando sea posible)
-            const isMobileFinal = /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent)
-            const baseFinal = isMobileFinal
-                ? `https://api.whatsapp.com/send`
-                : `https://web.whatsapp.com/send`
-            // Final URL seguirá apuntando a la API/Web de WhatsApp, pero actualizaremos
-            // la pestaña abierta en nuestra propia ruta `/open-wa` para incluir el
-            // mensaje final en caso de que el usuario quiera pulsar desde allí.
-            const urlCliente = `${baseFinal}?phone=${phoneNumberCliente}&text=${encodeURIComponent(messageCliente)}${isMobileFinal ? '&app_absent=1' : ''}`
-
-            const finalOpenUrl = `${window.location.origin}/open-wa?phone=${encodeURIComponent(phoneNumberCliente)}&text=${encodeURIComponent(messageCliente)}`
+            // G. Preparar enlace de WhatsApp final (incluye id de pedido).
+            const urlCliente = `https://api.whatsapp.com/send/?phone=${encodeURIComponent(phoneNumberCliente)}&text=${encodeURIComponent(messageCliente)}&type=phone_number&app_absent=0`
 
             onComplete()
 
             try {
                 if (popup && !popup.closed) {
-                    // Actualizamos la pestaña abierta previamente para mostrar el mensaje final
-                    // y botones; el usuario decidirá si abre la app o la web.
-                    try {
-                        popup.location.href = finalOpenUrl
-                    } catch (err) {
-                        // Si por alguna razón no podemos acceder, como fallback abrimos la URL final.
-                        popup.location.href = urlCliente
-                    }
+                    popup.location.href = urlCliente
                 } else {
-                    // Si el popup fue bloqueado, mostramos un enlace dentro de la tienda
-                    // para que el usuario abra WhatsApp manualmente sin cerrar la tienda.
-                    setPopupBlocked(true)
-                    setBlockedUrl(urlCliente)
+                    setWaUrl(urlCliente)
+                    setWaPromptOpen(true)
                 }
             } catch (err) {
-                // Si hay error (cross-origin, bloqueo), fallback a navegación en la misma pestaña.
-                window.location.href = urlCliente
+                setWaUrl(urlCliente)
+                setWaPromptOpen(true)
             }
 
             if (appliedCouponId != null && finalDiscount > 0 && appliedCouponUsos != null) {
@@ -550,14 +520,14 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 </Button>
             </div>
         </form>
-        {popupBlocked && blockedUrl && (
+        {waPromptOpen && waUrl && (
             <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4">
                 <div className="w-full max-w-xl bg-card border border-border rounded-lg shadow-lg p-4">
                     <h3 className="text-lg font-semibold text-foreground">Abrir WhatsApp</h3>
-                    <p className="text-sm text-muted-foreground mt-2">Tu navegador bloqueó la apertura automática. Pulsa el botón para abrir WhatsApp sin cerrar la tienda.</p>
+                    <p className="text-sm text-muted-foreground mt-2">Pulsa el botón para abrir tu pedido en WhatsApp.</p>
                     <div className="mt-4 flex gap-3">
-                        <a href={blockedUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md">Abrir chat en WhatsApp</a>
-                        <button onClick={() => { setPopupBlocked(false); setBlockedUrl(null) }} className="px-4 py-2 border border-border rounded-md">Cerrar</button>
+                        <a href={waUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md">Abrir WhatsApp</a>
+                        <button onClick={() => { setWaPromptOpen(false); setWaUrl(null) }} className="px-4 py-2 border border-border rounded-md">Cerrar</button>
                     </div>
                 </div>
             </div>

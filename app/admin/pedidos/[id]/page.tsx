@@ -241,7 +241,7 @@ export default function PedidoDetallePage() {
                         size="sm"
                         onClick={() => router.push(`/admin/pedidos/${id}/ticket`)}
                     >
-                        Ticket
+                        Descargar ticket
                     </Button>
 
                     <div className="flex gap-2 items-center bg-white p-2 rounded-lg border shadow-sm">

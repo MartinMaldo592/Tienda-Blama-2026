@@ -5,11 +5,13 @@ import React, { useEffect, useState } from 'react'
 export default function OpenWaPageClient() {
   const [phone, setPhone] = useState('')
   const [text, setText] = useState('')
+  const [autoOpen, setAutoOpen] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     setPhone(params.get('phone') || '')
     setText(params.get('text') || '')
+    setAutoOpen(params.get('auto') === '1')
   }, [])
 
   const whatsappWeb = `https://web.whatsapp.com/send?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(text)}`
@@ -22,6 +24,7 @@ export default function OpenWaPageClient() {
     // Intentar abrir la aplicación nativa en móviles.
     // Ejecutamos esto solo una vez al cargar la página.
     if (!phone) return
+    if (!autoOpen) return
 
     // Solo intentar si estamos en un entorno móvil (simple UA check)
     const isMobile = /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent)

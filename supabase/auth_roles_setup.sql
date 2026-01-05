@@ -155,6 +155,35 @@ create policy "Staff puede leer clientes"
     )
   );
 
+drop policy if exists "Public puede crear clientes" on public.clientes;
+drop policy if exists "Public puede crear pedidos" on public.pedidos;
+drop policy if exists "Public puede crear pedido_items" on public.pedido_items;
+
+create policy "Public puede crear clientes"
+  on public.clientes for insert
+  with check (
+    nombre is not null
+    and length(trim(nombre)) > 0
+    and telefono is not null
+    and length(trim(telefono)) > 0
+  );
+
+create policy "Public puede crear pedidos"
+  on public.pedidos for insert
+  with check (
+    total is not null
+    and total >= 0
+    and coalesce(status, 'Pendiente') = 'Pendiente'
+  );
+
+create policy "Public puede crear pedido_items"
+  on public.pedido_items for insert
+  with check (
+    pedido_id is not null
+    and cantidad is not null
+    and cantidad > 0
+  );
+
 drop policy if exists "Staff puede leer incidencias" on public.incidencias;
 drop policy if exists "Staff puede crear incidencias" on public.incidencias;
 drop policy if exists "Admin puede eliminar incidencias" on public.incidencias;
