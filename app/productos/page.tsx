@@ -46,6 +46,8 @@ function ProductosPageContent() {
     const searchParams = useSearchParams()
 
     const [productos, setProductos] = useState<Product[]>([])
+    const [totalCount, setTotalCount] = useState<number>(0)
+    const [draftCount, setDraftCount] = useState<number | null>(null)
     const [categorias, setCategorias] = useState<Category[]>([])
     const [loading, setLoading] = useState(true)
     const [selectedCategory, setSelectedCategory] = useState<string>("all")
@@ -61,29 +63,102 @@ function ProductosPageContent() {
     const [draftMaxPrice, setDraftMaxPrice] = useState<string>('')
     const [draftOnlyInStock, setDraftOnlyInStock] = useState<boolean>(false)
 
+    const [pageSize, setPageSize] = useState<number>(() => {
+        if (typeof window === 'undefined') return 20
+        return window.matchMedia('(max-width: 767px)').matches ? 12 : 20
+    })
+
     const { addItem, items, updateQuantity } = useCartStore()
 
     useEffect(() => {
-        fetchData()
+        function updatePageSize() {
+            if (typeof window === 'undefined') return
+            const isMobile = window.matchMedia('(max-width: 767px)').matches
+            const next = isMobile ? 12 : 20
+            setPageSize((prev) => (prev === next ? prev : next))
+        }
+
+        updatePageSize()
+        if (typeof window === 'undefined') return
+
+        window.addEventListener('resize', updatePageSize)
+        return () => window.removeEventListener('resize', updatePageSize)
     }, [])
 
-    async function fetchData() {
+    async function fetchData(opts: {
+        cat: string
+        q: string
+        sort: SortValue
+        min: string
+        max: string
+        stock: boolean
+        page: number
+    }) {
         setLoading(true)
 
         // Fetch products
-        const { data: productosData } = await supabase
+        const q = (opts.q || '').trim()
+        const min = opts.min ? Number(opts.min) : null
+        const max = opts.max ? Number(opts.max) : null
+
+        let productsQuery = supabase
             .from('productos')
-            .select('*')
-            .order('created_at', { ascending: false })
+            .select('*', { count: 'exact' })
+
+        if (opts.cat !== 'all') {
+            const categoryId = Number(opts.cat)
+            if (Number.isFinite(categoryId)) {
+                productsQuery = productsQuery.eq('categoria_id', categoryId)
+            }
+        }
+
+        if (q) {
+            productsQuery = productsQuery.ilike('nombre', `%${q}%`)
+        }
+
+        if (min !== null && Number.isFinite(min)) {
+            productsQuery = productsQuery.gte('precio', min)
+        }
+
+        if (max !== null && Number.isFinite(max)) {
+            productsQuery = productsQuery.lte('precio', max)
+        }
+
+        if (opts.stock) {
+            productsQuery = productsQuery.gt('stock', 0)
+        }
+
+        if (opts.sort === 'price-asc') productsQuery = productsQuery.order('precio', { ascending: true })
+        if (opts.sort === 'price-desc') productsQuery = productsQuery.order('precio', { ascending: false })
+        if (opts.sort === 'name-asc') productsQuery = productsQuery.order('nombre', { ascending: true })
+        if (opts.sort === 'name-desc') productsQuery = productsQuery.order('nombre', { ascending: false })
+        if (opts.sort === 'newest') productsQuery = productsQuery.order('created_at', { ascending: false })
+
+        const from = Math.max(0, (opts.page - 1) * pageSize)
+        const to = Math.max(from, from + pageSize - 1)
+        productsQuery = productsQuery.range(from, to)
+
+        const { data: productosData, error: productosError, count } = await productsQuery
+        if (productosError) {
+            console.error('Error fetching products:', productosError)
+        }
 
         // Fetch categories
-        const { data: categoriasData } = await supabase
-            .from('categorias')
-            .select('*')
-            .order('nombre', { ascending: true })
+        if (!categorias || categorias.length === 0) {
+            const { data: categoriasData, error: categoriasError } = await supabase
+                .from('categorias')
+                .select('*')
+                .order('nombre', { ascending: true })
 
-        if (productosData) setProductos(productosData as Product[])
-        if (categoriasData) setCategorias(categoriasData as Category[])
+            if (categoriasError) {
+                console.error('Error fetching categories:', categoriasError)
+            }
+
+            if (categoriasData) setCategorias(categoriasData as Category[])
+        }
+
+        setProductos((productosData as Product[]) || [])
+        setTotalCount(Number(count || 0))
 
         setLoading(false)
     }
@@ -113,6 +188,8 @@ function ProductosPageContent() {
         const min = searchParams?.get('min') ?? ''
         const max = searchParams?.get('max') ?? ''
         const stock = searchParams?.get('stock') === '1'
+        const pageRaw = searchParams?.get('page') ?? '1'
+        const page = Math.max(1, Number.parseInt(pageRaw, 10) || 1)
         return {
             cat,
             q,
@@ -120,8 +197,13 @@ function ProductosPageContent() {
             min,
             max,
             stock,
+            page,
         }
     }, [searchParams])
+
+    useEffect(() => {
+        fetchData(appliedFromUrl)
+    }, [appliedFromUrl, pageSize])
 
     useEffect(() => {
         setSelectedCategory(appliedFromUrl.cat || 'all')
@@ -134,7 +216,7 @@ function ProductosPageContent() {
 
     useEffect(() => {
         const handle = setTimeout(() => {
-            updateUrl({ q: searchQuery || undefined }, 'replace')
+            updateUrl({ q: searchQuery || undefined, page: undefined }, 'replace')
         }, 250)
         return () => clearTimeout(handle)
     }, [searchQuery])
@@ -148,52 +230,65 @@ function ProductosPageContent() {
         setDraftOnlyInStock(onlyInStock)
     }, [filtersOpen, selectedCategory, sort, minPrice, maxPrice, onlyInStock])
 
-    function applyFilters(list: Product[], opts: { cat: string; q: string; min: string; max: string; stock: boolean }) {
-        const q = (opts.q || '').trim().toLowerCase()
-        const min = opts.min ? Number(opts.min) : null
-        const max = opts.max ? Number(opts.max) : null
+    const currentPage = appliedFromUrl.page
+    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
 
-        return list.filter((producto) => {
-            const matchesCategory = opts.cat === 'all' || producto.categoria_id?.toString() === opts.cat
-            const matchesSearch = !q || producto.nombre.toLowerCase().includes(q)
-            const matchesMin = min === null || producto.precio >= min
-            const matchesMax = max === null || producto.precio <= max
-            const matchesStock = !opts.stock || producto.stock > 0
-            return matchesCategory && matchesSearch && matchesMin && matchesMax && matchesStock
-        })
-    }
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            updateUrl({ page: undefined }, 'replace')
+        }
+    }, [currentPage, totalPages])
 
-    function applySort(list: Product[], sortValue: SortValue) {
-        const next = [...list]
-        if (sortValue === 'price-asc') next.sort((a, b) => a.precio - b.precio)
-        if (sortValue === 'price-desc') next.sort((a, b) => b.precio - a.precio)
-        if (sortValue === 'name-asc') next.sort((a, b) => a.nombre.localeCompare(b.nombre))
-        if (sortValue === 'name-desc') next.sort((a, b) => b.nombre.localeCompare(a.nombre))
-        if (sortValue === 'newest') next.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        return next
-    }
+    useEffect(() => {
+        if (!filtersOpen) {
+            setDraftCount(null)
+            return
+        }
 
-    const filteredProducts = useMemo(() => {
-        const list = applyFilters(productos, {
-            cat: selectedCategory,
-            q: searchQuery,
-            min: minPrice,
-            max: maxPrice,
-            stock: onlyInStock,
-        })
-        return applySort(list, sort)
-    }, [productos, selectedCategory, searchQuery, minPrice, maxPrice, onlyInStock, sort])
+        const handle = setTimeout(async () => {
+            const q = (searchQuery || '').trim()
+            const min = draftMinPrice ? Number(draftMinPrice) : null
+            const max = draftMaxPrice ? Number(draftMaxPrice) : null
 
-    const previewFilteredProducts = useMemo(() => {
-        const list = applyFilters(productos, {
-            cat: draftCategory,
-            q: searchQuery,
-            min: draftMinPrice,
-            max: draftMaxPrice,
-            stock: draftOnlyInStock,
-        })
-        return applySort(list, draftSort)
-    }, [productos, draftCategory, searchQuery, draftMinPrice, draftMaxPrice, draftOnlyInStock, draftSort])
+            let countQuery = supabase
+                .from('productos')
+                .select('id', { count: 'exact', head: true })
+
+            if (draftCategory !== 'all') {
+                const categoryId = Number(draftCategory)
+                if (Number.isFinite(categoryId)) {
+                    countQuery = countQuery.eq('categoria_id', categoryId)
+                }
+            }
+
+            if (q) {
+                countQuery = countQuery.ilike('nombre', `%${q}%`)
+            }
+
+            if (min !== null && Number.isFinite(min)) {
+                countQuery = countQuery.gte('precio', min)
+            }
+
+            if (max !== null && Number.isFinite(max)) {
+                countQuery = countQuery.lte('precio', max)
+            }
+
+            if (draftOnlyInStock) {
+                countQuery = countQuery.gt('stock', 0)
+            }
+
+            const { count, error } = await countQuery
+            if (error) {
+                console.error('Error fetching draft count:', error)
+                setDraftCount(null)
+                return
+            }
+
+            setDraftCount(Number(count || 0))
+        }, 250)
+
+        return () => clearTimeout(handle)
+    }, [filtersOpen, draftCategory, searchQuery, draftMinPrice, draftMaxPrice, draftOnlyInStock])
 
     const appliedBadges = useMemo(() => {
         const badges: { key: string; label: string; onClear: () => void }[] = []
@@ -388,7 +483,7 @@ function ProductosPageContent() {
                                 <SheetFooter className="border-t">
                                     <div className="w-full space-y-2">
                                         <div className="text-sm text-muted-foreground">
-                                            {previewFilteredProducts.length} artículos encontrados
+                                            {(draftCount ?? totalCount)} artículos encontrados
                                         </div>
                                         <Button
                                             className="w-full"
@@ -405,6 +500,7 @@ function ProductosPageContent() {
                                                         min: draftMinPrice || undefined,
                                                         max: draftMaxPrice || undefined,
                                                         stock: draftOnlyInStock ? '1' : undefined,
+                                                        page: undefined,
                                                     },
                                                     'push'
                                                 )
@@ -425,7 +521,7 @@ function ProductosPageContent() {
                                 size="sm"
                                 onClick={() => {
                                     setSelectedCategory("all")
-                                    updateUrl({ cat: undefined }, 'replace')
+                                    updateUrl({ cat: undefined, page: undefined }, 'replace')
                                 }}
                             >
                                 Todos
@@ -437,7 +533,7 @@ function ProductosPageContent() {
                                     size="sm"
                                     onClick={() => {
                                         setSelectedCategory(cat.id.toString())
-                                        updateUrl({ cat: cat.id.toString() }, 'replace')
+                                        updateUrl({ cat: cat.id.toString(), page: undefined }, 'replace')
                                     }}
                                 >
                                     {cat.nombre}
@@ -453,7 +549,7 @@ function ProductosPageContent() {
                         <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
                         <p className="text-muted-foreground">Cargando productos...</p>
                     </div>
-                ) : filteredProducts.length === 0 ? (
+                ) : totalCount === 0 ? (
                     <div className="text-center py-20">
                         <p className="text-muted-foreground text-lg">No se encontraron productos.</p>
                         {searchQuery && (
@@ -464,7 +560,7 @@ function ProductosPageContent() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                        {filteredProducts.map((producto) => {
+                        {productos.map((producto) => {
                             const quantity = getItemQuantity(producto.id)
 
                             return (
@@ -545,6 +641,63 @@ function ProductosPageContent() {
                                 </div>
                             )
                         })}
+                    </div>
+                )}
+
+                {!loading && totalCount > 0 && totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2 mt-10">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={currentPage <= 1}
+                            onClick={() => updateUrl({ page: String(Math.max(1, currentPage - 1)) }, 'push')}
+                        >
+                            Anterior
+                        </Button>
+
+                        {Array.from({ length: totalPages }).slice(0, 100).map((_, idx) => {
+                            const p = idx + 1
+                            const isEdge = p === 1 || p === totalPages
+                            const near = Math.abs(p - currentPage) <= 1
+
+                            if (!isEdge && !near) {
+                                if (p === 2 && currentPage > 3) {
+                                    return (
+                                        <span key="gap-left" className="px-2 text-muted-foreground">
+                                            …
+                                        </span>
+                                    )
+                                }
+                                if (p === totalPages - 1 && currentPage < totalPages - 2) {
+                                    return (
+                                        <span key="gap-right" className="px-2 text-muted-foreground">
+                                            …
+                                        </span>
+                                    )
+                                }
+                                return null
+                            }
+
+                            return (
+                                <Button
+                                    key={p}
+                                    variant={p === currentPage ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => updateUrl({ page: p === 1 ? undefined : String(p) }, 'push')}
+                                >
+                                    {p}
+                                </Button>
+                            )
+                        })}
+
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={currentPage >= totalPages}
+                            onClick={() => updateUrl({ page: String(Math.min(totalPages, currentPage + 1)) }, 'push')}
+                        >
+                            Siguiente
+                        </Button>
                     </div>
                 )}
             </div>

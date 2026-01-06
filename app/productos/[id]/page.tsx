@@ -36,8 +36,13 @@ function buildDescription(p: any) {
     return "Compra online con entrega rápida y compra segura."
 }
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-    const id = parseProductId(params.id)
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ id: string }>
+}): Promise<Metadata> {
+    const resolvedParams = await params
+    const id = parseProductId(resolvedParams.id)
     if (!id) {
         return {
             title: "Producto",

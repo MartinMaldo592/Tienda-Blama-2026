@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabaseClient"
 import { ProductCard } from "@/components/product-card"
+import { PromoCarousel } from "@/components/promo-carousel"
 import { Database } from "@/types/database.types"
 import Link from "next/link"
 
@@ -120,21 +121,8 @@ export default async function Home({
   return (
     <main className="pb-20 font-sans">
 
-      {/* Hero Section */}
-        <section className="p-4">
-        <div className="bg-gradient-to-r from-sidebar to-sidebar-primary rounded-2xl p-6 text-sidebar-primary-foreground shadow-xl relative overflow-hidden">
-          <div className="relative z-10">
-            <h2 className="text-2xl font-bold mb-2">Nueva Colección 2026</h2>
-            <p className="text-muted-foreground text-sm mb-4 max-w-[520px]">
-              Compra en Blama.shop: productos seleccionados, ofertas y atención rápida por WhatsApp. Envíos a domicilio y una experiencia de compra simple.
-            </p>
-            <Button variant="secondary" size="sm" className="font-semibold shadow-lg hover:shadow-xl transition-shadow">
-              Ver Ofertas
-            </Button>
-          </div>
-          {/* Decorative Circle */}
-          <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-foreground/10 rounded-full blur-2xl"></div>
-        </div>
+      <section className="p-4">
+        <PromoCarousel />
       </section>
 
       {bestSellers.length > 0 && (
