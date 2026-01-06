@@ -1,9 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState, type TouchEvent } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { supabase } from "@/lib/supabaseClient"
 
 type PromoSlide = {
   id: string
@@ -11,49 +12,94 @@ type PromoSlide = {
   subtitle?: string
   cta?: string
   href: string
-  imageUrl?: string
   gradientFrom?: string
   gradientTo?: string
 }
 
 export function PromoCarousel() {
-  const slides: PromoSlide[] = useMemo(
+  const fallbackSlides: PromoSlide[] = useMemo(
     () => [
       {
-        id: "envio",
-        title: "Envío rápido",
-        subtitle: "Atención por WhatsApp y envíos a domicilio",
-        cta: "Descubre más",
+        id: "fallback-1",
+        title: "Bienvenido a Blama",
+        subtitle: "Configura tus banners desde el panel admin",
+        cta: "Ir a productos",
         href: "/productos",
         gradientFrom: "#2563eb",
         gradientTo: "#06b6d4",
-      },
-      {
-        id: "ofertas",
-        title: "Ofertas por tiempo limitado",
-        subtitle: "Encuentra tus favoritos con precio especial",
-        cta: "Ver ofertas",
-        href: "/productos?sort=price-asc",
-        gradientFrom: "#f97316",
-        gradientTo: "#ef4444",
-      },
-      {
-        id: "novedades",
-        title: "Novedades",
-        subtitle: "Productos seleccionados y stock actualizado",
-        cta: "Ver novedades",
-        href: "/productos?sort=newest",
-        gradientFrom: "#111827",
-        gradientTo: "#6d28d9",
       },
     ],
     []
   )
 
+  const [slides, setSlides] = useState<PromoSlide[]>(fallbackSlides)
+  const [loadingSlides, setLoadingSlides] = useState(true)
+
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const touchStartX = useRef<number | null>(null)
   const touchDeltaX = useRef<number>(0)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function load() {
+      setLoadingSlides(true)
+
+      const { data, error } = await supabase
+        .from("home_banners")
+        .select(
+          "id, title, subtitle, cta, href, orden, activo"
+        )
+        .eq("activo", true)
+        .order("orden", { ascending: true })
+        .order("id", { ascending: true })
+
+      if (cancelled) return
+
+      if (error) {
+        setSlides(fallbackSlides)
+        setLoadingSlides(false)
+        return
+      }
+
+      const rows = (data as any[]) || []
+      const mapped: PromoSlide[] = rows
+        .map((r) => {
+          const id = String(r?.id ?? "")
+          const title = String(r?.title || "")
+          const subtitle = r?.subtitle ? String(r.subtitle) : undefined
+          const cta = r?.cta ? String(r.cta) : undefined
+          const href = String(r?.href || "")
+
+          if (!id || !href) return null
+
+          return {
+            id,
+            title: title || "Blama.shop",
+            subtitle,
+            cta,
+            href,
+            gradientFrom: "#111827",
+            gradientTo: "#2563eb",
+          } as PromoSlide
+        })
+        .filter(Boolean) as PromoSlide[]
+
+      setSlides(mapped.length > 0 ? mapped : fallbackSlides)
+      setLoadingSlides(false)
+    }
+
+    load()
+
+    return () => {
+      cancelled = true
+    }
+  }, [fallbackSlides])
+
+  useEffect(() => {
+    setIndex(0)
+  }, [slides.map((s) => s.id).join("|")])
 
   const count = slides.length
 
@@ -71,13 +117,13 @@ export function PromoCarousel() {
     return () => window.clearInterval(id)
   }, [paused, count])
 
-  const onTouchStart = (e: React.TouchEvent) => {
+  const onTouchStart = (e: TouchEvent) => {
     touchStartX.current = e.touches?.[0]?.clientX ?? null
     touchDeltaX.current = 0
     setPaused(true)
   }
 
-  const onTouchMove = (e: React.TouchEvent) => {
+  const onTouchMove = (e: TouchEvent) => {
     const start = touchStartX.current
     if (start === null) return
     const x = e.touches?.[0]?.clientX
@@ -98,6 +144,7 @@ export function PromoCarousel() {
     window.setTimeout(() => setPaused(false), 350)
   }
 
+  if (loadingSlides) return null
   if (slides.length === 0) return null
 
   return (
@@ -123,19 +170,11 @@ export function PromoCarousel() {
             >
               <div
                 className="relative w-full h-[180px] sm:h-[220px] md:h-[260px]"
-                style={
-                  s.imageUrl
-                    ? {
-                        backgroundImage: `url(${s.imageUrl})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                      }
-                    : {
-                        backgroundImage: `linear-gradient(135deg, ${s.gradientFrom || "#111827"} 0%, ${
-                          s.gradientTo || "#2563eb"
-                        } 100%)`,
-                      }
-                }
+                style={{
+                  backgroundImage: `linear-gradient(135deg, ${s.gradientFrom || "#111827"} 0%, ${
+                    s.gradientTo || "#2563eb"
+                  } 100%)`,
+                }}
               >
                 <div className="absolute inset-0 bg-black/25" />
 
