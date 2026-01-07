@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js"
 export const runtime = "nodejs"
 
 function getEnv() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
   const service = process.env.SUPABASE_SERVICE_ROLE_KEY
   return { url, service }
 }
@@ -26,11 +26,27 @@ type CheckoutItemInput = {
   variante_nombre?: string | null
 }
 
+export async function GET() {
+  const { url, service } = getEnv()
+  const missing: string[] = []
+  if (!url) missing.push("SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL")
+  if (!service) missing.push("SUPABASE_SERVICE_ROLE_KEY")
+
+  if (missing.length > 0) {
+    return NextResponse.json({ ok: false, error: "Server env not configured", missing }, { status: 500 })
+  }
+
+  return NextResponse.json({ ok: true })
+}
+
 export async function POST(req: Request) {
   try {
     const { url, service } = getEnv()
     if (!url || !service) {
-      return NextResponse.json({ error: "Server env not configured" }, { status: 500 })
+      const missing: string[] = []
+      if (!url) missing.push("SUPABASE_URL or NEXT_PUBLIC_SUPABASE_URL")
+      if (!service) missing.push("SUPABASE_SERVICE_ROLE_KEY")
+      return NextResponse.json({ error: "Server env not configured", missing }, { status: 500 })
     }
 
     const body = await req.json()

@@ -282,7 +282,11 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             }
 
             if (!createRes.ok || !createJson?.ok) {
-                const msg = String(createJson?.error || 'No se pudo crear el pedido')
+                const baseMsg = String(createJson?.error || 'No se pudo crear el pedido')
+                const missing = Array.isArray(createJson?.missing) ? createJson.missing : null
+                const msg = missing && missing.length > 0
+                    ? `${baseMsg}. Falta configurar: ${missing.join(', ')}`
+                    : baseMsg
                 throw new Error(msg)
             }
 
