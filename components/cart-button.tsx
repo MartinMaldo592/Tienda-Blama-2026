@@ -31,17 +31,39 @@ export function CartButton() {
     useEffect(() => {
         setMounted(true)
 
+        const readCookie = (name: string) => {
+            try {
+                const value = `; ${document.cookie}`
+                const parts = value.split(`; ${name}=`)
+                if (parts.length < 2) return null
+                return parts.pop()!.split(';').shift() || null
+            } catch (err) {
+                return null
+            }
+        }
+
+        const deleteCookie = (name: string) => {
+            try {
+                const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:'
+                document.cookie = `${name}=; Max-Age=0; Path=/; SameSite=Lax${isHttps ? '; Secure' : ''}`
+            } catch (err) {
+            }
+        }
+
         const consumeSuccessMarker = () => {
             try {
                 const raw = localStorage.getItem('blama_last_order_success')
-                if (!raw) return
+                const cookieRaw = raw ? null : readCookie('blama_last_order_success')
+                const source = raw ?? (cookieRaw ? decodeURIComponent(cookieRaw) : null)
+                if (!source) return
 
-                const parsed = JSON.parse(raw)
+                const parsed = JSON.parse(source)
                 const orderId = parsed?.orderId ? String(parsed.orderId) : null
                 const ts = Number(parsed?.ts || 0)
                 const isFresh = ts > 0 && Date.now() - ts < 1000 * 60 * 30 // 30 min
                 if (!isFresh) {
                     localStorage.removeItem('blama_last_order_success')
+                    deleteCookie('blama_last_order_success')
                     return
                 }
 
@@ -54,6 +76,7 @@ export function CartButton() {
                 setSuccessOrderId(orderId)
                 setSuccessToastOpen(true)
                 localStorage.removeItem('blama_last_order_success')
+                deleteCookie('blama_last_order_success')
             } catch (err) {
             }
         }
@@ -61,14 +84,17 @@ export function CartButton() {
         consumeSuccessMarker()
 
         const onPageShow = () => consumeSuccessMarker()
+        const onFocus = () => consumeSuccessMarker()
         const onVisibility = () => {
             if (document.visibilityState === 'visible') consumeSuccessMarker()
         }
 
         window.addEventListener('pageshow', onPageShow)
+        window.addEventListener('focus', onFocus)
         document.addEventListener('visibilitychange', onVisibility)
         return () => {
             window.removeEventListener('pageshow', onPageShow)
+            window.removeEventListener('focus', onFocus)
             document.removeEventListener('visibilitychange', onVisibility)
         }
     }, [])

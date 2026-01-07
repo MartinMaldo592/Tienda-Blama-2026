@@ -362,6 +362,13 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             }
 
             try {
+                const payload = encodeURIComponent(JSON.stringify({ orderId: orderIdFormatted, ts: Date.now() }))
+                const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:'
+                document.cookie = `blama_last_order_success=${payload}; Max-Age=${60 * 30}; Path=/; SameSite=Lax${isHttps ? '; Secure' : ''}`
+            } catch (err) {
+            }
+
+            try {
                 localStorage.removeItem('cart-storage')
             } catch (err) {
             }
