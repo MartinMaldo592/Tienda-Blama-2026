@@ -53,10 +53,9 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
                             images={fallbackImages}
                             alt={product.nombre}
                             className="group-hover:scale-105 transition-transform duration-300"
-                            autoPlay
-                            intervalMs={2500}
                             priority={imagePriority}
                             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                            quality={70}
                         />
                     ) : (
                         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground group-hover:scale-110 transition-transform duration-300">

@@ -139,8 +139,8 @@ export default async function Home({
             </Button>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-            {bestSellers.slice(0, 10).map((product) => (
-              <ProductCard key={`bestseller-${product.id}`} product={product} />
+            {bestSellers.slice(0, 10).map((product, idx) => (
+              <ProductCard key={`bestseller-${product.id}`} product={product} imagePriority={idx < 2} />
             ))}
           </div>
         </section>

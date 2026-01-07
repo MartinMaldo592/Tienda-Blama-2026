@@ -14,6 +14,7 @@ interface ProductImageCarouselProps {
   showControls?: boolean
   priority?: boolean
   sizes?: string
+  quality?: number
 }
 
 export function ProductImageCarousel({
@@ -25,6 +26,7 @@ export function ProductImageCarousel({
   showControls = true,
   priority = false,
   sizes,
+  quality,
 }: ProductImageCarouselProps) {
   const cleanImages = useMemo(() => {
     const unique: string[] = []
@@ -86,6 +88,7 @@ export function ProductImageCarousel({
           fill
           className="absolute inset-0 object-cover opacity-0 transition-opacity duration-500"
           sizes={sizes || "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"}
+          quality={quality}
           draggable={false}
         />
       ) : null}
@@ -99,6 +102,7 @@ export function ProductImageCarousel({
           className="absolute inset-0 object-cover opacity-100 transition-opacity duration-500"
           priority={priority && index === 0}
           sizes={sizes || "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"}
+          quality={quality}
           draggable={false}
         />
       ) : null}
