@@ -237,7 +237,8 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
         const inApp = isInAppBrowser()
         let popup: Window | null = null
         if (!inApp) {
-            popup = window.open('about:blank', '_blank')
+            const preUrl = `/open-wa?phone=${encodeURIComponent(phoneNumberClienteInit)}&text=${encodeURIComponent(messageClientePreview)}&auto=1`
+            popup = window.open(preUrl, '_blank', 'noopener,noreferrer')
             if (popup) {
                 try {
                     ;(popup as any).opener = null
