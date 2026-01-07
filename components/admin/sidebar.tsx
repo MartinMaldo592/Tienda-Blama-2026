@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabaseClient"
-import { LayoutDashboard, ShoppingBag, Package, Users, AlertCircle, LogOut, Percent, Image as ImageIcon } from "lucide-react"
+import { LayoutDashboard, ShoppingBag, Package, Users, AlertCircle, LogOut, Percent, Image as ImageIcon, Star, MessageSquare } from "lucide-react"
 
 interface AdminSidebarProps {
     role: string
@@ -25,6 +25,8 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
         { href: "/admin/clientes", icon: Users, label: "Clientes", roles: ["admin"] }, // Solo admin
         { href: "/admin/cupones", icon: Percent, label: "Cupones", roles: ["admin"] },
         { href: "/admin/banners", icon: ImageIcon, label: "Banners", roles: ["admin"] },
+        { href: "/admin/resenas", icon: Star, label: "Reseñas", roles: ["admin"] },
+        { href: "/admin/preguntas", icon: MessageSquare, label: "Preguntas", roles: ["admin"] },
         { href: "/admin/usuarios", icon: Users, label: "Usuarios", roles: ["admin"] },
         { href: "/admin/incidencias", icon: AlertCircle, label: "Incidencias", roles: ["admin", "worker"] },
     ]
@@ -33,8 +35,8 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
     const visibleMenuItems = menuItems.filter(item => item.roles.includes(role))
 
     return (
-        <div className="w-64 bg-sidebar min-h-screen text-sidebar-foreground flex flex-col fixed left-0 top-0">
-            <div className="p-6 border-b border-border">
+        <div className="w-64 bg-sidebar h-screen text-sidebar-foreground flex flex-col fixed left-0 top-0 overflow-hidden">
+            <div className="p-4 border-b border-border shrink-0">
                 <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
                     CRM Pro
                 </h2>
@@ -43,21 +45,21 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
                 </p>
             </div>
 
-            <nav className="flex-1 p-4 space-y-2">
+            <nav className="flex-1 px-3 py-3 space-y-1 overflow-y-auto overscroll-contain">
                 {visibleMenuItems.map((item) => (
                     <Link
                         key={item.href}
                         href={item.href}
-                        className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-xl transition-all"
+                        className="flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-lg transition-all"
                     >
-                        <item.icon className="h-5 w-5" />
+                        <item.icon className="h-4 w-4" />
                         <span>{item.label}</span>
                     </Link>
                 ))}
             </nav>
 
             {/* Role Badge */}
-            <div className="px-4 pb-2">
+            <div className="px-3 pb-3 shrink-0">
                 <div className={`px-3 py-2 rounded-lg text-xs font-medium text-center ${role === 'admin'
                         ? 'bg-accent/10 text-accent-foreground border border-border'
                         : 'bg-accent/10 text-accent-foreground border border-border'
@@ -66,12 +68,12 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
                 </div>
             </div>
 
-            <div className="p-4 border-t border-border">
+            <div className="p-3 border-t border-border shrink-0">
                 <button
                     onClick={handleLogout}
-                    className="flex items-center gap-3 px-4 py-3 w-full text-destructive hover:bg-destructive/10 rounded-xl transition-all"
+                    className="flex items-center gap-3 px-3 py-2 w-full text-sm text-destructive hover:bg-destructive/10 rounded-lg transition-all"
                 >
-                    <LogOut className="h-5 w-5" />
+                    <LogOut className="h-4 w-4" />
                     <span>Cerrar Sesión</span>
                 </button>
             </div>

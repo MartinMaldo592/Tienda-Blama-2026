@@ -25,6 +25,7 @@ import {
     Truck,
 } from "lucide-react"
 import { ProductCard } from "@/components/product-card"
+import { ProductSocialProof } from "@/components/product-social-proof"
 
 function parseProductId(raw: string) {
     const direct = Number(raw)
@@ -536,6 +537,8 @@ export default function ProductoDetalleClient() {
                             </CardContent>
                         </Card>
                     )}
+
+                    <ProductSocialProof productId={Number(producto.id)} />
                 </div>
             </div>
 

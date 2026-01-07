@@ -63,6 +63,12 @@ function ProductosPageContent() {
     const [draftMaxPrice, setDraftMaxPrice] = useState<string>('')
     const [draftOnlyInStock, setDraftOnlyInStock] = useState<boolean>(false)
 
+    const [isMobile, setIsMobile] = useState<boolean>(() => {
+        if (typeof window === 'undefined') return false
+        return window.matchMedia('(max-width: 767px)').matches
+    })
+    const [showAllCategoriesMobile, setShowAllCategoriesMobile] = useState(false)
+
     const [pageSize, setPageSize] = useState<number>(() => {
         if (typeof window === 'undefined') return 20
         return window.matchMedia('(max-width: 767px)').matches ? 12 : 20
@@ -76,6 +82,7 @@ function ProductosPageContent() {
             const isMobile = window.matchMedia('(max-width: 767px)').matches
             const next = isMobile ? 12 : 20
             setPageSize((prev) => (prev === next ? prev : next))
+            setIsMobile(isMobile)
         }
 
         updatePageSize()
@@ -84,6 +91,21 @@ function ProductosPageContent() {
         window.addEventListener('resize', updatePageSize)
         return () => window.removeEventListener('resize', updatePageSize)
     }, [])
+
+    const visibleCategorias = useMemo(() => {
+        if (!isMobile) return categorias
+
+        const limit = 3
+        if (showAllCategoriesMobile) return categorias
+
+        const base = categorias.slice(0, limit)
+        if (selectedCategory === 'all') return base
+
+        const selected = categorias.find((c) => c.id.toString() === selectedCategory) || null
+        if (!selected) return base
+        if (base.some((c) => c.id === selected.id)) return base
+        return [...base, selected]
+    }, [categorias, isMobile, selectedCategory, showAllCategoriesMobile])
 
     async function fetchData(opts: {
         cat: string
@@ -526,7 +548,7 @@ function ProductosPageContent() {
                             >
                                 Todos
                             </Button>
-                            {categorias.map(cat => (
+                            {visibleCategorias.map(cat => (
                                 <Button
                                     key={cat.id}
                                     variant={selectedCategory === cat.id.toString() ? "default" : "outline"}
@@ -539,6 +561,18 @@ function ProductosPageContent() {
                                     {cat.nombre}
                                 </Button>
                             ))}
+
+                            {isMobile && categorias.length > 6 ? (
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-muted-foreground"
+                                    onClick={() => setShowAllCategoriesMobile((v) => !v)}
+                                >
+                                    {showAllCategoriesMobile ? 'Ver menos categorías' : 'Ver más categorías'}
+                                </Button>
+                            ) : null}
                         </div>
                     </div>
                 </div>

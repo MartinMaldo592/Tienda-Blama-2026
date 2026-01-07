@@ -21,7 +21,7 @@ export function PromoCarousel() {
     () => [
       {
         id: "fallback-1",
-        title: "Bienvenido a Blama",
+        title: "Promociones",
         subtitle: "Configura tus banners desde el panel admin",
         cta: "Ir a productos",
         href: "/productos",
@@ -76,7 +76,7 @@ export function PromoCarousel() {
 
           return {
             id,
-            title: title || "Blama.shop",
+            title: title || "Promociones",
             subtitle,
             cta,
             href,
@@ -194,7 +194,6 @@ export function PromoCarousel() {
                     <span className="inline-flex items-center rounded-lg bg-white/95 px-4 py-2 text-sm font-bold text-gray-900 shadow">
                       {s.cta || "Ver más"}
                     </span>
-                    <span className="text-white/85 text-sm font-semibold">Blama.shop</span>
                   </div>
                 </div>
               </div>
