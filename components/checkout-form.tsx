@@ -361,6 +361,11 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             } catch (err) {
             }
 
+            try {
+                localStorage.removeItem('cart-storage')
+            } catch (err) {
+            }
+
             onComplete()
 
             try {

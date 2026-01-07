@@ -19,6 +19,8 @@ export function CartButton() {
     // Use state to avoid hydration mismatch with persisted store
     const [mounted, setMounted] = useState(false)
     const [view, setView] = useState<'cart' | 'checkout' | 'success'>('cart')
+    const [successToastOpen, setSuccessToastOpen] = useState(false)
+    const [successOrderId, setSuccessOrderId] = useState<string | null>(null)
 
     const items = useCartStore((state) => state.items)
     const removeItem = useCartStore((state) => state.removeItem)
@@ -35,6 +37,7 @@ export function CartButton() {
                 if (!raw) return
 
                 const parsed = JSON.parse(raw)
+                const orderId = parsed?.orderId ? String(parsed.orderId) : null
                 const ts = Number(parsed?.ts || 0)
                 const isFresh = ts > 0 && Date.now() - ts < 1000 * 60 * 30 // 30 min
                 if (!isFresh) {
@@ -43,7 +46,13 @@ export function CartButton() {
                 }
 
                 clearCart()
+                try {
+                    localStorage.removeItem('cart-storage')
+                } catch (err) {
+                }
                 setView('success')
+                setSuccessOrderId(orderId)
+                setSuccessToastOpen(true)
                 localStorage.removeItem('blama_last_order_success')
             } catch (err) {
             }
@@ -64,6 +73,14 @@ export function CartButton() {
         }
     }, [])
 
+    useEffect(() => {
+        if (!successToastOpen) return
+        const id = window.setTimeout(() => {
+            setSuccessToastOpen(false)
+        }, 6500)
+        return () => window.clearTimeout(id)
+    }, [successToastOpen])
+
     const totalItems = mounted ? items.reduce((sum, item) => sum + item.quantity, 0) : 0
 
     const handleOpenChange = (open: boolean) => {
@@ -75,7 +92,13 @@ export function CartButton() {
 
     const handleComplete = () => {
         clearCart()
+        try {
+            localStorage.removeItem('cart-storage')
+        } catch (err) {
+        }
         setView('success')
+        setSuccessOrderId(null)
+        setSuccessToastOpen(true)
     }
 
     const handleContinueShopping = () => {
@@ -83,6 +106,28 @@ export function CartButton() {
     }
 
     return (
+
+        <>
+        {successToastOpen && (
+            <div className="fixed inset-x-0 bottom-4 z-50 flex justify-center px-4">
+                <div className="w-full max-w-md rounded-xl border border-border bg-card shadow-lg p-4">
+                    <div className="flex items-start gap-3">
+                        <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-700">
+                            <CheckCircle className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1">
+                            <div className="font-semibold text-foreground">¡Pedido confirmado!</div>
+                            <div className="text-sm text-muted-foreground">
+                                {successOrderId ? `Pedido #${successOrderId}` : 'Tu pedido se registró correctamente.'}
+                            </div>
+                        </div>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSuccessToastOpen(false)}>
+                            ✕
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        )}
 
         <Sheet onOpenChange={handleOpenChange}>
                 <SheetTrigger asChild>
@@ -234,5 +279,6 @@ export function CartButton() {
                 )}
             </SheetContent>
         </Sheet>
+        </>
     )
 }
