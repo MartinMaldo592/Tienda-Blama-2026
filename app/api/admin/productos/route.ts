@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
-import { ADMIN_RUNTIME, requireAdmin } from "@/features/admin/services/admin.server"
+import { requireAdmin } from "@/features/admin/services/admin.server"
 
-export const runtime = ADMIN_RUNTIME
+export const runtime = "nodejs"
 
 type ProductPayload = {
   nombre: string
