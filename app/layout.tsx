@@ -1,6 +1,7 @@
 
 import type { Metadata } from "next";
 import Script from "next/script";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { LayoutShell } from "@/components/layout-shell";
@@ -89,6 +90,7 @@ gtag('config', '${GA_MEASUREMENT_ID}');`}
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-background`}
       >
         <LayoutShell>{children}</LayoutShell>
+        <SpeedInsights />
       </body>
     </html>
   );
