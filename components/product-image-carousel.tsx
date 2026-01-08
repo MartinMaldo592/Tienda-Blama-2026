@@ -56,48 +56,77 @@ export function ProductImageCarousel({
   }, [images])
 
   const [index, setIndex] = useState(0)
-  const [prevIndex, setPrevIndex] = useState<number | null>(null)
 
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragX, setDragX] = useState(0)
+
+  const pointerIdRef = useRef<number | null>(null)
   const pointerStartXRef = useRef<number | null>(null)
   const pointerStartYRef = useRef<number | null>(null)
   const pointerMovedRef = useRef(false)
+  const pointerLastXRef = useRef<number | null>(null)
+  const pointerLastTRef = useRef<number | null>(null)
+  const pointerVxRef = useRef(0)
 
   useEffect(() => {
     setIndex(0)
-    setPrevIndex(null)
+    setDragX(0)
+    setIsDragging(false)
   }, [cleanImages.join("|")])
 
   useEffect(() => {
     if (!autoPlay) return
     if (cleanImages.length <= 1) return
+    if (isDragging) return
 
     const id = window.setInterval(() => {
       setIndex((prev) => {
-        setPrevIndex(prev)
-        return (prev + 1) % cleanImages.length
+        if (prev >= cleanImages.length - 1) return 0
+        return prev + 1
       })
     }, intervalMs)
 
     return () => window.clearInterval(id)
-  }, [autoPlay, cleanImages.length, intervalMs])
+  }, [autoPlay, cleanImages.length, intervalMs, isDragging])
 
   if (cleanImages.length === 0) return null
 
-  const prev = () =>
-    setIndex((i) => {
-      setPrevIndex(i)
-      return (i - 1 + cleanImages.length) % cleanImages.length
-    })
-  const next = () =>
-    setIndex((i) => {
-      setPrevIndex(i)
-      return (i + 1) % cleanImages.length
-    })
+  const lastIndex = Math.max(0, cleanImages.length - 1)
+
+  const rubberBand = (dx: number, width: number) => {
+    if (!width) return dx * 0.35
+    const constant = 0.55
+    const abs = Math.abs(dx)
+    const sign = dx < 0 ? -1 : 1
+    return sign * (width * constant * abs) / (width + constant * abs)
+  }
+
+  const prev = () => {
+    setDragX(0)
+    setIndex((i) => Math.max(0, i - 1))
+  }
+
+  const next = () => {
+    setDragX(0)
+    setIndex((i) => Math.min(lastIndex, i + 1))
+  }
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (cleanImages.length <= 1) return
+    pointerIdRef.current = e.pointerId
     pointerStartXRef.current = e.clientX
     pointerStartYRef.current = e.clientY
+    pointerLastXRef.current = e.clientX
+    pointerLastTRef.current = Date.now()
+    pointerVxRef.current = 0
     pointerMovedRef.current = false
+    setIsDragging(true)
+    setDragX(0)
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId)
+    } catch (err) {
+    }
   }
 
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -113,65 +142,112 @@ export function ProductImageCarousel({
       pointerMovedRef.current = true
       // Evita selección/drag de la imagen cuando se intenta deslizar.
       if ((e as any).cancelable) e.preventDefault()
+
+      const now = Date.now()
+      const lx = pointerLastXRef.current
+      const lt = pointerLastTRef.current
+      if (lx != null && lt != null) {
+        const dt = Math.max(1, now - lt)
+        pointerVxRef.current = (e.clientX - lx) / dt
+      }
+      pointerLastXRef.current = e.clientX
+      pointerLastTRef.current = now
+
+      const width = containerRef.current?.getBoundingClientRect().width || 0
+      if (index === 0 && dx > 0) setDragX(rubberBand(dx, width))
+      else if (index === lastIndex && dx < 0) setDragX(rubberBand(dx, width))
+      else setDragX(dx)
     }
   }
 
   const onPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
     const sx = pointerStartXRef.current
     const sy = pointerStartYRef.current
+    const pid = pointerIdRef.current
     pointerStartXRef.current = null
     pointerStartYRef.current = null
+    pointerIdRef.current = null
+    setIsDragging(false)
 
     if (sx == null || sy == null) return
-    if (!pointerMovedRef.current) return
+    if (!pointerMovedRef.current) {
+      setDragX(0)
+      if (pid != null) {
+        try {
+          e.currentTarget.releasePointerCapture(pid)
+        } catch (err) {
+        }
+      }
+      return
+    }
 
     const dx = e.clientX - sx
     const dy = e.clientY - sy
 
-    // Umbral para cambiar de imagen.
-    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return
-    if (dx > 0) prev()
-    else next()
-  }
+    const width = containerRef.current?.getBoundingClientRect().width || 0
+    const distanceThreshold = Math.max(60, width * 0.18)
+    const velocity = pointerVxRef.current
+    const velocityThreshold = 0.7
 
-  const activeSrc = cleanImages[index] || ""
-  const prevSrc = prevIndex != null ? cleanImages[prevIndex] || "" : ""
-  const showPrev = prevSrc && prevSrc !== activeSrc
+    const shouldSnapByVelocity = Math.abs(velocity) >= velocityThreshold && Math.abs(dx) >= 10
+    const shouldSnapByDistance = Math.abs(dx) >= distanceThreshold
+
+    if ((!shouldSnapByVelocity && !shouldSnapByDistance) || Math.abs(dx) < Math.abs(dy)) {
+      setDragX(0)
+      if (pid != null) {
+        try {
+          e.currentTarget.releasePointerCapture(pid)
+        } catch (err) {
+        }
+      }
+      return
+    }
+    const dir = shouldSnapByVelocity ? (velocity > 0 ? 1 : -1) : (dx > 0 ? 1 : -1)
+    if (dir > 0) prev()
+    else next()
+
+    setDragX(0)
+    if (pid != null) {
+      try {
+        e.currentTarget.releasePointerCapture(pid)
+      } catch (err) {
+      }
+    }
+  }
 
   return (
     <div
+      ref={containerRef}
       className={cn("group relative h-full w-full overflow-hidden select-none touch-pan-y", className)}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      {showPrev ? (
-        <Image
-          key={`prev-${prevSrc}`}
-          src={prevSrc}
-          alt={alt}
-          fill
-          className="absolute inset-0 object-cover opacity-0 transition-opacity duration-500"
-          sizes={sizes || "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"}
-          quality={quality}
-          draggable={false}
-        />
-      ) : null}
-
-      {activeSrc ? (
-        <Image
-          key={`active-${activeSrc}`}
-          src={activeSrc}
-          alt={alt}
-          fill
-          className="absolute inset-0 object-cover opacity-100 transition-opacity duration-500"
-          priority={priority && index === 0}
-          sizes={sizes || "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"}
-          quality={quality}
-          draggable={false}
-        />
-      ) : null}
+      <div
+        className={cn(
+          "flex h-full w-full",
+          isDragging ? "" : "transition-transform duration-300 ease-out"
+        )}
+        style={{
+          transform: `translate3d(calc(${-index * 100}% + ${dragX}px), 0, 0)`,
+        }}
+      >
+        {cleanImages.map((src, i) => (
+          <div key={src} className="relative h-full w-full flex-none">
+            <Image
+              src={src}
+              alt={alt}
+              fill
+              className="absolute inset-0 object-cover"
+              priority={priority && i === 0}
+              sizes={sizes || "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"}
+              quality={quality}
+              draggable={false}
+            />
+          </div>
+        ))}
+      </div>
 
       {showControls && cleanImages.length > 1 && (
         <>
@@ -210,8 +286,8 @@ export function ProductImageCarousel({
                 onClick={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
-                  setPrevIndex(index)
                   setIndex(dotIndex)
+                  setDragX(0)
                 }}
                 className={cn(
                   "h-1.5 w-1.5 rounded-full",
