@@ -277,6 +277,14 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
         setLoading(true)
 
         try {
+            const sessionRes = await supabase.auth.getSession()
+            const accessToken = sessionRes?.data?.session?.access_token
+            if (!accessToken) {
+                alert('Tu sesión expiró. Vuelve a iniciar sesión.')
+                setLoading(false)
+                return
+            }
+
             const priceNum = Number(price)
             if (!Number.isFinite(priceNum) || priceNum <= 0) {
                 alert('Ingresa un precio actual válido')
@@ -326,95 +334,56 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
                 categoria_id: categoryId === 'default' ? null : parseInt(categoryId)
             }
 
-            let error;
+            const cleanSpecs = especificaciones
+                .map((s) => ({
+                    clave: String(s.clave || '').trim(),
+                    valor: String(s.valor || '').trim(),
+                    orden: Number(s.orden || 0),
+                }))
+                .filter((s) => s.clave.length > 0)
 
-            async function save(withGallery: boolean) {
-                const payload: any = { ...productData }
-                if (!withGallery) delete payload.imagenes
+            const cleanVariants = variantes
+                .map((v) => ({
+                    etiqueta: String(v.etiqueta || '').trim(),
+                    precio: String(v.precio || '').trim(),
+                    precio_antes: String(v.precio_antes || '').trim(),
+                    stock: String(v.stock || '').trim(),
+                    activo: Boolean(v.activo),
+                }))
+                .filter((v) => v.etiqueta.length > 0)
 
-                if (productToEdit) {
-                    return supabase.from('productos').update(payload).eq('id', productToEdit.id).select('id').single()
-                }
-                return supabase.from('productos').insert(payload).select('id').single()
+            const method = productToEdit ? 'PUT' : 'POST'
+            const apiBody: any = {
+                product: productData,
+                specs: cleanSpecs,
+                variants: cleanVariants.map((v) => ({
+                    etiqueta: v.etiqueta,
+                    precio: v.precio ? Number(v.precio) : null,
+                    precio_antes: v.precio_antes ? Number(v.precio_antes) : null,
+                    stock: Number(v.stock || 0),
+                    activo: v.activo,
+                })),
+            }
+            if (productToEdit) apiBody.id = Number(productToEdit.id)
+
+            const res = await fetch('/api/admin/productos', {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`,
+                },
+                body: JSON.stringify(apiBody),
+            })
+
+            let json: any = null
+            try {
+                json = await res.json()
+            } catch (err) {
+                json = null
             }
 
-            const first = await save(true)
-            error = first.error
-            if (error && typeof (error as any).message === 'string' && (error as any).message.toLowerCase().includes('imagenes')) {
-                const second = await save(false)
-                error = second.error
-            }
-
-            if (error) throw error
-
-            const savedProductId = productToEdit?.id
-                ? Number(productToEdit.id)
-                : (first as any)?.data?.id
-                    ? Number((first as any).data.id)
-                    : null
-
-            if (savedProductId) {
-                const cleanSpecs = especificaciones
-                    .map((s) => ({
-                        ...s,
-                        clave: String(s.clave || '').trim(),
-                        valor: String(s.valor || '').trim(),
-                        orden: Number(s.orden || 0),
-                    }))
-                    .filter((s) => s.clave.length > 0)
-
-                const cleanVariants = variantes
-                    .map((v) => ({
-                        ...v,
-                        etiqueta: String(v.etiqueta || '').trim(),
-                        precio: String(v.precio || '').trim(),
-                        precio_antes: String(v.precio_antes || '').trim(),
-                        stock: String(v.stock || '').trim(),
-                        activo: Boolean(v.activo),
-                    }))
-                    .filter((v) => v.etiqueta.length > 0)
-
-                const { error: delSpecsErr } = await supabase
-                    .from('producto_especificaciones')
-                    .delete()
-                    .eq('producto_id', savedProductId)
-                if (delSpecsErr) throw delSpecsErr
-
-                if (cleanSpecs.length > 0) {
-                    const { error: insSpecsErr } = await supabase
-                        .from('producto_especificaciones')
-                        .insert(
-                            cleanSpecs.map((s) => ({
-                                producto_id: savedProductId,
-                                clave: s.clave,
-                                valor: s.valor || null,
-                                orden: Number(s.orden || 0),
-                            }))
-                        )
-                    if (insSpecsErr) throw insSpecsErr
-                }
-
-                const { error: delVarErr } = await supabase
-                    .from('producto_variantes')
-                    .delete()
-                    .eq('producto_id', savedProductId)
-                if (delVarErr) throw delVarErr
-
-                if (cleanVariants.length > 0) {
-                    const { error: insVarErr } = await supabase
-                        .from('producto_variantes')
-                        .insert(
-                            cleanVariants.map((v) => ({
-                                producto_id: savedProductId,
-                                etiqueta: v.etiqueta,
-                                precio: v.precio ? Number(v.precio) : null,
-                                precio_antes: v.precio_antes ? Number(v.precio_antes) : null,
-                                stock: Number(v.stock || 0),
-                                activo: v.activo,
-                            }))
-                        )
-                    if (insVarErr) throw insVarErr
-                }
+            if (!res.ok || !json?.ok) {
+                throw new Error(String(json?.error || 'No se pudo guardar el producto'))
             }
 
             onSuccess()

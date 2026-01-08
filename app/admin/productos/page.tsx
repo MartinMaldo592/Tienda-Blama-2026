@@ -47,13 +47,35 @@ export default function ProductosPage() {
     const handleDelete = async (id: number) => {
         if (!confirm("¿Estás seguro de que deseas eliminar este producto?")) return
 
-        const { error } = await supabase.from('productos').delete().eq('id', id)
-
-        if (error) {
-            alert("Error al eliminar: " + error.message)
-        } else {
-            fetchProductos()
+        const sessionRes = await supabase.auth.getSession()
+        const accessToken = sessionRes?.data?.session?.access_token
+        if (!accessToken) {
+            alert('Tu sesión expiró. Vuelve a iniciar sesión.')
+            return
         }
+
+        const res = await fetch('/api/admin/productos', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({ id }),
+        })
+
+        let json: any = null
+        try {
+            json = await res.json()
+        } catch (err) {
+            json = null
+        }
+
+        if (!res.ok || !json?.ok) {
+            alert("Error al eliminar: " + String(json?.error || 'No se pudo eliminar'))
+            return
+        }
+
+        fetchProductos()
     }
 
     if (guard.accessDenied) return <AccessDenied />
