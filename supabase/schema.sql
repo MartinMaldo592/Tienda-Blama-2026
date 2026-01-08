@@ -25,6 +25,7 @@ create table if not exists productos (
   stock integer not null default 0,
   imagen_url text,
   imagenes text[],
+  videos text[],
   categoria_id bigint references categorias(id) on delete set null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -37,6 +38,8 @@ alter table productos add column if not exists tamano text;
 alter table productos add column if not exists color text;
 alter table productos add column if not exists cuidados text;
 alter table productos add column if not exists uso text;
+
+alter table productos add column if not exists videos text[];
 
 -- Variantes
 create table if not exists producto_variantes (
@@ -176,12 +179,47 @@ insert into storage.buckets (id, name, public)
 values ('review_photos', 'review_photos', true)
 on conflict (id) do nothing;
 
+insert into storage.buckets (id, name, public)
+values ('productos', 'productos', true)
+on conflict (id) do nothing;
+
 drop policy if exists review_photos_read on storage.objects;
+
+drop policy if exists productos_read on storage.objects;
+drop policy if exists productos_write_admin on storage.objects;
 
 create policy review_photos_read
 on storage.objects
 for select
 using (bucket_id = 'review_photos');
+
+create policy productos_read
+on storage.objects
+for select
+using (bucket_id = 'productos');
+
+create policy productos_write_admin
+on storage.objects
+for all
+to authenticated
+using (
+  bucket_id = 'productos'
+  and exists (
+    select 1
+    from public.profiles p
+    where p.id = auth.uid()
+      and p.role = 'admin'
+  )
+)
+with check (
+  bucket_id = 'productos'
+  and exists (
+    select 1
+    from public.profiles p
+    where p.id = auth.uid()
+      and p.role = 'admin'
+  )
+);
 
 create policy home_banners_update
 on public.home_banners

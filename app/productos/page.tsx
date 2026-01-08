@@ -596,6 +596,7 @@ function ProductosPageContent() {
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                         {productos.map((producto) => {
                             const quantity = getItemQuantity(producto.id)
+                            const hasVideo = Array.isArray((producto as any).videos) && ((producto as any).videos as any[]).filter(Boolean).length > 0
 
                             return (
                                 <div key={producto.id} className="bg-card rounded-xl shadow-sm border border-border overflow-hidden group hover:shadow-lg transition-all">
@@ -625,6 +626,14 @@ function ProductosPageContent() {
                                         {producto.stock <= 0 && (
                                             <div className="absolute inset-0 bg-foreground/60 flex items-center justify-center">
                                                 <span className="text-sidebar-primary-foreground font-bold">Agotado</span>
+                                            </div>
+                                        )}
+
+                                        {hasVideo && (
+                                            <div className="absolute left-2 bottom-2">
+                                                <span className="inline-flex items-center rounded-full bg-black/70 px-2 py-1 text-[11px] font-bold text-white">
+                                                    Video
+                                                </span>
                                             </div>
                                         )}
                                     </div>

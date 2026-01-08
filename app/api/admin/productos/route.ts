@@ -57,6 +57,7 @@ type ProductPayload = {
   stock: number
   imagen_url: string | null
   imagenes?: string[]
+  videos?: string[]
   descripcion: string | null
   materiales: string | null
   tamano: string | null
@@ -95,8 +96,31 @@ function normalizeImages(input: unknown) {
   for (const raw of arr) {
     const v = String(raw || "").trim()
     if (!v) continue
+    const lower = v.toLowerCase()
+    if (
+      lower.endsWith(".mp4") ||
+      lower.endsWith(".webm") ||
+      lower.endsWith(".mov") ||
+      lower.endsWith(".m4v") ||
+      lower.endsWith(".avi") ||
+      lower.endsWith(".mkv")
+    ) {
+      continue
+    }
     if (!unique.includes(v)) unique.push(v)
     if (unique.length >= 10) break
+  }
+  return unique
+}
+
+function normalizeVideos(input: unknown) {
+  const arr = Array.isArray(input) ? input : []
+  const unique: string[] = []
+  for (const raw of arr) {
+    const v = String(raw || "").trim()
+    if (!v) continue
+    if (!unique.includes(v)) unique.push(v)
+    if (unique.length >= 6) break
   }
   return unique
 }
@@ -115,6 +139,7 @@ async function upsertProduct(args: {
     stock: Number(product.stock),
     imagen_url: product.imagen_url ? String(product.imagen_url) : null,
     imagenes: normalizeImages(product.imagenes),
+    videos: normalizeVideos(product.videos),
     descripcion: product.descripcion ? normalizeText(product.descripcion) : null,
     materiales: product.materiales ? normalizeText(product.materiales) : null,
     tamano: product.tamano ? normalizeText(product.tamano) : null,

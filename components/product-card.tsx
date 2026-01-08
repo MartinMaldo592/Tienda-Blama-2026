@@ -30,6 +30,10 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
     const images = (
         (Array.isArray((product as any).imagenes) ? ((product as any).imagenes as string[]) : [])
             .filter(Boolean)
+            .filter((u) => {
+                const s = String(u || '').toLowerCase()
+                return !(s.endsWith('.mp4') || s.endsWith('.webm') || s.endsWith('.mov') || s.endsWith('.m4v'))
+            })
             .slice(0, 10)
     )
     const fallbackImages = images.length > 0 ? images : product.imagen_url ? [product.imagen_url] : []

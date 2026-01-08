@@ -36,6 +36,7 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
     const [imageUrl, setImageUrl] = useState("")
     const [galleryImages, setGalleryImages] = useState<string[]>([])
     const [newGalleryUrl, setNewGalleryUrl] = useState("")
+    const [videos, setVideos] = useState<string[]>([])
     const [categoryId, setCategoryId] = useState<string>("default")
 
     const [descripcion, setDescripcion] = useState("")
@@ -79,6 +80,10 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
             const unique = Array.from(new Set(normalized)).slice(0, 10)
             setGalleryImages(unique)
             setNewGalleryUrl("")
+
+            const vFromDb = Array.isArray((productToEdit as any).videos) ? ((productToEdit as any).videos as string[]) : []
+            const vClean = vFromDb.map((x) => String(x || '').trim()).filter(Boolean)
+            setVideos(Array.from(new Set(vClean)).slice(0, 6))
             setCategoryId(productToEdit.categoria_id?.toString() || "default")
 
             ;(async () => {
@@ -144,6 +149,7 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
             setUso("")
             setGalleryImages([])
             setNewGalleryUrl("")
+            setVideos([])
             setCategoryId("default")
             setEspecificaciones([])
             setVariantes([])
@@ -159,6 +165,55 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
             if (unique.length >= 10) break
         }
         return unique
+    }
+
+    function normalizeVideos(input: string[]) {
+        const unique: string[] = []
+        for (const raw of input) {
+            const v = String(raw || "").trim()
+            if (!v) continue
+            if (!unique.includes(v)) unique.push(v)
+            if (unique.length >= 6) break
+        }
+        return unique
+    }
+
+    async function handleVideoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+        if (!e.target.files || e.target.files.length === 0) return
+
+        try {
+            setUploading(true)
+            const files = Array.from(e.target.files)
+            const remaining = Math.max(0, 6 - videos.length)
+            const toUpload = files.slice(0, remaining)
+
+            const uploadedUrls: string[] = []
+
+            for (const file of toUpload) {
+                const fileExt = file.name.split('.').pop() || 'mp4'
+                const fileName = `${Date.now()}-${Math.random().toString(16).slice(2)}.${fileExt}`
+                const filePath = `videos/${fileName}`
+
+                const { error: uploadError } = await supabase.storage
+                    .from('productos')
+                    .upload(filePath, file, { upsert: false, contentType: file.type || 'video/mp4' })
+
+                if (uploadError) {
+                    throw uploadError
+                }
+
+                const { data } = supabase.storage.from('productos').getPublicUrl(filePath)
+                if (data?.publicUrl) uploadedUrls.push(data.publicUrl)
+            }
+
+            const next = normalizeVideos([...videos, ...uploadedUrls])
+            setVideos(next)
+        } catch (error: any) {
+            alert("Error subiendo video: " + error.message)
+        } finally {
+            setUploading(false)
+            e.target.value = ''
+        }
     }
 
     function addGalleryUrl(url: string) {
@@ -234,7 +289,12 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
 
         try {
             setUploading(true)
-            const files = Array.from(e.target.files)
+            const files = Array.from(e.target.files).filter((f) => {
+                const t = String(f?.type || '').toLowerCase()
+                const n = String(f?.name || '').toLowerCase()
+                if (t) return t.startsWith('image/')
+                return n.endsWith('.png') || n.endsWith('.jpg') || n.endsWith('.jpeg') || n.endsWith('.webp') || n.endsWith('.gif')
+            })
             const remaining = Math.max(0, 10 - galleryImages.length)
             const toUpload = files.slice(0, remaining)
 
@@ -243,7 +303,7 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
             for (const file of toUpload) {
                 const fileExt = file.name.split('.').pop() || 'jpg'
                 const fileName = `${Date.now()}-${Math.random().toString(16).slice(2)}.${fileExt}`
-                const filePath = `${fileName}`
+                const filePath = `imagenes/${fileName}`
 
                 const { error: uploadError } = await supabase.storage
                     .from('productos')
@@ -316,7 +376,20 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
             const mergedImages = galleryImages.length > 0
                 ? normalizeImages(galleryImages)
                 : normalizeImages([...(imageUrl ? [imageUrl] : [])])
-            const mainImage = mergedImages[0] || (imageUrl ? imageUrl : null)
+
+            const imageOnly = mergedImages.filter((u) => {
+                const s = String(u || '').toLowerCase()
+                return !(s.endsWith('.mp4') || s.endsWith('.webm') || s.endsWith('.mov') || s.endsWith('.m4v'))
+            })
+
+            const videoFromImages = mergedImages.filter((u) => {
+                const s = String(u || '').toLowerCase()
+                return s.endsWith('.mp4') || s.endsWith('.webm') || s.endsWith('.mov') || s.endsWith('.m4v')
+            })
+
+            const videosFinal = normalizeVideos([...videos, ...videoFromImages])
+
+            const mainImage = imageOnly[0] || (imageUrl ? imageUrl : null)
 
             const productData = {
                 nombre: name,
@@ -324,7 +397,8 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
                 precio_antes: priceBeforeNum,
                 stock: stockNum,
                 imagen_url: mainImage,
-                imagenes: mergedImages,
+                imagenes: imageOnly,
+                videos: videosFinal,
                 descripcion: descripcion.trim() || null,
                 materiales: materiales.trim() || null,
                 tamano: tamano.trim() || null,
@@ -513,6 +587,51 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
                                     </div>
                                 </div>
                             ))}
+                    </div>
+                )}
+            </div>
+
+            <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                    <Label>Videos (hasta 6)</Label>
+                    <span className="text-xs text-muted-foreground">{videos.length}/6</span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <Input
+                        type="file"
+                        accept="video/mp4,video/webm"
+                        multiple
+                        onChange={handleVideoUpload}
+                        disabled={uploading || videos.length >= 6}
+                    />
+                </div>
+
+                {videos.length > 0 && (
+                    <div className="space-y-2">
+                        {videos.map((url, idx) => (
+                            <div key={`${url}-${idx}`} className="flex items-center gap-3 rounded-lg border bg-popover p-2">
+                                <div className="h-7 w-7 rounded-md bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
+                                    {idx + 1}
+                                </div>
+
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-xs text-muted-foreground truncate">{url}</p>
+                                </div>
+
+                                <div className="flex items-center gap-1">
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => setVideos((prev) => prev.filter((x) => x !== url))}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>

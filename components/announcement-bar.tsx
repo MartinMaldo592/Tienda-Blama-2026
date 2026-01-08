@@ -15,9 +15,9 @@ export function AnnouncementBar({
 }: AnnouncementBarProps) {
   const defaultMessages = useMemo(
     () => [
-      "Envío gratis en pedidos seleccionados",
-      "Aprovecha descuentos en productos destacados",
-      "Entrega rápida contraentrega en tu ciudad",
+      "📦🚚 Envío GRATIS para todos los pedidos",
+      "⚡🏷️ Descuentos en productos destacados",
+      "⏱️📍 Entrega rápida + contraentrega en 24 horas (solo Lima Metropolitana)",
     ],
     []
   )
@@ -41,7 +41,7 @@ export function AnnouncementBar({
   return (
     <div
       className={
-        "w-full h-8 bg-accent text-accent-foreground flex items-center justify-center px-4 border-b border-border " +
+        "w-full h-10 sm:h-9 bg-blue-600 text-white flex items-center justify-center px-4 border-b border-blue-700 " +
         (className || "")
       }
       onMouseEnter={() => {
@@ -53,8 +53,8 @@ export function AnnouncementBar({
       role="status"
       aria-live="polite"
     >
-      <div className="flex items-center gap-2 text-[11px] tracking-widest uppercase font-semibold">
-        <span key={index} className="animate-in fade-in duration-300">
+      <div className="flex items-center justify-center text-center text-[12px] sm:text-[13px] tracking-wide uppercase font-extrabold animate-pulse">
+        <span key={index} className="animate-in fade-in duration-300 text-center">
           {items[index]}
         </span>
       </div>

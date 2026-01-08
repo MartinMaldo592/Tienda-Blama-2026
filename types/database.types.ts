@@ -45,6 +45,7 @@ export interface Database {
                     stock: number
                     imagen_url: string | null
                     imagenes: string[] | null
+                    videos: string[] | null
                     categoria_id: number | null
                     created_at: string
                 }
@@ -62,6 +63,7 @@ export interface Database {
                     stock?: number
                     imagen_url?: string | null
                     imagenes?: string[] | null
+                    videos?: string[] | null
                     categoria_id?: number | null
                     created_at?: string
                 }
@@ -79,6 +81,7 @@ export interface Database {
                     stock?: number
                     imagen_url?: string | null
                     imagenes?: string[] | null
+                    videos?: string[] | null
                     categoria_id?: number | null
                     created_at?: string
                 }

@@ -11,6 +11,7 @@ import { ProductImageCarousel } from "@/components/product-image-carousel"
 import { useCartStore } from "@/store/cart"
 import {
     ArrowLeft,
+    CheckCircle,
     ChevronLeft,
     ChevronRight,
     Copy,
@@ -53,8 +54,18 @@ export default function ProductoDetalleClient() {
 
     const [shareOpen, setShareOpen] = useState(false)
     const [copied, setCopied] = useState(false)
+    const [addedToastOpen, setAddedToastOpen] = useState(false)
+    const [addedToastKey, setAddedToastKey] = useState(0)
 
     const { addItem, items, updateQuantity } = useCartStore()
+
+    useEffect(() => {
+        if (!addedToastOpen) return
+        const id = window.setTimeout(() => {
+            setAddedToastOpen(false)
+        }, 1600)
+        return () => window.clearTimeout(id)
+    }, [addedToastOpen])
 
     const quantity = useMemo(() => {
         const vid = selectedVarianteId ?? null
@@ -165,10 +176,59 @@ export default function ProductoDetalleClient() {
 
     const images = useMemo(() => {
         const arr = Array.isArray(producto?.imagenes) ? (producto.imagenes as string[]) : []
-        const clean = (arr || []).filter(Boolean).slice(0, 10)
+        const clean = (arr || [])
+            .filter(Boolean)
+            .filter((u) => {
+                const s = String(u || '').toLowerCase()
+                return !(s.endsWith('.mp4') || s.endsWith('.webm') || s.endsWith('.mov') || s.endsWith('.m4v'))
+            })
+            .slice(0, 10)
         if (clean.length > 0) return clean
-        return producto?.imagen_url ? [producto.imagen_url] : []
+        const single = producto?.imagen_url ? String(producto.imagen_url) : ''
+        const s = single.toLowerCase()
+        if (single && !(s.endsWith('.mp4') || s.endsWith('.webm') || s.endsWith('.mov') || s.endsWith('.m4v'))) return [single]
+        return []
     }, [producto])
+
+    const videos = useMemo(() => {
+        const arr = Array.isArray(producto?.videos) ? (producto.videos as string[]) : []
+        const base = (arr || []).map((x) => String(x || '').trim()).filter(Boolean)
+
+        const fromImages = Array.isArray(producto?.imagenes)
+            ? (producto.imagenes as string[])
+                .map((x) => String(x || '').trim())
+                .filter((u) => {
+                    const s = u.toLowerCase()
+                    return s.endsWith('.mp4') || s.endsWith('.webm') || s.endsWith('.mov') || s.endsWith('.m4v')
+                })
+            : []
+
+        const fromMain = producto?.imagen_url
+            ? (() => {
+                const u = String(producto.imagen_url || '').trim()
+                const s = u.toLowerCase()
+                return s.endsWith('.mp4') || s.endsWith('.webm') || s.endsWith('.mov') || s.endsWith('.m4v') ? [u] : []
+              })()
+            : []
+
+        const merged = [...base, ...fromImages, ...fromMain]
+        const unique: string[] = []
+        for (const u of merged) {
+            if (!u) continue
+            if (!unique.includes(u)) unique.push(u)
+            if (unique.length >= 6) break
+        }
+        return unique
+    }, [producto])
+
+    const [activeVideo, setActiveVideo] = useState<string | null>(null)
+
+    useEffect(() => {
+        setActiveVideo((prev) => {
+            if (prev && videos.includes(prev)) return prev
+            return videos[0] || null
+        })
+    }, [videos.join('|')])
 
     if (loading) {
         return <div className="p-10 text-center text-muted-foreground">Cargando producto...</div>
@@ -306,20 +366,60 @@ export default function ProductoDetalleClient() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="overflow-hidden shadow-sm border">
-                    <div className="aspect-square bg-popover relative group">
-                        {images.length > 0 ? (
-                            <ProductImageCarousel images={images} alt={producto.nombre} />
-                        ) : (
-                            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">Sin imagen</div>
-                        )}
-                        {!inStock && (
-                            <div className="absolute inset-0 bg-foreground/60 flex items-center justify-center">
-                                <span className="text-sidebar-primary-foreground font-bold">Agotado</span>
+                <div className="space-y-4">
+                    <Card className="overflow-hidden shadow-sm border">
+                        <div className="aspect-square bg-popover relative group">
+                            {images.length > 0 ? (
+                                <ProductImageCarousel images={images} alt={producto.nombre} />
+                            ) : (
+                                <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">Sin imagen</div>
+                            )}
+                            {!inStock && (
+                                <div className="absolute inset-0 bg-foreground/60 flex items-center justify-center">
+                                    <span className="text-sidebar-primary-foreground font-bold">Agotado</span>
+                                </div>
+                            )}
+                        </div>
+                    </Card>
+
+                    {videos.length > 0 && (
+                        <Card className="overflow-hidden shadow-sm border">
+                            <div className="p-4 space-y-3">
+                                <div className="text-sm font-semibold text-foreground">Video</div>
+
+                                {activeVideo ? (
+                                    <video
+                                        key={activeVideo}
+                                        src={activeVideo}
+                                        controls
+                                        playsInline
+                                        className="w-full rounded-xl border bg-black"
+                                    />
+                                ) : (
+                                    <div className="text-sm text-muted-foreground">Sin video</div>
+                                )}
+
+                                {videos.length > 1 && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {videos.map((v) => (
+                                            <button
+                                                key={v}
+                                                type="button"
+                                                onClick={() => setActiveVideo(v)}
+                                                className={
+                                                    "rounded-lg border px-3 py-2 text-xs font-semibold transition-colors " +
+                                                    (activeVideo === v ? "border-primary bg-primary/10" : "border-border hover:bg-popover")
+                                                }
+                                            >
+                                                Video
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
-                </Card>
+                        </Card>
+                    )}
+                </div>
 
                 <div className="space-y-4">
                     <Card className="shadow-sm border">
@@ -402,11 +502,11 @@ export default function ProductoDetalleClient() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-lg border bg-card p-3">
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                     <Truck className="h-4 w-4 text-foreground" />
-                                    <span>Entrega en 24h solo Lima Metropolitana</span>
+                                    <span>Entrega gratuita en 24h solo Lima Metropolitana</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                     <CreditCard className="h-4 w-4 text-foreground" />
-                                    <span>Pago contraentrega / transferencia</span>
+                                    <span>Pago contraentrega / Pagas al recibir tu pedido</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                     <RefreshCw className="h-4 w-4 text-foreground" />
@@ -609,7 +709,7 @@ export default function ProductoDetalleClient() {
             <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t bg-background/95 backdrop-blur">
                 <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
                     <div>
-                        <div className="text-xs text-muted-foreground">Total</div>
+                        <div className="text-xs text-muted-foreground">Precio del producto</div>
                         <div className="text-lg font-extrabold text-primary leading-none">{formatCurrency(currentPrice)}</div>
                     </div>
                     <Button
@@ -617,12 +717,29 @@ export default function ProductoDetalleClient() {
                         disabled={!inStock}
                         onClick={() => {
                             addItem(producto, selectedVariante)
+                            setAddedToastKey(Date.now())
+                            setAddedToastOpen(true)
                         }}
                     >
                         <ShoppingCart className="h-4 w-4" /> Agregar
                     </Button>
                 </div>
             </div>
+
+            {addedToastOpen && (
+                <div className="md:hidden fixed inset-x-0 bottom-20 z-50 flex justify-center px-4">
+                    <div key={addedToastKey} className="w-full max-w-sm rounded-xl border border-border bg-card shadow-lg p-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                        <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-full bg-green-100 flex items-center justify-center text-green-700">
+                                <CheckCircle className="h-5 w-5" />
+                            </div>
+                            <div className="flex-1">
+                                <div className="font-semibold text-foreground leading-snug">Producto añadido al carrito</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
