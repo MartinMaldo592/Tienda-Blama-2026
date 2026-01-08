@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabaseClient"
 import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/utils"
+import { fetchPedidoDetail } from "@/features/admin"
 
 export default function PedidoTicketPage() {
   const params = useParams()
@@ -32,34 +32,22 @@ export default function PedidoTicketPage() {
   async function fetchTicket() {
     setLoading(true)
 
-    const { data: pedidoData, error } = await supabase
-      .from("pedidos")
-      .select(
-        `
-          *,
-          clientes (*)
-        `
-      )
-      .eq("id", id)
-      .single()
+    try {
+      const pedidoId = Number(id)
+      if (!pedidoId) {
+        setPedido(null)
+        setItems([])
+        setLoading(false)
+        return
+      }
 
-    if (error) {
-      setLoading(false)
-      return
+      const detail = await fetchPedidoDetail(pedidoId)
+      setPedido(detail.pedido)
+      setItems(detail.items)
+    } catch (error) {
+      setPedido(null)
+      setItems([])
     }
-
-    const { data: itemsData } = await supabase
-      .from("pedido_items")
-      .select(
-        `
-          *,
-          productos (nombre, precio)
-        `
-      )
-      .eq("pedido_id", id)
-
-    setPedido(pedidoData)
-    setItems(itemsData || [])
     setLoading(false)
   }
 

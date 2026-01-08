@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
+import { createWorkerViaApi, fetchAdminProfiles } from "@/features/admin"
 
 export default function UsuariosPage() {
   const router = useRouter()
@@ -24,12 +25,12 @@ export default function UsuariosPage() {
   const [creating, setCreating] = useState(false)
 
   const fetchProfiles = useCallback(async () => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("id, email, nombre, role, created_at")
-      .order("created_at", { ascending: false })
-
-    setProfiles(data || [])
+    try {
+      const data = await fetchAdminProfiles()
+      setProfiles(data || [])
+    } catch (err) {
+      setProfiles([])
+    }
   }, [])
 
   useEffect(() => {
@@ -51,24 +52,12 @@ export default function UsuariosPage() {
 
     setCreating(true)
     try {
-      const res = await fetch("/api/admin/create-worker", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          email,
-          nombre,
-          password: password || null,
-        }),
+      const json = await createWorkerViaApi({
+        accessToken: session.access_token,
+        email,
+        nombre,
+        password: password || null,
       })
-
-      const json = await res.json()
-      if (!res.ok) {
-        alert(json?.error || "Error")
-        return
-      }
 
       if (json?.generatedPassword) {
         alert(`Worker creado. Contraseña generada: ${json.generatedPassword}`)

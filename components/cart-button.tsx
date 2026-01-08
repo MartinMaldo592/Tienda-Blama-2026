@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { ShoppingCart, Trash2, Plus, Minus, Image as ImageIcon, CheckCircle } from "lucide-react"
-import { useCartStore } from "@/store/cart"
+import { useCartStore } from "@/features/cart"
 import { useEffect, useState } from "react"
 import { CheckoutForm } from "@/components/checkout-form"
 import { formatCurrency } from "@/lib/utils"

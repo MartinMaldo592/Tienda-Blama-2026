@@ -1,40 +1,17 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { ADMIN_RUNTIME, getSupabaseEnv, requireAdmin } from "@/features/admin/services/admin.server"
+
+export const runtime = ADMIN_RUNTIME
 
 export async function POST(req: Request) {
   try {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    const service = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const auth = await requireAdmin(req)
+    if (!auth.ok) return auth.res
 
-    if (!url || !anon || !service) {
+    const { url, service } = getSupabaseEnv()
+    if (!url || !service) {
       return NextResponse.json({ error: "Server env not configured" }, { status: 500 })
-    }
-
-    const authHeader = req.headers.get("authorization") || ""
-    const token = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length) : ""
-    if (!token) {
-      return NextResponse.json({ error: "Missing Authorization token" }, { status: 401 })
-    }
-
-    const supabaseAuth = createClient(url, anon)
-    const { data: userData, error: userErr } = await supabaseAuth.auth.getUser(token)
-    if (userErr || !userData?.user) {
-      return NextResponse.json({ error: "Invalid session" }, { status: 401 })
-    }
-
-    const { data: profile, error: profileErr } = await supabaseAuth
-      .from("profiles")
-      .select("role")
-      .eq("id", userData.user.id)
-      .maybeSingle()
-
-    if (profileErr) {
-      return NextResponse.json({ error: profileErr.message }, { status: 500 })
-    }
-
-    if (profile?.role !== "admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
     const body = await req.json()

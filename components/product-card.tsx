@@ -7,7 +7,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Plus, Image as ImageIcon } from "lucide-react"
 import { formatCurrency, slugify } from "@/lib/utils"
 import { Database } from "@/types/database.types"
-import { useCartStore } from "@/store/cart"
+import { useCartStore } from "@/features/cart"
 import { useState } from "react"
 import { ProductImageCarousel } from "@/components/product-image-carousel"
 

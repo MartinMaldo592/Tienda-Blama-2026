@@ -3,7 +3,6 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabaseClient"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
 import { Button } from "@/components/ui/button"
@@ -17,6 +16,7 @@ import {
 } from "@/components/ui/select"
 import { ArrowLeft, MapPin, Phone, User, Calendar, CreditCard, Save, UserCheck } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
+import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidoDetail, updatePedidoStatusWithStock } from "@/features/admin"
 
 export default function PedidoDetallePage() {
     const params = useParams()
@@ -56,44 +56,25 @@ export default function PedidoDetallePage() {
     const fetchPedido = useCallback(async () => {
         setLoading(true)
 
-        const { data: pedidoData, error } = await supabase
-            .from('pedidos')
-            .select(`
-                *,
-                clientes (*)
-            `)
-            .eq('id', id)
-            .single()
+        try {
+            const pedidoId = Number(id)
+            if (!pedidoId) {
+                setPedido(null)
+                setItems([])
+                setLoading(false)
+                return
+            }
 
-        if (error) {
+            const detail = await fetchPedidoDetail(pedidoId)
+            setPedido(detail.pedido)
+            setStatus(String((detail.pedido as any)?.status || ''))
+            setAssignedTo(String((detail.pedido as any)?.asignado_a || 'unassigned'))
+            setItems(detail.items)
+        } catch (error) {
             console.error("Error fetching pedido:", error)
-            setLoading(false)
-            return
+            setPedido(null)
+            setItems([])
         }
-
-        let asignadoPerfil = null
-        if (pedidoData.asignado_a) {
-            const { data: workerProfile } = await supabase
-                .from('profiles')
-                .select('id, email, nombre')
-                .eq('id', pedidoData.asignado_a)
-                .single()
-            asignadoPerfil = workerProfile
-        }
-
-        setPedido({ ...pedidoData, asignado_perfil: asignadoPerfil })
-        setStatus(pedidoData.status)
-        setAssignedTo(pedidoData.asignado_a || "unassigned")
-
-        const { data: itemsData } = await supabase
-            .from('pedido_items')
-            .select(`
-                *,
-                productos (nombre, precio, imagen_url)
-            `)
-            .eq('pedido_id', id)
-
-        if (itemsData) setItems(itemsData)
 
         setLoading(false)
     }, [id])
@@ -107,11 +88,12 @@ export default function PedidoDetallePage() {
 
         ;(async () => {
             if (role === 'admin') {
-                const { data: workersData } = await supabase
-                    .from('profiles')
-                    .select('id, email, nombre')
-                    .eq('role', 'worker')
-                if (workersData) setWorkers(workersData)
+                try {
+                    const workersData = await fetchAdminWorkers()
+                    setWorkers(workersData)
+                } catch (err) {
+                    setWorkers([])
+                }
             } else {
                 setWorkers([])
             }
@@ -123,18 +105,11 @@ export default function PedidoDetallePage() {
     async function handleAssignWorker(workerId: string) {
         const assignValue = workerId === 'unassigned' ? null : workerId
 
-        const { error } = await supabase
-            .from('pedidos')
-            .update({
-                asignado_a: assignValue,
-                fecha_asignacion: assignValue ? new Date().toISOString() : null
-            })
-            .eq('id', id)
-
-        if (!error) {
+        try {
+            await assignPedidoToWorker({ pedidoId: Number(id), workerId: assignValue })
             setAssignedTo(workerId)
             fetchPedido()
-        } else {
+        } catch (error: any) {
             showPermissionAlertIfNeeded(error, 'Error al asignar: ')
         }
     }
@@ -143,92 +118,18 @@ export default function PedidoDetallePage() {
         setUpdating(true)
         console.log("Updating status to:", status)
 
-        // Si el admin confirma el pedido, descontamos stock una sola vez.
-        // Esto evita descontar cuando el cliente solo "crea" el pedido.
-        if (status === 'Confirmado' && !pedido?.stock_descontado) {
-            try {
-                const { data: itemsData, error: itemsError } = await supabase
-                    .from('pedido_items')
-                    .select('producto_id, producto_variante_id, cantidad')
-                    .eq('pedido_id', id)
+        try {
+            await updatePedidoStatusWithStock({
+                pedidoId: Number(id),
+                nextStatus: status,
+                stockDescontado: Boolean((pedido as any)?.stock_descontado),
+            })
 
-                if (itemsError) throw itemsError
-
-                const safeItems = (itemsData || []).filter((it: any) => it.producto_id)
-
-                for (const it of safeItems) {
-                    const productoId = Number(it.producto_id)
-                    const varianteId = it.producto_variante_id != null ? Number(it.producto_variante_id) : null
-                    const qty = Number(it.cantidad || 0)
-                    if (!productoId || qty <= 0) continue
-
-                    if (varianteId) {
-                        const { data: variante, error: varError } = await supabase
-                            .from('producto_variantes')
-                            .select('stock')
-                            .eq('id', varianteId)
-                            .single()
-
-                        if (varError) throw varError
-
-                        const currentStock = Number((variante as any)?.stock ?? 0)
-                        const newStock = Math.max(0, currentStock - qty)
-
-                        const { error: updError } = await supabase
-                            .from('producto_variantes')
-                            .update({ stock: newStock })
-                            .eq('id', varianteId)
-
-                        if (updError) throw updError
-                    } else {
-                        const { data: producto, error: prodError } = await supabase
-                            .from('productos')
-                            .select('stock')
-                            .eq('id', productoId)
-                            .single()
-
-                        if (prodError) throw prodError
-
-                        const currentStock = Number((producto as any)?.stock ?? 0)
-                        const newStock = Math.max(0, currentStock - qty)
-
-                        const { error: updError } = await supabase
-                            .from('productos')
-                            .update({ stock: newStock })
-                            .eq('id', productoId)
-
-                        if (updError) throw updError
-                    }
-                }
-
-                const { error: markError } = await supabase
-                    .from('pedidos')
-                    .update({ stock_descontado: true })
-                    .eq('id', id)
-
-                if (markError) throw markError
-            } catch (err: any) {
-                console.error('Error descontando stock:', err)
-                const showed = showPermissionAlertIfNeeded(err, 'No se pudo descontar el stock. Verifica el inventario y vuelve a intentar.\n')
-                if (!showed && !String(err?.message || '')) {
-                    alert('No se pudo descontar el stock. Verifica el inventario y vuelve a intentar.')
-                }
-                setUpdating(false)
-                return
-            }
-        }
-
-        const { error } = await supabase
-            .from('pedidos')
-            .update({ status: status })
-            .eq('id', id)
-
-        if (!error) {
             alert("Estado actualizado correctamente")
-            fetchPedido() // Refresh
-        } else {
-            console.error("Error updating status:", error)
-            showPermissionAlertIfNeeded(error, 'Error al actualizar: ')
+            fetchPedido()
+        } catch (err: any) {
+            console.error("Error updating status:", err)
+            showPermissionAlertIfNeeded(err, 'Error al actualizar: ')
         }
         setUpdating(false)
     }

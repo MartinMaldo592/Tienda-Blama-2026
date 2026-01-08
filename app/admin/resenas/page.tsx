@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
 import { Button } from "@/components/ui/button"
@@ -16,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Check, RefreshCw, Trash2, X } from "lucide-react"
+import { deleteReview, fetchAdminReviews, setReviewApproved } from "@/features/admin"
 
 type ReviewRow = {
   id: number
@@ -42,20 +42,13 @@ export default function AdminResenasPage() {
   const fetchItems = useCallback(async () => {
     setLoading(true)
 
-    const { data, error } = await supabase
-      .from("product_reviews")
-      .select("id, product_id, rating, title, body, customer_name, customer_city, verified, approved, created_at, productos(nombre)")
-      .order("created_at", { ascending: false })
-      .limit(200)
-
-    if (error) {
-      alert(error.message)
+    try {
+      const data = await fetchAdminReviews()
+      setItems(((data as any[]) || []) as ReviewRow[])
+    } catch (e: any) {
+      alert(e?.message || "Error")
       setItems([])
-      setLoading(false)
-      return
     }
-
-    setItems(((data as any[]) || []) as ReviewRow[])
     setLoading(false)
   }, [])
 
@@ -81,8 +74,7 @@ export default function AdminResenasPage() {
   async function setApproved(id: number, approved: boolean) {
     setBusyId(id)
     try {
-      const { error } = await supabase.from("product_reviews").update({ approved }).eq("id", id)
-      if (error) throw error
+      await setReviewApproved({ id, approved })
       setItems((prev) => prev.map((x) => (x.id === id ? { ...x, approved } : x)))
     } catch (e: any) {
       alert(e?.message || "Error actualizando")
@@ -96,8 +88,7 @@ export default function AdminResenasPage() {
 
     setBusyId(id)
     try {
-      const { error } = await supabase.from("product_reviews").delete().eq("id", id)
-      if (error) throw error
+      await deleteReview(id)
       setItems((prev) => prev.filter((x) => x.id !== id))
     } catch (e: any) {
       alert(e?.message || "Error eliminando")

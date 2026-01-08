@@ -10,8 +10,22 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, Loader2, MapPin } from "lucide-react"
-import { supabase } from "@/lib/supabaseClient"
 import { formatCurrency } from "@/lib/utils"
+import {
+    buildPreOpenUrl,
+    buildWhatsAppFinalMessage,
+    buildWhatsAppPreviewMessage,
+    buildWhatsAppUrl,
+    clearCartStorage,
+    createCheckoutOrder,
+    isCouponRelatedError,
+    isInAppBrowser,
+    isMobileDevice,
+    normalizeDigits,
+    normalizeDni,
+    setLastOrderSuccessMarker,
+    validateCoupon,
+} from "@/features/checkout"
 
 // Define libraries array outside component to prevent re-renders
 const libraries: ("places")[] = ["places"];
@@ -83,93 +97,10 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
         }
     }
 
-    const validateCoupon = async (rawCode: string, subtotal: number) => {
-        const code = rawCode.trim()
-        if (!code) {
-            return { descuento: 0, codigo: null as string | null }
-        }
-
-        const { data, error } = await supabase
-            .from('cupones')
-            .select('*')
-            .ilike('codigo', code)
-            .limit(1)
-            .maybeSingle()
-
-        if (error) throw new Error(error.message)
-        if (!data) throw new Error('Cupón inválido')
-        if (!data.activo) throw new Error('Cupón inactivo')
-        if (Number(subtotal) < Number(data.min_total || 0)) throw new Error('El cupón no aplica para este total')
-
-        const now = new Date()
-        if (data.starts_at) {
-            const starts = new Date(data.starts_at)
-            if (now < starts) throw new Error('El cupón aún no está disponible')
-        }
-        if (data.expires_at) {
-            const expires = new Date(data.expires_at)
-            if (now > expires) throw new Error('El cupón expiró')
-        }
-        if (data.max_usos != null && data.usos != null && Number(data.usos) >= Number(data.max_usos)) {
-            throw new Error('El cupón ya alcanzó el máximo de usos')
-        }
-
-        let descuento = 0
-        const valor = Number(data.valor) || 0
-
-        if (data.tipo === 'porcentaje') {
-            descuento = subtotal * (valor / 100)
-        } else {
-            descuento = valor
-        }
-
-        descuento = Math.max(0, Math.min(subtotal, Math.round(descuento * 100) / 100))
-
-        return { descuento, codigo: data.codigo as string }
-    }
-
     const subtotalAmount = Number(total) || 0
     const discountAmount = Math.max(0, Math.min(subtotalAmount, Number(couponDiscount) || 0))
     const totalToPay = Math.max(0, Math.round((subtotalAmount - discountAmount) * 100) / 100)
 
-    const isCouponRelatedError = (message: string) => {
-        const m = String(message || '').toLowerCase()
-        return (
-            m.includes('cupón') ||
-            m.includes('cupon') ||
-            m.includes('agotado') ||
-            m.includes('expir') ||
-            m.includes('inval') ||
-            m.includes('no aplica') ||
-            m.includes('aún no')
-        )
-    }
-
-    function isInAppBrowser() {
-        const ua = String(navigator?.userAgent || '')
-        const uaLower = ua.toLowerCase()
-
-        if (uaLower.includes('fban') || uaLower.includes('fbav')) return true
-        if (uaLower.includes('instagram')) return true
-        if (uaLower.includes('tiktok')) return true
-        if (uaLower.includes('snapchat')) return true
-        if (uaLower.includes('pinterest')) return true
-        if (uaLower.includes('linkedinapp')) return true
-        if (uaLower.includes('wv') || uaLower.includes('; wv')) return true
-        if (uaLower.includes('webview')) return true
-        return false
-    }
-
-    function isMobileDevice() {
-        const ua = String(navigator?.userAgent || '').toLowerCase()
-        if (ua.includes('android')) return true
-        if (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod')) return true
-        try {
-            if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return true
-        } catch (err) {
-        }
-        return false
-    }
 
     const handleApplyCoupon = async () => {
         setCouponError("")
@@ -195,7 +126,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
         setCouponError("")
         setDniError("")
 
-        const normalizedDni = String(dni || '').replace(/\D/g, '').slice(0, 8)
+        const normalizedDni = normalizeDni(dni)
         if (normalizedDni.length !== 8) {
             setDniError('El DNI debe tener 8 dígitos')
             setIsSubmitting(false)
@@ -219,26 +150,31 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
         const finalDiscount = Math.max(0, Math.min(subtotalAmount, Number(appliedDiscount) || 0))
         const finalTotal = Math.max(0, Math.round((subtotalAmount - finalDiscount) * 100) / 100)
 
+        const checkoutItems = (Array.isArray(items) ? items : []).map((it: any) => ({
+            id: Number(it?.id ?? 0),
+            quantity: Number(it?.quantity ?? 0),
+            precio: Number(it?.precio ?? 0),
+            nombre: String(it?.nombre ?? ''),
+            producto_variante_id: (it as any)?.producto_variante_id ?? null,
+            variante_nombre: (it as any)?.variante_nombre ?? null,
+        }))
+
         // Construimos el mensaje del pedido SYNCRONAMENTE usando los datos del formulario
         // y los items disponibles. De esta forma podemos abrir la URL de WhatsApp
         // en una nueva pestaña inmediatamente (evento de usuario) y evitar bloqueos.
-        let messageClientePreview = `¡Hola! Soy ${name || 'Cliente'}. Quiero confirmar mi pedido: 🛍️\n`;
-        messageClientePreview += `*DATOS DE ENVÍO*:\n`;
-        messageClientePreview += `Cliente: ${name}\n`;
-        messageClientePreview += `DNI: ${normalizedDni}\n`;
-        messageClientePreview += `Teléfono: ${phone}\n`;
-        messageClientePreview += `Dirección: ${value || ''}\n`;
-        if (reference) messageClientePreview += `Referencia: ${reference}\n`;
-        if (locationLink) messageClientePreview += `Ubicación: ${locationLink}\n`;
-        messageClientePreview += `\n*DETALLE DEL PEDIDO:*\n`;
-        items.forEach(item => {
-            messageClientePreview += `• ${item.quantity} x ${item.nombre} - ${formatCurrency(item.precio * item.quantity)}\n`;
+        const messageClientePreview = buildWhatsAppPreviewMessage({
+            name: name || 'Cliente',
+            dni: normalizedDni,
+            phone,
+            address: value || '',
+            reference,
+            locationLink,
+            items: checkoutItems,
+            subtotal: subtotalAmount,
+            discount: finalDiscount,
+            total: finalTotal,
+            couponCode: appliedCouponCode,
         })
-        if (finalDiscount > 0 && appliedCouponCode) {
-            messageClientePreview += `\n*SUBTOTAL: ${formatCurrency(subtotalAmount)}*`;
-            messageClientePreview += `\n*CUPÓN (${appliedCouponCode}): -${formatCurrency(finalDiscount)}*`;
-        }
-        messageClientePreview += `\n*TOTAL: ${formatCurrency(finalTotal)}*`;
 
         const phoneNumberClienteInit = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "982432561";
 
@@ -249,7 +185,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
         const isMobile = isMobileDevice()
         let popup: Window | null = null
         if (!inApp && isMobile) {
-            const preUrl = `/open-wa?phone=${encodeURIComponent(phoneNumberClienteInit)}&text=${encodeURIComponent(messageClientePreview)}&auto=1`
+            const preUrl = buildPreOpenUrl(phoneNumberClienteInit, messageClientePreview)
             popup = window.open(preUrl, '_blank', 'noopener,noreferrer')
             if (popup) {
                 try {
@@ -261,78 +197,45 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
 
 
         try {
-            const normalizedPhone = String(phone || '').replace(/\D/g, '')
+            const normalizedPhone = normalizeDigits(phone)
 
-            const createRes = await fetch('/api/checkout/whatsapp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name,
-                    phone: normalizedPhone,
-                    dni: normalizedDni,
-                    address: value,
-                    reference,
-                    locationLink,
-                    couponCode: appliedCouponCode,
-                    discountAmount: finalDiscount,
-                    items: items.map((it: any) => ({
-                        id: it.id,
-                        quantity: it.quantity,
-                        precio: it.precio,
-                        nombre: it.nombre,
-                        producto_variante_id: (it as any).producto_variante_id ?? null,
-                        variante_nombre: (it as any).variante_nombre ?? null,
-                    })),
-                })
+            const { orderId: newOrderId } = await createCheckoutOrder({
+                name,
+                phone: normalizedPhone,
+                dni: normalizedDni,
+                address: value,
+                reference,
+                locationLink,
+                couponCode: appliedCouponCode,
+                discountAmount: finalDiscount,
+                items: checkoutItems.map((it) => ({
+                    id: it.id,
+                    quantity: it.quantity,
+                    precio: it.precio,
+                    nombre: it.nombre,
+                    producto_variante_id: it.producto_variante_id ?? null,
+                    variante_nombre: it.variante_nombre ?? null,
+                })),
             })
-
-            let createJson: any = null
-            try {
-                createJson = await createRes.json()
-            } catch (err) {
-                createJson = null
-            }
-
-            if (!createRes.ok || !createJson?.ok) {
-                const baseMsg = String(createJson?.error || 'No se pudo crear el pedido')
-                const missing = Array.isArray(createJson?.missing) ? createJson.missing : null
-                const msg = missing && missing.length > 0
-                    ? `${baseMsg}. Falta configurar: ${missing.join(', ')}`
-                    : baseMsg
-                throw new Error(msg)
-            }
-
-            const newOrderId = Number(createJson?.orderId ?? 0)
-            if (!newOrderId) {
-                throw new Error('No se pudo crear el pedido')
-            }
 
             // E. WhatsApp mensaje al cliente
             const phoneNumberCliente = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "982432561"
             const orderIdFormatted = newOrderId.toString().padStart(6, '0')
 
-            let messageCliente = `¡Hola! Soy ${name}. Quiero confirmar mi pedido: 🛍️\n`
-            messageCliente += `📋 *Pedido #${orderIdFormatted}*\n\n`
-            messageCliente += `*DATOS DE ENVÍO* 📦\n`
-            messageCliente += `👤 *Cliente:* ${name}\n`
-            messageCliente += `🪪 *DNI:* ${normalizedDni}\n`
-            messageCliente += `📱 *Teléfono:* ${phone}\n`
-            messageCliente += `📍 *Dirección:* ${value}\n`
-            if (reference) messageCliente += `🏠 *Referencia:* ${reference}\n`
-            if (locationLink) messageCliente += `🗺️ *Ubicación:* ${locationLink}\n`
-
-            messageCliente += `\n--------------------------------\n\n`
-            messageCliente += `*DETALLE DEL PEDIDO:*\n`
-            items.forEach(item => {
-                const vName = (item as any).variante_nombre ? ` (${String((item as any).variante_nombre)})` : ''
-                messageCliente += `• ${item.quantity} x ${item.nombre}${vName}\n   Sub: ${formatCurrency(item.precio * item.quantity)}\n`
+            const messageCliente = buildWhatsAppFinalMessage({
+                orderIdFormatted,
+                name,
+                dni: normalizedDni,
+                phone,
+                address: value,
+                reference,
+                locationLink,
+                items: checkoutItems,
+                subtotal: subtotalAmount,
+                discount: finalDiscount,
+                total: finalTotal,
+                couponCode: appliedCouponCode,
             })
-            messageCliente += `\n--------------------------------\n`
-            if (finalDiscount > 0 && appliedCouponCode) {
-                messageCliente += `💵 *SUBTOTAL: ${formatCurrency(subtotalAmount)}*\n`
-                messageCliente += `🏷️ *CUPÓN (${appliedCouponCode}): -${formatCurrency(finalDiscount)}*\n`
-            }
-            messageCliente += `💰 *TOTAL A PAGAR: ${formatCurrency(finalTotal)}*`
 
             // F. ⭐ NOTIFICACIÓN AUTOMÁTICA AL ADMIN (Twilio)
             try {
@@ -367,27 +270,10 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             }
 
             // G. Preparar enlace de WhatsApp final (incluye id de pedido).
-            const urlCliente = `https://api.whatsapp.com/send/?phone=${encodeURIComponent(phoneNumberCliente)}&text=${encodeURIComponent(messageCliente)}&type=phone_number&app_absent=0`
+            const urlCliente = buildWhatsAppUrl(phoneNumberCliente, messageCliente)
 
-            try {
-                localStorage.setItem(
-                    'blama_last_order_success',
-                    JSON.stringify({ orderId: orderIdFormatted, ts: Date.now() })
-                )
-            } catch (err) {
-            }
-
-            try {
-                const payload = encodeURIComponent(JSON.stringify({ orderId: orderIdFormatted, ts: Date.now() }))
-                const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:'
-                document.cookie = `blama_last_order_success=${payload}; Max-Age=${60 * 30}; Path=/; SameSite=Lax${isHttps ? '; Secure' : ''}`
-            } catch (err) {
-            }
-
-            try {
-                localStorage.removeItem('cart-storage')
-            } catch (err) {
-            }
+            setLastOrderSuccessMarker(orderIdFormatted)
+            clearCartStorage()
 
             onComplete()
 

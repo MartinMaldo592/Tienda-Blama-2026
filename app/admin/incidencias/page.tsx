@@ -3,7 +3,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { supabase } from "@/lib/supabaseClient"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
 import { Button } from "@/components/ui/button"
@@ -26,6 +25,13 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { AlertTriangle, RefreshCw, Trash2, UploadCloud, X } from "lucide-react"
+import {
+    createIncidencia,
+    deleteIncidencia,
+    fetchIncidencias as fetchIncidenciasService,
+    fetchPedidosForIncidencias,
+    uploadIncidenciaImages,
+} from "@/features/admin"
 
 const TIPOS = [
     "Devolución",
@@ -60,31 +66,22 @@ export default function IncidenciasPage() {
     const [pedidos, setPedidos] = useState<any[]>([])
 
     const fetchPedidos = useCallback(async () => {
-        const { data, error } = await supabase
-            .from('pedidos')
-            .select('id, status, created_at, clientes (nombre, telefono)')
-            .order('created_at', { ascending: false })
-            .limit(200)
-
-        if (error) {
+        try {
+            const data = await fetchPedidosForIncidencias()
+            setPedidos(data)
+        } catch (error) {
             console.error('Error fetching pedidos:', error)
             setPedidos([])
-        } else {
-            setPedidos((data as any[]) || [])
         }
     }, [])
 
     const fetchIncidencias = useCallback(async () => {
-        const { data, error } = await supabase
-            .from("incidencias")
-            .select(`*, pedidos (id, status, created_at, clientes (nombre, telefono))`)
-            .order("created_at", { ascending: false })
-
-        if (error) {
+        try {
+            const data = await fetchIncidenciasService()
+            setIncidencias(data)
+        } catch (error) {
             console.error("Error fetching incidencias:", error)
             setIncidencias([])
-        } else {
-            setIncidencias((data as any[]) || [])
         }
     }, [])
 
@@ -137,17 +134,10 @@ export default function IncidenciasPage() {
             async function save(withFotos: boolean) {
                 const p: any = { ...payload }
                 if (!withFotos) delete p.fotos
-                return supabase.from('incidencias').insert(p)
+                return createIncidencia(p)
             }
 
-            const first = await save(true)
-            let error = first.error
-            if (error && typeof (error as any).message === 'string' && (error as any).message.toLowerCase().includes('fotos')) {
-                const second = await save(false)
-                error = second.error
-            }
-
-            if (error) throw new Error((error as any).message)
+            await save(true)
 
             setPedidoId("")
             setTipo("Queja")
@@ -179,12 +169,9 @@ export default function IncidenciasPage() {
         if (userRole !== "admin") return
         if (!confirm("¿Eliminar esta incidencia?")) return
 
-        const { error } = await supabase
-            .from("incidencias")
-            .delete()
-            .eq("id", id)
-
-        if (error) {
+        try {
+            await deleteIncidencia(id)
+        } catch (error: any) {
             const code = String((error as any)?.code || '')
             const msg = String((error as any)?.message || '')
             const lower = msg.toLowerCase()
@@ -287,22 +274,7 @@ export default function IncidenciasPage() {
                                             const remaining = Math.max(0, 5 - fotos.length)
                                             const toUpload = files.slice(0, remaining)
 
-                                            const uploadedUrls: string[] = []
-                                            for (const file of toUpload) {
-                                                const fileExt = file.name.split('.').pop() || 'jpg'
-                                                const fileName = `${Date.now()}-${Math.random().toString(16).slice(2)}.${fileExt}`
-                                                const folder = pedidoId ? `incidencias/${pedidoId}` : 'incidencias'
-                                                const filePath = `${folder}/${fileName}`
-
-                                                const { error: uploadError } = await supabase.storage
-                                                    .from('productos')
-                                                    .upload(filePath, file)
-
-                                                if (uploadError) throw uploadError
-
-                                                const { data } = supabase.storage.from('productos').getPublicUrl(filePath)
-                                                if (data?.publicUrl) uploadedUrls.push(data.publicUrl)
-                                            }
+                                            const uploadedUrls = await uploadIncidenciaImages({ pedidoId, files: toUpload })
 
                                             const next = [...fotos, ...uploadedUrls]
                                                 .map((x) => String(x || '').trim())

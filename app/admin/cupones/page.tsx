@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
 import { Button } from "@/components/ui/button"
@@ -31,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { RefreshCw, Plus, Trash2, Pencil } from "lucide-react"
+import { createAdminCupon, deleteAdminCupon, fetchAdminCupones, updateAdminCupon } from "@/features/admin"
 
 type CouponType = "porcentaje" | "monto"
 
@@ -95,18 +95,13 @@ export default function CuponesAdminPage() {
   const [expiresAt, setExpiresAt] = useState<string>("")
 
   const fetchCoupons = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("cupones")
-      .select("*")
-      .order("created_at", { ascending: false })
-
-    if (error) {
+    try {
+      const data = await fetchAdminCupones()
+      setCoupons((data as any[]) as CouponRow[])
+    } catch (error) {
       console.error("Error fetching cupones:", error)
       setCoupons([])
-      return
     }
-
-    setCoupons((data as any[]) as CouponRow[])
   }, [])
 
   useEffect(() => {
@@ -188,18 +183,9 @@ export default function CuponesAdminPage() {
     setSaving(true)
     try {
       if (editing) {
-        const { error } = await supabase
-          .from("cupones")
-          .update(payload)
-          .eq("id", editing.id)
-
-        if (error) throw error
+        await updateAdminCupon(editing.id, payload)
       } else {
-        const { error } = await supabase
-          .from("cupones")
-          .insert(payload)
-
-        if (error) throw error
+        await createAdminCupon(payload)
       }
 
       setSheetOpen(false)
@@ -218,8 +204,7 @@ export default function CuponesAdminPage() {
     if (!confirm(`Eliminar cupón ${c.codigo}?`)) return
 
     try {
-      const { error } = await supabase.from("cupones").delete().eq("id", c.id)
-      if (error) throw error
+      await deleteAdminCupon(c.id)
       await fetchCoupons()
     } catch (err: any) {
       console.error("Error deleting cupon:", err)

@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
 import { Button } from "@/components/ui/button"
@@ -17,6 +16,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Check, MessageSquare, RefreshCw, Save, X } from "lucide-react"
+import { fetchAdminQuestions, saveQuestionAnswer, setQuestionPublished } from "@/features/admin"
 
 type QuestionRow = {
   id: number
@@ -44,22 +44,13 @@ export default function AdminPreguntasPage() {
   const fetchItems = useCallback(async () => {
     setLoading(true)
 
-    const { data, error } = await supabase
-      .from("product_questions")
-      .select(
-        "id, product_id, question, asker_name, asker_phone, published, created_at, productos(nombre), product_answers(id, answer, answered_by, created_at, published)"
-      )
-      .order("created_at", { ascending: false })
-      .limit(200)
-
-    if (error) {
-      alert(error.message)
+    try {
+      const data = await fetchAdminQuestions()
+      setItems(((data as any[]) || []) as QuestionRow[])
+    } catch (e: any) {
+      alert(e?.message || "Error")
       setItems([])
-      setLoading(false)
-      return
     }
-
-    setItems(((data as any[]) || []) as QuestionRow[])
     setLoading(false)
   }, [])
 
@@ -84,8 +75,7 @@ export default function AdminPreguntasPage() {
   async function setPublished(id: number, published: boolean) {
     setBusyId(id)
     try {
-      const { error } = await supabase.from("product_questions").update({ published }).eq("id", id)
-      if (error) throw error
+      await setQuestionPublished({ id, published })
       setItems((prev) => prev.map((x) => (x.id === id ? { ...x, published } : x)))
     } catch (e: any) {
       alert(e?.message || "Error actualizando")
@@ -109,32 +99,7 @@ export default function AdminPreguntasPage() {
     setBusyId(questionId)
 
     try {
-      const { data: sessionRes } = await supabase.auth.getSession()
-      const userId = sessionRes?.session?.user?.id || null
-
-      let answeredBy: string | null = null
-      if (userId) {
-        const { data: profile } = await supabase.from("profiles").select("email, nombre").eq("id", userId).maybeSingle()
-        answeredBy = String((profile as any)?.nombre || (profile as any)?.email || "Admin")
-      }
-
-      const current = items.find((x) => x.id === questionId) || null
-      const existing = current && Array.isArray(current.product_answers) && current.product_answers.length > 0 ? current.product_answers[0] : null
-
-      if (existing) {
-        const { error } = await supabase
-          .from("product_answers")
-          .update({ answer: answer.trim(), answered_by: answeredBy, published: true })
-          .eq("id", existing.id)
-        if (error) throw error
-      } else {
-        const { error } = await supabase
-          .from("product_answers")
-          .insert({ question_id: questionId, answer: answer.trim(), answered_by: answeredBy, published: true })
-        if (error) throw error
-      }
-
-      await supabase.from("product_questions").update({ published: true }).eq("id", questionId)
+      await saveQuestionAnswer({ questionId, answer: answer.trim() })
 
       await fetchItems()
       setEditingId(null)

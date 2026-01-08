@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabaseClient"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
 import { Button } from "@/components/ui/button"
@@ -18,6 +17,7 @@ import {
 } from "@/components/ui/table"
 import { ArrowLeft, RefreshCw } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
+import { fetchAdminStockBajo } from "@/features/admin"
 
 export default function DashboardStockBajoPage() {
     const router = useRouter()
@@ -31,17 +31,12 @@ export default function DashboardStockBajoPage() {
         setLoading(true)
         setThreshold(th)
 
-        const { data, error } = await supabase
-            .from("productos")
-            .select("id, nombre, precio, stock, imagen_url")
-            .lt("stock", th)
-            .order("stock", { ascending: true })
-
-        if (error) {
+        try {
+            const data = await fetchAdminStockBajo({ threshold: th })
+            setProductos(data)
+        } catch (error: any) {
             console.error("Error fetching stock bajo:", error)
             setProductos([])
-        } else {
-            setProductos((data as any[]) || [])
         }
 
         setLoading(false)

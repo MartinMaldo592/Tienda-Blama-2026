@@ -3,7 +3,7 @@
 import { CheckoutForm } from "@/components/checkout-form"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { useCartStore } from "@/store/cart"
+import { useCartStore } from "@/features/cart"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"

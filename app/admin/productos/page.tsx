@@ -20,6 +20,7 @@ import {
 import { formatCurrency } from "@/lib/utils"
 
 import { Plus, Search, Edit, Trash2, Image as ImageIcon } from "lucide-react"
+import { deleteAdminProductoViaApi, fetchAdminProductos } from "@/features/admin"
 
 export default function ProductosPage() {
     const router = useRouter()
@@ -36,11 +37,12 @@ export default function ProductosPage() {
 
     async function fetchProductos() {
         setLoading(true)
-        const { data } = await supabase
-            .from('productos')
-            .select('*')
-            .order('id', { ascending: true })
-        if (data) setProductos(data)
+        try {
+            const data = await fetchAdminProductos()
+            setProductos(data)
+        } catch (err) {
+            setProductos([])
+        }
         setLoading(false)
     }
 
@@ -54,24 +56,10 @@ export default function ProductosPage() {
             return
         }
 
-        const res = await fetch('/api/admin/productos', {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`,
-            },
-            body: JSON.stringify({ id }),
-        })
-
-        let json: any = null
         try {
-            json = await res.json()
-        } catch (err) {
-            json = null
-        }
-
-        if (!res.ok || !json?.ok) {
-            alert("Error al eliminar: " + String(json?.error || 'No se pudo eliminar'))
+            await deleteAdminProductoViaApi({ accessToken, id })
+        } catch (err: any) {
+            alert("Error al eliminar: " + String(err?.message || 'No se pudo eliminar'))
             return
         }
 

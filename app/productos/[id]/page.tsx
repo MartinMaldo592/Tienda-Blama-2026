@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
-import { createClient } from "@supabase/supabase-js"
 import ProductoDetalleClient from "./producto-detalle-client"
+import { fetchProductForMeta } from "@/features/products/services/products.server"
 
 function parseProductId(raw: string) {
     const direct = Number(raw)
@@ -8,25 +8,6 @@ function parseProductId(raw: string) {
     const match = String(raw).match(/(\d+)(?:\D*)$/)
     if (match && match[1]) return Number(match[1])
     return 0
-}
-
-async function fetchProductForMeta(id: number) {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    if (!supabaseUrl || !supabaseAnonKey) return null
-
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-        auth: { persistSession: false },
-    })
-
-    const { data, error } = await supabase
-        .from("productos")
-        .select("id, nombre, descripcion, imagen_url, imagenes")
-        .eq("id", id)
-        .maybeSingle()
-
-    if (error) return null
-    return data
 }
 
 function buildDescription(p: any) {

@@ -1,20 +1,14 @@
 import type { Metadata } from "next"
 import { Button } from "@/components/ui/button"
-import { supabase } from "@/lib/supabaseClient"
 import { ProductCard } from "@/components/product-card"
 import { PromoCarousel } from "@/components/promo-carousel"
-import { Database } from "@/types/database.types"
 import Link from "next/link"
 import { slugify } from "@/lib/utils"
-import { CreditCard, Gift, ShieldCheck, Truck, Zap } from "lucide-react"
+import { getHomePageData } from "@/features/products/services/products.server"
 
-// Types
-type Product = Database['public']['Tables']['productos']['Row']
-type Category = Database['public']['Tables']['categorias']['Row']
+const HOME_PRODUCTS_LIMIT = 12
 
- const HOME_PRODUCTS_LIMIT = 12
-
- const FEATURED_QUERY = "%PELUCHE CORDEITO%"
+const FEATURED_QUERY = "%PELUCHE CORDEITO%"
 
 export const metadata: Metadata = {
   title: "Tienda Online Premium",
@@ -59,193 +53,19 @@ export default async function Home({
   const rawCat = resolvedSearchParams?.cat
   const selectedCategorySlug = (Array.isArray(rawCat) ? rawCat[0] : rawCat || '').trim()
 
-  const { data: categories } = await supabase
-    .from('categorias')
-    .select('*')
-    .order('nombre', { ascending: true })
+  const { categories, featuredProduct, products, bestSellers, offers, productsError } = await getHomePageData({
+    selectedCategorySlug,
+    featuredQuery: FEATURED_QUERY,
+    productsLimit: HOME_PRODUCTS_LIMIT,
+  })
 
-  const { data: featuredProduct } = await supabase
-    .from('productos')
-    .select('*')
-    .ilike('nombre', FEATURED_QUERY)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-
-  const selectedCategory = (categories as Category[] | null)?.find(
-    (c) => c.slug === selectedCategorySlug
-  )
-  
-  let productsQuery = supabase
-    .from('productos')
-    .select('*')
-    .order('created_at', { ascending: false })
-
-  productsQuery = productsQuery.limit(HOME_PRODUCTS_LIMIT)
-
-  if (selectedCategory?.id) {
-    productsQuery = productsQuery.eq('categoria_id', selectedCategory.id)
-  }
-
-  const { data: products, error } = await productsQuery
-  let bestSellers: Product[] = []
-  let offers: Product[] = []
-  try {
-    const { data: soldItems, error: soldItemsError } = await supabase
-      .from('pedido_items')
-      .select(`
-        cantidad,
-        productos (*),
-        pedidos (status)
-      `)
-      .limit(1000)
-
-    if (!soldItemsError && soldItems && soldItems.length > 0) {
-      const soldByProductId = new Map<number, { product: Product; sold: number }>()
-
-      for (const row of soldItems as any[]) {
-        const status: string | undefined = row.pedidos?.status
-        if (status && ['Fallido', 'Devuelto'].includes(status)) continue
-
-        const product: Product | null | undefined = row.productos
-        if (!product) continue
-
-        const productId = product.id
-        const qty = Number(row.cantidad) || 0
-        if (qty <= 0) continue
-
-        const current = soldByProductId.get(productId)
-        if (current) {
-          current.sold += qty
-        } else {
-          soldByProductId.set(productId, { product, sold: qty })
-        }
-      }
-
-      bestSellers = Array.from(soldByProductId.values())
-        .sort((a, b) => b.sold - a.sold)
-        .slice(0, 10)
-        .map((x) => x.product)
-    }
-  } catch (err) {
-    bestSellers = []
-  }
-
-  try {
-    const { data: offersRaw, error: offersError } = await supabase
-      .from('productos')
-      .select('*')
-      .not('precio_antes', 'is', null)
-      .limit(60)
-
-    if (!offersError && offersRaw && offersRaw.length > 0) {
-      offers = (offersRaw as Product[])
-        .filter((p) => {
-          const before = Number((p as any)?.precio_antes ?? 0)
-          const current = Number((p as any)?.precio ?? 0)
-          return Number.isFinite(before) && Number.isFinite(current) && before > current && current > 0
-        })
-        .sort((a, b) => {
-          const beforeA = Number((a as any)?.precio_antes ?? 0)
-          const currentA = Number((a as any)?.precio ?? 0)
-          const beforeB = Number((b as any)?.precio_antes ?? 0)
-          const currentB = Number((b as any)?.precio ?? 0)
-          const discA = beforeA > 0 ? (beforeA - currentA) / beforeA : 0
-          const discB = beforeB > 0 ? (beforeB - currentB) / beforeB : 0
-          return discB - discA
-        })
-        .slice(0, 6)
-    }
-  } catch (err) {
-    offers = []
-  }
-
-  if (error) {
-    console.error("Error fetching products:", error)
+  if (productsError) {
+    console.error("Error fetching products:", productsError)
     return <div className="p-4 text-red-500">Error cargando productos. Revisa tu conexión a Supabase.</div>
   }
 
   return (
     <main className="pb-20 font-sans">
-
-      <section className="px-4 pt-6">
-        <div className="relative overflow-hidden rounded-3xl border bg-gradient-to-br from-foreground to-primary text-primary-foreground shadow-xl">
-          <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 20% 20%, rgba(255,255,255,0.35), transparent 45%), radial-gradient(circle at 80% 30%, rgba(255,255,255,0.25), transparent 40%), radial-gradient(circle at 50% 90%, rgba(255,255,255,0.2), transparent 55%)" }} />
-          <div className="relative p-6 sm:p-8 grid gap-6 md:grid-cols-2 md:items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-bold backdrop-blur">
-                <Zap className="h-4 w-4" />
-                Atención rápida por WhatsApp
-              </div>
-
-              <h1 className="mt-4 text-3xl sm:text-4xl font-extrabold leading-tight">
-                Regalos que enamoran.
-                <br />
-                Entrega rápida y compra fácil.
-              </h1>
-
-              <p className="mt-3 text-sm sm:text-base text-primary-foreground/90 max-w-xl">
-                Productos seleccionados, presentación premium y soporte inmediato. Haz tu pedido en minutos y confírmalo por WhatsApp.
-              </p>
-
-              <div className="mt-5 flex flex-col sm:flex-row gap-3">
-                <Button asChild className="rounded-xl bg-white text-foreground hover:bg-white/90">
-                  <Link href={featuredProduct?.id ? `/productos/${slugify(String(featuredProduct.nombre))}-${featuredProduct.id}` : '/productos'}>
-                    Comprar el destacado
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="rounded-xl border-white/30 text-white hover:bg-white/10">
-                  <Link href="/productos">Ver catálogo</Link>
-                </Button>
-              </div>
-
-              <div className="mt-5 grid grid-cols-2 gap-3 text-xs text-primary-foreground/90">
-                <div className="flex items-center gap-2">
-                  <Truck className="h-4 w-4" />
-                  Envíos a domicilio
-                </div>
-                <div className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4" />
-                  Pago contraentrega / transferencia
-                </div>
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4" />
-                  Compra segura
-                </div>
-                <div className="flex items-center gap-2">
-                  <Gift className="h-4 w-4" />
-                  Presentación lista para regalar
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-2xl bg-white/10 border border-white/15 p-5 backdrop-blur">
-              <div className="text-sm font-bold">Oferta recomendada</div>
-              <div className="mt-1 text-2xl font-extrabold leading-tight">Peluches & flores eternas</div>
-              <div className="mt-2 text-sm text-primary-foreground/90">
-                Ideal para cumpleaños, aniversarios y sorpresas.
-              </div>
-              <div className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-black/20 p-4">
-                <div>
-                  <div className="text-xs text-primary-foreground/80">Respuesta promedio</div>
-                  <div className="text-lg font-extrabold">&lt; 5 min</div>
-                </div>
-                <div>
-                  <div className="text-xs text-primary-foreground/80">Garantía</div>
-                  <div className="text-lg font-extrabold">Soporte</div>
-                </div>
-                <div>
-                  <div className="text-xs text-primary-foreground/80">Entrega</div>
-                  <div className="text-lg font-extrabold">Rápida</div>
-                </div>
-              </div>
-              <div className="mt-4 text-xs text-primary-foreground/85">
-                Consejo: agrega un mensaje personalizado en WhatsApp para que lo incluyamos en el regalo.
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <section className="p-4">
         <PromoCarousel />
@@ -357,7 +177,7 @@ export default async function Home({
             >
               <Link href="/">Todos</Link>
             </Button>
-            {(categories as Category[]).map((cat) => (
+            {categories.map((cat) => (
               <Button
                 key={cat.id}
                 asChild

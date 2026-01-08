@@ -1,8 +1,7 @@
 "use client"
 
 import { Suspense, useEffect, useMemo, useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
-import { useCartStore } from "@/store/cart"
+import { useCartStore } from "@/features/cart"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
@@ -23,15 +22,11 @@ import {
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { formatCurrency, slugify } from "@/lib/utils"
-import { Database } from "@/types/database.types"
 import { Filter, Minus, Plus, Search, ShoppingCart, X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ProductImageCarousel } from "@/components/product-image-carousel"
-
-type Product = Database['public']['Tables']['productos']['Row']
-type Category = Database['public']['Tables']['categorias']['Row']
-
-type SortValue = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc' | 'newest'
+import { countProducts, listCategories, listProducts } from "@/features/products/services/products.client"
+import type { Category, Product, SortValue } from "@/features/products/types"
 
 export default function ProductosPage() {
     return (
@@ -44,6 +39,7 @@ export default function ProductosPage() {
 function ProductosPageContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
+    const searchParamsString = searchParams?.toString() ?? ''
 
     const [productos, setProductos] = useState<Product[]>([])
     const [totalCount, setTotalCount] = useState<number>(0)
@@ -75,6 +71,17 @@ function ProductosPageContent() {
     })
 
     const { addItem, items, updateQuantity } = useCartStore()
+
+    useEffect(() => {
+        let active = true
+        ;(async () => {
+            const categoriasData = await listCategories()
+            if (active) setCategorias((categoriasData as Category[]) || [])
+        })()
+        return () => {
+            active = false
+        }
+    }, [])
 
     useEffect(() => {
         function updatePageSize() {
@@ -118,69 +125,19 @@ function ProductosPageContent() {
     }) {
         setLoading(true)
 
-        // Fetch products
-        const q = (opts.q || '').trim()
-        const min = opts.min ? Number(opts.min) : null
-        const max = opts.max ? Number(opts.max) : null
+        const { productos, totalCount } = await listProducts({
+            cat: opts.cat,
+            q: opts.q,
+            sort: opts.sort,
+            min: opts.min,
+            max: opts.max,
+            stock: opts.stock,
+            page: opts.page,
+            pageSize,
+        })
 
-        let productsQuery = supabase
-            .from('productos')
-            .select('*', { count: 'exact' })
-
-        if (opts.cat !== 'all') {
-            const categoryId = Number(opts.cat)
-            if (Number.isFinite(categoryId)) {
-                productsQuery = productsQuery.eq('categoria_id', categoryId)
-            }
-        }
-
-        if (q) {
-            productsQuery = productsQuery.ilike('nombre', `%${q}%`)
-        }
-
-        if (min !== null && Number.isFinite(min)) {
-            productsQuery = productsQuery.gte('precio', min)
-        }
-
-        if (max !== null && Number.isFinite(max)) {
-            productsQuery = productsQuery.lte('precio', max)
-        }
-
-        if (opts.stock) {
-            productsQuery = productsQuery.gt('stock', 0)
-        }
-
-        if (opts.sort === 'price-asc') productsQuery = productsQuery.order('precio', { ascending: true })
-        if (opts.sort === 'price-desc') productsQuery = productsQuery.order('precio', { ascending: false })
-        if (opts.sort === 'name-asc') productsQuery = productsQuery.order('nombre', { ascending: true })
-        if (opts.sort === 'name-desc') productsQuery = productsQuery.order('nombre', { ascending: false })
-        if (opts.sort === 'newest') productsQuery = productsQuery.order('created_at', { ascending: false })
-
-        const from = Math.max(0, (opts.page - 1) * pageSize)
-        const to = Math.max(from, from + pageSize - 1)
-        productsQuery = productsQuery.range(from, to)
-
-        const { data: productosData, error: productosError, count } = await productsQuery
-        if (productosError) {
-            console.error('Error fetching products:', productosError)
-        }
-
-        // Fetch categories
-        if (!categorias || categorias.length === 0) {
-            const { data: categoriasData, error: categoriasError } = await supabase
-                .from('categorias')
-                .select('*')
-                .order('nombre', { ascending: true })
-
-            if (categoriasError) {
-                console.error('Error fetching categories:', categoriasError)
-            }
-
-            if (categoriasData) setCategorias(categoriasData as Category[])
-        }
-
-        setProductos((productosData as Product[]) || [])
-        setTotalCount(Number(count || 0))
+        setProductos(productos)
+        setTotalCount(totalCount)
 
         setLoading(false)
     }
@@ -204,13 +161,14 @@ function ProductosPageContent() {
     }
 
     const appliedFromUrl = useMemo(() => {
-        const cat = searchParams?.get('cat') ?? 'all'
-        const q = searchParams?.get('q') ?? ''
-        const s = (searchParams?.get('sort') ?? 'name-asc') as SortValue
-        const min = searchParams?.get('min') ?? ''
-        const max = searchParams?.get('max') ?? ''
-        const stock = searchParams?.get('stock') === '1'
-        const pageRaw = searchParams?.get('page') ?? '1'
+        const sp = new URLSearchParams(searchParamsString)
+        const cat = sp.get('cat') ?? 'all'
+        const q = sp.get('q') ?? ''
+        const s = (sp.get('sort') ?? 'name-asc') as SortValue
+        const min = sp.get('min') ?? ''
+        const max = sp.get('max') ?? ''
+        const stock = sp.get('stock') === '1'
+        const pageRaw = sp.get('page') ?? '1'
         const page = Math.max(1, Number.parseInt(pageRaw, 10) || 1)
         return {
             cat,
@@ -221,7 +179,7 @@ function ProductosPageContent() {
             stock,
             page,
         }
-    }, [searchParams])
+    }, [searchParamsString])
 
     useEffect(() => {
         fetchData(appliedFromUrl)
@@ -268,45 +226,15 @@ function ProductosPageContent() {
         }
 
         const handle = setTimeout(async () => {
-            const q = (searchQuery || '').trim()
-            const min = draftMinPrice ? Number(draftMinPrice) : null
-            const max = draftMaxPrice ? Number(draftMaxPrice) : null
+            const nextCount = await countProducts({
+                cat: draftCategory,
+                q: searchQuery,
+                min: draftMinPrice,
+                max: draftMaxPrice,
+                stock: draftOnlyInStock,
+            })
 
-            let countQuery = supabase
-                .from('productos')
-                .select('id', { count: 'exact', head: true })
-
-            if (draftCategory !== 'all') {
-                const categoryId = Number(draftCategory)
-                if (Number.isFinite(categoryId)) {
-                    countQuery = countQuery.eq('categoria_id', categoryId)
-                }
-            }
-
-            if (q) {
-                countQuery = countQuery.ilike('nombre', `%${q}%`)
-            }
-
-            if (min !== null && Number.isFinite(min)) {
-                countQuery = countQuery.gte('precio', min)
-            }
-
-            if (max !== null && Number.isFinite(max)) {
-                countQuery = countQuery.lte('precio', max)
-            }
-
-            if (draftOnlyInStock) {
-                countQuery = countQuery.gt('stock', 0)
-            }
-
-            const { count, error } = await countQuery
-            if (error) {
-                console.error('Error fetching draft count:', error)
-                setDraftCount(null)
-                return
-            }
-
-            setDraftCount(Number(count || 0))
+            setDraftCount(nextCount)
         }, 250)
 
         return () => clearTimeout(handle)
@@ -370,25 +298,41 @@ function ProductosPageContent() {
             <div className="container mx-auto px-4 py-8">
                 {/* Filters */}
                 <div className="bg-card rounded-xl shadow-sm border border-border p-4 mb-8">
-                    <div className="flex flex-col md:flex-row gap-4">
-                        {/* Search */}
-                        <div className="relative flex-1">
-                            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Buscar productos..."
-                                className="pl-9"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                        </div>
+                    <div className="space-y-4">
+                        <div className="flex flex-col md:flex-row gap-4">
+                            {/* Search */}
+                            <div className="relative flex-1 w-full">
+                                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Buscar productos..."
+                                    className="pl-9"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            updateUrl({ q: searchQuery || undefined, page: undefined }, 'push')
+                                        }
+                                    }}
+                                />
+                            </div>
 
-                        <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
-                            <SheetTrigger asChild>
-                                <Button variant="outline" className="gap-2">
-                                    <Filter className="h-4 w-4" />
-                                    Filtrar y ordenar
-                                </Button>
-                            </SheetTrigger>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="gap-2 w-full md:w-auto"
+                                onClick={() => updateUrl({ q: searchQuery || undefined, page: undefined }, 'push')}
+                            >
+                                <Search className="h-4 w-4" />
+                                Buscar
+                            </Button>
+
+                            <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+                                <SheetTrigger asChild>
+                                    <Button variant="outline" className="gap-2 w-full md:w-auto">
+                                        <Filter className="h-4 w-4" />
+                                        Filtrar y ordenar
+                                    </Button>
+                                </SheetTrigger>
                             <SheetContent side="right" className="p-0">
                                 <SheetHeader className="border-b">
                                     <div className="flex items-center justify-between gap-3">
@@ -534,7 +478,8 @@ function ProductosPageContent() {
                                     </div>
                                 </SheetFooter>
                             </SheetContent>
-                        </Sheet>
+                            </Sheet>
+                        </div>
 
                         {/* Category Filter */}
                         <div className="flex gap-2 flex-wrap">

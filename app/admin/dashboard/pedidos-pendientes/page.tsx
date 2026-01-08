@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabaseClient"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
 import { Button } from "@/components/ui/button"
@@ -18,6 +17,7 @@ import {
 } from "@/components/ui/table"
 import { ArrowLeft, RefreshCw } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
+import { fetchAdminPedidosPendientes } from "@/features/admin"
 
 export default function DashboardPedidosPendientesPage() {
     const router = useRouter()
@@ -29,17 +29,12 @@ export default function DashboardPedidosPendientesPage() {
     const fetchPendientes = useCallback(async () => {
         setLoading(true)
 
-        const { data, error } = await supabase
-            .from("pedidos")
-            .select(`id, total, status, created_at, clientes (nombre, telefono, dni)`)
-            .eq("status", "Pendiente")
-            .order("created_at", { ascending: false })
-
-        if (error) {
+        try {
+            const data = await fetchAdminPedidosPendientes()
+            setPedidos(data)
+        } catch (error: any) {
             console.error("Error fetching pendientes:", error)
             setPedidos([])
-        } else {
-            setPedidos((data as any[]) || [])
         }
 
         setLoading(false)

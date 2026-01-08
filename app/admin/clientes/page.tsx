@@ -2,7 +2,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -14,6 +13,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Search, MapPin, Phone, History } from "lucide-react"
+import { fetchAdminClientes } from "@/features/admin"
 
 export default function ClientesPage() {
     const [clientes, setClientes] = useState<any[]>([])
@@ -25,11 +25,12 @@ export default function ClientesPage() {
 
     async function fetchClientes() {
         setLoading(true)
-        const { data } = await supabase
-            .from('clientes')
-            .select('*')
-            .order('id', { ascending: false }) // Más recientes primero
-        if (data) setClientes(data)
+        try {
+            const data = await fetchAdminClientes()
+            setClientes(data)
+        } catch (err) {
+            setClientes([])
+        }
         setLoading(false)
     }
 

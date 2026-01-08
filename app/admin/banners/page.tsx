@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
 import { Button } from "@/components/ui/button"
@@ -17,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Plus, Save, Trash2 } from "lucide-react"
+import { deleteHomeBanner, fetchHomeBanners, saveHomeBanner } from "@/features/admin"
 
 type HomeBanner = {
   id: number
@@ -88,19 +88,13 @@ export default function AdminBannersPage() {
   }, [href, orden])
 
   const fetchItems = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("home_banners")
-      .select("*")
-      .order("orden", { ascending: true })
-      .order("id", { ascending: true })
-
-    if (error) {
-      alert(error.message)
+    try {
+      const data = await fetchHomeBanners()
+      setItems((data as HomeBanner[]) || [])
+    } catch (e: any) {
+      alert(e?.message || "Error")
       setItems([])
-      return
     }
-
-    setItems((data as HomeBanner[]) || [])
   }, [])
 
   useEffect(() => {
@@ -127,13 +121,7 @@ export default function AdminBannersPage() {
         activo: toBool(activo),
       }
 
-      if (isEditing && editingId != null) {
-        const { error } = await supabase.from("home_banners").update(payload).eq("id", editingId)
-        if (error) throw error
-      } else {
-        const { error } = await supabase.from("home_banners").insert(payload)
-        if (error) throw error
-      }
+      await saveHomeBanner({ id: editingId, payload })
 
       await fetchItems()
       resetForm()
@@ -148,8 +136,7 @@ export default function AdminBannersPage() {
     if (!confirm("¿Eliminar este banner?")) return
 
     try {
-      const { error } = await supabase.from("home_banners").delete().eq("id", id)
-      if (error) throw error
+      await deleteHomeBanner(id)
       await fetchItems()
       if (editingId === id) resetForm()
     } catch (e: any) {

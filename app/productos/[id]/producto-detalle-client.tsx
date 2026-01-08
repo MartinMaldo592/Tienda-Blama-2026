@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabaseClient"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import { ProductImageCarousel } from "@/components/product-image-carousel"
-import { useCartStore } from "@/store/cart"
+import { useCartStore } from "@/features/cart"
+import { getProductDetail, getRecommendedProducts } from "@/features/products/services/products.client"
 import {
     ArrowLeft,
     CheckCircle,
@@ -94,36 +94,10 @@ export default function ProductoDetalleClient() {
             return
         }
 
-        const [prodRes, variantsRes, specsRes] = await Promise.all([
-            supabase
-                .from("productos")
-                .select(`*, categorias (id, nombre, slug)`)
-                .eq("id", numericId)
-                .single(),
-            supabase
-                .from("producto_variantes")
-                .select("*")
-                .eq("producto_id", numericId)
-                .eq("activo", true)
-                .order("id", { ascending: true }),
-            supabase
-                .from("producto_especificaciones")
-                .select("*")
-                .eq("producto_id", numericId)
-                .order("orden", { ascending: true })
-                .order("id", { ascending: true }),
-        ])
+        const { producto, variantes, especificaciones } = await getProductDetail(numericId)
+        setProducto(producto)
 
-        const { data, error } = prodRes
-
-        if (error) {
-            console.error("Error fetching producto:", error)
-            setProducto(null)
-        } else {
-            setProducto(data)
-        }
-
-        const vData = Array.isArray(variantsRes.data) ? variantsRes.data : []
+        const vData = Array.isArray(variantes) ? variantes : []
         setVariantes(vData)
         if (vData.length > 0) {
             setSelectedVarianteId((prev) => {
@@ -134,7 +108,7 @@ export default function ProductoDetalleClient() {
             setSelectedVarianteId(null)
         }
 
-        const sData = Array.isArray(specsRes.data) ? specsRes.data : []
+        const sData = Array.isArray(especificaciones) ? especificaciones : []
         setEspecificaciones(sData)
 
         setLoading(false)
@@ -143,32 +117,8 @@ export default function ProductoDetalleClient() {
     async function fetchRecomendados(excludeId: number) {
         setRecoLoading(true)
         try {
-            const { data: topData, error: topError } = await supabase.rpc("get_top_products", {
-                limit_count: 8,
-                exclude_id: excludeId,
-            })
-
-            if (!topError && Array.isArray(topData)) {
-                setRecomendados(topData)
-                return
-            }
-
-            const { data: recentData, error: recentError } = await supabase
-                .from("productos")
-                .select("*")
-                .neq("id", excludeId)
-                .gt("stock", 0)
-                .order("created_at", { ascending: false })
-                .limit(8)
-
-            if (!recentError && Array.isArray(recentData)) {
-                setRecomendados(recentData)
-                return
-            }
-
-            setRecomendados([])
-        } catch (err) {
-            setRecomendados([])
+            const recos = await getRecommendedProducts(excludeId)
+            setRecomendados(Array.isArray(recos) ? recos : [])
         } finally {
             setRecoLoading(false)
         }

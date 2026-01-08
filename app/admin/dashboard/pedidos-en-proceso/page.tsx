@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabaseClient"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
 import { Button } from "@/components/ui/button"
@@ -26,6 +25,7 @@ import {
 } from "@/components/ui/table"
 import { formatCurrency } from "@/lib/utils"
 import { ArrowLeft, RefreshCw } from "lucide-react"
+import { fetchAdminPedidosEnProceso } from "@/features/admin"
 
 const PROCESS_STATUSES = ["Confirmado", "Preparando", "Enviado"] as const
 
@@ -48,26 +48,12 @@ export default function DashboardPedidosEnProcesoPage() {
     const fetchPedidosEnProceso = useCallback(async (params: { status: StatusFilter; from: string; to: string }) => {
         setLoading(true)
 
-        const fromIso = params.from ? `${params.from}T00:00:00.000Z` : undefined
-        const toIso = params.to ? `${params.to}T23:59:59.999Z` : undefined
-
-        let query = supabase
-            .from("pedidos")
-            .select(`id, total, status, created_at, asignado_a, clientes (nombre, telefono, dni)`)
-            .in("status", PROCESS_STATUSES as unknown as string[])
-            .order("created_at", { ascending: false })
-
-        if (params.status !== "all") query = query.eq("status", params.status)
-        if (fromIso) query = query.gte("created_at", fromIso)
-        if (toIso) query = query.lte("created_at", toIso)
-
-        const { data, error } = await query
-
-        if (error) {
+        try {
+            const data = await fetchAdminPedidosEnProceso(params)
+            setPedidos(data)
+        } catch (error: any) {
             console.error("Error fetching pedidos en proceso:", error)
             setPedidos([])
-        } else {
-            setPedidos((data as any[]) || [])
         }
 
         setLoading(false)

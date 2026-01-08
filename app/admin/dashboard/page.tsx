@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DollarSign, ShoppingBag, Users, Package, ClipboardList } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 import Link from "next/link"
+import { fetchAdminDashboardStats } from "@/features/admin"
 
 export default function AdminDashboard() {
     const [stats, setStats] = useState({
@@ -29,61 +30,8 @@ export default function AdminDashboard() {
     const fetchStats = useCallback(async (role: string, currentUserId: string) => {
         setLoading(true)
 
-        // Fetch pedidos
-        const { data: pedidos } = await supabase
-            .from('pedidos')
-            .select('id, total, status, asignado_a, created_at')
-
-        // Stats for admins
-        const deliveredSales = pedidos?.filter(p => p.status === 'Entregado') || []
-        const totalVentasReales = deliveredSales.reduce((sum, p) => sum + (Number(p.total) || 0), 0)
-
-        const today = new Date()
-        const yyyy = today.getFullYear()
-        const mm = String(today.getMonth() + 1).padStart(2, '0')
-        const dd = String(today.getDate()).padStart(2, '0')
-        const todayPrefix = `${yyyy}-${mm}-${dd}`
-
-        const ventasHoy = deliveredSales
-            .filter((p: any) => typeof p.created_at === 'string' && p.created_at.startsWith(todayPrefix))
-            .reduce((sum, p) => sum + (Number(p.total) || 0), 0)
-
-        const pedidosPendientes = pedidos?.filter((p: any) => p.status === 'Pendiente').length || 0
-        const pedidosEnProceso = pedidos?.filter((p: any) => ['Confirmado', 'Preparando', 'Enviado'].includes(p.status)).length || 0
-        const pedidosEntregados = deliveredSales.length
-
-        // Stats for workers - count their assigned orders
-        const pedidosAsignados = pedidos?.filter((p: any) => p.asignado_a === currentUserId && !['Fallido', 'Devuelto', 'Entregado'].includes(p.status)).length || 0
-
-        // Clientes (admin only stat)
-        let totalClientes = 0
-        if (role === 'admin') {
-            const { count } = await supabase
-                .from('clientes')
-                .select('*', { count: 'exact', head: true })
-            totalClientes = count || 0
-        }
-
-        // Productos Stock Bajo (admin only)
-        let productosLowStock = 0
-        if (role === 'admin') {
-            const { count } = await supabase
-                .from('productos')
-                .select('*', { count: 'exact', head: true })
-                .lt('stock', 5)
-            productosLowStock = count || 0
-        }
-
-        setStats({
-            totalVentasReales,
-            ventasHoy,
-            pedidosPendientes,
-            pedidosEnProceso,
-            pedidosEntregados,
-            pedidosAsignados,
-            totalClientes,
-            productosLowStock
-        })
+        const next = await fetchAdminDashboardStats({ role, currentUserId })
+        setStats(next)
         setLoading(false)
     }, [])
 

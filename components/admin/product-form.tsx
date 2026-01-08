@@ -3,6 +3,14 @@
 
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabaseClient"
+import {
+    createAdminCategoria,
+    fetchAdminCategorias,
+    fetchProductoSpecsAndVariants,
+    saveAdminProductoViaApi,
+    uploadProductImages,
+    uploadProductVideos,
+} from "@/features/admin"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -94,22 +102,11 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
                         setVariantes([])
                         return
                     }
-                    const [specRes, varRes] = await Promise.all([
-                        supabase
-                            .from('producto_especificaciones')
-                            .select('*')
-                            .eq('producto_id', productId)
-                            .order('orden', { ascending: true })
-                            .order('id', { ascending: true }),
-                        supabase
-                            .from('producto_variantes')
-                            .select('*')
-                            .eq('producto_id', productId)
-                            .order('id', { ascending: true }),
-                    ])
 
-                    const nextSpecs = Array.isArray(specRes.data)
-                        ? specRes.data.map((s: any) => ({
+                    const { specs, variants } = await fetchProductoSpecsAndVariants(productId)
+
+                    const nextSpecs = Array.isArray(specs)
+                        ? specs.map((s: any) => ({
                             id: Number(s.id),
                             clave: String(s.clave || ''),
                             valor: String(s.valor || ''),
@@ -118,8 +115,8 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
                         : []
                     setEspecificaciones(nextSpecs)
 
-                    const nextVars = Array.isArray(varRes.data)
-                        ? varRes.data.map((v: any) => ({
+                    const nextVars = Array.isArray(variants)
+                        ? variants.map((v: any) => ({
                             id: Number(v.id),
                             etiqueta: String(v.etiqueta || ''),
                             precio: v.precio != null ? String(v.precio) : '',
@@ -187,24 +184,7 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
             const remaining = Math.max(0, 6 - videos.length)
             const toUpload = files.slice(0, remaining)
 
-            const uploadedUrls: string[] = []
-
-            for (const file of toUpload) {
-                const fileExt = file.name.split('.').pop() || 'mp4'
-                const fileName = `${Date.now()}-${Math.random().toString(16).slice(2)}.${fileExt}`
-                const filePath = `videos/${fileName}`
-
-                const { error: uploadError } = await supabase.storage
-                    .from('productos')
-                    .upload(filePath, file, { upsert: false, contentType: file.type || 'video/mp4' })
-
-                if (uploadError) {
-                    throw uploadError
-                }
-
-                const { data } = supabase.storage.from('productos').getPublicUrl(filePath)
-                if (data?.publicUrl) uploadedUrls.push(data.publicUrl)
-            }
+            const uploadedUrls = await uploadProductVideos({ files: toUpload })
 
             const next = normalizeVideos([...videos, ...uploadedUrls])
             setVideos(next)
@@ -252,24 +232,20 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
     }
 
     async function fetchCategories() {
-        const { data } = await supabase.from('categorias').select('*')
-        if (data) setCategories(data)
+        try {
+            const data = await fetchAdminCategorias()
+            setCategories(data)
+        } catch (err) {
+            setCategories([])
+        }
     }
 
-    // ... (handleCreateCategory and handleImageUpload remain same)
     async function handleCreateCategory() {
         if (!newCategoryName.trim()) return
 
-        const slug = newCategoryName.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')
-
         try {
             setLoading(true)
-            const { data, error } = await supabase.from('categorias').insert({
-                nombre: newCategoryName,
-                slug: slug // Simple slug generation
-            }).select().single()
-
-            if (error) throw error
+            const data = await createAdminCategoria({ nombre: newCategoryName })
 
             // Add to local list and select it
             setCategories([...categories, data])
@@ -298,24 +274,7 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
             const remaining = Math.max(0, 10 - galleryImages.length)
             const toUpload = files.slice(0, remaining)
 
-            const uploadedUrls: string[] = []
-
-            for (const file of toUpload) {
-                const fileExt = file.name.split('.').pop() || 'jpg'
-                const fileName = `${Date.now()}-${Math.random().toString(16).slice(2)}.${fileExt}`
-                const filePath = `imagenes/${fileName}`
-
-                const { error: uploadError } = await supabase.storage
-                    .from('productos')
-                    .upload(filePath, file)
-
-                if (uploadError) {
-                    throw uploadError
-                }
-
-                const { data } = supabase.storage.from('productos').getPublicUrl(filePath)
-                if (data?.publicUrl) uploadedUrls.push(data.publicUrl)
-            }
+            const uploadedUrls = await uploadProductImages({ files: toUpload })
 
             const next = normalizeImages([...galleryImages, ...uploadedUrls])
             setGalleryImages(next)
@@ -440,25 +399,11 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
             }
             if (productToEdit) apiBody.id = Number(productToEdit.id)
 
-            const res = await fetch('/api/admin/productos', {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`,
-                },
-                body: JSON.stringify(apiBody),
+            await saveAdminProductoViaApi({
+                accessToken,
+                method: method as "POST" | "PUT",
+                body: apiBody,
             })
-
-            let json: any = null
-            try {
-                json = await res.json()
-            } catch (err) {
-                json = null
-            }
-
-            if (!res.ok || !json?.ok) {
-                throw new Error(String(json?.error || 'No se pudo guardar el producto'))
-            }
 
             onSuccess()
         } catch (error: any) {

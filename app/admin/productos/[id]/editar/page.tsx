@@ -3,13 +3,13 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabaseClient"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ProductForm } from "@/components/admin/product-form"
 import { ArrowLeft } from "lucide-react"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
+import { fetchAdminProductoById } from "@/features/admin"
 
 export default function EditarProductoPage() {
     const router = useRouter()
@@ -37,16 +37,11 @@ export default function EditarProductoPage() {
             return
         }
 
-        const { data, error } = await supabase
-            .from('productos')
-            .select('*')
-            .eq('id', numericId)
-            .single()
-
-        if (error) {
-            setProducto(null)
-        } else {
+        try {
+            const data = await fetchAdminProductoById(numericId)
             setProducto(data)
+        } catch (err) {
+            setProducto(null)
         }
 
         setLoading(false)

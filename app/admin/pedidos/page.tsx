@@ -24,6 +24,7 @@ import {
 import { formatCurrency } from "@/lib/utils"
 import { Eye, Search, UserPlus, RefreshCw, User } from "lucide-react"
 import Link from "next/link"
+import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidosForRole } from "@/features/admin"
 
 export default function PedidosPage() {
     const [pedidos, setPedidos] = useState<any[]>([])
@@ -39,43 +40,8 @@ export default function PedidosPage() {
         setLoading(true)
 
         try {
-            let query = supabase
-                .from('pedidos')
-                .select(`
-                    *,
-                    clientes (nombre, telefono, dni)
-                `)
-                .order('created_at', { ascending: false })
-
-            if (role === 'worker') {
-                query = query.eq('asignado_a', currentUserId)
-            }
-
-            const { data, error } = await query
-
-            if (error) {
-                console.error("Error fetching pedidos:", error)
-                if (error.message.includes('asignado_a')) {
-                    const { data: fallbackData } = await supabase
-                        .from('pedidos')
-                        .select(`*, clientes (nombre, telefono, dni)`)
-                        .order('created_at', { ascending: false })
-                    if (fallbackData) setPedidos(fallbackData)
-                }
-            } else if (data) {
-                const pedidosWithWorkers = await Promise.all(data.map(async (pedido) => {
-                    if (pedido.asignado_a) {
-                        const { data: workerProfile } = await supabase
-                            .from('profiles')
-                            .select('id, email, nombre')
-                            .eq('id', pedido.asignado_a)
-                            .single()
-                        return { ...pedido, asignado_perfil: workerProfile }
-                    }
-                    return { ...pedido, asignado_perfil: null }
-                }))
-                setPedidos(pedidosWithWorkers)
-            }
+            const rows = await fetchPedidosForRole({ role, currentUserId })
+            setPedidos(rows)
         } catch (err) {
             console.error("Error in fetchPedidos:", err)
         }
@@ -143,11 +109,12 @@ export default function PedidosPage() {
             setUserId(uid)
 
             if (role === 'admin') {
-                const { data: workersData } = await supabase
-                    .from('profiles')
-                    .select('id, email, nombre, role')
-                    .eq('role', 'worker')
-                if (workersData) setWorkers(workersData)
+                try {
+                    const workersData = await fetchAdminWorkers()
+                    setWorkers(workersData)
+                } catch (err) {
+                    setWorkers([])
+                }
             } else {
                 setWorkers([])
             }
@@ -159,18 +126,10 @@ export default function PedidosPage() {
     async function handleAssignWorker(pedidoId: number, workerId: string) {
         const assignValue = workerId === 'unassigned' ? null : workerId
 
-        const { error } = await supabase
-            .from('pedidos')
-            .update({
-                asignado_a: assignValue,
-                fecha_asignacion: assignValue ? new Date().toISOString() : null
-            })
-            .eq('id', pedidoId)
-
-        if (!error) {
-            // Refresh list
+        try {
+            await assignPedidoToWorker({ pedidoId, workerId: assignValue })
             fetchPedidos(userRole, userId)
-        } else {
+        } catch (error: any) {
             const code = String((error as any)?.code || '')
             const msg = String((error as any)?.message || '')
             const lower = msg.toLowerCase()
