@@ -439,3 +439,83 @@ with check (
       and p.role = 'admin'
   )
 );
+
+create table if not exists announcement_bar (
+  id bigint primary key,
+  enabled boolean not null default true,
+  interval_ms integer not null default 3500,
+  messages text[] not null default '{}',
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+alter table public.announcement_bar enable row level security;
+
+drop policy if exists announcement_bar_read on public.announcement_bar;
+drop policy if exists announcement_bar_insert on public.announcement_bar;
+drop policy if exists announcement_bar_update on public.announcement_bar;
+drop policy if exists announcement_bar_delete on public.announcement_bar;
+
+create policy announcement_bar_read
+on public.announcement_bar
+for select
+using (true);
+
+create policy announcement_bar_insert
+on public.announcement_bar
+for insert
+to authenticated
+with check (
+  exists (
+    select 1
+    from public.profiles p
+    where p.id = auth.uid()
+      and p.role = 'admin'
+  )
+);
+
+create policy announcement_bar_update
+on public.announcement_bar
+for update
+to authenticated
+using (
+  exists (
+    select 1
+    from public.profiles p
+    where p.id = auth.uid()
+      and p.role = 'admin'
+  )
+)
+with check (
+  exists (
+    select 1
+    from public.profiles p
+    where p.id = auth.uid()
+      and p.role = 'admin'
+  )
+);
+
+create policy announcement_bar_delete
+on public.announcement_bar
+for delete
+to authenticated
+using (
+  exists (
+    select 1
+    from public.profiles p
+    where p.id = auth.uid()
+      and p.role = 'admin'
+  )
+);
+
+insert into public.announcement_bar (id, enabled, interval_ms, messages)
+values (
+  1,
+  true,
+  3500,
+  array[
+    '📦🚚 Envío GRATIS para todos los pedidos',
+    '⚡🏷️ Descuentos en productos destacados',
+    '⏱️📍 Entrega rápida + contraentrega en 24 horas (solo Lima Metropolitana)'
+  ]
+)
+on conflict (id) do nothing;

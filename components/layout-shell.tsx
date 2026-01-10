@@ -1,10 +1,12 @@
 "use client"
 
+import { useEffect, useMemo, useState } from "react"
 import { usePathname } from "next/navigation"
 
 import { Header } from "@/components/header"
 import { AnnouncementBar } from "@/components/announcement-bar"
 import { Footer } from "@/components/footer"
+import { supabase } from "@/lib/supabaseClient"
 
 type LayoutShellProps = {
   children: React.ReactNode
@@ -16,9 +18,45 @@ export function LayoutShell({ children }: LayoutShellProps) {
   const isAuth = pathname?.startsWith("/auth")
   const isOpenWa = pathname?.startsWith("/open-wa")
 
+  const [announcementEnabled, setAnnouncementEnabled] = useState<boolean | null>(null)
+  const [announcementIntervalMs, setAnnouncementIntervalMs] = useState(3500)
+  const [announcementMessages, setAnnouncementMessages] = useState<string[] | undefined>(undefined)
+
   if (isAdmin || isAuth) {
     return <>{children}</>
   }
+
+  useEffect(() => {
+    let cancelled = false
+
+    ;(async () => {
+      const { data, error } = await supabase
+        .from("announcement_bar")
+        .select("enabled, interval_ms, messages")
+        .eq("id", 1)
+        .maybeSingle()
+
+      if (cancelled) return
+      if (error || !data) {
+        setAnnouncementEnabled(true)
+        return
+      }
+
+      setAnnouncementEnabled(Boolean((data as any).enabled))
+      setAnnouncementIntervalMs(Number((data as any).interval_ms) || 3500)
+
+      const msgs = Array.isArray((data as any).messages) ? ((data as any).messages as string[]) : []
+      setAnnouncementMessages(msgs.length > 0 ? msgs : undefined)
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const shouldShowAnnouncement = useMemo(() => {
+    return announcementEnabled === true
+  }, [announcementEnabled])
 
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "51999999999"
   const defaultMessage = encodeURIComponent("Hola, quisiera información sobre sus productos.")
@@ -27,7 +65,13 @@ export function LayoutShell({ children }: LayoutShellProps) {
   return (
     <>
       <Header />
-      <AnnouncementBar className="sticky top-16 z-40" intervalMs={3500} />
+      {shouldShowAnnouncement && (
+        <AnnouncementBar
+          className="sticky top-16 z-40"
+          intervalMs={announcementIntervalMs}
+          messages={announcementMessages}
+        />
+      )}
       <div className="flex-1">{children}</div>
       <Footer />
 
