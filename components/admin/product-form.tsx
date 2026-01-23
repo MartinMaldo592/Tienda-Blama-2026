@@ -41,6 +41,7 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
     const [price, setPrice] = useState("")
     const [priceBefore, setPriceBefore] = useState("")
     const [stock, setStock] = useState("")
+    const [calificacion, setCalificacion] = useState("5")
     const [imageUrl, setImageUrl] = useState("")
     const [galleryImages, setGalleryImages] = useState<string[]>([])
     const [newGalleryUrl, setNewGalleryUrl] = useState("")
@@ -71,6 +72,7 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
             setPrice(productToEdit.precio?.toString() || "")
             setPriceBefore(productToEdit.precio_antes != null ? String(productToEdit.precio_antes) : "")
             setStock(productToEdit.stock?.toString() || "")
+            setCalificacion(productToEdit.calificacion != null ? String(productToEdit.calificacion) : "5")
             setImageUrl(productToEdit.imagen_url || "")
             setDescripcion(productToEdit.descripcion || "")
             setMateriales(productToEdit.materiales || "")
@@ -137,6 +139,7 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
             setPrice("")
             setPriceBefore("")
             setStock("")
+            setCalificacion("5")
             setImageUrl("")
             setDescripcion("")
             setMateriales("")
@@ -315,6 +318,12 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
                 return
             }
 
+            if (categoryId === "default" || !categoryId) {
+                alert("Debes seleccionar una categoría obligatoriamente.")
+                setLoading(false)
+                return
+            }
+
             const priceNum = Number(price)
             if (!Number.isFinite(priceNum) || priceNum <= 0) {
                 alert('Ingresa un precio actual válido')
@@ -343,6 +352,13 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
                 return
             }
 
+            const calificacionNum = Number(calificacion)
+            if (!Number.isFinite(calificacionNum) || calificacionNum < 0 || calificacionNum > 5) {
+                alert('Ingresa una calificación válida (0-5)')
+                setLoading(false)
+                return
+            }
+
             const mergedImages = galleryImages.length > 0
                 ? normalizeImages(galleryImages)
                 : normalizeImages([...(imageUrl ? [imageUrl] : [])])
@@ -366,6 +382,7 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
                 precio: priceNum,
                 precio_antes: priceBeforeNum,
                 stock: stockNum,
+                calificacion: calificacionNum,
                 imagen_url: mainImage,
                 imagenes: imageOnly,
                 videos: videosFinal,
@@ -734,6 +751,20 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
                         placeholder="10"
                         value={stock}
                         onChange={(e) => setStock(e.target.value)}
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="calificacion">Calificación (0-5)</Label>
+                    <Input
+                        id="calificacion"
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="5"
+                        required
+                        placeholder="5.0"
+                        value={calificacion}
+                        onChange={(e) => setCalificacion(e.target.value)}
                     />
                 </div>
             </div>

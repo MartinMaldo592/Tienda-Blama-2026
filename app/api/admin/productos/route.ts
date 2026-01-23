@@ -18,6 +18,7 @@ type ProductPayload = {
   cuidados: string | null
   uso: string | null
   categoria_id: number | null
+  calificacion?: number
 }
 
 type SpecInput = {
@@ -100,6 +101,7 @@ async function upsertProduct(args: {
     cuidados: product.cuidados ? normalizeText(product.cuidados) : null,
     uso: product.uso ? normalizeText(product.uso) : null,
     categoria_id: product.categoria_id != null ? Number(product.categoria_id) : null,
+    calificacion: product.calificacion ? Number(product.calificacion) : 5.0,
   }
 
   const save = async (withGallery: boolean) => {

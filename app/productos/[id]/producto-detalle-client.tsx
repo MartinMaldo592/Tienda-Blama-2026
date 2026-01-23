@@ -36,6 +36,7 @@ import {
     Sparkles,
     Image as ImageIcon,
     PlayCircle,
+    StarHalf,
 } from "lucide-react"
 import { ProductCard } from "@/components/product-card"
 import { ProductSocialProof } from "@/components/product-social-proof"
@@ -405,6 +406,29 @@ export default function ProductoDetalleClient() {
                     <Card className="shadow-sm border">
                         <CardContent className="p-6 space-y-3">
                             <div className="space-y-1">
+                                <div className="flex items-center gap-1 mb-2">
+                                    <div className="flex items-center">
+                                        {(() => {
+                                            const rating = Number(producto.calificacion ?? 5)
+                                            const fullStars = Math.floor(rating)
+                                            const hasHalfStar = rating % 1 >= 0.4
+                                            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0)
+
+                                            return (
+                                                <>
+                                                    {Array.from({ length: fullStars }).map((_, i) => (
+                                                        <Star key={`full-${i}`} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                                                    ))}
+                                                    {hasHalfStar && <StarHalf className="h-4 w-4 fill-amber-400 text-amber-400" />}
+                                                    {Array.from({ length: emptyStars }).map((_, i) => (
+                                                        <Star key={`empty-${i}`} className="h-4 w-4 text-muted-foreground/30" />
+                                                    ))}
+                                                    <span className="text-sm font-semibold text-muted-foreground ml-2">{rating.toFixed(1)}</span>
+                                                </>
+                                            )
+                                        })()}
+                                    </div>
+                                </div>
                                 <h1 className="text-2xl md:text-3xl font-bold text-foreground">{producto.nombre}</h1>
                                 <div className="text-sm text-muted-foreground">
                                     {producto.categorias?.nombre ? (

@@ -59,6 +59,7 @@ export function CheckoutForm({ items, total, onBack, onComplete }: CheckoutFormP
 function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
     const [name, setName] = useState("")
     const [phone, setPhone] = useState("")
+    const [phoneError, setPhoneError] = useState("")
     const [dni, setDni] = useState("")
     const [dniError, setDniError] = useState("")
     const [reference, setReference] = useState("")
@@ -99,11 +100,8 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
 
     const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const raw = e.target.value.replace(/\D/g, "").slice(0, 9)
-        const parts = []
-        if (raw.length > 0) parts.push(raw.slice(0, 3))
-        if (raw.length > 3) parts.push(raw.slice(3, 6))
-        if (raw.length > 6) parts.push(raw.slice(6, 9))
-        setPhone(parts.join(" "))
+        setPhone(raw)
+        if (phoneError) setPhoneError("")
     }
 
     const subtotalAmount = Number(total) || 0
@@ -134,6 +132,13 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
 
         setCouponError("")
         setDniError("")
+
+        const normalizedPhone = phone.replace(/\D/g, "")
+        if (normalizedPhone.length !== 9) {
+            setPhoneError('El celular debe tener 9 dígitos')
+            setIsSubmitting(false)
+            return
+        }
 
         const normalizedDni = normalizeDni(dni)
         if (normalizedDni.length !== 8) {
@@ -344,12 +349,22 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                             id="phone"
                             required
                             type="tel"
+                            inputMode="numeric"
+                            pattern="[0-9]{9}"
+                            minLength={9}
+                            maxLength={9}
                             placeholder="999 999 999"
                             value={phone}
                             onChange={handlePhoneChange}
                             disabled={isSubmitting}
-                            maxLength={11}
+                            onInvalid={(e) => {
+                                e.currentTarget.setCustomValidity('Ingresa un número de celular válido de 9 dígitos')
+                            }}
+                            onInput={(e) => {
+                                e.currentTarget.setCustomValidity('')
+                            }}
                         />
+                        {phoneError && <p className="text-xs text-destructive">{phoneError}</p>}
                     </div>
 
                     <div className="space-y-2">
