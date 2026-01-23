@@ -25,6 +25,15 @@ import {
     Share2,
     ShoppingCart,
     Truck,
+    Star,
+    MessageCircle,
+    FileText,
+    Ruler,
+    Palette,
+    Droplets,
+    Lightbulb,
+    Shield,
+    Sparkles,
 } from "lucide-react"
 import { ProductCard } from "@/components/product-card"
 import { ProductSocialProof } from "@/components/product-social-proof"
@@ -59,7 +68,7 @@ export default function ProductoDetalleClient() {
     const [copied, setCopied] = useState(false)
     const [addedToastOpen, setAddedToastOpen] = useState(false)
     const [addedToastKey, setAddedToastKey] = useState(0)
-    const [activeTab, setActiveTab] = useState<'description' | 'specs' | 'reviews' | 'questions'>('description')
+    const [activeTab, setActiveTab] = useState<'description' | 'details' | 'specs' | 'reviews' | 'questions'>('description')
 
     const { addItem, items, updateQuantity } = useCartStore()
 
@@ -540,134 +549,208 @@ export default function ProductoDetalleClient() {
                     </Card>
 
                     {/* TABS SECTION */}
-                    <div className="mt-8 border-t pt-8">
-                        <div className="flex items-center gap-6 border-b border-border mb-6 overflow-x-auto no-scrollbar">
+                    <div className="mt-12">
+                        <div className="flex flex-wrap items-center justify-center gap-2 mb-8 select-none p-1 bg-muted/30 rounded-full w-fit mx-auto border">
                             {producto?.descripcion && (
                                 <button
                                     type="button"
                                     onClick={() => setActiveTab('description')}
-                                    className={`pb-3 border-b-2 text-sm font-semibold transition-colors whitespace-nowrap ${activeTab === 'description' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                                    className={`
+                                        relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2
+                                        ${activeTab === 'description'
+                                            ? 'bg-white text-foreground shadow-sm ring-1 ring-border'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                                        }
+                                    `}
                                 >
-                                    Descripción
+                                    <FileText className="h-4 w-4" />
+                                    <span>Descripción</span>
                                 </button>
                             )}
-                            {(producto?.materiales || producto?.tamano || producto?.color || producto?.cuidados || producto?.uso || especificaciones.length > 0) && (
+                            {(producto?.materiales || producto?.tamano || producto?.color || producto?.cuidados || producto?.uso) && (
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab('details')}
+                                    className={`
+                                        relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2
+                                        ${activeTab === 'details'
+                                            ? 'bg-white text-foreground shadow-sm ring-1 ring-border'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                                        }
+                                    `}
+                                >
+                                    <Sparkles className="h-4 w-4" />
+                                    <span>Detalles</span>
+                                </button>
+                            )}
+
+                            {especificaciones.length > 0 && (
                                 <button
                                     type="button"
                                     onClick={() => setActiveTab('specs')}
-                                    className={`pb-3 border-b-2 text-sm font-semibold transition-colors whitespace-nowrap ${activeTab === 'specs' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                                    className={`
+                                        relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2
+                                        ${activeTab === 'specs'
+                                            ? 'bg-white text-foreground shadow-sm ring-1 ring-border'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                                        }
+                                    `}
                                 >
-                                    Ficha técnica
+                                    <Ruler className="h-4 w-4" />
+                                    <span>Especificaciones</span>
                                 </button>
                             )}
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('reviews')}
-                                className={`pb-3 border-b-2 text-sm font-semibold transition-colors whitespace-nowrap ${activeTab === 'reviews' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                                className={`
+                                    relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2
+                                    ${activeTab === 'reviews'
+                                        ? 'bg-white text-foreground shadow-sm ring-1 ring-border'
+                                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                                    }
+                                `}
                             >
-                                Valoraciones
+                                <Star className="h-4 w-4" />
+                                <span>Valoraciones</span>
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setActiveTab('questions')}
-                                className={`pb-3 border-b-2 text-sm font-semibold transition-colors whitespace-nowrap ${activeTab === 'questions' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+                                className={`
+                                    relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2
+                                    ${activeTab === 'questions'
+                                        ? 'bg-white text-foreground shadow-sm ring-1 ring-border'
+                                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                                    }
+                                `}
                             >
-                                Preguntas y respuestas
+                                <MessageCircle className="h-4 w-4" />
+                                <span>Preguntas</span>
                             </button>
                         </div>
 
-                        <div className="min-h-[300px]">
+                        <div className="min-h-[300px] animate-in fade-in slide-in-from-bottom-4 duration-500">
                             {activeTab === 'description' && producto?.descripcion && (
-                                <Card className="animate-in fade-in duration-300 shadow-sm border bg-card/50">
-                                    <CardContent className="p-6 md:p-8 space-y-6">
-                                        <h3 className="text-xl font-bold flex items-center gap-2">
-                                            Descripción
+                                <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
+                                    <div className="bg-card border rounded-2xl p-8 shadow-sm relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-8 opacity-5">
+                                            <Sparkles className="w-32 h-32 text-primary" />
+                                        </div>
+                                        <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-primary">
+                                            <span className="p-2 bg-primary/10 rounded-lg">
+                                                <FileText className="h-5 w-5" />
+                                            </span>
+                                            Descripción del Producto
                                         </h3>
-                                        <div className="text-base text-muted-foreground whitespace-pre-line leading-relaxed">
+                                        <div className="prose prose-sm md:prose-base text-muted-foreground whitespace-pre-line leading-relaxed max-w-none">
                                             {producto.descripcion}
                                         </div>
-                                    </CardContent>
-                                </Card>
+                                    </div>
+                                </div>
                             )}
 
-                            {activeTab === 'specs' && (
-                                <Card className="animate-in fade-in duration-300 shadow-sm border bg-card/50">
-                                    <CardContent className="p-6 md:p-8 space-y-8">
-                                        {(producto?.materiales || producto?.tamano || producto?.color || producto?.cuidados || producto?.uso) && (
-                                            <div>
-                                                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                                                    Detalles del producto
-                                                </h3>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-8">
-                                                    {producto?.materiales && (
-                                                        <div className="space-y-2">
-                                                            <div className="text-sm font-bold text-foreground">Materiales</div>
-                                                            <div className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">{producto.materiales}</div>
-                                                        </div>
-                                                    )}
-                                                    {producto?.tamano && (
-                                                        <div className="space-y-2">
-                                                            <div className="text-sm font-bold text-foreground">Tamaño / Medidas</div>
-                                                            <div className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">{producto.tamano}</div>
-                                                        </div>
-                                                    )}
-                                                    {producto?.color && (
-                                                        <div className="space-y-2">
-                                                            <div className="text-sm font-bold text-foreground">Color</div>
-                                                            <div className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">{producto.color}</div>
-                                                        </div>
-                                                    )}
-                                                    {producto?.cuidados && (
-                                                        <div className="space-y-2">
-                                                            <div className="text-sm font-bold text-foreground">Cuidados</div>
-                                                            <div className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">{producto.cuidados}</div>
-                                                        </div>
-                                                    )}
-                                                    {producto?.uso && (
-                                                        <div className="sm:col-span-2 space-y-2">
-                                                            <div className="text-sm font-bold text-foreground">Uso recomendado</div>
-                                                            <div className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">{producto.uso}</div>
-                                                        </div>
-                                                    )}
+                            {activeTab === 'details' && (
+                                <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {producto?.materiales && (
+                                            <div className="bg-card border rounded-xl p-5 hover:shadow-md transition-shadow duration-300 flex gap-4 items-start group">
+                                                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl group-hover:scale-110 transition-transform">
+                                                    <Shield className="h-6 w-6" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-semibold text-foreground mb-1">Materiales</h4>
+                                                    <p className="text-sm text-muted-foreground leading-relaxed">{producto.materiales}</p>
                                                 </div>
                                             </div>
                                         )}
 
-                                        {especificaciones.length > 0 && (
-                                            <div>
-                                                <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                                                    Especificaciones
-                                                </h3>
-                                                <div className="rounded-xl border overflow-hidden">
-                                                    <div className="divide-y">
-                                                        {especificaciones.map((s: any, idx: number) => (
-                                                            <div key={s.id} className={`p-4 flex items-start justify-between gap-4 ${idx % 2 === 0 ? 'bg-muted/30' : 'bg-transparent'}`}>
-                                                                <div className="text-sm font-semibold text-foreground w-1/3">{String(s.clave || "")}</div>
-                                                                <div className="text-sm text-muted-foreground text-right w-2/3 whitespace-pre-line">{String(s.valor || "")}</div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
+                                        {producto?.tamano && (
+                                            <div className="bg-card border rounded-xl p-5 hover:shadow-md transition-shadow duration-300 flex gap-4 items-start group">
+                                                <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-xl group-hover:scale-110 transition-transform">
+                                                    <Ruler className="h-6 w-6" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-semibold text-foreground mb-1">Medidas</h4>
+                                                    <p className="text-sm text-muted-foreground leading-relaxed">{producto.tamano}</p>
                                                 </div>
                                             </div>
                                         )}
-                                    </CardContent>
-                                </Card>
+
+                                        {producto?.color && (
+                                            <div className="bg-card border rounded-xl p-5 hover:shadow-md transition-shadow duration-300 flex gap-4 items-start group">
+                                                <div className="p-3 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-xl group-hover:scale-110 transition-transform">
+                                                    <Palette className="h-6 w-6" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-semibold text-foreground mb-1">Color</h4>
+                                                    <p className="text-sm text-muted-foreground leading-relaxed">{producto.color}</p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {producto?.cuidados && (
+                                            <div className="bg-card border rounded-xl p-5 hover:shadow-md transition-shadow duration-300 flex gap-4 items-start group">
+                                                <div className="p-3 bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 rounded-xl group-hover:scale-110 transition-transform">
+                                                    <Droplets className="h-6 w-6" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-semibold text-foreground mb-1">Cuidados</h4>
+                                                    <p className="text-sm text-muted-foreground leading-relaxed">{producto.cuidados}</p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {producto?.uso && (
+                                            <div className="md:col-span-2 bg-card border rounded-xl p-5 hover:shadow-md transition-shadow duration-300 flex gap-4 items-start group">
+                                                <div className="p-3 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-xl group-hover:scale-110 transition-transform">
+                                                    <Lightbulb className="h-6 w-6" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-semibold text-foreground mb-1">Uso Recomendado</h4>
+                                                    <p className="text-sm text-muted-foreground leading-relaxed">{producto.uso}</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'specs' && especificaciones.length > 0 && (
+                                <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
+                                    <div className="rounded-2xl border bg-card overflow-hidden shadow-sm">
+                                        <div className="bg-muted/50 p-4 border-b">
+                                            <h3 className="font-bold text-foreground flex items-center gap-2">
+                                                <FileText className="h-5 w-5 text-muted-foreground" />
+                                                Especificaciones Técnicas
+                                            </h3>
+                                        </div>
+                                        <div className="divide-y">
+                                            {especificaciones.map((s: any, idx: number) => (
+                                                <div key={s.id} className="p-4 flex items-start justify-between gap-4 hover:bg-muted/30 transition-colors">
+                                                    <div className="text-sm font-semibold text-foreground w-1/3">{String(s.clave || "")}</div>
+                                                    <div className="text-sm text-muted-foreground text-right w-2/3 whitespace-pre-line">{String(s.valor || "")}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
                             )}
 
                             {activeTab === 'reviews' && (
-                                <Card className="animate-in fade-in duration-300 shadow-sm border bg-card/50">
-                                    <CardContent className="p-6 md:p-8">
+                                <div className="space-y-6">
+                                    <div className="rounded-2xl border bg-card overflow-hidden shadow-sm p-6 md:p-8">
                                         <ProductSocialProof productId={Number(producto.id)} section="reviews" />
-                                    </CardContent>
-                                </Card>
+                                    </div>
+                                </div>
                             )}
 
                             {activeTab === 'questions' && (
-                                <Card className="animate-in fade-in duration-300 shadow-sm border bg-card/50">
-                                    <CardContent className="p-6 md:p-8">
+                                <div className="space-y-6">
+                                    <div className="rounded-2xl border bg-card overflow-hidden shadow-sm p-6 md:p-8">
                                         <ProductSocialProof productId={Number(producto.id)} section="questions" />
-                                    </CardContent>
-                                </Card>
+                                    </div>
+                                </div>
                             )}
                         </div>
                     </div>
