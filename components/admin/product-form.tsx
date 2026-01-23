@@ -94,43 +94,43 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
             setVideos(Array.from(new Set(vClean)).slice(0, 6))
             setCategoryId(productToEdit.categoria_id?.toString() || "default")
 
-            ;(async () => {
-                try {
-                    const productId = Number(productToEdit.id)
-                    if (!productId) {
+                ; (async () => {
+                    try {
+                        const productId = Number(productToEdit.id)
+                        if (!productId) {
+                            setEspecificaciones([])
+                            setVariantes([])
+                            return
+                        }
+
+                        const { specs, variants } = await fetchProductoSpecsAndVariants(productId)
+
+                        const nextSpecs = Array.isArray(specs)
+                            ? specs.map((s: any) => ({
+                                id: Number(s.id),
+                                clave: String(s.clave || ''),
+                                valor: String(s.valor || ''),
+                                orden: Number(s.orden || 0),
+                            }))
+                            : []
+                        setEspecificaciones(nextSpecs)
+
+                        const nextVars = Array.isArray(variants)
+                            ? variants.map((v: any) => ({
+                                id: Number(v.id),
+                                etiqueta: String(v.etiqueta || ''),
+                                precio: v.precio != null ? String(v.precio) : '',
+                                precio_antes: v.precio_antes != null ? String(v.precio_antes) : '',
+                                stock: String(v.stock ?? 0),
+                                activo: Boolean(v.activo ?? true),
+                            }))
+                            : []
+                        setVariantes(nextVars)
+                    } catch (err) {
                         setEspecificaciones([])
                         setVariantes([])
-                        return
                     }
-
-                    const { specs, variants } = await fetchProductoSpecsAndVariants(productId)
-
-                    const nextSpecs = Array.isArray(specs)
-                        ? specs.map((s: any) => ({
-                            id: Number(s.id),
-                            clave: String(s.clave || ''),
-                            valor: String(s.valor || ''),
-                            orden: Number(s.orden || 0),
-                        }))
-                        : []
-                    setEspecificaciones(nextSpecs)
-
-                    const nextVars = Array.isArray(variants)
-                        ? variants.map((v: any) => ({
-                            id: Number(v.id),
-                            etiqueta: String(v.etiqueta || ''),
-                            precio: v.precio != null ? String(v.precio) : '',
-                            precio_antes: v.precio_antes != null ? String(v.precio_antes) : '',
-                            stock: String(v.stock ?? 0),
-                            activo: Boolean(v.activo ?? true),
-                        }))
-                        : []
-                    setVariantes(nextVars)
-                } catch (err) {
-                    setEspecificaciones([])
-                    setVariantes([])
-                }
-            })()
+                })()
         } else {
             // Reset form when not editing (or switching to new)
             setName("")
@@ -229,6 +229,17 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
         next.splice(toIndex, 0, moved)
         setGalleryImages(next)
         if (next.length > 0) setImageUrl(next[0])
+    }
+
+    function moveVideoIndex(fromIndex: number, toIndex: number) {
+        if (fromIndex === toIndex) return
+        if (fromIndex < 0 || toIndex < 0) return
+        if (fromIndex >= videos.length || toIndex >= videos.length) return
+
+        const next = [...videos]
+        const [moved] = next.splice(fromIndex, 1)
+        next.splice(toIndex, 0, moved)
+        setVideos(next)
     }
 
     async function fetchCategories() {
@@ -570,6 +581,28 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
                                         variant="ghost"
                                         size="icon"
                                         className="h-8 w-8"
+                                        onClick={() => moveVideoIndex(idx, idx - 1)}
+                                        disabled={idx === 0}
+                                    >
+                                        <ArrowUp className="h-4 w-4" />
+                                    </Button>
+
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => moveVideoIndex(idx, idx + 1)}
+                                        disabled={idx === videos.length - 1}
+                                    >
+                                        <ArrowDown className="h-4 w-4" />
+                                    </Button>
+
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
                                         onClick={() => setVideos((prev) => prev.filter((x) => x !== url))}
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -710,24 +743,24 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
                 <div className="flex justify-between items-center">
                     <Label>Categoría</Label>
                     {!isCreatingCategory ? (
-                            <Button
-                                type="button"
-                                variant="link"
-                                className="h-auto p-0 text-xs text-accent"
-                                onClick={() => setIsCreatingCategory(true)}
-                            >
-                                + Nueva Categoría
-                            </Button>
-                        ) : (
-                            <Button
-                                type="button"
-                                variant="link"
-                                className="h-auto p-0 text-xs text-destructive"
-                                onClick={() => setIsCreatingCategory(false)}
-                            >
-                                Cancelar
-                            </Button>
-                        )}
+                        <Button
+                            type="button"
+                            variant="link"
+                            className="h-auto p-0 text-xs text-accent"
+                            onClick={() => setIsCreatingCategory(true)}
+                        >
+                            + Nueva Categoría
+                        </Button>
+                    ) : (
+                        <Button
+                            type="button"
+                            variant="link"
+                            className="h-auto p-0 text-xs text-destructive"
+                            onClick={() => setIsCreatingCategory(false)}
+                        >
+                            Cancelar
+                        </Button>
+                    )}
                 </div>
 
                 {isCreatingCategory ? (

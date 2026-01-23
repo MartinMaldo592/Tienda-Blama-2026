@@ -34,6 +34,8 @@ import {
     Lightbulb,
     Shield,
     Sparkles,
+    Image as ImageIcon,
+    PlayCircle,
 } from "lucide-react"
 import { ProductCard } from "@/components/product-card"
 import { ProductSocialProof } from "@/components/product-social-proof"
@@ -69,6 +71,7 @@ export default function ProductoDetalleClient() {
     const [addedToastOpen, setAddedToastOpen] = useState(false)
     const [addedToastKey, setAddedToastKey] = useState(0)
     const [activeTab, setActiveTab] = useState<'description' | 'details' | 'specs' | 'reviews' | 'questions'>('description')
+    const [showVideo, setShowVideo] = useState(false)
 
     const { addItem, items, updateQuantity } = useCartStore()
 
@@ -332,55 +335,69 @@ export default function ProductoDetalleClient() {
                 <div className="space-y-4">
                     <Card className="overflow-hidden shadow-sm border">
                         <div className="aspect-square bg-popover relative group" ref={imageContainerRef}>
-                            {images.length > 0 ? (
-                                <ProductImageCarousel images={images} alt={producto.nombre} />
-                            ) : (
-                                <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">Sin imagen</div>
-                            )}
-                            {!inStock && (
-                                <div className="absolute inset-0 bg-foreground/60 flex items-center justify-center">
-                                    <span className="text-sidebar-primary-foreground font-bold">Agotado</span>
-                                </div>
-                            )}
-                        </div>
-                    </Card>
-
-                    {videos.length > 0 && (
-                        <Card className="overflow-hidden shadow-sm border">
-                            <div className="p-4 space-y-3">
-                                <div className="text-sm font-semibold text-foreground">Video</div>
-
-                                {activeVideo ? (
+                            {showVideo && activeVideo ? (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black">
                                     <video
                                         key={activeVideo}
                                         src={activeVideo}
                                         controls
                                         playsInline
-                                        className="w-full rounded-xl border bg-black"
+                                        className="w-full h-full object-contain"
                                     />
-                                ) : (
-                                    <div className="text-sm text-muted-foreground">Sin video</div>
-                                )}
+                                </div>
+                            ) : (
+                                <>
+                                    {images.length > 0 ? (
+                                        <ProductImageCarousel images={images} alt={producto.nombre} />
+                                    ) : (
+                                        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">Sin imagen</div>
+                                    )}
+                                    {!inStock && (
+                                        <div className="absolute inset-0 bg-foreground/60 flex items-center justify-center">
+                                            <span className="text-sidebar-primary-foreground font-bold">Agotado</span>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    </Card>
 
-                                {videos.length > 1 && (
-                                    <div className="flex flex-wrap gap-2">
-                                        {videos.map((v) => (
-                                            <button
-                                                key={v}
-                                                type="button"
-                                                onClick={() => setActiveVideo(v)}
-                                                className={
-                                                    "rounded-lg border px-3 py-2 text-xs font-semibold transition-colors " +
-                                                    (activeVideo === v ? "border-primary bg-primary/10" : "border-border hover:bg-popover")
-                                                }
-                                            >
-                                                Video
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </Card>
+                    {showVideo && videos.length > 1 && (
+                        <div className="flex flex-wrap gap-2">
+                            {videos.map((v, i) => (
+                                <button
+                                    key={v}
+                                    type="button"
+                                    onClick={() => setActiveVideo(v)}
+                                    className={
+                                        "rounded-lg border px-3 py-2 text-xs font-semibold transition-colors " +
+                                        (activeVideo === v ? "border-primary bg-primary/10" : "border-border hover:bg-popover")
+                                    }
+                                >
+                                    Video {i + 1}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {videos.length > 0 && (
+                        <Button
+                            className="w-full gap-2"
+                            variant="outline"
+                            onClick={() => setShowVideo(!showVideo)}
+                        >
+                            {showVideo ? (
+                                <>
+                                    <ImageIcon className="h-4 w-4" />
+                                    Ver fotos
+                                </>
+                            ) : (
+                                <>
+                                    <PlayCircle className="h-4 w-4" />
+                                    Ver videos
+                                </>
+                            )}
+                        </Button>
                     )}
                 </div>
 
@@ -484,6 +501,16 @@ export default function ProductoDetalleClient() {
                             {inStock ? (
                                 quantity === 0 ? (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <Button
+                                            className="w-full gap-2 h-11"
+                                            variant="secondary"
+                                            onClick={() => {
+                                                addItem(producto, selectedVariante)
+                                                router.push("/checkout")
+                                            }}
+                                        >
+                                            Comprar ahora
+                                        </Button>
                                         <Button className="w-full gap-2 h-11" onClick={() => {
                                             addItem(producto, selectedVariante)
                                             if (imageContainerRef.current && images.length > 0) {
@@ -494,16 +521,6 @@ export default function ProductoDetalleClient() {
                                             setAddedToastOpen(true)
                                         }}>
                                             <ShoppingCart className="h-4 w-4" /> Agregar al carrito
-                                        </Button>
-                                        <Button
-                                            className="w-full gap-2 h-11"
-                                            variant="secondary"
-                                            onClick={() => {
-                                                addItem(producto, selectedVariante)
-                                                router.push("/checkout")
-                                            }}
-                                        >
-                                            Comprar ahora
                                         </Button>
                                     </div>
                                 ) : (
