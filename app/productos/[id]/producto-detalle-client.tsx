@@ -383,19 +383,21 @@ export default function ProductoDetalleClient() {
 
                     {videos.length > 0 && (
                         <Button
-                            className="w-full gap-2"
-                            variant="outline"
+                            className={`w-full gap-2 h-12 text-base font-bold shadow-md transition-all duration-300 ${showVideo
+                                    ? "bg-white text-gray-900 border-2 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+                                    : "bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-700 hover:to-red-600 hover:shadow-lg hover:scale-[1.01] border-0"
+                                }`}
                             onClick={() => setShowVideo(!showVideo)}
                         >
                             {showVideo ? (
                                 <>
-                                    <ImageIcon className="h-4 w-4" />
-                                    Ver fotos
+                                    <ImageIcon className="h-5 w-5" />
+                                    Ver Galería de Fotos
                                 </>
                             ) : (
                                 <>
-                                    <PlayCircle className="h-4 w-4" />
-                                    Ver videos
+                                    <PlayCircle className="h-5 w-5 animate-pulse" />
+                                    Ver Videos del Producto
                                 </>
                             )}
                         </Button>
