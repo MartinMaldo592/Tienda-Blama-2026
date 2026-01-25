@@ -57,6 +57,7 @@ export async function POST(req: Request) {
     const address = normalizeText(body?.address)
     const reference = normalizeText(body?.reference)
     const locationLink = normalizeText(body?.locationLink)
+    const shippingMethod = normalizeText(body?.shippingMethod) || null
 
     const couponCode = normalizeText(body?.couponCode) || null
     const discountRaw = Number(body?.discountAmount ?? 0)
@@ -148,6 +149,7 @@ export async function POST(req: Request) {
           total,
           status: "Pendiente",
           pago_status: "Pago Contraentrega",
+          metodo_envio: shippingMethod,
         })
         .select()
         .single()
@@ -161,6 +163,7 @@ export async function POST(req: Request) {
           total,
           status: "Pendiente",
           pago_status: "Pago Contraentrega",
+          metodo_envio: shippingMethod,
         })
         .select()
         .single()

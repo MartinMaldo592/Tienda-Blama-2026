@@ -22,11 +22,13 @@ export function buildWhatsAppPreviewMessage(input: {
     discount: number
     total: number
     couponCode?: string | null
+    shippingMethod?: string
 }) {
-    const { name, dni, phone, address, reference, locationLink, items, subtotal, discount, total, couponCode } = input
+    const { name, dni, phone, address, reference, locationLink, items, subtotal, discount, total, couponCode, shippingMethod } = input
 
     let message = `¡Hola! Soy ${name || "Cliente"}. Quiero confirmar mi pedido: 🛍️\n`
     message += `*DATOS DE ENVÍO*:\n`
+    if (shippingMethod) message += `Método Envío: ${shippingMethod === 'lima' ? 'Lima' : 'Provincia'}\n`
     message += `Cliente: ${name}\n`
     message += `DNI: ${dni}\n`
     message += `Teléfono: ${phone}\n`
@@ -59,12 +61,14 @@ export function buildWhatsAppFinalMessage(input: {
     discount: number
     total: number
     couponCode?: string | null
+    shippingMethod?: string
 }) {
-    const { orderIdFormatted, name, dni, phone, address, reference, locationLink, items, subtotal, discount, total, couponCode } = input
+    const { orderIdFormatted, name, dni, phone, address, reference, locationLink, items, subtotal, discount, total, couponCode, shippingMethod } = input
 
     let message = `¡Hola! Soy ${name}. Quiero confirmar mi pedido: 🛍️\n`
     message += `📋 *Pedido #${orderIdFormatted}*\n\n`
     message += `*DATOS DE ENVÍO* 📦\n`
+    if (shippingMethod) message += `🚚 *Método:* ${shippingMethod === 'lima' ? 'Lima' : 'Provincia'}\n`
     message += `👤 *Cliente:* ${name}\n`
     message += `🪪 *DNI:* ${dni}\n`
     message += `📱 *Teléfono:* ${phone}\n`

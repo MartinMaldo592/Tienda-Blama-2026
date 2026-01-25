@@ -195,6 +195,7 @@ export interface Database {
                     stock_descontado: boolean
                     status: 'Pendiente' | 'Confirmado' | 'Preparando' | 'Enviado' | 'Entregado' | 'Fallido' | 'Devuelto'
                     pago_status: 'Pendiente' | 'Pagado Anticipado' | 'Pago Contraentrega' | 'Pagado al Recibir'
+                    metodo_envio: string | null
                     voucher_url: string | null
                     created_at: string
                 }
@@ -208,6 +209,7 @@ export interface Database {
                     stock_descontado?: boolean
                     status?: 'Pendiente' | 'Confirmado' | 'Preparando' | 'Enviado' | 'Entregado' | 'Fallido' | 'Devuelto'
                     pago_status?: 'Pendiente' | 'Pagado Anticipado' | 'Pago Contraentrega' | 'Pagado al Recibir'
+                    metodo_envio?: string | null
                     voucher_url?: string | null
                     created_at?: string
                 }
@@ -221,6 +223,7 @@ export interface Database {
                     stock_descontado?: boolean
                     status?: 'Pendiente' | 'Confirmado' | 'Preparando' | 'Enviado' | 'Entregado' | 'Fallido' | 'Devuelto'
                     pago_status?: 'Pendiente' | 'Pagado Anticipado' | 'Pago Contraentrega' | 'Pagado al Recibir'
+                    metodo_envio?: string | null
                     voucher_url?: string | null
                     created_at?: string
                 }

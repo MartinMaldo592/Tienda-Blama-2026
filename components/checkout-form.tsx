@@ -58,6 +58,7 @@ export function CheckoutForm({ items, total, onBack, onComplete }: CheckoutFormP
 
 function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
     const [name, setName] = useState("")
+    const [shippingMethod, setShippingMethod] = useState("lima")
     const [phone, setPhone] = useState("")
     const [phoneError, setPhoneError] = useState("")
     const [dni, setDni] = useState("")
@@ -188,6 +189,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             discount: finalDiscount,
             total: finalTotal,
             couponCode: appliedCouponCode,
+            shippingMethod,
         })
 
         const phoneNumberClienteInit = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "982432561";
@@ -222,6 +224,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 locationLink,
                 couponCode: appliedCouponCode,
                 discountAmount: finalDiscount,
+                shippingMethod,
                 items: checkoutItems.map((it) => ({
                     id: it.id,
                     quantity: it.quantity,
@@ -249,6 +252,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 discount: finalDiscount,
                 total: finalTotal,
                 couponCode: appliedCouponCode,
+                shippingMethod,
             })
 
             // F. ⭐ NOTIFICACIÓN AUTOMÁTICA AL ADMIN (Twilio)
@@ -338,6 +342,34 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                    <div className="space-y-3">
+                        <Label className="text-base">Método de envió gratuito <span className="text-destructive">*</span></Label>
+                        <div className="flex flex-col gap-2 pl-1">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="shipping"
+                                    value="lima"
+                                    checked={shippingMethod === 'lima'}
+                                    onChange={(e) => setShippingMethod(e.target.value)}
+                                    className="accent-black h-4 w-4"
+                                />
+                                <span className="text-sm font-medium">Lima</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="shipping"
+                                    value="provincia"
+                                    checked={shippingMethod === 'provincia'}
+                                    onChange={(e) => setShippingMethod(e.target.value)}
+                                    className="accent-black h-4 w-4"
+                                />
+                                <span className="text-sm font-medium">Provincia</span>
+                            </label>
+                        </div>
+                    </div>
+
                     <div className="space-y-2">
                         <Label htmlFor="name">Nombre Completo</Label>
                         <Input id="name" required placeholder="Juan Pérez" value={name} onChange={(e) => setName(e.target.value)} disabled={isSubmitting} />

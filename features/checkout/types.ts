@@ -21,6 +21,7 @@ export type CreateOrderPayload = {
     locationLink?: string
     couponCode?: string | null
     discountAmount?: number
+    shippingMethod?: string
     items: Array<{
         id: number
         quantity: number
