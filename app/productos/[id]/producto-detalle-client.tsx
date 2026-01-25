@@ -40,6 +40,7 @@ import {
 } from "lucide-react"
 import { ProductCard } from "@/components/product-card"
 import { ProductSocialProof } from "@/components/product-social-proof"
+import { QuickCheckoutModal } from "@/components/quick-checkout-modal"
 
 function parseProductId(raw: string) {
     const direct = Number(raw)
@@ -73,6 +74,7 @@ export default function ProductoDetalleClient() {
     const [addedToastKey, setAddedToastKey] = useState(0)
     const [activeTab, setActiveTab] = useState<'description' | 'details' | 'specs' | 'reviews' | 'questions'>('description')
     const [showVideo, setShowVideo] = useState(false)
+    const [quickBuyOpen, setQuickBuyOpen] = useState(false)
 
     const { addItem, items, updateQuantity } = useCartStore()
 
@@ -278,6 +280,12 @@ export default function ProductoDetalleClient() {
 
     return (
         <div className="space-y-6 max-w-5xl mx-auto pb-24 md:pb-0">
+            <QuickCheckoutModal
+                isOpen={quickBuyOpen}
+                onClose={() => setQuickBuyOpen(false)}
+                product={producto}
+                variant={selectedVariante}
+            />
             <div className="flex items-center justify-between gap-3">
                 <Button variant="ghost" className="gap-2" asChild>
                     <Link href="/productos">
@@ -384,8 +392,8 @@ export default function ProductoDetalleClient() {
                     {videos.length > 0 && (
                         <Button
                             className={`w-full gap-2 h-12 text-base font-bold shadow-md transition-all duration-300 ${showVideo
-                                    ? "bg-white text-gray-900 border-2 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
-                                    : "bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-700 hover:to-red-600 hover:shadow-lg hover:scale-[1.01] border-0"
+                                ? "bg-white text-gray-900 border-2 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+                                : "bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-700 hover:to-red-600 hover:shadow-lg hover:scale-[1.01] border-0"
                                 }`}
                             onClick={() => setShowVideo(!showVideo)}
                         >
@@ -528,14 +536,11 @@ export default function ProductoDetalleClient() {
                                 quantity === 0 ? (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                         <Button
-                                            className="w-full gap-2 h-11"
-                                            variant="secondary"
-                                            onClick={() => {
-                                                addItem(producto, selectedVariante)
-                                                router.push("/checkout")
-                                            }}
+                                            className="w-full gap-2 h-11 border-2 border-transparent bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg transform hover:scale-[1.02] transition-all duration-200 font-extrabold text-base tracking-wide"
+                                            onClick={() => setQuickBuyOpen(true)}
                                         >
-                                            Comprar ahora
+                                            <span className="drop-shadow-sm">COMPRAR AHORA</span>
+                                            <ChevronRight className="h-5 w-5 animate-pulse" />
                                         </Button>
                                         <Button className="w-full gap-2 h-11" onClick={() => {
                                             addItem(producto, selectedVariante)
@@ -580,8 +585,12 @@ export default function ProductoDetalleClient() {
                             )}
 
                             {inStock && quantity > 0 && (
-                                <Button className="w-full h-11" variant="secondary" onClick={() => router.push("/checkout")}>
-                                    Comprar ahora
+                                <Button
+                                    className="w-full h-11 border-2 border-transparent bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg transform hover:scale-[1.02] transition-all duration-200 font-extrabold text-base tracking-wide"
+                                    onClick={() => setQuickBuyOpen(true)}
+                                >
+                                    <span className="drop-shadow-sm">COMPRAR AHORA</span>
+                                    <ChevronRight className="h-5 w-5 animate-pulse" />
                                 </Button>
                             )}
 
