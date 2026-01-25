@@ -5,6 +5,7 @@ import { PromoCarousel } from "@/components/promo-carousel"
 import Link from "next/link"
 import { slugify } from "@/lib/utils"
 import { getHomePageData } from "@/features/products/services/products.server"
+import { StoreLocation } from "@/components/store-location"
 
 const HOME_PRODUCTS_LIMIT = 12
 
@@ -40,8 +41,8 @@ export default async function Home({
   searchParams,
 }: {
   searchParams?:
-    | Record<string, string | string[] | undefined>
-    | Promise<Record<string, string | string[] | undefined>>
+  | Record<string, string | string[] | undefined>
+  | Promise<Record<string, string | string[] | undefined>>
 }) {
   const resolvedSearchParams:
     | Record<string, string | string[] | undefined>
@@ -210,6 +211,8 @@ export default async function Home({
           </Button>
         </div>
       </section>
+
+      <StoreLocation />
     </main>
   )
 }
