@@ -33,6 +33,7 @@ export function ResponsiveBanner({
           priority={priority}
           sizes="(max-width: 768px) 100vw, 0px"
           className="object-cover"
+          unoptimized={true}
         />
       </div>
 
@@ -44,6 +45,7 @@ export function ResponsiveBanner({
           priority={priority}
           sizes="(min-width: 768px) 100vw, 0px"
           className="object-cover"
+          unoptimized={true}
         />
       </div>
     </div>
