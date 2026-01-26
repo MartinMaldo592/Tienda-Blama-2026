@@ -293,35 +293,7 @@ export default function ProductoDetalleClient() {
                     </Link>
                 </Button>
 
-                <div className="relative">
-                    <Button type="button" variant="outline" className="gap-2" onClick={handleShareNative}>
-                        <Share2 className="h-4 w-4" /> Compartir
-                    </Button>
 
-                    {shareOpen && (
-                        <div className="absolute right-0 mt-2 w-56 rounded-xl border bg-card shadow-lg p-2 z-20">
-                            <button
-                                type="button"
-                                className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-popover text-foreground"
-                                onClick={() => {
-                                    setShareOpen(false)
-                                    handleShareWhatsApp()
-                                }}
-                            >
-                                <Send className="h-4 w-4" /> WhatsApp
-                            </button>
-                            <button
-                                type="button"
-                                className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-popover text-foreground"
-                                onClick={() => {
-                                    handleCopyLink()
-                                }}
-                            >
-                                <Copy className="h-4 w-4" /> {copied ? "Link copiado" : "Copiar link"}
-                            </button>
-                        </div>
-                    )}
-                </div>
             </div>
 
             <div className="text-sm text-muted-foreground">
@@ -594,7 +566,32 @@ export default function ProductoDetalleClient() {
                                 </Button>
                             )}
 
-                            <div className="pt-2 text-xs text-muted-foreground">
+                            <div className="relative pt-2">
+                                <Button
+                                    variant="outline"
+                                    className="w-full gap-2 h-11 border-2 border-muted hover:border-primary hover:text-primary transition-colors"
+                                    onClick={handleShareNative}
+                                >
+                                    <Share2 className="h-4 w-4" />
+                                    Compartir este producto
+                                </Button>
+                                {shareOpen && (
+                                    <div className="absolute bottom-full mb-2 left-0 w-full rounded-md border bg-popover p-4 shadow-md animate-in fade-in zoom-in-95 slide-in-from-bottom-2 z-50">
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <Button variant="outline" className="gap-2 w-full" onClick={handleCopyLink}>
+                                                {copied ? <CheckCircle className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                                                Copiar
+                                            </Button>
+                                            <Button variant="outline" className="gap-2 w-full" onClick={handleShareWhatsApp}>
+                                                <Send className="h-4 w-4" />
+                                                WhatsApp
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="pt-4 text-xs text-muted-foreground">
                                 ID: #{String(producto.id).padStart(6, "0")} • {new Date(producto.created_at).toLocaleString()}
                             </div>
                         </CardContent>
