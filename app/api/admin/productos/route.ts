@@ -100,7 +100,7 @@ async function upsertProduct(args: {
     color: product.color ? normalizeText(product.color) : null,
     cuidados: product.cuidados ? normalizeText(product.cuidados) : null,
     uso: product.uso ? normalizeText(product.uso) : null,
-    categoria_id: product.categoria_id != null ? Number(product.categoria_id) : null,
+    categoria_id: (product.categoria_id != null && !Number.isNaN(Number(product.categoria_id))) ? Number(product.categoria_id) : null,
     calificacion: product.calificacion ? Number(product.calificacion) : 5.0,
   }
 
@@ -231,12 +231,14 @@ export async function PUT(req: Request) {
 
   try {
     const body = await req.json()
+    console.log("[API PUT Product] Body received:", JSON.stringify(body, null, 2)) // Debug log
     const id = Number(body?.id ?? 0)
     if (!Number.isFinite(id) || id <= 0) {
       return NextResponse.json({ error: "Invalid product id" }, { status: 400 })
     }
 
     const product = body?.product as ProductPayload
+    console.log("[API PUT Product] categoria_id payload:", product.categoria_id) // Debug log
     const specs = Array.isArray(body?.specs) ? (body.specs as SpecInput[]) : []
     const variants = Array.isArray(body?.variants) ? (body.variants as VariantInput[]) : []
 

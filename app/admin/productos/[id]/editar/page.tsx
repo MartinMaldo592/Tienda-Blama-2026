@@ -9,7 +9,7 @@ import { ProductForm } from "@/components/admin/product-form"
 import { ArrowLeft } from "lucide-react"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
-import { fetchAdminProductoById } from "@/features/admin"
+import { fetchAdminProductoById, fetchAdminCategorias } from "@/features/admin"
 
 export default function EditarProductoPage() {
     const router = useRouter()
@@ -20,6 +20,7 @@ export default function EditarProductoPage() {
 
     const [loading, setLoading] = useState(true)
     const [producto, setProducto] = useState<any>(null)
+    const [categories, setCategories] = useState<any[]>([])
 
     useEffect(() => {
         if (guard.loading || guard.accessDenied) return
@@ -38,10 +39,16 @@ export default function EditarProductoPage() {
         }
 
         try {
-            const data = await fetchAdminProductoById(numericId)
-            setProducto(data)
+            const [prodData, catData] = await Promise.all([
+                fetchAdminProductoById(numericId),
+                fetchAdminCategorias()
+            ])
+            setProducto(prodData)
+            setCategories(catData || [])
         } catch (err) {
+            console.error(err)
             setProducto(null)
+            setCategories([])
         }
 
         setLoading(false)
@@ -94,6 +101,7 @@ export default function EditarProductoPage() {
                 <CardContent className="p-6">
                     <ProductForm
                         productToEdit={producto}
+                        categories={categories}
                         onSuccess={() => router.push('/admin/productos')}
                         onCancel={() => router.push('/admin/productos')}
                     />

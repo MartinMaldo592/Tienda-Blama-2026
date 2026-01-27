@@ -56,8 +56,13 @@ export async function getHomePageData(opts: {
 
     let productsQuery = supabase.from("productos").select("*").order("created_at", { ascending: false })
     productsQuery = productsQuery.limit(opts.productsLimit)
+
     if ((selectedCategory as any)?.id) {
-        productsQuery = productsQuery.eq("categoria_id", (selectedCategory as any).id)
+        const catId = (selectedCategory as any).id
+        const allCats = (categories as any[]) || []
+        const childIds = allCats.filter(c => c.parent_id === catId).map(c => c.id)
+        const ids = [catId, ...childIds]
+        productsQuery = productsQuery.in("categoria_id", ids)
     }
     const { data: products, error: productsError } = await productsQuery
 
@@ -134,8 +139,10 @@ export async function getHomePageData(opts: {
         offers = []
     }
 
+    const visibleCategories = ((categories as Category[]) || []).filter((c: any) => !c.parent_id)
+
     return {
-        categories: (categories as Category[] | null) || [],
+        categories: visibleCategories,
         featuredProduct: (featuredProduct as Product | null) || null,
         products: (products as Product[] | null) || [],
         bestSellers,

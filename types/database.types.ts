@@ -16,18 +16,21 @@ export interface Database {
                     nombre: string
                     slug: string
                     created_at: string
+                    parent_id: number | null
                 }
                 Insert: {
                     id?: number
                     nombre: string
                     slug: string
                     created_at?: string
+                    parent_id?: number | null
                 }
                 Update: {
                     id?: number
                     nombre?: string
                     slug?: string
                     created_at?: string
+                    parent_id?: number | null
                 }
             }
             productos: {

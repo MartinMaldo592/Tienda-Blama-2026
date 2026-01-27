@@ -27,14 +27,15 @@ import {
 
 interface ProductFormProps {
     productToEdit?: any
+    categories?: any[]
     onSuccess: () => void
     onCancel: () => void
 }
 
-export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormProps) {
+export function ProductForm({ productToEdit, categories = [], onSuccess, onCancel }: ProductFormProps) {
     const [loading, setLoading] = useState(false)
     const [uploading, setUploading] = useState(false)
-    const [categories, setCategories] = useState<any[]>([])
+    // Categories are now passed as props
 
     // Form State
     const [name, setName] = useState("")
@@ -46,7 +47,8 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
     const [galleryImages, setGalleryImages] = useState<string[]>([])
     const [newGalleryUrl, setNewGalleryUrl] = useState("")
     const [videos, setVideos] = useState<string[]>([])
-    const [categoryId, setCategoryId] = useState<string>("default")
+    const [selectedParentId, setSelectedParentId] = useState<string>("default")
+    const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>("default")
 
     const [descripcion, setDescripcion] = useState("")
     const [materiales, setMateriales] = useState("")
@@ -58,13 +60,17 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
     const [especificaciones, setEspecificaciones] = useState<Array<{ id?: number; clave: string; valor: string; orden: number }>>([])
     const [variantes, setVariantes] = useState<Array<{ id?: number; etiqueta: string; precio: string; precio_antes: string; stock: string; activo: boolean }>>([])
 
+    // NEW: Toggle for manual category change
+    const [changeCategoryMode, setChangeCategoryMode] = useState(false)
+
+    // Computed Category State removed (we use direct productToEdit or local state)
+
+
+
     // Create Category State
     const [isCreatingCategory, setIsCreatingCategory] = useState(false)
     const [newCategoryName, setNewCategoryName] = useState("")
 
-    useEffect(() => {
-        fetchCategories()
-    }, [])
 
     useEffect(() => {
         if (productToEdit) {
@@ -94,45 +100,56 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
             const vFromDb = Array.isArray((productToEdit as any).videos) ? ((productToEdit as any).videos as string[]) : []
             const vClean = vFromDb.map((x) => String(x || '').trim()).filter(Boolean)
             setVideos(Array.from(new Set(vClean)).slice(0, 6))
-            setCategoryId(productToEdit.categoria_id?.toString() || "default")
 
-                ; (async () => {
-                    try {
-                        const productId = Number(productToEdit.id)
-                        if (!productId) {
-                            setEspecificaciones([])
-                            setVariantes([])
-                            return
-                        }
+            // Category syncing logic:
+            // If editing, we DO NOT fill the selectedParentId/Sub to avoid confusing the "New Category" fields.
+            // We want "New Category" fields to start empty (default) so the user explicitly chooses if they want to change.
+            // UNLESS it's a new product or no category assigned.
 
-                        const { specs, variants } = await fetchProductoSpecsAndVariants(productId)
+            const rawCatId = productToEdit.categoria_id
+            if (!rawCatId) {
+                setSelectedParentId("default")
+                setSelectedSubcategoryId("default")
+            }
+            // If rawCatId exists, we leave selected*Id as default. The UI will show the "Current Category" block.
 
-                        const nextSpecs = Array.isArray(specs)
-                            ? specs.map((s: any) => ({
-                                id: Number(s.id),
-                                clave: String(s.clave || ''),
-                                valor: String(s.valor || ''),
-                                orden: Number(s.orden || 0),
-                            }))
-                            : []
-                        setEspecificaciones(nextSpecs)
-
-                        const nextVars = Array.isArray(variants)
-                            ? variants.map((v: any) => ({
-                                id: Number(v.id),
-                                etiqueta: String(v.etiqueta || ''),
-                                precio: v.precio != null ? String(v.precio) : '',
-                                precio_antes: v.precio_antes != null ? String(v.precio_antes) : '',
-                                stock: String(v.stock ?? 0),
-                                activo: Boolean(v.activo ?? true),
-                            }))
-                            : []
-                        setVariantes(nextVars)
-                    } catch (err) {
+            ; (async () => {
+                try {
+                    const productId = Number(productToEdit.id)
+                    if (!productId) {
                         setEspecificaciones([])
                         setVariantes([])
+                        return
                     }
-                })()
+
+                    const { specs, variants } = await fetchProductoSpecsAndVariants(productId)
+
+                    const nextSpecs = Array.isArray(specs)
+                        ? specs.map((s: any) => ({
+                            id: Number(s.id),
+                            clave: String(s.clave || ''),
+                            valor: String(s.valor || ''),
+                            orden: Number(s.orden || 0),
+                        }))
+                        : []
+                    setEspecificaciones(nextSpecs)
+
+                    const nextVars = Array.isArray(variants)
+                        ? variants.map((v: any) => ({
+                            id: Number(v.id),
+                            etiqueta: String(v.etiqueta || ''),
+                            precio: v.precio != null ? String(v.precio) : '',
+                            precio_antes: v.precio_antes != null ? String(v.precio_antes) : '',
+                            stock: String(v.stock ?? 0),
+                            activo: Boolean(v.activo ?? true),
+                        }))
+                        : []
+                    setVariantes(nextVars)
+                } catch (err) {
+                    setEspecificaciones([])
+                    setVariantes([])
+                }
+            })()
         } else {
             // Reset form when not editing (or switching to new)
             setName("")
@@ -150,11 +167,14 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
             setGalleryImages([])
             setNewGalleryUrl("")
             setVideos([])
-            setCategoryId("default")
+            setSelectedParentId("default")
+            setSelectedSubcategoryId("default")
             setEspecificaciones([])
             setVariantes([])
         }
-    }, [productToEdit])
+    }, [productToEdit, categories])
+
+
 
     function normalizeImages(input: string[]) {
         const unique: string[] = []
@@ -245,14 +265,6 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
         setVideos(next)
     }
 
-    async function fetchCategories() {
-        try {
-            const data = await fetchAdminCategorias()
-            setCategories(data)
-        } catch (err) {
-            setCategories([])
-        }
-    }
 
     async function handleCreateCategory() {
         if (!newCategoryName.trim()) return
@@ -262,7 +274,8 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
             const data = await createAdminCategoria({ nombre: newCategoryName })
 
             // Add to local list and select it
-            setCategories([...categories, data])
+            // setCategories([...categories, data]) // Cannot update props locally
+            window.location.reload() // Force reload to fetch new category
             setCategoryId(data.id.toString())
             setIsCreatingCategory(false)
             setNewCategoryName("")
@@ -318,10 +331,45 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
                 return
             }
 
-            if (categoryId === "default" || !categoryId) {
-                alert("Debes seleccionar una categoría obligatoriamente.")
-                setLoading(false)
-                return
+            // Determine final category ID
+            // Determine final category ID
+            let finalCategoryIdToSave: string | number | null = null
+
+            // LOGIC: 
+            // 1. If Change Mode is active (explicit toggle OR no existing category), use selectedParentId.
+            // 2. Else, keep existing productToEdit.categoria_id.
+
+            const isChangeMode = (!productToEdit?.categoria_id) || changeCategoryMode
+
+            if (isChangeMode) {
+                if (!selectedParentId || selectedParentId === "default") {
+                    alert("Debes seleccionar una Categoría Principal.")
+                    setLoading(false)
+                    return
+                }
+
+                finalCategoryIdToSave = selectedParentId
+
+                // Validate subcategory if needed
+                const hasSubcats = categories.some((c: any) => String(c.parent_id) === selectedParentId)
+                if (hasSubcats && (!selectedSubcategoryId || selectedSubcategoryId === "default")) {
+                    alert("Debes seleccionar una Subcategoría para la nueva categoría seleccionada.")
+                    setLoading(false)
+                    return
+                }
+                if (selectedSubcategoryId && selectedSubcategoryId !== "default") {
+                    finalCategoryIdToSave = selectedSubcategoryId
+                }
+            } else {
+                // Not in change mode, preserve existing
+                if (productToEdit?.categoria_id) {
+                    finalCategoryIdToSave = productToEdit.categoria_id
+                } else {
+                    // Should not happen if logic is correct, but fallback
+                    alert("Error de lógica: No hay categoría asignada y no se seleccionó ninguna.")
+                    setLoading(false)
+                    return
+                }
             }
 
             const priceNum = Number(price)
@@ -392,7 +440,7 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
                 color: color.trim() || null,
                 cuidados: cuidados.trim() || null,
                 uso: uso.trim() || null,
-                categoria_id: categoryId === 'default' ? null : parseInt(categoryId)
+                categoria_id: finalCategoryIdToSave ? parseInt(finalCategoryIdToSave) : null
             }
 
             const cleanSpecs = especificaciones
@@ -440,6 +488,8 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
             setLoading(false)
         }
     }
+
+
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6 py-4">
@@ -771,62 +821,160 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
 
 
             <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                    <Label>Categoría</Label>
-                    {!isCreatingCategory ? (
-                        <Button
-                            type="button"
-                            variant="link"
-                            className="h-auto p-0 text-xs text-accent"
-                            onClick={() => setIsCreatingCategory(true)}
-                        >
-                            + Nueva Categoría
-                        </Button>
-                    ) : (
-                        <Button
-                            type="button"
-                            variant="link"
-                            className="h-auto p-0 text-xs text-destructive"
-                            onClick={() => setIsCreatingCategory(false)}
-                        >
-                            Cancelar
-                        </Button>
-                    )}
-                </div>
+                {/* Dynamic Category Section */}
+                {(() => {
+                    const hasExistingCategory = !!productToEdit?.categoria_id
 
-                {isCreatingCategory ? (
-                    <div className="flex gap-2">
-                        <Input
-                            placeholder="Nombre nueva categoría..."
-                            value={newCategoryName}
-                            onChange={(e) => setNewCategoryName(e.target.value)}
-                            className="flex-1"
-                        />
-                        <Button
-                            type="button"
-                            size="sm"
-                            onClick={handleCreateCategory}
-                            disabled={!newCategoryName.trim() || loading}
-                            className="bg-primary text-primary-foreground hover:bg-primary/90"
-                        >
-                            <Save className="h-4 w-4" />
-                        </Button>
-                    </div>
-                ) : (
-                    <Select value={categoryId} onValueChange={setCategoryId}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Seleccionar categoría" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="default">Sin Categoría</SelectItem>
-                            {categories.map((cat) => (
-                                <SelectItem key={cat.id} value={cat.id.toString()}>
-                                    {cat.nombre}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                )}
+                    // Logic to display existing category name
+                    let existingParentName = ""
+                    let existingChildName = ""
+
+                    if (hasExistingCategory && categories.length > 0) {
+                        const rawId = String(productToEdit.categoria_id)
+                        const current = categories.find((c: any) => String(c.id) === rawId)
+                        if (current) {
+                            if (current.parent_id) {
+                                const p = categories.find((c: any) => String(c.id) === String(current.parent_id))
+                                existingParentName = p?.nombre || "..."
+                                existingChildName = current.nombre
+                            } else {
+                                existingParentName = current.nombre
+                            }
+                        }
+                    }
+
+                    return (
+                        <div className="space-y-4">
+                            {hasExistingCategory && (
+                                <div className="p-4 border rounded-md bg-muted/40">
+                                    <Label className="text-sm font-semibold mb-2 block">Categoría Asignada (Actual)</Label>
+                                    <div className="flex items-center gap-2 text-sm">
+                                        <span className="bg-primary/10 text-primary px-3 py-1 rounded-full font-medium">
+                                            {existingParentName || "Desconocida"}
+                                        </span>
+                                        {existingChildName && (
+                                            <>
+                                                <span className="text-muted-foreground">/</span>
+                                                <span className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full font-medium">
+                                                    {existingChildName}
+                                                </span>
+                                            </>
+                                        )}
+                                    </div>
+                                    <div className="mt-4">
+                                        <div className="flex items-center space-x-2">
+                                            <input
+                                                type="checkbox"
+                                                id="changeCat"
+                                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                                checked={changeCategoryMode}
+                                                onChange={(e) => setChangeCategoryMode(e.target.checked)}
+                                            />
+                                            <Label htmlFor="changeCat" className="font-normal cursor-pointer select-none">
+                                                Quiero cambiar la categoría actual
+                                            </Label>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {(!hasExistingCategory || changeCategoryMode) && (
+                                <div className={`space-y-4 ${hasExistingCategory ? "p-4 border border-dashed rounded-md bg-background animate-in fade-in zoom-in-95 duration-200" : ""}`}>
+                                    {hasExistingCategory && <Label className="text-sm font-semibold text-primary">Seleccionar Nueva Categoría</Label>}
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <Label className="text-xs text-muted-foreground">Categoría Principal {hasExistingCategory ? "(Nueva)" : ""}</Label>
+                                            <Select
+                                                value={selectedParentId}
+                                                onValueChange={(val) => {
+                                                    setSelectedParentId(val)
+                                                    setSelectedSubcategoryId("default")
+                                                }}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Seleccionar Principal" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="default">Seleccionar...</SelectItem>
+                                                    {categories
+                                                        .filter((c: any) => !c.parent_id)
+                                                        .sort((a: any, b: any) => a.nombre.localeCompare(b.nombre))
+                                                        .map((c: any) => (
+                                                            <SelectItem key={c.id} value={String(c.id)}>
+                                                                {c.nombre}
+                                                            </SelectItem>
+                                                        ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div className="space-y-1">
+                                            <Label className="text-xs text-muted-foreground">Subcategoría (Opcional)</Label>
+                                            <Select
+                                                value={selectedSubcategoryId}
+                                                onValueChange={setSelectedSubcategoryId}
+                                                disabled={selectedParentId === "default" || !categories.some((c: any) => String(c.parent_id) === selectedParentId)}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Seleccionar Subcategoría" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="default">Ninguna</SelectItem>
+                                                    {categories
+                                                        .filter((c: any) => String(c.parent_id) === selectedParentId)
+                                                        .sort((a: any, b: any) => a.nombre.localeCompare(b.nombre))
+                                                        .map((c: any) => (
+                                                            <SelectItem key={c.id} value={String(c.id)}>
+                                                                {c.nombre}
+                                                            </SelectItem>
+                                                        ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+
+                                    {/* Create new category shortcut (optional, kept for convenience) */}
+                                    {!isCreatingCategory ? (
+                                        <Button
+                                            type="button"
+                                            variant="link"
+                                            className="h-auto p-0 text-xs text-accent mt-2"
+                                            onClick={() => setIsCreatingCategory(true)}
+                                        >
+                                            + Crear Nueva Categoría Global
+                                        </Button>
+                                    ) : (
+                                        <div className="flex gap-2 mt-2">
+                                            <Input
+                                                placeholder="Nombre nueva categoría..."
+                                                value={newCategoryName}
+                                                onChange={(e) => setNewCategoryName(e.target.value)}
+                                                className="flex-1"
+                                            />
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                onClick={handleCreateCategory}
+                                                disabled={!newCategoryName.trim() || loading}
+                                            >
+                                                <Save className="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setIsCreatingCategory(false)}
+                                            >
+                                                Cancelar
+                                            </Button>
+                                        </div>
+                                    )}
+
+                                </div>
+                            )}
+                        </div>
+                    )
+                })()}
             </div>
 
             <div className="space-y-2">
@@ -978,6 +1126,6 @@ export function ProductForm({ productToEdit, onSuccess, onCancel }: ProductFormP
                     )}
                 </Button>
             </div>
-        </form>
+        </form >
     )
 }

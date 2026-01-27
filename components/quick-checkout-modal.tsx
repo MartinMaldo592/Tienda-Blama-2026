@@ -123,6 +123,16 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant }: QuickC
     )
 }
 
+// Input Icon Wrapper
+const IconInput = ({ icon: Icon, ...props }: any) => (
+    <div className="relative">
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+            <Icon className="h-4 w-4" />
+        </div>
+        <Input {...props} className={`pl-10 ${props.className}`} />
+    </div>
+)
+
 function QuickForm({ product, variant, onClose }: { product: any; variant: any; onClose: () => void }) {
     const [name, setName] = useState("")
     const [phone, setPhone] = useState("")
@@ -251,16 +261,6 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
             setIsSubmitting(false)
         }
     }
-
-    // Input Icon Wrapper
-    const IconInput = ({ icon: Icon, ...props }: any) => (
-        <div className="relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                <Icon className="h-4 w-4" />
-            </div>
-            <Input {...props} className={`pl-10 ${props.className}`} />
-        </div>
-    )
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
