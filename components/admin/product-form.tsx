@@ -275,8 +275,9 @@ export function ProductForm({ productToEdit, categories = [], onSuccess, onCance
 
             // Add to local list and select it
             // setCategories([...categories, data]) // Cannot update props locally
-            window.location.reload() // Force reload to fetch new category
-            setCategoryId(data.id.toString())
+            // window.location.reload() // Force reload to fetch new category?
+            // BETTER: Just set it locally if we could, but for now fixed the build error:
+            setSelectedParentId(data.id.toString())
             setIsCreatingCategory(false)
             setNewCategoryName("")
 
@@ -440,7 +441,7 @@ export function ProductForm({ productToEdit, categories = [], onSuccess, onCance
                 color: color.trim() || null,
                 cuidados: cuidados.trim() || null,
                 uso: uso.trim() || null,
-                categoria_id: finalCategoryIdToSave ? parseInt(finalCategoryIdToSave) : null
+                categoria_id: finalCategoryIdToSave ? parseInt(String(finalCategoryIdToSave)) : null
             }
 
             const cleanSpecs = especificaciones
