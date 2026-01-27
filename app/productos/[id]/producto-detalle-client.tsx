@@ -876,21 +876,32 @@ export default function ProductoDetalleClient() {
                         <div className="text-xs text-muted-foreground">Precio del producto</div>
                         <div className="text-lg font-extrabold text-primary leading-none">{formatCurrency(currentPrice)}</div>
                     </div>
-                    <Button
-                        className="h-11 flex-1 gap-2"
-                        disabled={!inStock}
-                        onClick={() => {
-                            addItem(producto, selectedVariante)
-                            if (imageContainerRef.current && images.length > 0) {
-                                const rect = imageContainerRef.current.getBoundingClientRect()
-                                startAnimation(images[0], rect)
-                            }
-                            setAddedToastKey(Date.now())
-                            setAddedToastOpen(true)
-                        }}
-                    >
-                        <ShoppingCart className="h-4 w-4" /> Agregar
-                    </Button>
+                    <div className="flex gap-2 flex-1">
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-11 w-11 border-primary text-primary hover:bg-primary hover:text-white transition-colors"
+                            disabled={!inStock}
+                            onClick={() => {
+                                addItem(producto, selectedVariante)
+                                if (imageContainerRef.current && images.length > 0) {
+                                    const rect = imageContainerRef.current.getBoundingClientRect()
+                                    startAnimation(images[0], rect)
+                                }
+                                setAddedToastKey(Date.now())
+                                setAddedToastOpen(true)
+                            }}
+                        >
+                            <ShoppingCart className="h-5 w-5" />
+                        </Button>
+                        <Button
+                            className="h-11 flex-1 gap-2 border-2 border-transparent bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg font-extrabold text-base tracking-wide"
+                            disabled={!inStock}
+                            onClick={() => setQuickBuyOpen(true)}
+                        >
+                            COMPRAR AHORA <ChevronRight className="h-5 w-5 animate-pulse" />
+                        </Button>
+                    </div>
                 </div>
             </div>
 
