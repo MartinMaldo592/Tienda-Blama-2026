@@ -3,16 +3,9 @@
 import { Suspense, useEffect, useMemo, useState } from "react"
 import { useCartStore } from "@/features/cart"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+
 import Link from "next/link"
-import {
-    Sheet,
-    SheetContent,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-} from "@/components/ui/sheet"
+
 import {
     Select,
     SelectContent,
@@ -22,10 +15,10 @@ import {
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { formatCurrency, slugify } from "@/lib/utils"
-import { Filter, Minus, Plus, Search, ShoppingCart, X } from "lucide-react"
+import { Filter, Minus, Plus, Search, ShoppingCart } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ProductImageCarousel } from "@/components/product-image-carousel"
-import { countProducts, listCategories, listProducts } from "@/features/products/services/products.client"
+import { listCategories, listProducts } from "@/features/products/services/products.client"
 import type { Category, Product, SortValue } from "@/features/products/types"
 
 export default function ProductosPage() {
@@ -43,7 +36,7 @@ function ProductosPageContent() {
 
     const [productos, setProductos] = useState<Product[]>([])
     const [totalCount, setTotalCount] = useState<number>(0)
-    const [draftCount, setDraftCount] = useState<number | null>(null)
+
     const [categorias, setCategorias] = useState<Category[]>([])
     const [loading, setLoading] = useState(true)
     const [selectedCategory, setSelectedCategory] = useState<string>("all")
@@ -52,18 +45,14 @@ function ProductosPageContent() {
     const [minPrice, setMinPrice] = useState<string>('')
     const [maxPrice, setMaxPrice] = useState<string>('')
     const [onlyInStock, setOnlyInStock] = useState<boolean>(false)
-    const [filtersOpen, setFiltersOpen] = useState(false)
-    const [draftCategory, setDraftCategory] = useState<string>('all')
-    const [draftSort, setDraftSort] = useState<SortValue>('name-asc')
-    const [draftMinPrice, setDraftMinPrice] = useState<string>('')
-    const [draftMaxPrice, setDraftMaxPrice] = useState<string>('')
-    const [draftOnlyInStock, setDraftOnlyInStock] = useState<boolean>(false)
+
 
     const [isMobile, setIsMobile] = useState<boolean>(() => {
         if (typeof window === 'undefined') return false
         return window.matchMedia('(max-width: 767px)').matches
     })
-    const [showAllCategoriesMobile, setShowAllCategoriesMobile] = useState(false)
+    const [activeFilter, setActiveFilter] = useState<string | null>(null)
+
 
     const [pageSize, setPageSize] = useState<number>(() => {
         if (typeof window === 'undefined') return 20
@@ -74,10 +63,10 @@ function ProductosPageContent() {
 
     useEffect(() => {
         let active = true
-        ;(async () => {
-            const categoriasData = await listCategories()
-            if (active) setCategorias((categoriasData as Category[]) || [])
-        })()
+            ; (async () => {
+                const categoriasData = await listCategories()
+                if (active) setCategorias((categoriasData as Category[]) || [])
+            })()
         return () => {
             active = false
         }
@@ -99,20 +88,7 @@ function ProductosPageContent() {
         return () => window.removeEventListener('resize', updatePageSize)
     }, [])
 
-    const visibleCategorias = useMemo(() => {
-        if (!isMobile) return categorias
 
-        const limit = 3
-        if (showAllCategoriesMobile) return categorias
-
-        const base = categorias.slice(0, limit)
-        if (selectedCategory === 'all') return base
-
-        const selected = categorias.find((c) => c.id.toString() === selectedCategory) || null
-        if (!selected) return base
-        if (base.some((c) => c.id === selected.id)) return base
-        return [...base, selected]
-    }, [categorias, isMobile, selectedCategory, showAllCategoriesMobile])
 
     async function fetchData(opts: {
         cat: string
@@ -201,14 +177,7 @@ function ProductosPageContent() {
         return () => clearTimeout(handle)
     }, [searchQuery])
 
-    useEffect(() => {
-        if (!filtersOpen) return
-        setDraftCategory(selectedCategory)
-        setDraftSort(sort)
-        setDraftMinPrice(minPrice)
-        setDraftMaxPrice(maxPrice)
-        setDraftOnlyInStock(onlyInStock)
-    }, [filtersOpen, selectedCategory, sort, minPrice, maxPrice, onlyInStock])
+
 
     const currentPage = appliedFromUrl.page
     const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
@@ -219,62 +188,9 @@ function ProductosPageContent() {
         }
     }, [currentPage, totalPages])
 
-    useEffect(() => {
-        if (!filtersOpen) {
-            setDraftCount(null)
-            return
-        }
 
-        const handle = setTimeout(async () => {
-            const nextCount = await countProducts({
-                cat: draftCategory,
-                q: searchQuery,
-                min: draftMinPrice,
-                max: draftMaxPrice,
-                stock: draftOnlyInStock,
-            })
 
-            setDraftCount(nextCount)
-        }, 250)
 
-        return () => clearTimeout(handle)
-    }, [filtersOpen, draftCategory, searchQuery, draftMinPrice, draftMaxPrice, draftOnlyInStock])
-
-    const appliedBadges = useMemo(() => {
-        const badges: { key: string; label: string; onClear: () => void }[] = []
-
-        if (draftCategory !== 'all') {
-            const catName = categorias.find((c) => c.id.toString() === draftCategory)?.nombre || 'Categoría'
-            badges.push({
-                key: 'cat',
-                label: catName,
-                onClear: () => setDraftCategory('all'),
-            })
-        }
-        if (draftMinPrice) {
-            badges.push({
-                key: 'min',
-                label: `Desde $${draftMinPrice}`,
-                onClear: () => setDraftMinPrice(''),
-            })
-        }
-        if (draftMaxPrice) {
-            badges.push({
-                key: 'max',
-                label: `Hasta $${draftMaxPrice}`,
-                onClear: () => setDraftMaxPrice(''),
-            })
-        }
-        if (draftOnlyInStock) {
-            badges.push({
-                key: 'stock',
-                label: 'Solo en stock',
-                onClear: () => setDraftOnlyInStock(false),
-            })
-        }
-
-        return badges
-    }, [categorias, draftCategory, draftMinPrice, draftMaxPrice, draftOnlyInStock])
 
     const getItemQuantity = (productId: number) => {
         const qty = items
@@ -285,240 +201,178 @@ function ProductosPageContent() {
 
     return (
         <div className="min-h-screen bg-background">
-            {/* Hero Section */}
-            <div className="bg-gradient-to-r from-sidebar to-sidebar-primary text-sidebar-primary-foreground py-16">
-                <div className="container mx-auto px-4 text-center">
-                    <h1 className="text-4xl md:text-5xl font-bold mb-4">Nuestro Catálogo</h1>
-                    <p className="text-muted-foreground max-w-2xl mx-auto">
-                        Explora nuestra selección de productos. Agrega al carrito y realiza tu pedido por WhatsApp.
-                    </p>
-                </div>
+            {/* Simple Header */}
+            <div className="container mx-auto px-4 pt-10 pb-6 text-center">
+                <h1 className="text-3xl font-bold">Productos</h1>
             </div>
 
-            <div className="container mx-auto px-4 py-8">
-                {/* Filters */}
-                <div className="bg-card rounded-xl shadow-sm border border-border p-4 mb-8">
-                    <div className="space-y-4">
-                        <div className="flex flex-col md:flex-row gap-4">
-                            {/* Search */}
-                            <div className="relative flex-1 w-full">
-                                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Buscar productos..."
-                                    className="pl-9"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            updateUrl({ q: searchQuery || undefined, page: undefined }, 'push')
-                                        }
-                                    }}
-                                />
-                            </div>
+            <div className="container mx-auto px-4 pb-8">
+                {/* Search Bar (Full Width) */}
+                <div className="mb-6 max-w-xl mx-auto">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Buscar productos..."
+                            className="pl-9"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                </div>
 
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="gap-2 w-full md:w-auto"
-                                onClick={() => updateUrl({ q: searchQuery || undefined, page: undefined }, 'push')}
+                {/* Filter Bar */}
+                <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center border-b border-border pb-4 mb-6">
+                    {/* Left: Filters */}
+                    <div className="flex flex-wrap items-center gap-4">
+                        <span className="text-sm font-medium">Filtrar:</span>
+
+                        {/* Category Filter Dropdown */}
+                        <div className="relative">
+                            <button
+                                className={`flex items-center gap-1 text-sm ${activeFilter === 'cat' ? 'text-foreground font-medium' : 'text-muted-foreground hover:text-foreground'} py-2 transition-colors`}
+                                onClick={() => setActiveFilter(activeFilter === 'cat' ? null : 'cat')}
                             >
-                                <Search className="h-4 w-4" />
-                                Buscar
-                            </Button>
-
-                            <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
-                                <SheetTrigger asChild>
-                                    <Button variant="outline" className="gap-2 w-full md:w-auto">
-                                        <Filter className="h-4 w-4" />
-                                        Filtrar y ordenar
-                                    </Button>
-                                </SheetTrigger>
-                            <SheetContent side="right" className="p-0">
-                                <SheetHeader className="border-b">
-                                    <div className="flex items-center justify-between gap-3">
-                                        <SheetTitle className="text-base tracking-wide">Filtrar y ordenar</SheetTitle>
-                                        <Button
-                                            type="button"
-                                            variant="link"
-                                            className="px-0"
-                                            onClick={() => {
-                                                setDraftCategory('all')
-                                                setDraftSort('name-asc')
-                                                setDraftMinPrice('')
-                                                setDraftMaxPrice('')
-                                                setDraftOnlyInStock(false)
-                                            }}
-                                        >
-                                            Borrar todo
-                                        </Button>
-                                    </div>
-                                </SheetHeader>
-
-                                <div className="px-4 pb-4 space-y-6 overflow-y-auto">
-                                    {appliedBadges.length > 0 && (
-                                        <div className="pt-4">
-                                            <div className="text-sm font-semibold mb-2">Filtros aplicados</div>
-                                            <div className="flex flex-wrap gap-2">
-                                                {appliedBadges.map((b) => (
-                                                    <Badge key={b.key} variant="outline" className="rounded-md">
-                                                        <button
-                                                            type="button"
-                                                            className="inline-flex items-center gap-2"
-                                                            onClick={b.onClear}
-                                                        >
-                                                            <X className="h-3.5 w-3.5" />
-                                                            <span>{b.label}</span>
-                                                        </button>
-                                                    </Badge>
-                                                ))}
-                                            </div>
+                                Categoría <Filter className="h-3 w-3" />
+                            </button>
+                            {/* Dropdown Container */}
+                            {activeFilter === 'cat' && (
+                                <div className="absolute top-full left-0 pt-2 w-56 z-20">
+                                    <div className="bg-white border border-border shadow-lg rounded-md p-2">
+                                        <div className="space-y-1 max-h-60 overflow-y-auto">
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedCategory("all");
+                                                    updateUrl({ cat: undefined, page: undefined }, 'replace');
+                                                    setActiveFilter(null);
+                                                }}
+                                                className={`w-full text-left text-sm px-2 py-1.5 rounded-sm hover:bg-accent ${selectedCategory === "all" ? "bg-accent/50 font-medium" : ""}`}
+                                            >
+                                                Todas
+                                            </button>
+                                            {categorias.map(cat => (
+                                                <button
+                                                    key={cat.id}
+                                                    onClick={() => {
+                                                        setSelectedCategory(cat.id.toString());
+                                                        updateUrl({ cat: cat.id.toString(), page: undefined }, 'replace');
+                                                        setActiveFilter(null);
+                                                    }}
+                                                    className={`w-full text-left text-sm px-2 py-1.5 rounded-sm hover:bg-accent ${selectedCategory === cat.id.toString() ? "bg-accent/50 font-medium" : ""}`}
+                                                >
+                                                    {cat.nombre}
+                                                </button>
+                                            ))}
                                         </div>
-                                    )}
-
-                                    <div className="space-y-2 pt-4 border-t">
-                                        <div className="text-sm font-semibold">Ordenar por</div>
-                                        <Select value={draftSort} onValueChange={(v) => setDraftSort(v as SortValue)}>
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Selecciona" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="name-asc">Nombre: A → Z</SelectItem>
-                                                <SelectItem value="name-desc">Nombre: Z → A</SelectItem>
-                                                <SelectItem value="price-asc">Precio: menor → mayor</SelectItem>
-                                                <SelectItem value="price-desc">Precio: mayor → menor</SelectItem>
-                                                <SelectItem value="newest">Más nuevos</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="space-y-2 pt-4 border-t">
-                                        <div className="text-sm font-semibold">Categoría de producto</div>
-                                        <Select value={draftCategory} onValueChange={setDraftCategory}>
-                                            <SelectTrigger className="w-full">
-                                                <SelectValue placeholder="Selecciona" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="all">Todos</SelectItem>
-                                                {categorias.map((cat) => (
-                                                    <SelectItem key={cat.id} value={cat.id.toString()}>
-                                                        {cat.nombre}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className="space-y-3 pt-4 border-t">
-                                        <div className="text-sm font-semibold">Precio</div>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="space-y-1">
-                                                <div className="text-xs text-muted-foreground">Mínimo</div>
-                                                <Input
-                                                    inputMode="numeric"
-                                                    placeholder="0"
-                                                    value={draftMinPrice}
-                                                    onChange={(e) => setDraftMinPrice(e.target.value.replace(/[^0-9.]/g, ''))}
-                                                />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <div className="text-xs text-muted-foreground">Máximo</div>
-                                                <Input
-                                                    inputMode="numeric"
-                                                    placeholder="9999"
-                                                    value={draftMaxPrice}
-                                                    onChange={(e) => setDraftMaxPrice(e.target.value.replace(/[^0-9.]/g, ''))}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="pt-4 border-t">
-                                        <button
-                                            type="button"
-                                            className="w-full flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm"
-                                            onClick={() => setDraftOnlyInStock((v) => !v)}
-                                        >
-                                            <span className="font-medium">Solo en stock</span>
-                                            <span className={draftOnlyInStock ? 'text-primary font-semibold' : 'text-muted-foreground'}>
-                                                {draftOnlyInStock ? 'Sí' : 'No'}
-                                            </span>
-                                        </button>
                                     </div>
                                 </div>
-
-                                <SheetFooter className="border-t">
-                                    <div className="w-full space-y-2">
-                                        <div className="text-sm text-muted-foreground">
-                                            {(draftCount ?? totalCount)} artículos encontrados
-                                        </div>
-                                        <Button
-                                            className="w-full"
-                                            onClick={() => {
-                                                setSelectedCategory(draftCategory)
-                                                setSort(draftSort)
-                                                setMinPrice(draftMinPrice)
-                                                setMaxPrice(draftMaxPrice)
-                                                setOnlyInStock(draftOnlyInStock)
-                                                updateUrl(
-                                                    {
-                                                        cat: draftCategory !== 'all' ? draftCategory : undefined,
-                                                        sort: draftSort !== 'name-asc' ? draftSort : undefined,
-                                                        min: draftMinPrice || undefined,
-                                                        max: draftMaxPrice || undefined,
-                                                        stock: draftOnlyInStock ? '1' : undefined,
-                                                        page: undefined,
-                                                    },
-                                                    'push'
-                                                )
-                                                setFiltersOpen(false)
-                                            }}
-                                        >
-                                            Aplicar
-                                        </Button>
-                                    </div>
-                                </SheetFooter>
-                            </SheetContent>
-                            </Sheet>
+                            )}
                         </div>
 
-                        {/* Category Filter */}
-                        <div className="flex gap-2 flex-wrap">
-                            <Button
-                                variant={selectedCategory === "all" ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => {
-                                    setSelectedCategory("all")
-                                    updateUrl({ cat: undefined, page: undefined }, 'replace')
+                        {/* Availability Filter Dropdown */}
+                        <div className="relative">
+                            <button
+                                className={`flex items-center gap-1 text-sm ${activeFilter === 'stock' ? 'text-foreground font-medium' : 'text-muted-foreground hover:text-foreground'} py-2 transition-colors`}
+                                onClick={() => setActiveFilter(activeFilter === 'stock' ? null : 'stock')}
+                            >
+                                Disponibilidad <Filter className="h-3 w-3" />
+                            </button>
+                            {activeFilter === 'stock' && (
+                                <div className="absolute top-full left-0 pt-2 w-48 z-20">
+                                    <div className="bg-white border border-border shadow-lg rounded-md p-3">
+                                        <div className="flex items-center space-x-2">
+                                            <input
+                                                type="checkbox"
+                                                id="stock-filter"
+                                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                                checked={onlyInStock}
+                                                onChange={(e) => {
+                                                    const val = e.target.checked
+                                                    setOnlyInStock(val)
+                                                    updateUrl({ stock: val ? '1' : undefined, page: undefined }, 'push')
+                                                }}
+                                            />
+                                            <label htmlFor="stock-filter" className="text-sm cursor-pointer select-none">
+                                                Solo en stock
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Price Filter Dropdown */}
+                        <div className="relative">
+                            <button
+                                className={`flex items-center gap-1 text-sm ${activeFilter === 'price' ? 'text-foreground font-medium' : 'text-muted-foreground hover:text-foreground'} py-2 transition-colors`}
+                                onClick={() => setActiveFilter(activeFilter === 'price' ? null : 'price')}
+                            >
+                                Precio <Filter className="h-3 w-3" />
+                            </button>
+                            {activeFilter === 'price' && (
+                                <div className="absolute top-full left-0 pt-2 w-64 z-20">
+                                    <div className="bg-white border border-border shadow-lg rounded-md p-3">
+                                        <div className="flex items-center gap-2">
+                                            <div className="space-y-1 flex-1">
+                                                <label className="text-xs text-muted-foreground">Mín</label>
+                                                <Input
+                                                    className="h-8 text-xs"
+                                                    placeholder="0"
+                                                    value={minPrice}
+                                                    onChange={(e) => setMinPrice(e.target.value)}
+                                                    onBlur={() => updateUrl({ min: minPrice || undefined, page: undefined }, 'push')}
+                                                />
+                                            </div>
+                                            <div className="space-y-1 flex-1">
+                                                <label className="text-xs text-muted-foreground">Máx</label>
+                                                <Input
+                                                    className="h-8 text-xs"
+                                                    placeholder="9999"
+                                                    value={maxPrice}
+                                                    onChange={(e) => setMaxPrice(e.target.value)}
+                                                    onBlur={() => updateUrl({ max: maxPrice || undefined, page: undefined }, 'push')}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Backdrop for closing filters */}
+                        {activeFilter && (
+                            <div
+                                className="fixed inset-0 z-10 bg-transparent"
+                                onClick={() => setActiveFilter(null)}
+                            />
+                        )}
+                    </div>
+
+                    {/* Right: Sort & Count */}
+                    <div className="flex flex-wrap items-center gap-4 w-full lg:w-auto justify-between lg:justify-end">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium whitespace-nowrap">Ordenar por:</span>
+                            <Select
+                                value={sort}
+                                onValueChange={(v) => {
+                                    setSort(v as SortValue)
+                                    updateUrl({ sort: v as SortValue }, 'replace')
                                 }}
                             >
-                                Todos
-                            </Button>
-                            {visibleCategorias.map(cat => (
-                                <Button
-                                    key={cat.id}
-                                    variant={selectedCategory === cat.id.toString() ? "default" : "outline"}
-                                    size="sm"
-                                    onClick={() => {
-                                        setSelectedCategory(cat.id.toString())
-                                        updateUrl({ cat: cat.id.toString(), page: undefined }, 'replace')
-                                    }}
-                                >
-                                    {cat.nombre}
-                                </Button>
-                            ))}
-
-                            {isMobile && categorias.length > 6 ? (
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-muted-foreground"
-                                    onClick={() => setShowAllCategoriesMobile((v) => !v)}
-                                >
-                                    {showAllCategoriesMobile ? 'Ver menos categorías' : 'Ver más categorías'}
-                                </Button>
-                            ) : null}
+                                <SelectTrigger className="w-[180px] h-9 text-sm">
+                                    <SelectValue placeholder="Seleccionar" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="name-asc">Alfabéticamente, A-Z</SelectItem>
+                                    <SelectItem value="name-desc">Alfabéticamente, Z-A</SelectItem>
+                                    <SelectItem value="price-asc">Precio, menor a mayor</SelectItem>
+                                    <SelectItem value="price-desc">Precio, mayor a menor</SelectItem>
+                                    <SelectItem value="newest">Más nuevos</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
+                        <span className="text-sm text-muted-foreground whitespace-nowrap">
+                            {totalCount} productos
+                        </span>
                     </div>
                 </div>
 

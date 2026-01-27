@@ -125,11 +125,14 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant }: QuickC
 
 // Input Icon Wrapper
 const IconInput = ({ icon: Icon, ...props }: any) => (
-    <div className="relative">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-            <Icon className="h-4 w-4" />
+    <div className="flex w-full items-center rounded-md border text-sm overflow-hidden h-10 ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+        <div className="flex h-full w-10 items-center justify-center bg-muted/50 border-r">
+            <Icon className="h-4 w-4 text-muted-foreground" />
         </div>
-        <Input {...props} className={`pl-10 ${props.className}`} />
+        <input
+            {...props}
+            className={`flex h-full w-full bg-background px-3 py-2 placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${props.className || ''}`}
+        />
     </div>
 )
 
@@ -265,6 +268,113 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
 
+
+            <div className="space-y-1">
+                <Label className="text-sm font-bold">Nombre y Apellidos <span className="text-destructive">*</span></Label>
+                <IconInput icon={User} required placeholder="Ej: Juan Pérez" value={name} onChange={(e: any) => setName(e.target.value)} />
+            </div>
+
+            <div className="space-y-1">
+                <Label className="text-sm font-bold">DNI <span className="text-destructive">*</span></Label>
+                <IconInput icon={CreditCard} required placeholder="DNI" maxLength={8} value={dni} onChange={(e: any) => setDni(e.target.value.replace(/\D/g, ''))} />
+            </div>
+
+            <div className="space-y-1">
+                <Label className="text-sm font-bold">Teléfono / Whatsapp <span className="text-destructive">*</span></Label>
+                <IconInput
+                    icon={Phone}
+                    required
+                    placeholder="Ej: 999 999 999"
+                    maxLength={11}
+                    value={phone}
+                    onChange={(e: any) => {
+                        // Remove non-digits
+                        const raw = e.target.value.replace(/\D/g, '')
+                        // Format with spaces
+                        let formatted = raw
+                        if (raw.length > 3) {
+                            formatted = raw.slice(0, 3) + ' ' + raw.slice(3)
+                        }
+                        if (raw.length > 6) {
+                            formatted = formatted.slice(0, 7) + ' ' + raw.slice(6)
+                        }
+                        setPhone(formatted)
+                    }}
+                />
+            </div>
+
+            <div className="space-y-1">
+                <Label className="text-sm font-bold">Provincia <span className="text-destructive">*</span></Label>
+                <Select value={province} onValueChange={setProvince}>
+                    <SelectTrigger className="w-full h-10">
+                        <SelectValue placeholder="Selecciona" />
+                    </SelectTrigger>
+                    <SelectContent position="popper" className="max-h-[200px]">
+                        <SelectItem value="Amazonas">Amazonas</SelectItem>
+                        <SelectItem value="Áncash">Áncash</SelectItem>
+                        <SelectItem value="Apurímac">Apurímac</SelectItem>
+                        <SelectItem value="Arequipa">Arequipa</SelectItem>
+                        <SelectItem value="Ayacucho">Ayacucho</SelectItem>
+                        <SelectItem value="Cajamarca">Cajamarca</SelectItem>
+                        <SelectItem value="Callao">Callao</SelectItem>
+                        <SelectItem value="Cusco">Cusco</SelectItem>
+                        <SelectItem value="Huancavelica">Huancavelica</SelectItem>
+                        <SelectItem value="Huánuco">Huánuco</SelectItem>
+                        <SelectItem value="Ica">Ica</SelectItem>
+                        <SelectItem value="Junín">Junín</SelectItem>
+                        <SelectItem value="La Libertad">La Libertad</SelectItem>
+                        <SelectItem value="Lambayeque">Lambayeque</SelectItem>
+                        <SelectItem value="Lima">Lima</SelectItem>
+                        <SelectItem value="Lima Provincias">Lima Provincias</SelectItem>
+                        <SelectItem value="Loreto">Loreto</SelectItem>
+                        <SelectItem value="Madre de Dios">Madre de Dios</SelectItem>
+                        <SelectItem value="Moquegua">Moquegua</SelectItem>
+                        <SelectItem value="Pasco">Pasco</SelectItem>
+                        <SelectItem value="Piura">Piura</SelectItem>
+                        <SelectItem value="Puno">Puno</SelectItem>
+                        <SelectItem value="San Martín">San Martín</SelectItem>
+                        <SelectItem value="Tacna">Tacna</SelectItem>
+                        <SelectItem value="Tumbes">Tumbes</SelectItem>
+                        <SelectItem value="Ucayali">Ucayali</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
+            <div className="space-y-1">
+                <Label className="text-sm font-bold">Distrito o Ciudad <span className="text-destructive">*</span></Label>
+                <IconInput icon={MapPin} required placeholder="Ej: Miraflores" value={district} onChange={(e: any) => setDistrict(e.target.value)} />
+            </div>
+
+            <div className="space-y-1 relative">
+                <Label className="text-sm font-bold">Dirección <span className="text-destructive">*</span></Label>
+                <div className="flex w-full items-center rounded-md border text-sm overflow-hidden h-10 ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                    <div className="flex h-full w-10 items-center justify-center bg-muted/50 border-r">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <input
+                        value={value}
+                        onChange={(e) => setValue(e.target.value)}
+                        disabled={!ready}
+                        placeholder="Ej: Av. Larco 123"
+                        className="flex h-full w-full bg-background px-3 py-2 placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                    {status === "OK" && (
+                        <ul className="absolute z-10 w-full bg-popover border rounded-md shadow-lg mt-1 max-h-40 overflow-auto">
+                            {data.map(({ place_id, description }) => (
+                                <li key={place_id} onClick={() => handleAddressSelect(description)} className="px-4 py-2 hover:bg-muted cursor-pointer text-xs">
+                                    {description}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            </div>
+
+            <div className="space-y-1">
+                <Label className="text-sm font-bold">Referencia</Label>
+                <IconInput icon={MapPin} placeholder="Ej: Al costado del grifo" value={reference} onChange={(e: any) => setReference(e.target.value)} />
+            </div>
+
             {/* Shipping Method Radios */}
             <div>
                 <Label className="mb-2 block text-sm font-bold">Método de envió gratuito <span className="text-destructive">*</span></Label>
@@ -292,78 +402,6 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                         <span className="text-sm font-medium">Provincia</span>
                     </label>
                 </div>
-            </div>
-
-            <div className="space-y-1">
-                <Label className="text-xs font-bold">Nombre y Apellidos <span className="text-destructive">*</span></Label>
-                <IconInput icon={User} required placeholder="Ej: Juan Pérez" value={name} onChange={(e: any) => setName(e.target.value)} />
-            </div>
-
-            <div className="space-y-1">
-                <Label className="text-xs font-bold">DNI <span className="text-destructive">*</span></Label>
-                <IconInput icon={CreditCard} required placeholder="DNI" maxLength={8} value={dni} onChange={(e: any) => setDni(e.target.value.replace(/\D/g, ''))} />
-            </div>
-
-            <div className="space-y-1">
-                <Label className="text-xs font-bold">Teléfono / Whatsapp <span className="text-destructive">*</span></Label>
-                <IconInput icon={Phone} required placeholder="Ej: 999 999 999" maxLength={9} value={phone} onChange={(e: any) => setPhone(e.target.value.replace(/\D/g, ''))} />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                    <Label className="text-xs font-bold">Provincia <span className="text-destructive">*</span></Label>
-                    <Select value={province} onValueChange={setProvince}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Selecciona" />
-                        </SelectTrigger>
-                        <SelectContent position="popper" className="max-h-[200px]">
-                            <SelectItem value="Lima">Lima</SelectItem>
-                            <SelectItem value="Callao">Callao</SelectItem>
-                            <SelectItem value="Arequipa">Arequipa</SelectItem>
-                            <SelectItem value="Cusco">Cusco</SelectItem>
-                            <SelectItem value="Trujillo">Trujillo</SelectItem>
-                            <SelectItem value="Chiclayo">Chiclayo</SelectItem>
-                            <SelectItem value="Piura">Piura</SelectItem>
-                            <SelectItem value="Huancayo">Huancayo</SelectItem>
-                            <SelectItem value="Ica">Ica</SelectItem>
-                            <SelectItem value="Otro">Otro</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="space-y-1">
-                    <Label className="text-xs font-bold">Distrito o Ciudad <span className="text-destructive">*</span></Label>
-                    <IconInput icon={MapPin} required placeholder="Ej: Miraflores" value={district} onChange={(e: any) => setDistrict(e.target.value)} />
-                </div>
-            </div>
-
-            <div className="space-y-1 relative">
-                <Label className="text-xs font-bold">Dirección <span className="text-destructive">*</span></Label>
-                <div className="relative">
-                    <div className="absolute left-3 top-3 text-muted-foreground">
-                        <MapPin className="h-4 w-4" />
-                    </div>
-                    <Input
-                        value={value}
-                        onChange={(e) => setValue(e.target.value)}
-                        disabled={!ready}
-                        placeholder="Ej: Av. Larco 123"
-                        className="pl-10"
-                    />
-                    {status === "OK" && (
-                        <ul className="absolute z-10 w-full bg-popover border rounded-md shadow-lg mt-1 max-h-40 overflow-auto">
-                            {data.map(({ place_id, description }) => (
-                                <li key={place_id} onClick={() => handleAddressSelect(description)} className="px-4 py-2 hover:bg-muted cursor-pointer text-xs">
-                                    {description}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </div>
-            </div>
-
-            <div className="space-y-1">
-                <Label className="text-xs font-bold">Referencia</Label>
-                <IconInput icon={MapPin} placeholder="Ej: Al costado del grifo" value={reference} onChange={(e: any) => setReference(e.target.value)} />
             </div>
 
             {/* Footer Summary */}
