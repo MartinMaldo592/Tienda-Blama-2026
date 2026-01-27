@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Mail, Phone, MapPin } from "lucide-react"
 
 export default function ContactoPage() {
-    const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "51999999999"
+    const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "51958279604"
     const defaultMessage = encodeURIComponent("Hola, quisiera información sobre sus productos.")
 
     return (
@@ -29,7 +29,7 @@ export default function ContactoPage() {
                             </div>
                             <div className="flex items-center gap-3 text-muted-foreground">
                                 <Mail className="h-5 w-5 text-primary" />
-                                <span>contacto@blamashop.com</span>
+                                <span>ventas@blama.shop</span>
                             </div>
                             <div className="flex items-center gap-3 text-muted-foreground">
                                 <MapPin className="h-5 w-5 text-primary" />
