@@ -534,6 +534,22 @@ export default function ProductoDetalleClient() {
                                         </Button>
                                         <Button className="w-full gap-2 h-11" onClick={() => {
                                             addItem(producto, selectedVariante)
+
+                                            // GTM: Add to Cart
+                                            sendGTMEvent({
+                                                event: 'add_to_cart',
+                                                ecommerce: {
+                                                    currency: 'PEN',
+                                                    value: Number(producto.precio) || 0,
+                                                    items: [{
+                                                        item_id: String(producto.id),
+                                                        item_name: producto.nombre,
+                                                        price: Number(producto.precio) || 0,
+                                                        quantity: 1
+                                                    }]
+                                                }
+                                            })
+
                                             if (imageContainerRef.current && images.length > 0) {
                                                 const rect = imageContainerRef.current.getBoundingClientRect()
                                                 startAnimation(images[0], rect)
