@@ -26,14 +26,12 @@ export async function fetchProductForMeta(id: number) {
 
 export async function getHomePageData(opts: {
     selectedCategorySlug?: string
-    featuredQuery: string
     productsLimit: number
 }) {
     const supabase = createAnonServerClient()
     if (!supabase) {
         return {
             categories: [] as Category[],
-            featuredProduct: null as Product | null,
             products: [] as Product[],
             bestSellers: [] as Product[],
             offers: [] as Product[],
@@ -43,16 +41,9 @@ export async function getHomePageData(opts: {
 
     const { data: categories } = await supabase.from("categorias").select("*").order("nombre", { ascending: true })
 
+
     const selectedCategorySlug = String(opts.selectedCategorySlug || "").trim()
     const selectedCategory = (categories as Category[] | null)?.find((c) => c.slug === selectedCategorySlug)
-
-    const { data: featuredProduct } = await supabase
-        .from("productos")
-        .select("*")
-        .ilike("nombre", opts.featuredQuery)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle()
 
     let productsQuery = supabase.from("productos").select("*").order("created_at", { ascending: false })
     productsQuery = productsQuery.limit(opts.productsLimit)
@@ -143,7 +134,6 @@ export async function getHomePageData(opts: {
 
     return {
         categories: visibleCategories,
-        featuredProduct: (featuredProduct as Product | null) || null,
         products: (products as Product[] | null) || [],
         bestSellers,
         offers,

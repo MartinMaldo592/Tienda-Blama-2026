@@ -9,7 +9,7 @@ import { StoreLocation } from "@/components/store-location"
 
 const HOME_PRODUCTS_LIMIT = 12
 
-const FEATURED_QUERY = "%PELUCHE CORDEITO%"
+
 
 export const metadata: Metadata = {
   title: "Tienda Online Premium",
@@ -54,9 +54,8 @@ export default async function Home({
   const rawCat = resolvedSearchParams?.cat
   const selectedCategorySlug = (Array.isArray(rawCat) ? rawCat[0] : rawCat || '').trim()
 
-  const { categories, featuredProduct, products, bestSellers, offers, productsError } = await getHomePageData({
+  const { categories, products, bestSellers, offers, productsError } = await getHomePageData({
     selectedCategorySlug,
-    featuredQuery: FEATURED_QUERY,
     productsLimit: HOME_PRODUCTS_LIMIT,
   })
 
@@ -72,54 +71,7 @@ export default async function Home({
         <PromoCarousel />
       </section>
 
-      {featuredProduct?.id ? (
-        <section className="p-4 px-2">
-          <div className="rounded-2xl border bg-card shadow-sm overflow-hidden">
-            <div className="p-5 sm:p-6 grid gap-5 md:grid-cols-2 md:items-center">
-              <div>
-                <div className="inline-flex items-center rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-bold">
-                  Destacado
-                </div>
-                <h2 className="mt-3 text-2xl sm:text-3xl font-extrabold text-foreground leading-tight">
-                  {String(featuredProduct.nombre)}
-                </h2>
-                <p className="mt-2 text-sm text-muted-foreground max-w-xl">
-                  Un detalle premium listo para sorprender: peluche + tulipán infinito + caja de regalo.
-                </p>
-                <div className="mt-4 grid gap-2 text-sm text-foreground">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-primary" />
-                    Presentación lista para regalar
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-primary" />
-                    Ideal para aniversarios y cumpleaños
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-primary" />
-                    Atención inmediata por WhatsApp
-                  </div>
-                </div>
 
-                <div className="mt-5 flex flex-col sm:flex-row gap-3">
-                  <Button asChild className="rounded-xl">
-                    <Link href={`/productos/${slugify(String(featuredProduct.nombre))}-${featuredProduct.id}`}>
-                      Ver producto
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline" className="rounded-xl">
-                    <Link href="/productos">Ver más regalos</Link>
-                  </Button>
-                </div>
-              </div>
-
-              <div className="max-w-sm md:max-w-none">
-                <ProductCard product={featuredProduct as any} imagePriority />
-              </div>
-            </div>
-          </div>
-        </section>
-      ) : null}
 
       {bestSellers.length > 0 && (
         <section className="p-4 px-2" data-nosnippet>
