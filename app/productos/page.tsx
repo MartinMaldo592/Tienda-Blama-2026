@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { formatCurrency, slugify } from "@/lib/utils"
+import { sendGTMEvent } from "@/lib/gtm"
 import { Filter, Minus, Plus, Search, ShoppingCart, X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ProductImageCarousel } from "@/components/product-image-carousel"
@@ -529,7 +530,22 @@ function ProductosPageContent() {
                                             quantity === 0 ? (
                                                 <Button
                                                     className="w-full gap-2"
-                                                    onClick={() => addItem(producto)}
+                                                    onClick={() => {
+                                                        addItem(producto)
+                                                        sendGTMEvent({
+                                                            event: 'add_to_cart',
+                                                            ecommerce: {
+                                                                currency: 'PEN',
+                                                                value: Number(producto.precio) || 0,
+                                                                items: [{
+                                                                    item_id: String(producto.id),
+                                                                    item_name: producto.nombre,
+                                                                    price: Number(producto.precio) || 0,
+                                                                    quantity: 1
+                                                                }]
+                                                            }
+                                                        })
+                                                    }}
                                                 >
                                                     <ShoppingCart className="h-4 w-4" />
                                                     Agregar
