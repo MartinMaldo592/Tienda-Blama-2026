@@ -10,6 +10,7 @@ import { ProductImageCarousel } from "@/components/product-image-carousel"
 import { useCartStore } from "@/features/cart"
 import { useCartAnimationStore } from "@/features/cart/cart-animation"
 import { getProductDetail, getRecommendedProducts } from "@/features/products/services/products.client"
+import { sendGTMEvent } from "@/lib/gtm"
 import {
     ArrowLeft,
     CheckCircle,
@@ -131,6 +132,23 @@ export default function ProductoDetalleClient() {
         setEspecificaciones(sData)
 
         setLoading(false)
+
+        // GTM: View Content
+        if (producto) {
+            sendGTMEvent({
+                event: 'view_item',
+                ecommerce: {
+                    currency: 'PEN',
+                    value: Number(producto.precio) || 0,
+                    items: [{
+                        item_id: String(producto.id),
+                        item_name: producto.nombre,
+                        price: Number(producto.precio) || 0,
+                        quantity: 1
+                    }]
+                }
+            })
+        }
     }
 
     async function fetchRecomendados(excludeId: number) {
