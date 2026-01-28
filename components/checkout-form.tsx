@@ -26,6 +26,7 @@ import {
     setLastOrderSuccessMarker,
     validateCoupon,
 } from "@/features/checkout"
+import { sendGTMEvent } from "@/lib/gtm"
 
 // Define libraries array outside component to prevent re-renders
 const libraries: ("places")[] = ["places"];
@@ -256,6 +257,25 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             })
 
 
+
+            // GTM: Track Purchase
+            sendGTMEvent({
+                event: 'purchase',
+                ecommerce: {
+                    transaction_id: orderIdFormatted,
+                    value: finalTotal,
+                    tax: 0,
+                    shipping: 0,
+                    currency: 'PEN',
+                    coupon: appliedCouponCode,
+                    items: checkoutItems.map(item => ({
+                        item_id: String(item.id),
+                        item_name: item.nombre,
+                        price: item.precio,
+                        quantity: item.quantity
+                    }))
+                }
+            })
 
             // G. Preparar enlace de WhatsApp final (incluye id de pedido).
             const urlCliente = buildWhatsAppUrl(phoneNumberCliente, messageCliente)

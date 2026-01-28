@@ -11,6 +11,7 @@ import { useCartStore } from "@/features/cart"
 import { useState, useRef } from "react"
 import { ProductImageCarousel } from "@/components/product-image-carousel"
 import { useCartAnimationStore } from "@/features/cart/cart-animation"
+import { sendGTMEvent } from "@/lib/gtm"
 
 type Product = Database['public']['Tables']['productos']['Row']
 
@@ -47,6 +48,22 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
         e.preventDefault() // Link wrapper might trigger navigation if we are not careful, but Button handles click.
 
         addItem(product)
+
+        // GTM: Add to Cart
+        sendGTMEvent({
+            event: 'add_to_cart',
+            ecommerce: {
+                currency: 'PEN',
+                value: Number(product.precio) || 0,
+                items: [{
+                    item_id: String(product.id),
+                    item_name: product.nombre,
+                    price: Number(product.precio) || 0,
+                    quantity: 1
+                }]
+            }
+        })
+
         setCartOpen(true)
 
         if (imageRef.current && fallbackImages.length > 0) {
