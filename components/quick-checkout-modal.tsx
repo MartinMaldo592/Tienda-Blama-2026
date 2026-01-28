@@ -44,6 +44,7 @@ import {
     normalizeDni,
     setLastOrderSuccessMarker,
 } from "@/features/checkout"
+import { sendGTMEvent } from "@/lib/gtm"
 
 const libraries: ("places")[] = ["places"]
 
@@ -253,6 +254,24 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
             const url = buildWhatsAppUrl(phoneNumberClienteInit, finalMessage)
 
             setLastOrderSuccessMarker(orderIdFormatted)
+
+            // GTM: Track Purchase
+            sendGTMEvent({
+                event: 'purchase',
+                ecommerce: {
+                    transaction_id: orderIdFormatted,
+                    value: total,
+                    tax: 0,
+                    shipping: 0,
+                    currency: 'PEN',
+                    items: items.map(item => ({
+                        item_id: String(item.id),
+                        item_name: item.nombre,
+                        price: item.precio,
+                        quantity: item.quantity
+                    }))
+                }
+            })
 
             // Redirect
             window.open(url, '_blank')
