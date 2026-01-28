@@ -4,8 +4,6 @@ import { Suspense, useEffect, useMemo, useState } from "react"
 import { useCartStore } from "@/features/cart"
 import { Button } from "@/components/ui/button"
 
-import Link from "next/link"
-
 import {
     Select,
     SelectContent,
@@ -14,13 +12,11 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
-import { formatCurrency, slugify } from "@/lib/utils"
-import { sendGTMEvent } from "@/lib/gtm"
-import { Filter, Minus, Plus, Search, ShoppingCart, X } from "lucide-react"
+import { Filter, Search, X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ProductImageCarousel } from "@/components/product-image-carousel"
 import { listCategories, listProducts } from "@/features/products/services/products.client"
 import type { Category, Product, SortValue } from "@/features/products/types"
+import { ProductCard } from "@/components/product-card"
 
 export default function ProductosPage() {
     return (
@@ -60,7 +56,7 @@ function ProductosPageContent() {
         return window.matchMedia('(max-width: 767px)').matches ? 12 : 20
     })
 
-    const { addItem, items, updateQuantity } = useCartStore()
+    const { items } = useCartStore()
 
     useEffect(() => {
         let active = true
@@ -191,14 +187,6 @@ function ProductosPageContent() {
 
 
 
-
-
-    const getItemQuantity = (productId: number) => {
-        const qty = items
-            .filter((i: any) => i.id === productId)
-            .reduce((sum: number, it: any) => sum + Number(it.quantity || 0), 0)
-        return qty
-    }
 
     return (
         <div className="min-h-screen bg-background">
@@ -474,112 +462,10 @@ function ProductosPageContent() {
                         )}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                        {productos.map((producto) => {
-                            const quantity = getItemQuantity(producto.id)
-                            const hasVideo = Array.isArray((producto as any).videos) && ((producto as any).videos as any[]).filter(Boolean).length > 0
-
-                            return (
-                                <div key={producto.id} className="bg-card rounded-xl shadow-sm border border-border overflow-hidden group hover:shadow-lg transition-all">
-                                    {/* Image */}
-                                    <div className="aspect-square bg-popover relative overflow-hidden">
-                                        <Link href={`/productos/${slugify(producto.nombre)}-${producto.id}`} className="absolute inset-0">
-                                            {((Array.isArray((producto as any).imagenes) && ((producto as any).imagenes as string[]).filter(Boolean).length > 0) || producto.imagen_url) ? (
-                                                <ProductImageCarousel
-                                                    images={
-                                                        (Array.isArray((producto as any).imagenes)
-                                                            ? (((producto as any).imagenes as string[]) || []).filter(Boolean).slice(0, 10)
-                                                            : producto.imagen_url
-                                                                ? [producto.imagen_url]
-                                                                : [])
-                                                    }
-                                                    alt={producto.nombre}
-                                                    className="group-hover:scale-105 transition-transform duration-300"
-                                                    autoPlay
-                                                    intervalMs={2500}
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                                                    Sin imagen
-                                                </div>
-                                            )}
-                                        </Link>
-                                        {producto.stock <= 0 && (
-                                            <div className="absolute inset-0 bg-foreground/60 flex items-center justify-center">
-                                                <span className="text-sidebar-primary-foreground font-bold">Agotado</span>
-                                            </div>
-                                        )}
-
-                                        {hasVideo && (
-                                            <div className="absolute left-2 bottom-2">
-                                                <span className="inline-flex items-center rounded-full bg-black/70 px-2 py-1 text-[11px] font-bold text-white">
-                                                    Video
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Info */}
-                                    <div className="p-4">
-                                        <Link href={`/productos/${slugify(producto.nombre)}-${producto.id}`} className="hover:underline">
-                                            <h3 className="font-semibold text-foreground mb-1 line-clamp-2">{producto.nombre}</h3>
-                                        </Link>
-                                        <p className="text-xl font-bold text-primary mb-3">{formatCurrency(producto.precio)}</p>
-
-                                        {producto.stock > 0 ? (
-                                            quantity === 0 ? (
-                                                <Button
-                                                    className="w-full gap-2"
-                                                    onClick={() => {
-                                                        addItem(producto)
-                                                        sendGTMEvent({
-                                                            event: 'add_to_cart',
-                                                            ecommerce: {
-                                                                currency: 'PEN',
-                                                                value: Number(producto.precio) || 0,
-                                                                items: [{
-                                                                    item_id: String(producto.id),
-                                                                    item_name: producto.nombre,
-                                                                    price: Number(producto.precio) || 0,
-                                                                    quantity: 1
-                                                                }]
-                                                            }
-                                                        })
-                                                    }}
-                                                >
-                                                    <ShoppingCart className="h-4 w-4" />
-                                                    Agregar
-                                                </Button>
-                                            ) : (
-                                                <div className="flex items-center justify-between bg-popover rounded-lg p-1">
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-8 w-8"
-                                                        onClick={() => updateQuantity(producto.id, quantity - 1, null)}
-                                                    >
-                                                        <Minus className="h-4 w-4" />
-                                                    </Button>
-                                                    <span className="font-bold">{quantity}</span>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-8 w-8"
-                                                        onClick={() => updateQuantity(producto.id, quantity + 1, null)}
-                                                    >
-                                                        <Plus className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
-                                            )
-                                        ) : (
-                                            <Button disabled className="w-full">
-                                                Sin Stock
-                                            </Button>
-                                        )}
-                                    </div>
-                                </div>
-                            )
-                        })}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 gap-4">
+                        {productos.map((producto) => (
+                            <ProductCard key={producto.id} product={producto as any} />
+                        ))}
                     </div>
                 )}
 
