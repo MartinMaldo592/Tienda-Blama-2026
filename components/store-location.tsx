@@ -10,20 +10,20 @@ export function StoreLocation() {
             <div className="bg-black text-white py-6 md:py-8 px-4">
                 <div className="max-w-7xl mx-auto flex flex-wrap justify-center items-center gap-x-8 gap-y-4 md:gap-12 lg:gap-16">
                     <div className="flex items-center gap-3">
-                        <Truck className="h-6 w-6 md:h-8 md:w-8 text-primary" />
-                        <span className="font-bold text-sm md:text-base tracking-wide">ENVÍO GRATUITO</span>
+                        <Truck className="h-7 w-7 md:h-9 md:w-9 text-emerald-400" />
+                        <span className="font-bold text-sm md:text-base tracking-wide text-white">ENVÍO GRATUITO</span>
                     </div>
                     <div className="flex items-center gap-3">
-                        <Banknote className="h-6 w-6 md:h-8 md:w-8 text-primary" />
-                        <span className="font-bold text-sm md:text-base tracking-wide">PAGO CONTRAENTREGA</span>
+                        <Banknote className="h-7 w-7 md:h-9 md:w-9 text-green-400" />
+                        <span className="font-bold text-sm md:text-base tracking-wide text-white">PAGO CONTRAENTREGA</span>
                     </div>
                     <div className="flex items-center gap-3">
-                        <ShieldCheck className="h-6 w-6 md:h-8 md:w-8 text-primary" />
-                        <span className="font-bold text-sm md:text-base tracking-wide">30 DÍAS GARANTÍA</span>
+                        <ShieldCheck className="h-7 w-7 md:h-9 md:w-9 text-yellow-400" />
+                        <span className="font-bold text-sm md:text-base tracking-wide text-white">30 DÍAS GARANTÍA</span>
                     </div>
                     <div className="flex items-center gap-3">
-                        <CheckCircle className="h-6 w-6 md:h-8 md:w-8 text-primary" />
-                        <span className="font-bold text-sm md:text-base tracking-wide">100% CONFIABLE</span>
+                        <CheckCircle className="h-7 w-7 md:h-9 md:w-9 text-blue-400" />
+                        <span className="font-bold text-sm md:text-base tracking-wide text-white">100% CONFIABLE</span>
                     </div>
                 </div>
             </div>
