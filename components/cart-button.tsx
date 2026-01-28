@@ -7,6 +7,7 @@ import { useCartStore } from "@/features/cart"
 import { useEffect, useState } from "react"
 import { CheckoutForm } from "@/components/checkout-form"
 import { formatCurrency } from "@/lib/utils"
+import { sendGTMEvent } from "@/lib/gtm"
 import {
     Sheet,
     SheetContent,
@@ -311,7 +312,22 @@ export function CartButton() {
                                         <span>{formatCurrency(total)}</span>
                                     </div>
                                     <Button
-                                        onClick={() => setView('checkout')}
+                                        onClick={() => {
+                                            sendGTMEvent({
+                                                event: 'begin_checkout',
+                                                ecommerce: {
+                                                    currency: 'PEN',
+                                                    value: total,
+                                                    items: items.map(item => ({
+                                                        item_id: String(item.id),
+                                                        item_name: item.nombre,
+                                                        price: item.precio,
+                                                        quantity: item.quantity
+                                                    }))
+                                                }
+                                            })
+                                            setView('checkout')
+                                        }}
                                         className="w-full h-12 text-base font-bold bg-primary text-primary-foreground hover:bg-primary/90"
                                     >
                                         Ir a Completar Datos

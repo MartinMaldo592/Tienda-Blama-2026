@@ -527,7 +527,22 @@ export default function ProductoDetalleClient() {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                         <Button
                                             className="w-full gap-2 h-11 border-2 border-transparent bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg transform hover:scale-[1.02] transition-all duration-200 font-extrabold text-base tracking-wide"
-                                            onClick={() => setQuickBuyOpen(true)}
+                                            onClick={() => {
+                                                sendGTMEvent({
+                                                    event: 'begin_checkout',
+                                                    ecommerce: {
+                                                        currency: 'PEN',
+                                                        value: Number(producto.precio) || 0,
+                                                        items: [{
+                                                            item_id: String(producto.id),
+                                                            item_name: producto.nombre,
+                                                            price: Number(producto.precio) || 0,
+                                                            quantity: 1
+                                                        }]
+                                                    }
+                                                })
+                                                setQuickBuyOpen(true)
+                                            }}
                                         >
                                             <span className="drop-shadow-sm">COMPRAR AHORA</span>
                                             <ChevronRight className="h-5 w-5 animate-pulse" />
@@ -593,7 +608,22 @@ export default function ProductoDetalleClient() {
                             {inStock && quantity > 0 && (
                                 <Button
                                     className="w-full h-11 border-2 border-transparent bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg transform hover:scale-[1.02] transition-all duration-200 font-extrabold text-base tracking-wide"
-                                    onClick={() => setQuickBuyOpen(true)}
+                                    onClick={() => {
+                                        sendGTMEvent({
+                                            event: 'begin_checkout',
+                                            ecommerce: {
+                                                currency: 'PEN',
+                                                value: Number(producto.precio) || 0,
+                                                items: [{
+                                                    item_id: String(producto.id),
+                                                    item_name: producto.nombre,
+                                                    price: Number(producto.precio) || 0,
+                                                    quantity: 1
+                                                }]
+                                            }
+                                        })
+                                        setQuickBuyOpen(true)
+                                    }}
                                 >
                                     <span className="drop-shadow-sm">COMPRAR AHORA</span>
                                     <ChevronRight className="h-5 w-5 animate-pulse" />
@@ -931,7 +961,22 @@ export default function ProductoDetalleClient() {
                         <Button
                             className="h-11 flex-1 gap-2 border-2 border-transparent bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg font-extrabold text-base tracking-wide"
                             disabled={!inStock}
-                            onClick={() => setQuickBuyOpen(true)}
+                            onClick={() => {
+                                sendGTMEvent({
+                                    event: 'begin_checkout',
+                                    ecommerce: {
+                                        currency: 'PEN',
+                                        value: Number(producto.precio) || 0,
+                                        items: [{
+                                            item_id: String(producto.id),
+                                            item_name: producto.nombre,
+                                            price: Number(producto.precio) || 0,
+                                            quantity: 1
+                                        }]
+                                    }
+                                })
+                                setQuickBuyOpen(true)
+                            }}
                         >
                             COMPRAR AHORA <ChevronRight className="h-5 w-5 animate-pulse" />
                         </Button>
