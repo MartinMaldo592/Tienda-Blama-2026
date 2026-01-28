@@ -2,16 +2,27 @@
 
 import Link from 'next/link'
 import { CartButton } from "@/components/cart-button"
-import { Menu, X } from "lucide-react"
-import { ThemeToggle } from "@/components/theme-toggle"
+import { Menu, Search, X } from "lucide-react"
 import { useEffect, useState } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { createPortal } from "react-dom"
+import { Input } from "@/components/ui/input"
 
 export function Header() {
     const pathname = usePathname()
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const [mounted, setMounted] = useState(false)
+    const [searchQuery, setSearchQuery] = useState("")
+    const [showDesktopSearch, setShowDesktopSearch] = useState(false)
+    const router = useRouter()
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!searchQuery.trim()) return
+        router.push(`/productos?q=${encodeURIComponent(searchQuery)}`)
+        setMobileMenuOpen(false)
+        setShowDesktopSearch(false)
+    }
 
     useEffect(() => {
         setMobileMenuOpen(false)
@@ -73,7 +84,20 @@ export function Header() {
                                     <X className="h-5 w-5" />
                                 </button>
 
-                                <nav className="flex flex-col gap-4 mt-14 px-5">
+                                <div className="mt-14 px-5 mb-6">
+                                    <form onSubmit={handleSearch} className="relative">
+                                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            type="search"
+                                            placeholder="Buscar productos..."
+                                            className="pl-9 w-full bg-muted/50"
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                        />
+                                    </form>
+                                </div>
+
+                                <nav className="flex flex-col gap-4 px-5">
                                     <Link href="/" className="text-lg font-medium hover:text-primary" onClick={() => setMobileMenuOpen(false)}>Inicio</Link>
                                     <Link href="/productos" className="text-lg font-medium hover:text-primary" onClick={() => setMobileMenuOpen(false)}>Catálogo</Link>
                                     <Link href="/nosotros" className="text-lg font-medium hover:text-primary" onClick={() => setMobileMenuOpen(false)}>Quiénes Somos</Link>
@@ -99,7 +123,29 @@ export function Header() {
 
                 {/* Cart Action */}
                 <div className="flex items-center gap-2">
-                    <ThemeToggle />
+                    {/* Search (Visible on all devices) */}
+                    <div className="flex items-center">
+                        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showDesktopSearch ? 'w-40 md:w-64 opacity-100 mr-2' : 'w-0 opacity-0'}`}>
+                            <form onSubmit={handleSearch}>
+                                <Input
+                                    type="search"
+                                    placeholder="Buscar..."
+                                    className="h-9 text-sm"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </form>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setShowDesktopSearch(!showDesktopSearch)}
+                            className="p-2 hover:bg-accent rounded-full text-foreground transition-colors"
+                            aria-label="Buscar"
+                        >
+                            <Search className="h-5 w-5" />
+                        </button>
+                    </div>
+
                     <CartButton />
                 </div>
             </div>

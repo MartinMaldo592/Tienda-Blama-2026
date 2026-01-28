@@ -15,6 +15,8 @@ interface CartAnimationState {
   startAnimation: (src: string, startRect: DOMRect) => void
   removeAnimation: (id: string) => void
   triggerBump: () => void
+  isCartOpen: boolean
+  setCartOpen: (open: boolean) => void
 }
 
 export const useCartAnimationStore = create<CartAnimationState>((set) => ({
@@ -33,4 +35,6 @@ export const useCartAnimationStore = create<CartAnimationState>((set) => ({
       animations: state.animations.filter((a) => a.id !== id),
     })),
   triggerBump: () => set({ bumpTimestamp: Date.now() }),
+  isCartOpen: false,
+  setCartOpen: (open: boolean) => set({ isCartOpen: open }),
 }))

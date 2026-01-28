@@ -121,7 +121,11 @@ export function CartButton() {
 
     const totalItems = mounted ? items.reduce((sum, item) => sum + item.quantity, 0) : 0
 
+    const isCartOpen = useCartAnimationStore((s) => s.isCartOpen)
+    const setCartOpen = useCartAnimationStore((s) => s.setCartOpen)
+
     const handleOpenChange = (open: boolean) => {
+        setCartOpen(open)
         if (!open) {
             // Reset view when closing, unless we are in success (optional)
             setTimeout(() => setView('cart'), 300)
@@ -140,6 +144,7 @@ export function CartButton() {
     }
 
     const handleContinueShopping = () => {
+        setCartOpen(false)
         setView('cart')
     }
 
@@ -167,7 +172,7 @@ export function CartButton() {
                 </div>
             )}
 
-            <Sheet onOpenChange={handleOpenChange}>
+            <Sheet open={isCartOpen} onOpenChange={handleOpenChange}>
                 <SheetTrigger asChild>
                     <Button variant="ghost" className={`relative hover:bg-popover flex items-center gap-2 px-3 h-10 rounded-full border border-border shadow-sm transition-all hover:shadow-md active:scale-95 ${isBumping ? 'scale-110 bg-accent text-accent-foreground ring-2 ring-primary duration-100' : 'duration-300'}`}>
                         <div className="relative" ref={(el) => registerCartButton(el as any)}>

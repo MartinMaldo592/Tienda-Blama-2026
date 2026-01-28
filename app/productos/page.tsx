@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { formatCurrency, slugify } from "@/lib/utils"
-import { Filter, Minus, Plus, Search, ShoppingCart } from "lucide-react"
+import { Filter, Minus, Plus, Search, ShoppingCart, X } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ProductImageCarousel } from "@/components/product-image-carousel"
 import { listCategories, listProducts } from "@/features/products/services/products.client"
@@ -228,12 +228,14 @@ function ProductosPageContent() {
 
                         {/* Category Filter Dropdown */}
                         <div className="relative">
-                            <button
-                                className={`flex items-center gap-1 text-sm ${activeFilter === 'cat' ? 'text-foreground font-medium' : 'text-muted-foreground hover:text-foreground'} py-2 transition-colors`}
+                            <Button
+                                variant={activeFilter === 'cat' || selectedCategory !== 'all' ? "default" : "outline"}
+                                size="sm"
+                                className="gap-2 h-9"
                                 onClick={() => setActiveFilter(activeFilter === 'cat' ? null : 'cat')}
                             >
                                 Categoría <Filter className="h-3 w-3" />
-                            </button>
+                            </Button>
                             {/* Dropdown Container */}
                             {activeFilter === 'cat' && (
                                 <div className="absolute top-full left-0 pt-2 w-56 z-20">
@@ -270,12 +272,14 @@ function ProductosPageContent() {
 
                         {/* Availability Filter Dropdown */}
                         <div className="relative">
-                            <button
-                                className={`flex items-center gap-1 text-sm ${activeFilter === 'stock' ? 'text-foreground font-medium' : 'text-muted-foreground hover:text-foreground'} py-2 transition-colors`}
+                            <Button
+                                variant={activeFilter === 'stock' || onlyInStock ? "default" : "outline"}
+                                size="sm"
+                                className="gap-2 h-9"
                                 onClick={() => setActiveFilter(activeFilter === 'stock' ? null : 'stock')}
                             >
                                 Disponibilidad <Filter className="h-3 w-3" />
-                            </button>
+                            </Button>
                             {activeFilter === 'stock' && (
                                 <div className="absolute top-full left-0 pt-2 w-48 z-20">
                                     <div className="bg-white border border-border shadow-lg rounded-md p-3">
@@ -302,12 +306,14 @@ function ProductosPageContent() {
 
                         {/* Price Filter Dropdown */}
                         <div className="relative">
-                            <button
-                                className={`flex items-center gap-1 text-sm ${activeFilter === 'price' ? 'text-foreground font-medium' : 'text-muted-foreground hover:text-foreground'} py-2 transition-colors`}
+                            <Button
+                                variant={activeFilter === 'price' || minPrice || maxPrice ? "default" : "outline"}
+                                size="sm"
+                                className="gap-2 h-9"
                                 onClick={() => setActiveFilter(activeFilter === 'price' ? null : 'price')}
                             >
                                 Precio <Filter className="h-3 w-3" />
-                            </button>
+                            </Button>
                             {activeFilter === 'price' && (
                                 <div className="absolute top-full left-0 pt-2 w-64 z-20">
                                     <div className="bg-white border border-border shadow-lg rounded-md p-3">
@@ -375,6 +381,81 @@ function ProductosPageContent() {
                         </span>
                     </div>
                 </div>
+
+                {/* Active Filters Badges */}
+                {(selectedCategory !== "all" || onlyInStock || minPrice || maxPrice || searchQuery) && (
+                    <div className="flex flex-wrap items-center gap-2 mb-6">
+                        {searchQuery && (
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                className="h-7 text-xs rounded-full gap-1"
+                                onClick={() => setSearchQuery("")}
+                            >
+                                Búsqueda: {searchQuery}
+                                <X className="h-3 w-3" />
+                            </Button>
+                        )}
+                        {selectedCategory !== "all" && (
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                className="h-7 text-xs rounded-full gap-1"
+                                onClick={() => {
+                                    setSelectedCategory("all")
+                                    updateUrl({ cat: undefined, page: undefined }, 'replace')
+                                }}
+                            >
+                                Categoría: {categorias.find(c => c.id.toString() === selectedCategory)?.nombre || selectedCategory}
+                                <X className="h-3 w-3" />
+                            </Button>
+                        )}
+                        {onlyInStock && (
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                className="h-7 text-xs rounded-full gap-1"
+                                onClick={() => {
+                                    setOnlyInStock(false)
+                                    updateUrl({ stock: undefined, page: undefined }, 'push')
+                                }}
+                            >
+                                Solo Stock
+                                <X className="h-3 w-3" />
+                            </Button>
+                        )}
+                        {(minPrice || maxPrice) && (
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                className="h-7 text-xs rounded-full gap-1"
+                                onClick={() => {
+                                    setMinPrice("")
+                                    setMaxPrice("")
+                                    updateUrl({ min: undefined, max: undefined, page: undefined }, 'push')
+                                }}
+                            >
+                                Precio: {minPrice || '0'} - {maxPrice || '∞'}
+                                <X className="h-3 w-3" />
+                            </Button>
+                        )}
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs text-muted-foreground hover:text-foreground"
+                            onClick={() => {
+                                setSearchQuery("")
+                                setSelectedCategory("all")
+                                setOnlyInStock(false)
+                                setMinPrice("")
+                                setMaxPrice("")
+                                updateUrl({ cat: undefined, q: undefined, stock: undefined, min: undefined, max: undefined, page: undefined }, 'replace')
+                            }}
+                        >
+                            Limpiar todo
+                        </Button>
+                    </div>
+                )}
 
                 {/* Products Grid */}
                 {loading ? (

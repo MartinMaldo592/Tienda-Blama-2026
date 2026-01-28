@@ -41,10 +41,13 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
     )
     const fallbackImages = images.length > 0 ? images : product.imagen_url ? [product.imagen_url] : []
 
+    const setCartOpen = useCartAnimationStore((state) => state.setCartOpen)
+
     const handleAddToCart = (e: React.MouseEvent) => {
         e.preventDefault() // Link wrapper might trigger navigation if we are not careful, but Button handles click.
 
         addItem(product)
+        setCartOpen(true)
 
         if (imageRef.current && fallbackImages.length > 0) {
             const rect = imageRef.current.getBoundingClientRect()
