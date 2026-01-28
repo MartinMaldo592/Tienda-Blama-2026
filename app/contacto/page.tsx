@@ -25,7 +25,7 @@ export default function ContactoPage() {
                         <CardContent className="space-y-4">
                             <div className="flex items-center gap-3 text-muted-foreground">
                                 <Phone className="h-5 w-5 text-primary" />
-                                <span>+51 900 000 000</span>
+                                <span>+51 958 279 604</span>
                             </div>
                             <div className="flex items-center gap-3 text-muted-foreground">
                                 <Mail className="h-5 w-5 text-primary" />
