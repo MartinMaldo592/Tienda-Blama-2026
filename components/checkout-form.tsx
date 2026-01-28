@@ -255,37 +255,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 shippingMethod,
             })
 
-            // F. ⭐ NOTIFICACIÓN AUTOMÁTICA AL ADMIN (Twilio)
-            try {
-                const notifyRes = await fetch('/api/notify-admin', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        orderId: orderIdFormatted,
-                        clientName: name,
-                        clientDni: normalizedDni,
-                        clientPhone: phone,
-                        address: `${value} ${reference ? `(Ref: ${reference})` : ''}`,
-                        items: items,
-                        total: finalTotal,
-                        panelLink: `${window.location.origin}/admin/pedidos/${newOrderId}`
-                    })
-                })
-                let notifyJson: any = null
-                try {
-                    notifyJson = await notifyRes.json()
-                } catch (err) {
-                    notifyJson = null
-                }
-                if (!notifyRes.ok) {
-                    console.error('Admin notification failed:', notifyRes.status, notifyJson)
-                } else {
-                    console.log('Admin notification response:', notifyJson)
-                }
-            } catch (notifyError) {
-                // No bloqueamos el flujo si falla la notificación
-                console.error('Error sending admin notification:', notifyError)
-            }
+
 
             // G. Preparar enlace de WhatsApp final (incluye id de pedido).
             const urlCliente = buildWhatsAppUrl(phoneNumberCliente, messageCliente)
