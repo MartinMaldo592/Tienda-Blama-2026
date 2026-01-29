@@ -239,7 +239,7 @@ export function ProductImageCarousel({
               src={src}
               alt={alt}
               fill
-              className="absolute inset-0 object-cover"
+              className="absolute inset-0 object-contain"
               priority={priority && i === 0}
               sizes={sizes || "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"}
               quality={quality}
