@@ -234,12 +234,18 @@ export function ProductImageCarousel({
         }}
       >
         {cleanImages.map((src, i) => (
-          <div key={src} className="relative h-full w-full flex-none">
+          <div key={src} className="relative h-full w-full flex-none overflow-hidden">
+            {/* Background Blur for aesthetics */}
+            <div
+              className="absolute inset-0 bg-cover bg-center opacity-30 blur-2xl scale-125 saturate-150"
+              style={{ backgroundImage: `url('${src}')` }}
+            />
+
             <Image
               src={src}
               alt={alt}
               fill
-              className="absolute inset-0 object-contain"
+              className="absolute inset-0 object-contain z-10"
               priority={priority && i === 0}
               sizes={sizes || "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"}
               quality={quality}
