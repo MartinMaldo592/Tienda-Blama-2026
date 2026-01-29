@@ -24,10 +24,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
     const resolvedParams = await params
     const id = parseProductId(resolvedParams.id)
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.blama.shop"
+
     if (!id) {
         return {
             title: "Producto",
             description: "Detalle de producto",
+            robots: { index: false }
         }
     }
 
@@ -36,21 +39,35 @@ export async function generateMetadata({
         return {
             title: "Producto",
             description: "Detalle de producto",
+            robots: { index: false }
         }
     }
 
-    const title = String((product as any).nombre || "Producto")
-    const description = buildDescription(product)
+    const price = Number((product as any).precio) || 0
+    const formattedPrice = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(price)
+
+    const title = `${String((product as any).nombre || "Producto")} - ${formattedPrice}`
+    const descText = buildDescription(product)
+    const description = `Precio: ${formattedPrice}. ${descText}`
+
     const imgs = Array.isArray((product as any).imagenes) ? ((product as any).imagenes as string[]).filter(Boolean) : []
     const primaryImage = imgs[0] || String((product as any).imagen_url || "")
+    const url = `${baseUrl}/productos/${id}`
 
     return {
         title,
         description,
+        alternates: {
+            canonical: url,
+        },
         openGraph: {
             title,
             description,
-            images: primaryImage ? [{ url: primaryImage }] : [],
+            url,
+            siteName: 'Blama.shop',
+            locale: 'es_PE',
+            type: 'website',
+            images: primaryImage ? [{ url: primaryImage, width: 800, height: 800, alt: title }] : [],
         },
         twitter: {
             card: "summary_large_image",

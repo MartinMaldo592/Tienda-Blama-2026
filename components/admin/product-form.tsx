@@ -32,7 +32,9 @@ interface ProductFormProps {
     onCancel: () => void
 }
 
-export function ProductForm({ productToEdit, categories = [], onSuccess, onCancel }: ProductFormProps) {
+const DEFAULT_CATEGORIES: any[] = []
+
+export function ProductForm({ productToEdit, categories = DEFAULT_CATEGORIES, onSuccess, onCancel }: ProductFormProps) {
     const [loading, setLoading] = useState(false)
     const [uploading, setUploading] = useState(false)
     // Categories are now passed as props
@@ -172,7 +174,7 @@ export function ProductForm({ productToEdit, categories = [], onSuccess, onCance
             setEspecificaciones([])
             setVariantes([])
         }
-    }, [productToEdit, categories])
+    }, [productToEdit])
 
 
 

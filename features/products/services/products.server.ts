@@ -16,13 +16,15 @@ export async function fetchProductForMeta(id: number) {
 
     const { data, error } = await supabase
         .from("productos")
-        .select("id, nombre, descripcion, imagen_url, imagenes")
+        .select("id, nombre, descripcion, imagen_url, imagenes, precio")
         .eq("id", id)
         .maybeSingle()
 
     if (error) return null
     return data
 }
+
+// ... (keep helper functions)
 
 export async function getHomePageData(opts: {
     selectedCategorySlug?: string

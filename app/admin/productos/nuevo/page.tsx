@@ -8,10 +8,21 @@ import { ProductForm } from "@/components/admin/product-form"
 import { ArrowLeft } from "lucide-react"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
+import { useEffect, useState } from "react"
+import { fetchAdminCategorias } from "@/features/admin"
 
 export default function NuevoProductoPage() {
     const router = useRouter()
     const guard = useRoleGuard({ allowedRoles: ['admin'] })
+    const [categories, setCategories] = useState<any[]>([])
+
+    useEffect(() => {
+        if (!guard.loading && !guard.accessDenied) {
+            fetchAdminCategorias()
+                .then(setCategories)
+                .catch(err => console.error("Error loading categories:", err))
+        }
+    }, [guard.loading, guard.accessDenied])
 
     if (guard.accessDenied) return <AccessDenied />
 
@@ -37,6 +48,7 @@ export default function NuevoProductoPage() {
             <Card className="bg-white rounded-xl shadow-sm border">
                 <CardContent className="p-6">
                     <ProductForm
+                        categories={categories}
                         onSuccess={() => router.push('/admin/productos')}
                         onCancel={() => router.push('/admin/productos')}
                     />
