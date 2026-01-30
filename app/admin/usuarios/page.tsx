@@ -8,7 +8,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
-import { createWorkerViaApi, fetchAdminProfiles } from "@/features/admin"
+import { createWorkerViaApi, fetchAdminProfiles, updateUserRoleViaApi } from "@/features/admin"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { ShieldCheck, UserCheck } from "lucide-react"
 
 export default function UsuariosPage() {
   const router = useRouter()
@@ -84,6 +92,25 @@ export default function UsuariosPage() {
     return <AccessDenied message="Solo administradores pueden gestionar usuarios." />
   }
 
+  async function handleRoleUpdate(userId: string, newRole: string) {
+    // Optimistic update
+    setProfiles(prev => prev.map(p => p.id === userId ? { ...p, role: newRole } : p))
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return
+
+    try {
+      await updateUserRoleViaApi({
+        accessToken: session.access_token,
+        userId,
+        role: newRole
+      })
+    } catch (e: any) {
+      alert("Error al actualizar rol: " + e.message)
+      fetchProfiles() // Revert
+    }
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -138,7 +165,31 @@ export default function UsuariosPage() {
                 <tr key={p.id} className="border-t border-border">
                   <td className="p-3">{p.email || ""}</td>
                   <td className="p-3">{p.nombre || ""}</td>
-                  <td className="p-3">{p.role || ""}</td>
+                  <td className="p-3">
+                    <Select
+                      defaultValue={p.role || "user"}
+                      onValueChange={(val) => handleRoleUpdate(p.id, val)}
+                    >
+                      <SelectTrigger className="w-[140px] h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">
+                          <div className="flex items-center gap-2">
+                            <ShieldCheck className="h-3 w-3" /> Admin
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="worker">
+                          <div className="flex items-center gap-2">
+                            <UserCheck className="h-3 w-3" /> Worker
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="user">
+                          User (Cliente)
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </td>
                   <td className="p-3">{p.created_at ? new Date(p.created_at).toLocaleString() : ""}</td>
                 </tr>
               ))}

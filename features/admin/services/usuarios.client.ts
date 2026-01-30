@@ -29,3 +29,24 @@ export async function createWorkerViaApi(args: { accessToken: string; email: str
 
   return json as any
 }
+
+export async function updateUserRoleViaApi(args: { accessToken: string; userId: string; role: string }) {
+  const res = await fetch("/api/admin/users/update-role", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${args.accessToken}`,
+    },
+    body: JSON.stringify({
+      userId: args.userId,
+      role: args.role,
+    }),
+  })
+
+  const json = await res.json()
+  if (!res.ok) {
+    throw new Error(String(json?.error || "Error al actualizar rol"))
+  }
+
+  return json
+}
