@@ -36,7 +36,7 @@ export default function AdminLayout({
 
     return (
         <div className="flex h-screen bg-background">
-            <AdminSidebar role={guard.role || 'admin'} />
+            <AdminSidebar role={guard.role || 'worker'} />
             <main className="flex-1 overflow-y-auto p-8 ml-64">
                 <div className="max-w-7xl mx-auto">
                     {children}
