@@ -26,7 +26,7 @@ export async function saveQuestionAnswer(args: { questionId: number; answer: str
 
   let answeredBy: string | null = null
   if (userId) {
-    const { data: profile } = await supabase.from("profiles").select("email, nombre").eq("id", userId).maybeSingle()
+    const { data: profile } = await supabase.from("usuarios").select("email, nombre").eq("id", userId).maybeSingle()
     answeredBy = String((profile as any)?.nombre || (profile as any)?.email || "Admin")
   }
 
