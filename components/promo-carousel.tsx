@@ -144,7 +144,16 @@ export function PromoCarousel() {
     window.setTimeout(() => setPaused(false), 350)
   }
 
-  if (loadingSlides) return null
+  if (loadingSlides) {
+    return (
+      <div className="relative w-full h-[180px] sm:h-[220px] md:h-[260px] overflow-hidden rounded-2xl shadow-xl bg-gray-200 animate-pulse">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <ChevronRight className="h-8 w-8 text-gray-300 animate-bounce" />
+        </div>
+      </div>
+    )
+  }
+
   if (slides.length === 0) return null
 
   return (
@@ -171,9 +180,8 @@ export function PromoCarousel() {
               <div
                 className="relative w-full h-[180px] sm:h-[220px] md:h-[260px]"
                 style={{
-                  backgroundImage: `linear-gradient(135deg, ${s.gradientFrom || "#111827"} 0%, ${
-                    s.gradientTo || "#2563eb"
-                  } 100%)`,
+                  backgroundImage: `linear-gradient(135deg, ${s.gradientFrom || "#111827"} 0%, ${s.gradientTo || "#2563eb"
+                    } 100%)`,
                 }}
               >
                 <div className="absolute inset-0 bg-black/25" />
