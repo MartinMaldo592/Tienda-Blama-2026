@@ -26,7 +26,10 @@ export default function AdminDashboard() {
 
     const guard = useRoleGuard({ allowedRoles: ["admin", "worker"] })
 
-    const [userRole, setUserRole] = useState<string>('worker')
+    // We trust that if guard.accessDenied is false and guard.loading is false,
+    // then guard.role is either 'admin' or 'worker'
+    // But we default to 'worker' for UI rendering if strictly null just in case
+    const userRole = guard.role || 'worker'
 
     const fetchStats = useCallback(async (role: string, currentUserId: string) => {
         setLoading(true)
@@ -40,7 +43,6 @@ export default function AdminDashboard() {
         if (guard.loading || guard.accessDenied) return
 
         const role = guard.role || 'worker'
-        setUserRole(role)
 
             ; (async () => {
                 const { data: { session } } = await supabase.auth.getSession()
