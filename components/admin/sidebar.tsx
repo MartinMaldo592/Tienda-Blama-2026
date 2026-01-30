@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabaseClient"
-import { LayoutDashboard, ShoppingBag, Package, Users, AlertCircle, LogOut, Percent, Image as ImageIcon, Star, MessageSquare, Megaphone } from "lucide-react"
+import { LayoutDashboard, ShoppingBag, Package, Users, AlertCircle, LogOut, Percent, Image as ImageIcon, Star, MessageSquare, Megaphone, Share2 } from "lucide-react"
 
 interface AdminSidebarProps {
     role: string
@@ -29,6 +29,7 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
         { href: "/admin/resenas", icon: Star, label: "Reseñas", roles: ["admin"] },
         { href: "/admin/preguntas", icon: MessageSquare, label: "Preguntas", roles: ["admin"] },
         { href: "/admin/usuarios", icon: Users, label: "Usuarios", roles: ["admin"] },
+        { href: "/admin/redes-sociales", icon: Share2, label: "Redes Sociales", roles: ["admin"] },
         { href: "/admin/incidencias", icon: AlertCircle, label: "Incidencias", roles: ["admin", "worker"] },
     ]
 
@@ -62,8 +63,8 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
             {/* Role Badge */}
             <div className="px-3 pb-3 shrink-0">
                 <div className={`px-3 py-2 rounded-lg text-xs font-medium text-center ${role === 'admin'
-                        ? 'bg-accent/10 text-accent-foreground border border-border'
-                        : 'bg-accent/10 text-accent-foreground border border-border'
+                    ? 'bg-accent/10 text-accent-foreground border border-border'
+                    : 'bg-accent/10 text-accent-foreground border border-border'
                     }`}>
                     {role === 'admin' ? '👑 Administrador' : '👤 Trabajador'}
                 </div>
