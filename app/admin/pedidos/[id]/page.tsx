@@ -166,7 +166,7 @@ export default function PedidoDetallePage() {
                     </Button>
 
                     <div className="flex gap-2 items-center bg-white p-2 rounded-lg border shadow-sm">
-                        <span className="text-sm font-medium">Estado:</span>
+                        <span className="text-sm font-medium">Estado del pedido:</span>
                         <Select value={status} onValueChange={setStatus}>
                             <SelectTrigger className="w-[180px]">
                                 <SelectValue />
