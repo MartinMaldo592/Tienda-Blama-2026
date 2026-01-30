@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
@@ -22,32 +22,59 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { formatCurrency } from "@/lib/utils"
-import { Eye, Search, UserPlus, RefreshCw, User } from "lucide-react"
+import { Eye, Search, UserPlus, RefreshCw, User, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidosForRole } from "@/features/admin"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 
 export default function PedidosPage() {
-    const [pedidos, setPedidos] = useState<any[]>([])
-    const [workers, setWorkers] = useState<any[]>([])
-    const [loading, setLoading] = useState(true)
-    const [userRole, setUserRole] = useState<string>('worker')
+    const queryClient = useQueryClient()
     const [userId, setUserId] = useState<string>('')
     const [filterWorker, setFilterWorker] = useState<string>('all')
 
     const guard = useRoleGuard({ allowedRoles: ["admin", "worker"] })
+    const userRole = String(guard.role || 'worker')
 
-    const fetchPedidos = useCallback(async (role: string, currentUserId: string) => {
-        setLoading(true)
-
-        try {
-            const rows = await fetchPedidosForRole({ role, currentUserId })
-            setPedidos(rows)
-        } catch (err) {
-            console.error("Error in fetchPedidos:", err)
-        }
-
-        setLoading(false)
+    // Fetch Session User ID once
+    useEffect(() => {
+        supabase.auth.getSession().then(({ data }) => {
+            if (data.session?.user?.id) setUserId(data.session.user.id)
+        })
     }, [])
+
+    // 1. Queries
+    const { data: pedidos = [], isLoading: loadingPedidos, isFetching } = useQuery({
+        queryKey: ["adminPedidos", userRole, userId], // Re-fetch if role or userId changes
+        queryFn: () => fetchPedidosForRole({ role: userRole, currentUserId: userId }),
+        enabled: !!userId && !guard.loading && !guard.accessDenied,
+    })
+
+    const { data: workers = [] } = useQuery({
+        queryKey: ["adminWorkers"],
+        queryFn: fetchAdminWorkers,
+        enabled: userRole === 'admin' && !guard.loading,
+    })
+
+    // 2. Mutations
+    const assignMutation = useMutation({
+        mutationFn: async ({ pedidoId, workerId }: { pedidoId: number, workerId: string }) => {
+            const assignValue = workerId === 'unassigned' ? null : workerId
+            return assignPedidoToWorker({ pedidoId, workerId: assignValue })
+        },
+        onSuccess: () => {
+            // Invalidate to refresh list
+            queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
+        },
+        onError: (error: any) => {
+            const msg = String(error?.message || '').toLowerCase()
+            if (msg.includes('permission denied') || msg.includes('row level security')) {
+                alert('No tienes permisos para realizar esta acción.')
+            } else {
+                alert('Error al asignar: ' + error.message)
+            }
+        }
+    })
+
 
     function csvEscape(value: unknown) {
         const str = String(value ?? '')
@@ -78,7 +105,7 @@ export default function PedidosPage() {
     }
 
     function handleExportCsv() {
-        const rows = filteredPedidos.map((p) => ({
+        const rows = filteredPedidos.map((p: any) => ({
             id: p.id,
             fecha: p.created_at,
             cliente: p.clientes?.nombre || '',
@@ -97,65 +124,16 @@ export default function PedidosPage() {
         downloadCsv(rows, `pedidos-${today}.csv`)
     }
 
-    useEffect(() => {
-        if (guard.loading || guard.accessDenied) return
-
-        const role = String(guard.role || 'worker')
-        setUserRole(role)
-
-        ;(async () => {
-            const { data: { session } } = await supabase.auth.getSession()
-            const uid = session?.user?.id || ''
-            setUserId(uid)
-
-            if (role === 'admin') {
-                try {
-                    const workersData = await fetchAdminWorkers()
-                    setWorkers(workersData)
-                } catch (err) {
-                    setWorkers([])
-                }
-            } else {
-                setWorkers([])
-            }
-
-            await fetchPedidos(role, uid)
-        })()
-    }, [guard.loading, guard.accessDenied, guard.role, fetchPedidos])
-
-    async function handleAssignWorker(pedidoId: number, workerId: string) {
-        const assignValue = workerId === 'unassigned' ? null : workerId
-
-        try {
-            await assignPedidoToWorker({ pedidoId, workerId: assignValue })
-            fetchPedidos(userRole, userId)
-        } catch (error: any) {
-            const code = String((error as any)?.code || '')
-            const msg = String((error as any)?.message || '')
-            const lower = msg.toLowerCase()
-            if (
-                code === '42501' ||
-                lower.includes('permission denied') ||
-                lower.includes('row level security') ||
-                lower.includes('violates row-level security')
-            ) {
-                alert('No tienes permisos para realizar esta acción.')
-            } else {
-                alert('Error al asignar: ' + msg)
-            }
-        }
-    }
-
     // Filter pedidos for admin view
     const filteredPedidos = userRole === 'admin' && filterWorker !== 'all'
-        ? pedidos.filter(p => {
+        ? pedidos.filter((p: any) => {
             if (filterWorker === 'unassigned') return !p.asignado_a
             return p.asignado_a === filterWorker
         })
         : pedidos
 
     if (guard.loading) {
-        return <div className="p-10">Cargando...</div>
+        return <div className="p-10 flex gap-2"><Loader2 className="animate-spin" /> Verificando...</div>
     }
 
     if (guard.accessDenied) {
@@ -177,12 +155,18 @@ export default function PedidosPage() {
                 </div>
                 <div className="flex gap-2">
                     {userRole === 'admin' && (
-                        <Button variant="outline" className="gap-2" onClick={handleExportCsv}>
+                        <Button variant="outline" className="gap-2" onClick={handleExportCsv} disabled={pedidos.length === 0}>
                             Exportar CSV
                         </Button>
                     )}
-                    <Button variant="outline" className="gap-2" onClick={() => fetchPedidos(userRole, userId)}>
-                        <RefreshCw className="h-4 w-4" /> Actualizar
+                    <Button
+                        variant="outline"
+                        className="gap-2"
+                        onClick={() => queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })}
+                        disabled={isFetching}
+                    >
+                        {isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                        Actualizar
                     </Button>
                 </div>
             </div>
@@ -201,7 +185,7 @@ export default function PedidosPage() {
                         <SelectContent>
                             <SelectItem value="all">Todos los pedidos</SelectItem>
                             <SelectItem value="unassigned">Sin asignar</SelectItem>
-                            {workers.map(w => (
+                            {workers.map((w: any) => (
                                 <SelectItem key={w.id} value={w.id}>
                                     {w.nombre || w.email}
                                 </SelectItem>
@@ -212,7 +196,7 @@ export default function PedidosPage() {
             )}
 
             {/* Empty State for Workers */}
-            {userRole === 'worker' && pedidos.length === 0 && !loading && (
+            {userRole === 'worker' && pedidos.length === 0 && !loadingPedidos && (
                 <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
                     <div className="h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <User className="h-8 w-8 text-gray-400" />
@@ -240,10 +224,13 @@ export default function PedidosPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {loading ? (
+                            {loadingPedidos ? (
                                 <TableRow>
                                     <TableCell colSpan={userRole === 'admin' ? 7 : 6} className="text-center py-10">
-                                        Cargando pedidos...
+                                        <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                                            <Loader2 className="h-8 w-8 animate-spin" />
+                                            Cargando pedidos...
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ) : filteredPedidos.length === 0 ? (
@@ -253,7 +240,7 @@ export default function PedidosPage() {
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                filteredPedidos.map((pedido) => (
+                                filteredPedidos.map((pedido: any) => (
                                     <TableRow key={pedido.id}>
                                         <TableCell className="font-mono font-medium">#{pedido.id.toString().padStart(6, '0')}</TableCell>
                                         <TableCell>
@@ -270,7 +257,8 @@ export default function PedidosPage() {
                                             <TableCell>
                                                 <Select
                                                     value={pedido.asignado_a || 'unassigned'}
-                                                    onValueChange={(val) => handleAssignWorker(pedido.id, val)}
+                                                    onValueChange={(val) => assignMutation.mutate({ pedidoId: pedido.id, workerId: val })}
+                                                    disabled={assignMutation.isPending}
                                                 >
                                                     <SelectTrigger className="w-[160px] h-8 text-xs">
                                                         <SelectValue>
@@ -285,7 +273,7 @@ export default function PedidosPage() {
                                                         <SelectItem value="unassigned">
                                                             <span className="text-gray-500">Sin asignar</span>
                                                         </SelectItem>
-                                                        {workers.map((w) => (
+                                                        {workers.map((w: any) => (
                                                             <SelectItem key={w.id} value={w.id}>
                                                                 {w.nombre || w.email}
                                                             </SelectItem>
