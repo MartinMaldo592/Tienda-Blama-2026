@@ -38,8 +38,8 @@ export async function requireAdmin(req: Request) {
     return { ok: false as const, res: NextResponse.json({ error: "Invalid session" }, { status: 401 }) }
   }
 
-  const { data: profile, error: profileErr } = await supabaseAuth
-    .from("profiles")
+  const { data: userRecord, error: profileErr } = await supabaseAuth
+    .from("usuarios")
     .select("role")
     .eq("id", userData.user.id)
     .maybeSingle()
@@ -48,7 +48,7 @@ export async function requireAdmin(req: Request) {
     return { ok: false as const, res: NextResponse.json({ error: profileErr.message }, { status: 500 }) }
   }
 
-  if (String((profile as any)?.role || "").toLowerCase() !== "admin") {
+  if (String((userRecord as any)?.role || "").toLowerCase() !== "admin") {
     return { ok: false as const, res: NextResponse.json({ error: "Forbidden" }, { status: 403 }) }
   }
 

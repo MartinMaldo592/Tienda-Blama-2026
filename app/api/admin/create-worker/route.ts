@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     }
 
     const tryUpsertWithNombre = async () => {
-      return supabaseAdmin.from("profiles").upsert({
+      return supabaseAdmin.from("usuarios").upsert({
         ...profilePayloadBase,
         ...(nombre ? { nombre } : {}),
       })
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
 
     if (upsertErr) {
       if (upsertErr.message?.toLowerCase().includes("nombre")) {
-        const { error: fallbackErr } = await supabaseAdmin.from("profiles").upsert(profilePayloadBase)
+        const { error: fallbackErr } = await supabaseAdmin.from("usuarios").upsert(profilePayloadBase)
         if (fallbackErr) {
           return NextResponse.json({ error: fallbackErr.message }, { status: 500 })
         }

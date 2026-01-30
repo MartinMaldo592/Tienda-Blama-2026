@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabaseClient"
 import type { ProfileRow } from "@/features/admin/types"
 
 export async function fetchAdminProfiles() {
-  const { data, error } = await supabase.from("profiles").select("id, email, nombre, role, created_at").order("created_at", { ascending: false })
+  const { data, error } = await supabase.from("usuarios").select("id, email, nombre, role, created_at").order("created_at", { ascending: false })
   if (error) throw error
   return ((data as any[]) || []) as ProfileRow[]
 }
