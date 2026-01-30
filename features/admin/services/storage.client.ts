@@ -1,29 +1,20 @@
-
 export async function uploadToR2(file: File): Promise<string | null> {
     try {
-        // 1. Get Presigned URL
-        const res = await fetch("/api/upload", {
+        const formData = new FormData()
+        formData.append("file", file)
+
+        // Use a new dedicated proxy route
+        const res = await fetch("/api/upload-proxy", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ filename: file.name, contentType: file.type }),
+            body: formData,
         })
 
         if (!res.ok) {
             const errText = await res.text()
-            throw new Error(`Failed to get upload URL: ${res.status} ${errText}`)
+            throw new Error(`Upload failed: ${res.status} ${errText}`)
         }
 
-        const { uploadUrl, publicUrl } = await res.json()
-
-        // 2. Upload File to R2
-        const uploadRes = await fetch(uploadUrl, {
-            method: "PUT",
-            headers: { "Content-Type": file.type },
-            body: file,
-        })
-
-        if (!uploadRes.ok) throw new Error("Failed to upload to R2")
-
+        const { publicUrl } = await res.json()
         return publicUrl
     } catch (error) {
         console.error("R2 Upload Error:", error)
