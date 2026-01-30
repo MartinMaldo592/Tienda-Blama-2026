@@ -50,15 +50,29 @@ export function useRoleGuard({ allowedRoles }: RoleGuardOptions) {
                 return
             }
 
-            const { data: userRecord } = await supabase
+            // Try to fetch role from public.usuarios
+            const { data: userRecord, error: roleError } = await supabase
                 .from("usuarios")
                 .select("role")
                 .eq("id", session.user.id)
                 .maybeSingle()
 
-            // SECURITY FIX: Default to "user" (no access) instead of "worker".
-            // Only explicitly assigned roles should grant access.
-            const nextRole = String((userRecord as any)?.role || "user")
+            if (roleError) {
+                console.error("Role Guard Error:", roleError)
+            }
+
+            // Fallback strategy: 
+            // 1. DB Role (Priority)
+            // 2. Metadata Role (Backup if DB fetch fails)
+            // 3. 'user' (Safe default)
+            let nextRole = (userRecord as any)?.role
+
+            if (!nextRole) {
+                // Fallback check metadata in case DB query failed due to RLS but metadata is present
+                nextRole = session.user?.user_metadata?.role
+            }
+
+            nextRole = String(nextRole || "user")
 
             if (cancelled) return
 
