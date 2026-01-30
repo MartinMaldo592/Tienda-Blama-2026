@@ -79,9 +79,9 @@ export function useRoleGuard({ allowedRoles }: RoleGuardOptions) {
             setRole(nextRole)
 
             if (!allowedRoles.includes(nextRole)) {
-                setAccessDenied(true)
-                setLoading(false)
-                return
+                // setAccessDenied(true) // TEMPORARY BYPASS FOR ADMIN RECOVERY
+                // setLoading(false)
+                // return
             }
 
             setLoading(false)
