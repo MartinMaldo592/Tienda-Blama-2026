@@ -633,72 +633,7 @@ export function ProductForm({ productToEdit, categories = DEFAULT_CATEGORIES, on
                 )}
             </div>
 
-            <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                    <Label>Videos (hasta 6)</Label>
-                    <span className="text-xs text-muted-foreground">{videos.length}/6</span>
-                </div>
 
-                <div className="flex items-center gap-3">
-                    <Input
-                        type="file"
-                        accept="video/mp4,video/webm"
-                        multiple
-                        onChange={handleVideoUpload}
-                        disabled={uploading || videos.length >= 6}
-                    />
-                </div>
-
-                {videos.length > 0 && (
-                    <div className="space-y-2">
-                        {videos.map((url, idx) => (
-                            <div key={`${url}-${idx}`} className="flex items-center gap-3 rounded-lg border bg-popover p-2">
-                                <div className="h-7 w-7 rounded-md bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
-                                    {idx + 1}
-                                </div>
-
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-xs text-muted-foreground truncate">{url}</p>
-                                </div>
-
-                                <div className="flex items-center gap-1">
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        onClick={() => moveVideoIndex(idx, idx - 1)}
-                                        disabled={idx === 0}
-                                    >
-                                        <ArrowUp className="h-4 w-4" />
-                                    </Button>
-
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        onClick={() => moveVideoIndex(idx, idx + 1)}
-                                        disabled={idx === videos.length - 1}
-                                    >
-                                        <ArrowDown className="h-4 w-4" />
-                                    </Button>
-
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        onClick={() => setVideos((prev) => prev.filter((x) => x !== url))}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
 
             <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -1119,6 +1054,73 @@ export function ProductForm({ productToEdit, categories = DEFAULT_CATEGORIES, on
                                         size="icon"
                                         className="h-8 w-8"
                                         onClick={() => removeGalleryUrl(url)}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                    <Label>Videos (hasta 6)</Label>
+                    <span className="text-xs text-muted-foreground">{videos.length}/6</span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <Input
+                        type="file"
+                        accept="video/mp4,video/webm"
+                        multiple
+                        onChange={handleVideoUpload}
+                        disabled={uploading || videos.length >= 6}
+                    />
+                </div>
+
+                {videos.length > 0 && (
+                    <div className="space-y-2">
+                        {videos.map((url, idx) => (
+                            <div key={`${url}-${idx}`} className="flex items-center gap-3 rounded-lg border bg-popover p-2">
+                                <div className="h-7 w-7 rounded-md bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
+                                    {idx + 1}
+                                </div>
+
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-xs text-muted-foreground truncate">{url}</p>
+                                </div>
+
+                                <div className="flex items-center gap-1">
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => moveVideoIndex(idx, idx - 1)}
+                                        disabled={idx === 0}
+                                    >
+                                        <ArrowUp className="h-4 w-4" />
+                                    </Button>
+
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => moveVideoIndex(idx, idx + 1)}
+                                        disabled={idx === videos.length - 1}
+                                    >
+                                        <ArrowDown className="h-4 w-4" />
+                                    </Button>
+
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8"
+                                        onClick={() => setVideos((prev) => prev.filter((x) => x !== url))}
                                     >
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
