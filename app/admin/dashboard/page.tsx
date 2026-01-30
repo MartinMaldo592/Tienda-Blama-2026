@@ -119,7 +119,7 @@ export default function AdminDashboard() {
                         <StatsCard
                             title="En Proceso"
                             value={stats.pedidosEnProceso.toString()}
-                            change="Confirmado / Preparando / Enviado"
+                            change="Confirmado / Enviado"
                             icon={<ClipboardList className="h-6 w-6 text-blue-600" />}
                             wrapperClass="bg-blue-50 border-blue-100"
                             loading={loading}

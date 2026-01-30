@@ -86,20 +86,20 @@ export default function PedidoDetallePage() {
         const role = String(guard.role || 'worker')
         setUserRole(role)
 
-        ;(async () => {
-            if (role === 'admin') {
-                try {
-                    const workersData = await fetchAdminWorkers()
-                    setWorkers(workersData)
-                } catch (err) {
+            ; (async () => {
+                if (role === 'admin') {
+                    try {
+                        const workersData = await fetchAdminWorkers()
+                        setWorkers(workersData)
+                    } catch (err) {
+                        setWorkers([])
+                    }
+                } else {
                     setWorkers([])
                 }
-            } else {
-                setWorkers([])
-            }
 
-            await fetchPedido()
-        })()
+                await fetchPedido()
+            })()
     }, [id, guard.loading, guard.accessDenied, guard.role, fetchPedido])
 
     async function handleAssignWorker(workerId: string) {
@@ -166,24 +166,23 @@ export default function PedidoDetallePage() {
                     </Button>
 
                     <div className="flex gap-2 items-center bg-white p-2 rounded-lg border shadow-sm">
-                    <span className="text-sm font-medium">Estado:</span>
-                    <Select value={status} onValueChange={setStatus}>
-                        <SelectTrigger className="w-[180px]">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Pendiente">Pendiente</SelectItem>
-                            <SelectItem value="Confirmado">Confirmado</SelectItem>
-                            <SelectItem value="Preparando">Preparando</SelectItem>
-                            <SelectItem value="Enviado">Enviado</SelectItem>
-                            <SelectItem value="Entregado">Entregado</SelectItem>
-                            <SelectItem value="Fallido">Fallido / Cancelado</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <Button size="sm" onClick={handleUpdateStatus} disabled={updating || status === pedido.status}>
-                        <Save className="h-4 w-4 mr-2" />
-                        Guardar
-                    </Button>
+                        <span className="text-sm font-medium">Estado:</span>
+                        <Select value={status} onValueChange={setStatus}>
+                            <SelectTrigger className="w-[180px]">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Pendiente">Pendiente</SelectItem>
+                                <SelectItem value="Confirmado">Confirmado</SelectItem>
+                                <SelectItem value="Enviado">Enviado</SelectItem>
+                                <SelectItem value="Entregado">Entregado</SelectItem>
+                                <SelectItem value="Fallido">Fallido / Cancelado</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Button size="sm" onClick={handleUpdateStatus} disabled={updating || status === pedido.status}>
+                            <Save className="h-4 w-4 mr-2" />
+                            Guardar
+                        </Button>
                     </div>
                 </div>
             </div>

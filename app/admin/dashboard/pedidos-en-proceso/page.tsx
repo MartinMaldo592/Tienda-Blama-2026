@@ -27,7 +27,7 @@ import { formatCurrency } from "@/lib/utils"
 import { ArrowLeft, RefreshCw } from "lucide-react"
 import { fetchAdminPedidosEnProceso } from "@/features/admin"
 
-const PROCESS_STATUSES = ["Confirmado", "Preparando", "Enviado"] as const
+const PROCESS_STATUSES = ["Confirmado", "Enviado"] as const
 
 type ProcessStatus = (typeof PROCESS_STATUSES)[number]
 
@@ -81,7 +81,6 @@ export default function DashboardPedidosEnProcesoPage() {
             total,
             ticket,
             confirmado: byStatus.get("Confirmado") || 0,
-            preparando: byStatus.get("Preparando") || 0,
             enviado: byStatus.get("Enviado") || 0,
         }
     }, [pedidos])
@@ -103,7 +102,7 @@ export default function DashboardPedidosEnProcesoPage() {
                 </Button>
                 <div className="flex-1">
                     <h1 className="text-3xl font-bold text-gray-900">Pedidos en Proceso</h1>
-                    <p className="text-gray-500">Confirmado / Preparando / Enviado</p>
+                    <p className="text-gray-500">Confirmado / Enviado</p>
                 </div>
                 <Button
                     variant="outline"
@@ -129,7 +128,6 @@ export default function DashboardPedidosEnProcesoPage() {
                             <SelectContent>
                                 <SelectItem value="all">Todos</SelectItem>
                                 <SelectItem value="Confirmado">Confirmado</SelectItem>
-                                <SelectItem value="Preparando">Preparando</SelectItem>
                                 <SelectItem value="Enviado">Enviado</SelectItem>
                             </SelectContent>
                         </Select>
@@ -171,7 +169,6 @@ export default function DashboardPedidosEnProcesoPage() {
                     <CardContent className="p-5">
                         <p className="text-sm text-muted-foreground">Por estado</p>
                         <p className="text-sm font-semibold text-gray-900">Confirmado: {resumen.confirmado}</p>
-                        <p className="text-sm font-semibold text-gray-900">Preparando: {resumen.preparando}</p>
                         <p className="text-sm font-semibold text-gray-900">Enviado: {resumen.enviado}</p>
                     </CardContent>
                 </Card>

@@ -24,7 +24,7 @@ export async function fetchAdminDashboardStats(args: { role: AdminRole | string;
     .reduce((sum: number, p: any) => sum + (Number(p.total) || 0), 0)
 
   const pedidosPendientes = (pedidos || []).filter((p: any) => p.status === "Pendiente").length
-  const pedidosEnProceso = (pedidos || []).filter((p: any) => ["Confirmado", "Preparando", "Enviado"].includes(p.status)).length
+  const pedidosEnProceso = (pedidos || []).filter((p: any) => ["Confirmado", "Enviado"].includes(p.status)).length
   const pedidosEntregados = deliveredSales.length
 
   const pedidosAsignados = (pedidos || []).filter(
@@ -96,7 +96,7 @@ export async function fetchAdminPedidosPendientes() {
   return (data as any[]) || []
 }
 
-const PROCESS_STATUSES = ["Confirmado", "Preparando", "Enviado"] as const
+const PROCESS_STATUSES = ["Confirmado", "Enviado"] as const
 type ProcessStatus = (typeof PROCESS_STATUSES)[number]
 type StatusFilter = ProcessStatus | "all"
 
