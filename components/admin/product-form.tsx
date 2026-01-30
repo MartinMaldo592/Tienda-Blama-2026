@@ -10,6 +10,7 @@ import {
     saveAdminProductoViaApi,
     uploadProductImages,
     uploadProductVideos,
+    deleteFromR2,
 } from "@/features/admin"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -229,12 +230,27 @@ export function ProductForm({ productToEdit, categories = DEFAULT_CATEGORIES, on
         }
     }
 
-    function removeGalleryUrl(url: string) {
-        const next = galleryImages.filter((x) => x !== url)
-        setGalleryImages(next)
+    async function removeGalleryUrl(url: string) {
+        if (!confirm("¿Estás seguro de que deseas eliminar esta imagen permanentemente? Esta acción no se puede deshacer.")) {
+            return
+        }
 
-        if (imageUrl === url) {
-            setImageUrl(next[0] || "")
+        // Optimistically try to delete from R2 (ignore error if it's not R2 or fails, we still remove from list)
+        // If you strictly want to block removal on error, check result
+        setLoading(true)
+        try {
+            await deleteFromR2(url)
+
+            const next = galleryImages.filter((x) => x !== url)
+            setGalleryImages(next)
+
+            if (imageUrl === url) {
+                setImageUrl(next[0] || "")
+            }
+        } catch (e) {
+            alert("Error al intentar eliminar la imagen.")
+        } finally {
+            setLoading(false)
         }
     }
 
