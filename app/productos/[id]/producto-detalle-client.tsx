@@ -79,6 +79,9 @@ export default function ProductoDetalleClient() {
 
     const { addItem, items, updateQuantity } = useCartStore()
 
+
+
+
     useEffect(() => {
         if (!addedToastOpen) return
         const id = window.setTimeout(() => {
@@ -297,7 +300,7 @@ export default function ProductoDetalleClient() {
     }
 
     return (
-        <div className="space-y-6 max-w-5xl mx-auto pb-24 md:pb-0">
+        <div className="space-y-6 max-w-5xl mx-auto pb-12 md:pb-0">
             <QuickCheckoutModal
                 isOpen={quickBuyOpen}
                 onClose={() => setQuickBuyOpen(false)}
@@ -522,14 +525,38 @@ export default function ProductoDetalleClient() {
                                 </div>
                             </div>
 
-                            {inStock ? (
-                                quantity === 0 ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                        <Button
-                                            className="w-full gap-2 h-11 border-2 border-transparent bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg transform hover:scale-[1.02] transition-all duration-200 font-extrabold text-base tracking-wide"
-                                            onClick={() => {
+                            <div className="space-y-3">
+                                {inStock ? (
+                                    quantity === 0 ? (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            <Button
+                                                className="w-full gap-2 h-11 border-2 border-transparent bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg transform hover:scale-[1.02] transition-all duration-200 font-extrabold text-base tracking-wide animate-pulse-hybrid animate-wiggle"
+                                                onClick={() => {
+                                                    sendGTMEvent({
+                                                        event: 'begin_checkout',
+                                                        ecommerce: {
+                                                            currency: 'PEN',
+                                                            value: Number(producto.precio) || 0,
+                                                            items: [{
+                                                                item_id: String(producto.id),
+                                                                item_name: producto.nombre,
+                                                                price: Number(producto.precio) || 0,
+                                                                quantity: 1
+                                                            }]
+                                                        }
+                                                    })
+                                                    setQuickBuyOpen(true)
+                                                }}
+                                            >
+                                                <span className="drop-shadow-sm">COMPRAR AHORA</span>
+                                                <ChevronRight className="h-5 w-5 animate-pulse" />
+                                            </Button>
+                                            <Button className="w-full gap-2 h-11" onClick={() => {
+                                                addItem(producto, selectedVariante)
+
+                                                // GTM: Add to Cart
                                                 sendGTMEvent({
-                                                    event: 'begin_checkout',
+                                                    event: 'add_to_cart',
                                                     ecommerce: {
                                                         currency: 'PEN',
                                                         value: Number(producto.precio) || 0,
@@ -541,18 +568,53 @@ export default function ProductoDetalleClient() {
                                                         }]
                                                     }
                                                 })
-                                                setQuickBuyOpen(true)
-                                            }}
-                                        >
-                                            <span className="drop-shadow-sm">COMPRAR AHORA</span>
-                                            <ChevronRight className="h-5 w-5 animate-pulse" />
-                                        </Button>
-                                        <Button className="w-full gap-2 h-11" onClick={() => {
-                                            addItem(producto, selectedVariante)
 
-                                            // GTM: Add to Cart
+                                                if (imageContainerRef.current && images.length > 0) {
+                                                    const rect = imageContainerRef.current.getBoundingClientRect()
+                                                    startAnimation(images[0], rect)
+                                                }
+                                                setAddedToastKey(Date.now())
+                                                setAddedToastOpen(true)
+                                            }}>
+                                                <ShoppingCart className="h-4 w-4" /> Agregar al carrito
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <div className="w-full flex items-center justify-between bg-popover rounded-lg p-2">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-10 w-10"
+                                                onClick={() => updateQuantity(Number(producto.id), quantity - 1, selectedVarianteId ?? null)}
+                                            >
+                                                <Minus className="h-4 w-4" />
+                                            </Button>
+                                            <div className="text-center">
+                                                <div className="text-xs text-muted-foreground">Cantidad</div>
+                                                <div className="text-lg font-bold">{quantity}</div>
+                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-10 w-10"
+                                                onClick={() => updateQuantity(Number(producto.id), quantity + 1, selectedVarianteId ?? null)}
+                                            >
+                                                <Plus className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    )
+                                ) : (
+                                    <Button disabled className="w-full h-11">
+                                        Sin stock
+                                    </Button>
+                                )}
+
+                                {inStock && quantity > 0 && (
+                                    <Button
+                                        className="w-full h-11 border-2 border-transparent bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg transform hover:scale-[1.02] transition-all duration-200 font-extrabold text-base tracking-wide animate-pulse-hybrid animate-wiggle"
+                                        onClick={() => {
                                             sendGTMEvent({
-                                                event: 'add_to_cart',
+                                                event: 'begin_checkout',
                                                 ecommerce: {
                                                     currency: 'PEN',
                                                     value: Number(producto.precio) || 0,
@@ -564,71 +626,14 @@ export default function ProductoDetalleClient() {
                                                     }]
                                                 }
                                             })
-
-                                            if (imageContainerRef.current && images.length > 0) {
-                                                const rect = imageContainerRef.current.getBoundingClientRect()
-                                                startAnimation(images[0], rect)
-                                            }
-                                            setAddedToastKey(Date.now())
-                                            setAddedToastOpen(true)
-                                        }}>
-                                            <ShoppingCart className="h-4 w-4" /> Agregar al carrito
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <div className="w-full flex items-center justify-between bg-popover rounded-lg p-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-10 w-10"
-                                            onClick={() => updateQuantity(Number(producto.id), quantity - 1, selectedVarianteId ?? null)}
-                                        >
-                                            <Minus className="h-4 w-4" />
-                                        </Button>
-                                        <div className="text-center">
-                                            <div className="text-xs text-muted-foreground">Cantidad</div>
-                                            <div className="text-lg font-bold">{quantity}</div>
-                                        </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-10 w-10"
-                                            onClick={() => updateQuantity(Number(producto.id), quantity + 1, selectedVarianteId ?? null)}
-                                        >
-                                            <Plus className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                )
-                            ) : (
-                                <Button disabled className="w-full h-11">
-                                    Sin stock
-                                </Button>
-                            )}
-
-                            {inStock && quantity > 0 && (
-                                <Button
-                                    className="w-full h-11 border-2 border-transparent bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg transform hover:scale-[1.02] transition-all duration-200 font-extrabold text-base tracking-wide"
-                                    onClick={() => {
-                                        sendGTMEvent({
-                                            event: 'begin_checkout',
-                                            ecommerce: {
-                                                currency: 'PEN',
-                                                value: Number(producto.precio) || 0,
-                                                items: [{
-                                                    item_id: String(producto.id),
-                                                    item_name: producto.nombre,
-                                                    price: Number(producto.precio) || 0,
-                                                    quantity: 1
-                                                }]
-                                            }
-                                        })
-                                        setQuickBuyOpen(true)
-                                    }}
-                                >
-                                    <span className="drop-shadow-sm">COMPRAR AHORA</span>
-                                    <ChevronRight className="h-5 w-5 animate-pulse" />
-                                </Button>
-                            )}
+                                            setQuickBuyOpen(true)
+                                        }}
+                                    >
+                                        <span className="drop-shadow-sm">COMPRAR AHORA</span>
+                                        <ChevronRight className="h-5 w-5 animate-pulse" />
+                                    </Button>
+                                )}
+                            </div>
 
                             <div className="relative pt-2">
                                 <Button
@@ -743,7 +748,7 @@ export default function ProductoDetalleClient() {
                             </button>
                         </div>
 
-                        <div className="min-h-[300px] animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="min-h-[300px] pb-32 md:pb-0 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             {activeTab === 'description' && producto?.descripcion && (
                                 <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
                                     <div className="bg-card border rounded-2xl p-8 shadow-sm relative overflow-hidden">
@@ -984,20 +989,24 @@ export default function ProductoDetalleClient() {
                 </div>
             </div>
 
-            {addedToastOpen && (
-                <div className="md:hidden fixed inset-x-0 bottom-20 z-50 flex justify-center px-4">
-                    <div key={addedToastKey} className="w-full max-w-sm rounded-xl border border-border bg-card shadow-lg p-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                        <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-full bg-green-100 flex items-center justify-center text-green-700">
-                                <CheckCircle className="h-5 w-5" />
-                            </div>
-                            <div className="flex-1">
-                                <div className="font-semibold text-foreground leading-snug">Producto añadido al carrito</div>
+            {
+                addedToastOpen && (
+                    <div className="md:hidden fixed inset-x-0 bottom-20 z-50 flex justify-center px-4">
+                        <div key={addedToastKey} className="w-full max-w-sm rounded-xl border border-border bg-card shadow-lg p-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                            <div className="flex items-center gap-3">
+                                <div className="h-9 w-9 rounded-full bg-green-100 flex items-center justify-center text-green-700">
+                                    <CheckCircle className="h-5 w-5" />
+                                </div>
+                                <div className="flex-1">
+                                    <div className="font-semibold text-foreground leading-snug">Producto añadido al carrito</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
+
+
         </div>
     )
 }
