@@ -41,7 +41,7 @@ export function AnnouncementBar({
   return (
     <div
       className={
-        "w-full h-10 sm:h-9 bg-blue-600 text-white flex items-center justify-center px-4 border-b border-blue-700 " +
+        "w-full h-10 sm:h-9 min-h-[40px] sm:min-h-[36px] bg-blue-600 text-white flex items-center justify-center px-4 border-b border-blue-700 " +
         (className || "")
       }
       onMouseEnter={() => {
