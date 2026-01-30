@@ -17,5 +17,5 @@ export const r2Client = new S3Client({
     },
 })
 
-export const R2_BUCKET_NAME = process.env.NEXT_PUBLIC_R2_BUCKET_NAME || "tienda-blama"
+export const R2_BUCKET_NAME = process.env.NEXT_PUBLIC_R2_BUCKET_NAME || "tienda-blama-assets"
 export const R2_PUBLIC_DOMAIN = process.env.NEXT_PUBLIC_R2_PUBLIC_DOMAIN || ""
