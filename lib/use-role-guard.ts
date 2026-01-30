@@ -50,13 +50,15 @@ export function useRoleGuard({ allowedRoles }: RoleGuardOptions) {
                 return
             }
 
-            const { data: profile } = await supabase
-                .from("profiles")
+            const { data: userRecord } = await supabase
+                .from("usuarios")
                 .select("role")
                 .eq("id", session.user.id)
                 .maybeSingle()
 
-            const nextRole = String((profile as any)?.role || "worker")
+            // SECURITY FIX: Default to "user" (no access) instead of "worker".
+            // Only explicitly assigned roles should grant access.
+            const nextRole = String((userRecord as any)?.role || "user")
 
             if (cancelled) return
 
