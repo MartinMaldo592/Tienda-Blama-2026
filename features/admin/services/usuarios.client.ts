@@ -8,7 +8,7 @@ export async function fetchAdminProfiles() {
   return ((data as any[]) || []) as ProfileRow[]
 }
 
-export async function createWorkerViaApi(args: { accessToken: string; email: string; nombre: string; password: string | null }) {
+export async function createWorkerViaApi(args: { accessToken: string; email: string; nombre: string; password: string | null; role?: string }) {
   const res = await fetch("/api/admin/create-worker", {
     method: "POST",
     headers: {
@@ -19,6 +19,7 @@ export async function createWorkerViaApi(args: { accessToken: string; email: str
       email: args.email,
       nombre: args.nombre,
       password: args.password,
+      role: args.role || "worker",
     }),
   })
 

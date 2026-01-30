@@ -30,6 +30,7 @@ export default function UsuariosPage() {
   const [email, setEmail] = useState("")
   const [nombre, setNombre] = useState("")
   const [password, setPassword] = useState("")
+  const [roleToAssign, setRoleToAssign] = useState("worker")
   const [creating, setCreating] = useState(false)
 
   const fetchProfiles = useCallback(async () => {
@@ -65,17 +66,21 @@ export default function UsuariosPage() {
         email,
         nombre,
         password: password || null,
+        role: roleToAssign,
       })
 
+      const roleName = roleToAssign === "admin" ? "Administrador" : "Trabajador"
+
       if ((json as any)?.isInvite) {
-        alert("Usuario invitado por correo. Deberá revisar su inbox para establecer contraseña.")
+        alert(`Invitación enviada para rol ${roleName}.`)
       } else {
-        alert("Usuario creado con contraseña establecida.")
+        alert(`Usuario creado como ${roleName}.`)
       }
 
       setEmail("")
       setNombre("")
       setPassword("")
+      setRoleToAssign("worker")
       await fetchProfiles()
     } catch (e: any) {
       alert(e?.message || "Error")
@@ -122,20 +127,32 @@ export default function UsuariosPage() {
       </div>
 
       <div className="bg-card border border-border rounded-xl p-6 space-y-4">
-        <h2 className="text-lg font-semibold">Crear worker</h2>
+        <h2 className="text-lg font-semibold">Crear usuario</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="worker@tienda.com" />
+            <Input id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@tienda.com" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="nombre">Nombre</Label>
-            <Input id="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre del trabajador" />
+            <Input id="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre" />
+          </div>
+          <div className="space-y-2">
+            <Label>Rol a Asignar</Label>
+            <Select value={roleToAssign} onValueChange={setRoleToAssign}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="worker">Worker</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Contraseña (opcional)</Label>
-            <Input id="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Dejar vacío para enviar invitación por email" />
+            <Input id="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Dejar vacío para invitar" />
           </div>
         </div>
 

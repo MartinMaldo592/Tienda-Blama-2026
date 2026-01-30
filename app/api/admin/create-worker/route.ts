@@ -18,6 +18,10 @@ export async function POST(req: Request) {
     const email = String(body?.email || "").trim()
     const nombre = String(body?.nombre || "").trim()
     const passwordRaw = body?.password ? String(body.password) : ""
+    const role = String(body?.role || "worker").toLowerCase()
+
+    const validRoles = ["admin", "worker", "user"]
+    const finalRole = validRoles.includes(role) ? role : "worker"
 
     if (!email) {
       return NextResponse.json({ error: "Missing email" }, { status: 400 })
@@ -63,7 +67,7 @@ export async function POST(req: Request) {
     const profilePayloadBase = {
       id: userId,
       email,
-      role: "worker",
+      role: finalRole,
     }
 
     const tryUpsertWithNombre = async () => {
