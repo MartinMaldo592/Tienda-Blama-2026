@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabaseClient"
 import type { AdminRole, PedidoItemRow, PedidoRow, ProfileRow } from "@/features/admin/types"
 
 export async function fetchAdminWorkers() {
-  const { data, error } = await supabase.from("profiles").select("id, email, nombre, role").eq("role", "worker")
+  const { data, error } = await supabase.from("usuarios").select("id, email, nombre, role").eq("role", "worker")
   if (error) throw error
   return ((data as any[]) || []) as ProfileRow[]
 }
@@ -45,7 +45,7 @@ export async function fetchPedidosForRole(args: { role: AdminRole | string; curr
     rows.map(async (pedido: any) => {
       if (pedido.asignado_a) {
         const { data: workerProfile } = await supabase
-          .from("profiles")
+          .from("usuarios")
           .select("id, email, nombre")
           .eq("id", pedido.asignado_a)
           .single()
@@ -88,7 +88,7 @@ export async function fetchPedidoDetail(pedidoId: number) {
   let asignadoPerfil: any = null
   if ((pedidoData as any)?.asignado_a) {
     const { data: workerProfile } = await supabase
-      .from("profiles")
+      .from("usuarios")
       .select("id, email, nombre")
       .eq("id", (pedidoData as any).asignado_a)
       .single()
