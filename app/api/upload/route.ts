@@ -11,6 +11,11 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Missing filename or contentType" }, { status: 400 })
         }
 
+        if (!process.env.R2_ACCOUNT_ID || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY) {
+            console.error("Missing R2 Environment Variables")
+            return NextResponse.json({ error: "Server Configuration Error: Missing R2 Credentials (Check Vercel Env Vars)" }, { status: 500 })
+        }
+
         const uniqueFilename = `${Date.now()}-${filename.replace(/\s+/g, "-")}`
 
         const command = new PutObjectCommand({

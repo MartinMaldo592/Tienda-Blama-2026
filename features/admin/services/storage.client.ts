@@ -8,7 +8,10 @@ export async function uploadToR2(file: File): Promise<string | null> {
             body: JSON.stringify({ filename: file.name, contentType: file.type }),
         })
 
-        if (!res.ok) throw new Error("Failed to get upload URL")
+        if (!res.ok) {
+            const errText = await res.text()
+            throw new Error(`Failed to get upload URL: ${res.status} ${errText}`)
+        }
 
         const { uploadUrl, publicUrl } = await res.json()
 
