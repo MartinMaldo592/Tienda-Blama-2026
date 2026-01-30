@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { supabase } from "@/lib/supabaseClient"
@@ -19,51 +19,37 @@ import {
 
 import { formatCurrency } from "@/lib/utils"
 
-import { Plus, Search, Edit, Trash2, Image as ImageIcon } from "lucide-react"
+import { Plus, Search, Edit, Trash2, Image as ImageIcon, Loader2 } from "lucide-react"
 import { deleteAdminProductoViaApi, fetchAdminProductos, deleteFromR2 } from "@/features/admin"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 
 export default function ProductosPage() {
     const router = useRouter()
-    const [productos, setProductos] = useState<any[]>([])
-    const [loading, setLoading] = useState(true)
+    const queryClient = useQueryClient()
+    const [searchTerm, setSearchTerm] = useState("")
 
     const guard = useRoleGuard({ allowedRoles: ['admin'] })
 
-    useEffect(() => {
-        if (guard.loading || guard.accessDenied) return
-        fetchProductos()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [guard.loading, guard.accessDenied])
+    // 1. Fetching
+    const { data: productos = [], isLoading } = useQuery({
+        queryKey: ["adminProductos"],
+        queryFn: fetchAdminProductos,
+        enabled: !guard.loading && !guard.accessDenied
+    })
 
-    async function fetchProductos() {
-        setLoading(true)
-        try {
-            const data = await fetchAdminProductos()
-            setProductos(data)
-        } catch (err) {
-            setProductos([])
-        }
-        setLoading(false)
-    }
+    // 2. Deletion Mutation
+    const deleteMutation = useMutation({
+        mutationFn: async (producto: any) => {
+            const sessionRes = await supabase.auth.getSession()
+            const accessToken = sessionRes?.data?.session?.access_token
+            if (!accessToken) throw new Error("Tu sesión expiró. Vuelve a iniciar sesión.")
 
-    const handleDelete = async (produto: any) => {
-        if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente el producto "${produto.nombre}"? Esto eliminará también todas sus imágenes y videos. esta acción no se puede deshacer.`)) return
-
-        const sessionRes = await supabase.auth.getSession()
-        const accessToken = sessionRes?.data?.session?.access_token
-        if (!accessToken) {
-            alert('Tu sesión expiró. Vuelve a iniciar sesión.')
-            return
-        }
-
-        setLoading(true)
-        try {
             // 1. Delete images and videos from R2 (Cloudflare)
             // Collect all URLs to delete
             const urlsToDelete = [
-                produto.imagen_url,
-                ...(Array.isArray(produto.imagenes) ? produto.imagenes : []),
-                ...(Array.isArray(produto.videos) ? produto.videos : [])
+                producto.imagen_url,
+                ...(Array.isArray(producto.imagenes) ? produto.imagenes : []),
+                ...(Array.isArray(producto.videos) ? produto.videos : [])
             ].filter(Boolean)
 
             // Execute deletions in parallel
@@ -72,18 +58,30 @@ export default function ProductosPage() {
             // 2. Delete from Database
             await deleteAdminProductoViaApi({ accessToken, id: produto.id })
 
-            // 3. Refresh list
-            fetchProductos()
-        } catch (err: any) {
+            return produto.id
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["adminProductos"] })
+        },
+        onError: (err: any) => {
             alert("Error al eliminar: " + String(err?.message || 'No se pudo eliminar'))
-            setLoading(false) // Only stop loading on error, otherwise fetchProductos will handle it
         }
+    })
+
+    const handleDelete = async (producto: any) => {
+        if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente el producto "${producto.nombre}"? Esto eliminará también todas sus imágenes y videos. esta acción no se puede deshacer.`)) return
+        deleteMutation.mutate(producto)
     }
+
+    // 3. Filtering
+    const filteredProductos = productos.filter((p: any) =>
+        p.nombre?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
 
     if (guard.accessDenied) return <AccessDenied />
 
     if (guard.loading) {
-        return <div className="p-6 text-muted-foreground">Cargando...</div>
+        return <div className="p-6 text-muted-foreground flex items-center gap-2"><Loader2 className="animate-spin" /> Cargando...</div>
     }
 
     return (
@@ -104,7 +102,12 @@ export default function ProductosPage() {
             <div className="flex gap-2 bg-white p-4 rounded-xl shadow-sm border">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input placeholder="Buscar produto..." className="pl-9 border-gray-200" />
+                    <Input
+                        placeholder="Buscar producto..."
+                        className="pl-9 border-gray-200"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                 </div>
             </div>
 
@@ -120,17 +123,24 @@ export default function ProductosPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {loading ? (
+                        {isLoading ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center py-10">Cargando...</TableCell>
+                                <TableCell colSpan={5} className="text-center py-10">
+                                    <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                                        <Loader2 className="h-8 w-8 animate-spin" />
+                                        Cargando inventario...
+                                    </div>
+                                </TableCell>
                             </TableRow>
-                        ) : productos.length === 0 ? (
+                        ) : filteredProductos.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center py-10">No hay productos.</TableCell>
+                                <TableCell colSpan={5} className="text-center py-10">
+                                    {productos.length === 0 ? "No hay productos registrados." : "No se encontraron productos con ese nombre."}
+                                </TableCell>
                             </TableRow>
                         ) : (
-                            productos.map((producto) => (
-                                <TableRow key={producto.id}>
+                            filteredProductos.map((producto: any) => (
+                                <TableRow key={producto.id} className={deleteMutation.isPending && deleteMutation.variables?.id === producto.id ? "opacity-50 pointer-events-none" : ""}>
                                     <TableCell>
                                         <div className="h-10 w-10 bg-gray-100 rounded-md overflow-hidden flex items-center justify-center">
                                             {producto.imagen_url ? (
@@ -160,8 +170,17 @@ export default function ProductosPage() {
                                                 <Edit className="h-4 w-4 text-gray-600" />
                                             </Link>
                                         </Button>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-red-50" onClick={() => handleDelete(producto)}>
-                                            <Trash2 className="h-4 w-4 text-red-500" />
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 hover:bg-red-50"
+                                            onClick={() => handleDelete(producto)}
+                                            disabled={deleteMutation.isPending}
+                                        >
+                                            {deleteMutation.isPending && deleteMutation.variables?.id === producto.id
+                                                ? <Loader2 className="h-3 w-3 animate-spin" />
+                                                : <Trash2 className="h-4 w-4 text-red-500" />
+                                            }
                                         </Button>
                                     </TableCell>
                                 </TableRow>
