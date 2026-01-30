@@ -28,7 +28,7 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
         { href: "/admin/announcement-bar", icon: Megaphone, label: "Announcement Bar", roles: ["admin"] },
         { href: "/admin/resenas", icon: Star, label: "Reseñas", roles: ["admin"] },
         { href: "/admin/preguntas", icon: MessageSquare, label: "Preguntas", roles: ["admin"] },
-        { href: "/admin/usuarios", icon: Users, label: "Usuarios", roles: ["admin"] },
+        { href: "/admin/usuarios-panel", icon: Users, label: "Usuarios Sistema", roles: ["admin"] },
         { href: "/admin/redes-sociales", icon: Share2, label: "Redes Sociales", roles: ["admin"] },
         { href: "/admin/incidencias", icon: AlertCircle, label: "Incidencias", roles: ["admin", "worker"] },
     ]
