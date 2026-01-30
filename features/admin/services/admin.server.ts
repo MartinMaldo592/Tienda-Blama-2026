@@ -38,7 +38,10 @@ export async function requireAdmin(req: Request) {
     return { ok: false as const, res: NextResponse.json({ error: "Invalid session" }, { status: 401 }) }
   }
 
-  const { data: userRecord, error: profileErr } = await supabaseAuth
+  // Use Service Role to bypass RLS when checking permissions
+  const supabaseAdmin = createClient(url, service)
+
+  const { data: userRecord, error: profileErr } = await supabaseAdmin
     .from("usuarios")
     .select("role")
     .eq("id", userData.user.id)
@@ -52,6 +55,5 @@ export async function requireAdmin(req: Request) {
     return { ok: false as const, res: NextResponse.json({ error: "Forbidden" }, { status: 403 }) }
   }
 
-  const supabaseAdmin = createClient(url, service)
   return { ok: true as const, supabaseAdmin }
 }
