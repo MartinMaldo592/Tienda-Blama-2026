@@ -20,7 +20,7 @@ import {
 import { formatCurrency } from "@/lib/utils"
 
 import { Plus, Search, Edit, Trash2, Image as ImageIcon } from "lucide-react"
-import { deleteAdminProductoViaApi, fetchAdminProductos } from "@/features/admin"
+import { deleteAdminProductoViaApi, fetchAdminProductos, deleteFromR2 } from "@/features/admin"
 
 export default function ProductosPage() {
     const router = useRouter()
@@ -46,8 +46,8 @@ export default function ProductosPage() {
         setLoading(false)
     }
 
-    const handleDelete = async (id: number) => {
-        if (!confirm("¿Estás seguro de que deseas eliminar este producto?")) return
+    const handleDelete = async (produto: any) => {
+        if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente el producto "${produto.nombre}"? Esto eliminará también todas sus imágenes y videos. esta acción no se puede deshacer.`)) return
 
         const sessionRes = await supabase.auth.getSession()
         const accessToken = sessionRes?.data?.session?.access_token
@@ -56,14 +56,28 @@ export default function ProductosPage() {
             return
         }
 
+        setLoading(true)
         try {
-            await deleteAdminProductoViaApi({ accessToken, id })
+            // 1. Delete images and videos from R2 (Cloudflare)
+            // Collect all URLs to delete
+            const urlsToDelete = [
+                produto.imagen_url,
+                ...(Array.isArray(produto.imagenes) ? produto.imagenes : []),
+                ...(Array.isArray(produto.videos) ? produto.videos : [])
+            ].filter(Boolean)
+
+            // Execute deletions in parallel
+            await Promise.all(urlsToDelete.map(url => deleteFromR2(url)))
+
+            // 2. Delete from Database
+            await deleteAdminProductoViaApi({ accessToken, id: produto.id })
+
+            // 3. Refresh list
+            fetchProductos()
         } catch (err: any) {
             alert("Error al eliminar: " + String(err?.message || 'No se pudo eliminar'))
-            return
+            setLoading(false) // Only stop loading on error, otherwise fetchProductos will handle it
         }
-
-        fetchProductos()
     }
 
     if (guard.accessDenied) return <AccessDenied />
@@ -146,7 +160,7 @@ export default function ProductosPage() {
                                                 <Edit className="h-4 w-4 text-gray-600" />
                                             </Link>
                                         </Button>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-red-50" onClick={() => handleDelete(producto.id)}>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-red-50" onClick={() => handleDelete(producto)}>
                                             <Trash2 className="h-4 w-4 text-red-500" />
                                         </Button>
                                     </TableCell>
