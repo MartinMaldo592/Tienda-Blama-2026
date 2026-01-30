@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabaseClient"
+import { uploadToR2 } from "@/features/admin/services/storage.client"
 
 export async function fetchAdminProductos() {
   const { data, error } = await supabase.from("productos").select("*").order("id", { ascending: true })
@@ -43,15 +44,8 @@ export async function uploadProductImages(args: { files: File[] }) {
   const uploadedUrls: string[] = []
 
   for (const file of files) {
-    const fileExt = file.name.split(".").pop() || "jpg"
-    const fileName = `${Date.now()}-${Math.random().toString(16).slice(2)}.${fileExt}`
-    const filePath = `imagenes/${fileName}`
-
-    const { error: uploadError } = await supabase.storage.from("productos").upload(filePath, file)
-    if (uploadError) throw uploadError
-
-    const { data } = supabase.storage.from("productos").getPublicUrl(filePath)
-    if (data?.publicUrl) uploadedUrls.push(data.publicUrl)
+    const publicUrl = await uploadToR2(file)
+    if (publicUrl) uploadedUrls.push(publicUrl)
   }
 
   return uploadedUrls
@@ -62,18 +56,8 @@ export async function uploadProductVideos(args: { files: File[] }) {
   const uploadedUrls: string[] = []
 
   for (const file of files) {
-    const fileExt = file.name.split(".").pop() || "mp4"
-    const fileName = `${Date.now()}-${Math.random().toString(16).slice(2)}.${fileExt}`
-    const filePath = `videos/${fileName}`
-
-    const { error: uploadError } = await supabase.storage
-      .from("productos")
-      .upload(filePath, file, { upsert: false, contentType: file.type || "video/mp4" })
-
-    if (uploadError) throw uploadError
-
-    const { data } = supabase.storage.from("productos").getPublicUrl(filePath)
-    if (data?.publicUrl) uploadedUrls.push(data.publicUrl)
+    const publicUrl = await uploadToR2(file)
+    if (publicUrl) uploadedUrls.push(publicUrl)
   }
 
   return uploadedUrls

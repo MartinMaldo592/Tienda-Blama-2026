@@ -26,6 +26,16 @@ const nextConfig: NextConfig = {
         hostname: "picsum.photos",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "**.r2.dev",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "assets.blama.shop",
+        pathname: "/**",
+      },
     ],
   },
   async headers() {

@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabaseClient"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { DollarSign, ShoppingBag, Users, Package, ClipboardList } from "lucide-react"
+import { DollarSign, ShoppingBag, Users, Package, ClipboardList, AlertTriangle } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 import Link from "next/link"
 import { fetchAdminDashboardStats } from "@/features/admin"
@@ -22,6 +22,7 @@ export default function AdminDashboard() {
         productosLowStock: 0
     })
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
 
     const guard = useRoleGuard({ allowedRoles: ["admin", "worker"] })
 
@@ -41,11 +42,17 @@ export default function AdminDashboard() {
         const role = guard.role || 'worker'
         setUserRole(role)
 
-        ;(async () => {
-            const { data: { session } } = await supabase.auth.getSession()
-            const uid = session?.user?.id || ''
-            await fetchStats(role, uid)
-        })()
+            ; (async () => {
+                const { data: { session } } = await supabase.auth.getSession()
+                const uid = session?.user?.id || ''
+                try {
+                    await fetchStats(role, uid)
+                } catch (err) {
+                    console.error("Dashboard Load Error:", err)
+                    setError("No se pudo conectar con la base de datos. Verifica tu conexión a internet o la configuración del proyecto.")
+                    setLoading(false)
+                }
+            })()
     }, [guard.loading, guard.accessDenied, guard.role, fetchStats])
 
     if (guard.loading) {
@@ -54,6 +61,22 @@ export default function AdminDashboard() {
 
     if (guard.accessDenied) {
         return <AccessDenied />
+    }
+
+    if (error) {
+        return (
+            <div className="p-10 flex flex-col items-center justify-center text-center space-y-4">
+                <AlertTriangle className="h-12 w-12 text-red-500" />
+                <h2 className="text-xl font-bold text-gray-900">Error de Carga</h2>
+                <p className="text-gray-600 max-w-md">{error}</p>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                    Reintentar
+                </button>
+            </div>
+        )
     }
 
     return (
