@@ -40,7 +40,7 @@ export function Footer() {
                     </h4>
                     <div className="flex gap-4">
                         {/* TikTok */}
-                        <a href="https://www.tiktok.com" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform duration-200 hover:opacity-90">
+                        <a href="https://www.tiktok.com" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform duration-200 hover:opacity-90" aria-label="Síguenos en TikTok">
                             <svg className="h-10 w-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <circle cx="12" cy="12" r="12" fill="#000000" />
                                 {/* Red Layer */}
@@ -54,14 +54,14 @@ export function Footer() {
                             </svg>
                         </a>
                         {/* Facebook */}
-                        <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform duration-200 hover:opacity-90">
+                        <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform duration-200 hover:opacity-90" aria-label="Síguenos en Facebook">
                             <svg className="h-10 w-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <circle cx="12" cy="12" r="12" fill="#1877F2" />
                                 <path d="M13.5 19.5V12H15.5L16 9.5H13.5V8C13.5 7.375 13.844 7 14.5 7H16V4.5H14C11.5 4.5 10.5 5.875 10.5 8V9.5H8.5V12H10.5V19.5" fill="white" />
                             </svg>
                         </a>
                         {/* Instagram */}
-                        <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform duration-200 hover:opacity-90">
+                        <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform duration-200 hover:opacity-90" aria-label="Síguenos en Instagram">
                             <svg className="h-10 w-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <rect width="24" height="24" rx="6" fill="url(#paint0_radial_instagram_lg)" />
                                 <rect x="5" y="5" width="14" height="14" rx="4" stroke="white" strokeWidth="2" />

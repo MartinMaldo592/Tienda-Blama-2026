@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
     ]
   },
   images: {
+    minimumCacheTTL: 31536000,
     qualities: [70, 75],
     remotePatterns: [
       {
@@ -26,6 +27,20 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
+  },
+  async headers() {
+    return [
+      {
+        source: "/:all*(svg|jpg|png|webp|avif|ico|woff|woff2|ttf|otf|mp4|webm)",
+        locale: false,
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+    ]
   },
 };
 
