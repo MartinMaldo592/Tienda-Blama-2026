@@ -67,13 +67,15 @@ export function LayoutShell({ children }: LayoutShellProps) {
     <>
       <Header />
       <FlyingProductImage />
-      {shouldShowAnnouncement && (
+      {announcementEnabled === null ? (
+        <div className="sticky top-16 z-40 w-full h-10 sm:h-9 bg-blue-600 border-b border-blue-700 animate-pulse" />
+      ) : shouldShowAnnouncement ? (
         <AnnouncementBar
           className="sticky top-16 z-40"
           intervalMs={announcementIntervalMs}
           messages={announcementMessages}
         />
-      )}
+      ) : null}
       <div className="flex-1">{children}</div>
       <Footer />
 
