@@ -23,19 +23,39 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing email" }, { status: 400 })
     }
 
-    const password = passwordRaw || `Wk-${Math.random().toString(36).slice(2, 10)}-${Math.random().toString(36).slice(2, 8)}`
+    const password = passwordRaw || undefined // Undefined tells us to use Invite flow if desired, or we generate one?
+    // User requested "Option B": if no password, send invite.
 
     const supabaseAdmin = createClient(url, service)
 
-    const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: nombre ? { nombre } : undefined,
-    })
+    let created: any = null
+    let error: any = null
+    let isInvite = false
 
-    if (createErr || !created?.user) {
-      return NextResponse.json({ error: createErr?.message || "Failed to create user" }, { status: 400 })
+    if (password) {
+      // Manual password provided -> Create User directly
+      const res = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: nombre ? { nombre } : undefined,
+      })
+      created = res.data
+      error = res.error
+    } else {
+      // No password -> Send Invitation Email (Professional Flow)
+      isInvite = true
+      const res = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+        data: nombre ? { nombre } : undefined,
+        // We redirect to the root (or specific setup page)
+        redirectTo: `${new URL(req.url).origin}/auth/update-password`,
+      })
+      created = res.data
+      error = res.error
+    }
+
+    if (error || !created?.user) {
+      return NextResponse.json({ error: error?.message || "Failed to create user" }, { status: 400 })
     }
 
     const userId = created.user.id
@@ -69,7 +89,8 @@ export async function POST(req: Request) {
     return NextResponse.json({
       ok: true,
       user: { id: userId, email },
-      generatedPassword: passwordRaw ? null : password,
+      isInvite,
+      generatedPassword: null,
     })
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || "Unknown error" }, { status: 500 })

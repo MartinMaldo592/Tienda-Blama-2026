@@ -36,11 +36,11 @@ export default function UsuariosPage() {
   useEffect(() => {
     if (guard.loading || guard.accessDenied) return
 
-    ;(async () => {
-      setLoading(true)
-      await fetchProfiles()
-      setLoading(false)
-    })()
+      ; (async () => {
+        setLoading(true)
+        await fetchProfiles()
+        setLoading(false)
+      })()
   }, [guard.loading, guard.accessDenied, fetchProfiles])
 
   async function handleCreateWorker() {
@@ -59,10 +59,10 @@ export default function UsuariosPage() {
         password: password || null,
       })
 
-      if (json?.generatedPassword) {
-        alert(`Worker creado. Contraseña generada: ${json.generatedPassword}`)
+      if ((json as any)?.isInvite) {
+        alert("Usuario invitado por correo. Deberá revisar su inbox para establecer contraseña.")
       } else {
-        alert("Worker creado")
+        alert("Usuario creado con contraseña establecida.")
       }
 
       setEmail("")
@@ -108,7 +108,7 @@ export default function UsuariosPage() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Contraseña (opcional)</Label>
-            <Input id="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Si lo dejas vacío se genera" />
+            <Input id="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Dejar vacío para enviar invitación por email" />
           </div>
         </div>
 
