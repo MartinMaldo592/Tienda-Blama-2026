@@ -274,7 +274,11 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
             })
 
             // Redirect
-            window.open(url, '_blank')
+            if (isMobileDevice()) {
+                window.location.href = url
+            } else {
+                window.open(url, '_blank')
+            }
             onClose()
 
         } catch (err: any) {
