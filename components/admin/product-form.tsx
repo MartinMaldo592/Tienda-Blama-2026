@@ -399,7 +399,7 @@ export function ProductForm({ productToEdit, categories = DEFAULT_CATEGORIES, on
                 <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90" disabled={loading || uploading}>
                     {loading ? (
                         <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando datos...
                         </>
                     ) : (
                         <>
