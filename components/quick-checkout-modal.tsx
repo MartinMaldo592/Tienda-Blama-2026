@@ -383,16 +383,16 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                         placeholder="Ej: Av. Larco 123"
                         className="flex h-full w-full bg-background px-3 py-2 placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                     />
-                    {status === "OK" && (
-                        <ul className="absolute z-10 w-full bg-popover border rounded-md shadow-lg mt-1 max-h-40 overflow-auto">
-                            {data.map(({ place_id, description }) => (
-                                <li key={place_id} onClick={() => handleAddressSelect(description)} className="px-4 py-2 hover:bg-muted cursor-pointer text-xs">
-                                    {description}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
                 </div>
+                {status === "OK" && (
+                    <ul className="absolute z-10 w-full bg-popover border rounded-md shadow-lg mt-1 max-h-40 overflow-auto">
+                        {data.map(({ place_id, description }) => (
+                            <li key={place_id} onClick={() => handleAddressSelect(description)} className="px-4 py-2 hover:bg-muted cursor-pointer text-xs">
+                                {description}
+                            </li>
+                        ))}
+                    </ul>
+                )}
             </div>
 
             <div className="space-y-1">
