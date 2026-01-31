@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import { useState } from "react"
@@ -48,17 +49,17 @@ export default function ProductosPage() {
             // Collect all URLs to delete
             const urlsToDelete = [
                 producto.imagen_url,
-                ...(Array.isArray(producto.imagenes) ? produto.imagenes : []),
-                ...(Array.isArray(producto.videos) ? produto.videos : [])
+                ...(Array.isArray(producto.imagenes) ? producto.imagenes : []),
+                ...(Array.isArray(producto.videos) ? producto.videos : [])
             ].filter(Boolean)
 
             // Execute deletions in parallel
             await Promise.all(urlsToDelete.map(url => deleteFromR2(url)))
 
             // 2. Delete from Database
-            await deleteAdminProductoViaApi({ accessToken, id: produto.id })
+            await deleteAdminProductoViaApi({ accessToken, id: producto.id })
 
-            return produto.id
+            return producto.id
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["adminProductos"] })
