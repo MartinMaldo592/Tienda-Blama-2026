@@ -244,9 +244,9 @@ export default function PedidosPage() {
                                     <TableRow key={pedido.id}>
                                         <TableCell className="font-mono font-medium">#{pedido.id.toString().padStart(6, '0')}</TableCell>
                                         <TableCell>
-                                            <div className="font-medium">{pedido.clientes?.nombre || 'Anónimo'}</div>
-                                            <div className="text-xs text-gray-500">{pedido.clientes?.telefono}</div>
-                                            <div className="text-xs text-gray-500">DNI: {pedido.clientes?.dni || '—'}</div>
+                                            <div className="font-medium">{pedido.nombre_contacto || pedido.clientes?.nombre || 'Anónimo'}</div>
+                                            <div className="text-xs text-gray-500">{pedido.telefono_contacto || pedido.clientes?.telefono}</div>
+                                            <div className="text-xs text-gray-500">DNI: {pedido.dni_contacto || pedido.clientes?.dni || '—'}</div>
                                         </TableCell>
                                         <TableCell>{new Date(pedido.created_at).toLocaleDateString()}</TableCell>
                                         <TableCell className="font-bold">{formatCurrency(pedido.total)}</TableCell>

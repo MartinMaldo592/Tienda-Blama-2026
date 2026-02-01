@@ -232,18 +232,18 @@ export default function PedidoDetallePage() {
                         <div className="space-y-3">
                             <div>
                                 <p className="text-sm text-gray-500">Nombre</p>
-                                <p className="font-medium">{pedido.clientes?.nombre}</p>
+                                <p className="font-medium">{pedido.nombre_contacto || pedido.clientes?.nombre}</p>
                             </div>
                             <div>
                                 <p className="text-sm text-gray-500">DNI</p>
-                                <p className="font-medium">{pedido.clientes?.dni || '—'}</p>
+                                <p className="font-medium">{pedido.dni_contacto || pedido.clientes?.dni || '—'}</p>
                             </div>
                             <div>
                                 <p className="text-sm text-gray-500">Teléfono</p>
                                 <div className="flex items-center gap-2">
                                     <Phone className="h-4 w-4 text-gray-400" />
-                                    <a href={`tel:${pedido.clientes?.telefono}`} className="font-medium text-blue-600 hover:underline">
-                                        {pedido.clientes?.telefono}
+                                    <a href={`tel:${pedido.telefono_contacto || pedido.clientes?.telefono}`} className="font-medium text-blue-600 hover:underline">
+                                        {pedido.telefono_contacto || pedido.clientes?.telefono}
                                     </a>
                                 </div>
                             </div>
@@ -256,9 +256,35 @@ export default function PedidoDetallePage() {
                         </h2>
                         <div>
                             <p className="text-sm text-gray-500">Dirección</p>
-                            <p className="font-medium text-sm mt-1">{pedido.clientes?.direccion}</p>
+                            <div className="font-medium text-sm mt-1 space-y-1">
+                                {pedido.direccion_calle ? (
+                                    <>
+                                        <p>{pedido.direccion_calle}</p>
+                                        {(pedido.distrito || pedido.departamento || pedido.provincia) && (
+                                            <p className="text-gray-500 text-xs">
+                                                {[pedido.distrito, pedido.provincia || pedido.departamento].filter(Boolean).join(", ")}
+                                            </p>
+                                        )}
+                                        {pedido.referencia_direccion && (
+                                            <p className="text-gray-500 text-xs italic">Ref: {pedido.referencia_direccion}</p>
+                                        )}
+                                    </>
+                                ) : (
+                                    <p>{pedido.clientes?.direccion}</p>
+                                )}
+                            </div>
                         </div>
-                        <Button variant="outline" className="w-full text-xs" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pedido.clientes?.direccion)}`, '_blank')}>
+                        <Button variant="outline" className="w-full text-xs" onClick={() => {
+                            const link = pedido.link_ubicacion
+                            if (link && link.startsWith('http')) {
+                                window.open(link, '_blank')
+                            } else {
+                                const query = pedido.direccion_calle
+                                    ? `${pedido.direccion_calle}, ${pedido.distrito || ''}, ${pedido.departamento || ''}, Peru`
+                                    : pedido.clientes?.direccion
+                                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query || '')}`, '_blank')
+                            }
+                        }}>
                             Ver en Google Maps
                         </Button>
                     </div>
