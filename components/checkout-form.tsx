@@ -87,6 +87,9 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
         },
     })
 
+    const [geoProvince, setGeoProvince] = useState("")
+    const [geoDistrict, setGeoDistrict] = useState("")
+
     const handleSelect = async (address: string) => {
         setValue(address, false)
         clearSuggestions()
@@ -95,6 +98,22 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             const results = await getGeocode({ address })
             const { lat, lng } = await getLatLng(results[0])
             setLocationLink(`https://www.google.com/maps/?q=${lat},${lng}`)
+
+            // Extract components
+            let dept = ""
+            let dist = ""
+            results[0].address_components.forEach(comp => {
+                const types = comp.types
+                if (types.includes("administrative_area_level_1")) {
+                    dept = comp.long_name
+                }
+                if (types.includes("locality") || types.includes("sublocality") || types.includes("administrative_area_level_3")) {
+                    if (!dist) dist = comp.long_name
+                }
+            })
+            setGeoProvince(dept)
+            setGeoDistrict(dist)
+
         } catch (error) {
             console.error("Error: ", error)
         }
@@ -221,6 +240,9 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 phone: normalizedPhone,
                 dni: normalizedDni,
                 address: value,
+                street: value,
+                province: geoProvince,
+                district: geoDistrict,
                 reference,
                 locationLink,
                 couponCode: appliedCouponCode,

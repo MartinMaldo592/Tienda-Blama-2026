@@ -30,6 +30,15 @@ export type PedidoRow = {
   subtotal?: number | null
   clientes?: Partial<ClienteRow> | null
   asignado_perfil?: ProfileRow | null
+  nombre_contacto?: string | null
+  dni_contacto?: string | null
+  telefono_contacto?: string | null
+  departamento?: string | null
+  provincia?: string | null
+  distrito?: string | null
+  direccion_calle?: string | null
+  referencia_direccion?: string | null
+  link_ubicacion?: string | null
 }
 
 export type PedidoItemRow = {

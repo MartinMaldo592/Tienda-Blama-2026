@@ -93,6 +93,10 @@ export async function POST(req: Request) {
     const discountAmount = Math.max(0, Math.min(subtotal, Number.isFinite(discountRaw) ? discountRaw : 0))
     const total = Math.max(0, Math.round((subtotal - discountAmount) * 100) / 100)
 
+    const province = normalizeText(body?.province) || null
+    const district = normalizeText(body?.district) || null
+    const street = normalizeText(body?.street) || null
+
     const direccionCompleta = `${address} ${reference ? `(Ref: ${reference})` : ""} ${locationLink ? `[Link: ${locationLink}]` : ""}`.trim()
 
     const supabaseAdmin = createClient(url, service)
@@ -138,18 +142,30 @@ export async function POST(req: Request) {
     }
 
     // B. Pedido
+    const commonPedidoData = {
+      cliente_id: clienteId,
+      nombre_contacto: name,
+      dni_contacto: dni,
+      telefono_contacto: phone,
+      departamento: province,
+      distrito: district,
+      direccion_calle: street || address, // Fallback to full address if street not separated
+      referencia_direccion: reference,
+      link_ubicacion: locationLink,
+      status: "Pendiente",
+      pago_status: "Pago Contraentrega",
+      metodo_envio: shippingMethod,
+    }
+
     const insertPedidoFull = async () => {
       return supabaseAdmin
         .from("pedidos")
         .insert({
-          cliente_id: clienteId,
+          ...commonPedidoData,
           subtotal,
           descuento: discountAmount,
           cupon_codigo: couponCode,
           total,
-          status: "Pendiente",
-          pago_status: "Pago Contraentrega",
-          metodo_envio: shippingMethod,
         })
         .select()
         .single()
@@ -159,11 +175,8 @@ export async function POST(req: Request) {
       return supabaseAdmin
         .from("pedidos")
         .insert({
-          cliente_id: clienteId,
+          ...commonPedidoData,
           total,
-          status: "Pendiente",
-          pago_status: "Pago Contraentrega",
-          metodo_envio: shippingMethod,
         })
         .select()
         .single()

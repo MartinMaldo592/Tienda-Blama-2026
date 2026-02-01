@@ -19,6 +19,9 @@ export type CreateOrderPayload = {
     address: string
     reference?: string
     locationLink?: string
+    province?: string
+    district?: string
+    street?: string
     couponCode?: string | null
     discountAmount?: number
     shippingMethod?: string
