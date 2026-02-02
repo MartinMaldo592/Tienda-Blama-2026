@@ -14,7 +14,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { ArrowLeft, MapPin, Phone, User, Calendar, CreditCard, Save, UserCheck } from "lucide-react"
+import { ArrowLeft, MapPin, Phone, User, Calendar, CreditCard, Save, UserCheck, MessageCircle } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidoDetail, updatePedidoStatusWithStock } from "@/features/admin"
 
@@ -273,6 +273,22 @@ export default function PedidoDetallePage() {
                                         {pedido.telefono_contacto || pedido.clientes?.telefono}
                                     </a>
                                 </div>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full mt-2 gap-2 text-green-700 border-green-200 bg-green-50 hover:bg-green-100 hover:text-green-800"
+                                    onClick={() => {
+                                        const phone = pedido.telefono_contacto || pedido.clientes?.telefono
+                                        if (phone) {
+                                            // Ensure clean number and add country code if needed (assuming PE +51)
+                                            const clean = String(phone).replace(/\D/g, '')
+                                            window.open(`https://wa.me/51${clean}`, '_blank')
+                                        }
+                                    }}
+                                >
+                                    <MessageCircle className="h-4 w-4" />
+                                    Chat WhatsApp
+                                </Button>
                             </div>
                         </div>
                     </div>
