@@ -409,7 +409,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
 
             {/* Shipping Method Radios */}
             <div>
-                <Label className="mb-2 block text-sm font-bold">Método de envió gratuito <span className="text-destructive">*</span></Label>
+                <Label className="mb-2 block text-sm font-bold">Método de envío <span className="text-destructive">*</span></Label>
                 <div className="space-y-2">
                     <label className="flex items-center gap-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                         <input
@@ -420,7 +420,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                             onChange={(e) => setShippingMethod(e.target.value)}
                             className="h-4 w-4 accent-black"
                         />
-                        <span className="text-sm font-medium">Lima</span>
+                        <span className="text-sm font-medium">Lima (Gratis)</span>
                     </label>
                     <label className="flex items-center gap-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                         <input
@@ -431,7 +431,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                             onChange={(e) => setShippingMethod(e.target.value)}
                             className="h-4 w-4 accent-black"
                         />
-                        <span className="text-sm font-medium">Provincia</span>
+                        <span className="text-sm font-medium">Provincia (Shalom)</span>
                     </label>
                 </div>
             </div>
@@ -445,7 +445,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                     </div>
                     <div className="flex justify-between text-muted-foreground">
                         <span>Envío</span>
-                        <span>Gratis</span>
+                        <span>{shippingMethod === 'provincia' ? 'Precio a calcular' : 'Gratis'}</span>
                     </div>
                     <div className="flex justify-between font-bold text-lg text-foreground pt-2 border-t mt-2">
                         <span>Total</span>

@@ -355,7 +355,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
                     <div className="space-y-3">
-                        <Label className="text-base">Método de envió gratuito <span className="text-destructive">*</span></Label>
+                        <Label className="text-base">Método de envío <span className="text-destructive">*</span></Label>
                         <div className="flex flex-col gap-2 pl-1">
                             <label className="flex items-center gap-2 cursor-pointer">
                                 <input
@@ -366,7 +366,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                                     onChange={(e) => setShippingMethod(e.target.value)}
                                     className="accent-black h-4 w-4"
                                 />
-                                <span className="text-sm font-medium">Lima</span>
+                                <span className="text-sm font-medium">Lima (Gratis)</span>
                             </label>
                             <label className="flex items-center gap-2 cursor-pointer">
                                 <input
@@ -377,7 +377,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                                     onChange={(e) => setShippingMethod(e.target.value)}
                                     className="accent-black h-4 w-4"
                                 />
-                                <span className="text-sm font-medium">Provincia</span>
+                                <span className="text-sm font-medium">Provincia (Shalom)</span>
                             </label>
                         </div>
                     </div>
@@ -502,9 +502,13 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                         </div>
 
                         <div className="text-sm font-medium space-y-1">
-                            <div className="flex justify-between items-center">
+                            <div className="flex justify-between items-center text-muted-foreground">
                                 <span>Subtotal:</span>
                                 <span>{formatCurrency(subtotalAmount)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-muted-foreground">
+                                <span>Envío:</span>
+                                <span>{shippingMethod === 'provincia' ? 'Precio a calcular' : 'Gratis'}</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span>Descuento:</span>
