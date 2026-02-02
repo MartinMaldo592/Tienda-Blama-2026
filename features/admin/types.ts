@@ -62,3 +62,12 @@ export type AdminDashboardStats = {
   totalClientes: number
   productosLowStock: number
 }
+
+export type PedidoLog = {
+  id: number
+  pedido_id: number
+  usuario_nombre: string
+  accion: string
+  detalles: string
+  created_at: string
+}

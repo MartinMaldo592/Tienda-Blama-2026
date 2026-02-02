@@ -115,10 +115,48 @@ export default function PedidoDetallePage() {
         }
     }
 
-    async function handleUpdateStatus() {
-        setUpdating(true)
-        console.log("Updating status to:", status)
+    const [logs, setLogs] = useState<any[]>([])
+    const [currentUser, setCurrentUser] = useState<string>('Sistema')
 
+    useEffect(() => {
+        if (!id) return
+        fetchPedido()
+        fetchLogs()
+        getUserName()
+    }, [id])
+
+    async function getUserName() {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user && user.email) {
+            // Try to find profile name or fallback to email part
+            const { data: profile } = await supabase.from('profiles').select('nombre').eq('id', user.id).single()
+            setCurrentUser(profile?.nombre || user.email.split('@')[0])
+        }
+    }
+
+    async function fetchLogs() {
+        const { data } = await supabase
+            .from('pedido_logs')
+            .select('*')
+            .eq('pedido_id', id)
+            .order('created_at', { ascending: false })
+        if (data) setLogs(data)
+    }
+
+    async function logAction(accion: string, detalles: string) {
+        await supabase.from('pedido_logs').insert({
+            pedido_id: Number(id),
+            usuario_nombre: currentUser,
+            accion,
+            detalles
+        })
+        fetchLogs()
+    }
+
+    async function handleUpdateStatus() {
+        if (!pedido) return
+        setUpdating(true)
+        const oldStatus = pedido.status
         try {
             await updatePedidoStatusWithStock({
                 pedidoId: Number(id),
@@ -126,6 +164,7 @@ export default function PedidoDetallePage() {
                 stockDescontado: Boolean((pedido as any)?.stock_descontado),
             })
 
+            await logAction('Cambio de Estado', `De ${oldStatus} a ${status}`)
             alert("Estado actualizado correctamente")
             fetchPedido()
         } catch (err: any) {
@@ -252,8 +291,9 @@ export default function PedidoDetallePage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-                {/* Left Column: Items */}
+                {/* Left Column: Items & History */}
                 <div className="md:col-span-2 space-y-6">
+                    {/* Products Card */}
                     <div className="bg-white rounded-xl shadow-sm border p-6">
                         <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
                             <ShoppingBagIcon className="h-5 w-5" /> Productos
@@ -309,6 +349,40 @@ export default function PedidoDetallePage() {
                                 <span>Total</span>
                                 <span>{formatCurrency(pedido.total)}</span>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Activity History Card */}
+                    <div className="bg-white rounded-xl shadow-sm border p-6">
+                        <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                            <Calendar className="h-5 w-5" /> Historial de Actividad
+                        </h2>
+                        <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
+                            {logs.length === 0 ? (
+                                <p className="text-gray-500 text-sm text-center py-4">No hay actividad registrada aún.</p>
+                            ) : (
+                                logs.map((log) => (
+                                    <div key={log.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+
+                                        {/* Icon */}
+                                        <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-slate-300 group-[.is-active]:bg-emerald-500 text-slate-500 group-[.is-active]:text-emerald-50 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+                                            <div className="text-[10px] font-bold">LOG</div>
+                                        </div>
+
+                                        {/* Content Card */}
+                                        <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded border border-slate-200 shadow">
+                                            <div className="flex items-center justify-between space-x-2 mb-1">
+                                                <div className="font-bold text-slate-900 text-sm">{log.accion}</div>
+                                                <time className="font-caveat font-medium text-xs text-indigo-500">
+                                                    {new Date(log.created_at).toLocaleString()}
+                                                </time>
+                                            </div>
+                                            <div className="text-slate-500 text-sm">{log.detalles}</div>
+                                            <div className="text-slate-400 text-xs mt-1">Por: {log.usuario_nombre || 'Sistema'}</div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>
@@ -529,7 +603,7 @@ export default function PedidoDetallePage() {
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     )
 }
 
