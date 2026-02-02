@@ -40,6 +40,7 @@ export type PedidoRow = {
   referencia_direccion?: string | null
   link_ubicacion?: string | null
   metodo_envio?: string | null
+  guia_archivo_url?: string | null
 }
 
 export type PedidoItemRow = {

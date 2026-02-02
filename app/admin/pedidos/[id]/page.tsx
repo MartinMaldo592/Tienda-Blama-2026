@@ -14,9 +14,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { ArrowLeft, MapPin, Phone, User, Calendar, CreditCard, Save, UserCheck, MessageCircle } from "lucide-react"
+import { ArrowLeft, MapPin, Phone, User, Calendar, CreditCard, Save, UserCheck, MessageCircle, FileUp, ExternalLink, Trash2 } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidoDetail, updatePedidoStatusWithStock } from "@/features/admin"
+import { supabase } from "@/lib/supabaseClient"
 
 export default function PedidoDetallePage() {
     const params = useParams()
@@ -132,6 +133,68 @@ export default function PedidoDetallePage() {
             showPermissionAlertIfNeeded(err, 'Error al actualizar: ')
         }
         setUpdating(false)
+    }
+
+    const [uploadingGuide, setUploadingGuide] = useState(false)
+
+    async function handleUploadGuide(e: React.ChangeEvent<HTMLInputElement>) {
+        if (!e.target.files || e.target.files.length === 0) return
+        const file = e.target.files[0]
+        setUploadingGuide(true)
+
+        try {
+            const fileExt = file.name.split('.').pop()
+            const fileName = `pedido_${id}_${Date.now()}.${fileExt}`
+            const filePath = `${fileName}`
+
+            // 1. Upload to Supabase Storage "guias"
+            const { error: uploadError } = await supabase.storage
+                .from('guias')
+                .upload(filePath, file)
+
+            if (uploadError) throw uploadError
+
+            // 2. Get Public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('guias')
+                .getPublicUrl(filePath)
+
+            // 3. Update Pedido Row
+            const { error: updateError } = await supabase
+                .from('pedidos')
+                .update({ guia_archivo_url: publicUrl })
+                .eq('id', id)
+
+            if (updateError) throw updateError
+
+            fetchPedido()
+            alert("Guía subida correctamente")
+        } catch (error: any) {
+            console.error("Error uploading guide:", error)
+            alert("Error al subir guía: " + error.message)
+        } finally {
+            setUploadingGuide(false)
+        }
+    }
+
+    async function handleDeleteGuide() {
+        if (!confirm("¿Seguró que deseas eliminar la guía?")) return
+        setUploadingGuide(true)
+        try {
+            // We only clear the URL from the DB for now. 
+            // Deleting from storage requires parsing the path which we can skip for MVP simplicity or implement if needed.
+            const { error } = await supabase
+                .from('pedidos')
+                .update({ guia_archivo_url: null })
+                .eq('id', id)
+
+            if (error) throw error
+            fetchPedido()
+        } catch (error: any) {
+            alert("Error al eliminar: " + error.message)
+        } finally {
+            setUploadingGuide(false)
+        }
     }
 
     if (guard.loading) return <div className="p-10">Cargando...</div>
@@ -339,6 +402,53 @@ export default function PedidoDetallePage() {
                         }}>
                             Ver en Google Maps
                         </Button>
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">
+                        <h2 className="font-semibold text-lg mb-2 flex items-center gap-2">
+                            <FileUp className="h-5 w-5" /> Evidencia de Envío
+                        </h2>
+                        {pedido.guia_archivo_url ? (
+                            <div className="space-y-3">
+                                <div className="p-3 border rounded-lg bg-gray-50 flex items-center gap-3">
+                                    <div className="bg-blue-100 p-2 rounded text-blue-600">
+                                        <FileUp className="h-5 w-5" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium truncate">Guía de Remisión</p>
+                                        <p className="text-xs text-gray-500">Documento adjunto</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button variant="outline" className="flex-1 gap-2" onClick={() => window.open(pedido.guia_archivo_url || '', '_blank')}>
+                                        <ExternalLink className="h-4 w-4" /> Ver
+                                    </Button>
+                                    <Button variant="outline" className="flex-none text-red-600 hover:text-red-700 hover:bg-red-50" onClick={handleDeleteGuide}>
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center p-6 border-2 border-dashed rounded-xl hover:bg-gray-50 transition-colors">
+                                <input
+                                    type="file"
+                                    id="guide-upload"
+                                    className="hidden"
+                                    accept="image/*,.pdf"
+                                    onChange={handleUploadGuide}
+                                    disabled={uploadingGuide}
+                                />
+                                <label htmlFor="guide-upload" className="cursor-pointer flex flex-col items-center gap-2">
+                                    <div className="bg-blue-50 p-3 rounded-full text-blue-600">
+                                        <FileUp className="h-6 w-6" />
+                                    </div>
+                                    <span className="text-sm font-medium text-blue-600">
+                                        {uploadingGuide ? 'Subiendo...' : 'Subir Foto de Guía'}
+                                    </span>
+                                    <span className="text-xs text-gray-400">PDF o Imagen (Shalom/Olva)</span>
+                                </label>
+                            </div>
+                        )}
                     </div>
 
                     <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">
