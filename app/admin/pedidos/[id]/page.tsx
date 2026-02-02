@@ -208,17 +208,44 @@ export default function PedidoDetallePage() {
                                     <div className="flex-1">
                                         <p className="font-medium">{item.productos?.nombre || 'Producto eliminado'}</p>
                                         <p className="text-sm text-gray-500">Cantidad: {item.cantidad}</p>
+                                        {item.variante_nombre && (
+                                            <p className="text-xs text-gray-400">Variante: {item.variante_nombre}</p>
+                                        )}
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-medium">{formatCurrency((item.productos?.precio || 0) * (item.cantidad || 0))}</p>
-                                        <p className="text-xs text-gray-400">{formatCurrency(item.productos?.precio || 0)} c/u</p>
+                                        <p className="font-medium">{formatCurrency((item.precio_unitario || item.productos?.precio || 0) * (item.cantidad || 0))}</p>
+                                        <p className="text-xs text-gray-400">{formatCurrency(item.precio_unitario || item.productos?.precio || 0)} c/u</p>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                        <div className="mt-6 pt-4 border-t flex justify-between items-center text-lg font-bold">
-                            <span>Total</span>
-                            <span>{formatCurrency(pedido.total)}</span>
+
+                        {/* Financial Summary */}
+                        <div className="mt-6 pt-4 border-t space-y-2">
+                            <div className="flex justify-between items-center text-sm text-gray-600">
+                                <span>Subtotal</span>
+                                <span>{formatCurrency(pedido.subtotal || pedido.total)}</span>
+                            </div>
+
+                            {pedido.descuento > 0 && (
+                                <div className="flex justify-between items-center text-sm text-green-600">
+                                    <span>Descuento {pedido.cupon_codigo ? `(${pedido.cupon_codigo})` : ''}</span>
+                                    <span>- {formatCurrency(pedido.descuento)}</span>
+                                </div>
+                            )}
+
+                            {/* Shipping Cost Logic Display */}
+                            <div className="flex justify-between items-center text-sm text-gray-600">
+                                <span>Costo de Envío</span>
+                                <span>
+                                    {pedido.metodo_envio === 'provincia' ? 'Por Pagar (Shalom/Agencia)' : 'Gratis'}
+                                </span>
+                            </div>
+
+                            <div className="flex justify-between items-center text-lg font-bold pt-2 border-t mt-2">
+                                <span>Total</span>
+                                <span>{formatCurrency(pedido.total)}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -254,6 +281,15 @@ export default function PedidoDetallePage() {
                         <h2 className="font-semibold text-lg mb-2 flex items-center gap-2">
                             <MapPin className="h-5 w-5" /> Envío
                         </h2>
+
+                        {/* Shipping Method */}
+                        <div className="border-b pb-3">
+                            <p className="text-sm text-gray-500">Método</p>
+                            <Badge variant="outline" className="mt-1">
+                                {pedido.metodo_envio === 'provincia' ? 'Provincia (Shalom)' : pedido.metodo_envio === 'lima' ? 'Lima (Gratis)' : pedido.metodo_envio || 'Estándar'}
+                            </Badge>
+                        </div>
+
                         <div>
                             <p className="text-sm text-gray-500">Dirección</p>
                             <div className="font-medium text-sm mt-1 space-y-1">
@@ -262,7 +298,7 @@ export default function PedidoDetallePage() {
                                         <p>{pedido.direccion_calle}</p>
                                         {(pedido.distrito || pedido.departamento || pedido.provincia) && (
                                             <p className="text-gray-500 text-xs">
-                                                {[pedido.distrito, pedido.provincia || pedido.departamento].filter(Boolean).join(", ")}
+                                                {Array.from(new Set([pedido.distrito, pedido.provincia, pedido.departamento].filter(Boolean))).join(", ")}
                                             </p>
                                         )}
                                         {pedido.referencia_direccion && (
@@ -293,9 +329,29 @@ export default function PedidoDetallePage() {
                         <h2 className="font-semibold text-lg mb-2 flex items-center gap-2">
                             <CreditCard className="h-5 w-5" /> Pago
                         </h2>
-                        <Badge variant="secondary" className="text-sm py-1 px-3 w-full justify-center">
-                            {pedido.pago_status}
-                        </Badge>
+                        <div className="space-y-2">
+                            <div>
+                                <p className="text-sm text-gray-500">Estado de pago</p>
+                                <Badge variant="secondary" className="mt-1">
+                                    {pedido.pago_status}
+                                </Badge>
+                            </div>
+                            {pedido.cupon_codigo && (
+                                <div className="mt-2 pt-2 border-t">
+                                    <p className="text-sm text-gray-500">Cupón aplicado</p>
+                                    <p className="font-mono text-sm font-bold text-green-700">{pedido.cupon_codigo}</p>
+                                </div>
+                            )}
+                            <div className="mt-2 pt-2 border-t">
+                                <p className="text-sm text-gray-500">Stock</p>
+                                <p className="text-sm">
+                                    {pedido.stock_descontado ?
+                                        <span className="text-green-600 flex items-center gap-1">✔ Descontado</span> :
+                                        <span className="text-amber-600">⚠ No descontado</span>
+                                    }
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Worker Assignment - Admin Only */}

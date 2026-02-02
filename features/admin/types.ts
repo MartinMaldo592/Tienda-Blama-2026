@@ -39,6 +39,7 @@ export type PedidoRow = {
   direccion_calle?: string | null
   referencia_direccion?: string | null
   link_ubicacion?: string | null
+  metodo_envio?: string | null
 }
 
 export type PedidoItemRow = {
