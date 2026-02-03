@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
@@ -17,8 +16,11 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, MapPin, Phone, User, Calendar, CreditCard, Save, UserCheck, MessageCircle, FileUp, ExternalLink, Trash2, Pencil, Check, RotateCcw } from "lucide-react"
+import { ArrowLeft, MapPin, Phone, User, Calendar, CreditCard, Save, UserCheck, MessageCircle, FileUp, ExternalLink, Trash2, Pencil, Check, RotateCcw, AlertCircle, ShoppingBagIcon } from "lucide-react"
+import { toast } from "sonner"
 import { formatCurrency } from "@/lib/utils"
+// import types
+import { PedidoRow, PedidoItemRow, ProfileRow, PedidoLog } from "@/features/admin/types"
 import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidoDetail, updatePedidoStatusWithStock } from "@/features/admin"
 import { supabase } from "@/lib/supabaseClient"
 
@@ -29,9 +31,9 @@ export default function PedidoDetallePage() {
 
     const guard = useRoleGuard({ allowedRoles: ["admin", "worker"] })
 
-    const [pedido, setPedido] = useState<any>(null)
-    const [items, setItems] = useState<any[]>([])
-    const [workers, setWorkers] = useState<any[]>([])
+    const [pedido, setPedido] = useState<PedidoRow | null>(null)
+    const [items, setItems] = useState<PedidoItemRow[]>([])
+    const [workers, setWorkers] = useState<ProfileRow[]>([])
     const [loading, setLoading] = useState(true)
     const [updating, setUpdating] = useState(false)
     const [status, setStatus] = useState("")
@@ -49,11 +51,11 @@ export default function PedidoDetallePage() {
             lower.includes('row level security') ||
             lower.includes('violates row-level security')
         ) {
-            alert('No tienes permisos para realizar esta acción.')
+            toast.error('No tienes permisos para realizar esta acción.')
             return true
         }
 
-        alert(fallbackMessage + msg)
+        toast.error(fallbackMessage + msg)
         return false
     }
 
@@ -71,8 +73,8 @@ export default function PedidoDetallePage() {
 
             const detail = await fetchPedidoDetail(pedidoId)
             setPedido(detail.pedido)
-            setStatus(String((detail.pedido as any)?.status || ''))
-            setAssignedTo(String((detail.pedido as any)?.asignado_a || 'unassigned'))
+            setStatus(detail.pedido.status || '')
+            setAssignedTo(detail.pedido.asignado_a || 'unassigned')
             setItems(detail.items)
         } catch (error) {
             console.error("Error fetching pedido:", error)
@@ -113,12 +115,13 @@ export default function PedidoDetallePage() {
             await assignPedidoToWorker({ pedidoId: Number(id), workerId: assignValue })
             setAssignedTo(workerId)
             fetchPedido()
+            toast.success("Trabajador asignado correctamente")
         } catch (error: any) {
             showPermissionAlertIfNeeded(error, 'Error al asignar: ')
         }
     }
 
-    const [logs, setLogs] = useState<any[]>([])
+    const [logs, setLogs] = useState<PedidoLog[]>([])
     const [currentUser, setCurrentUser] = useState<string>('Sistema')
 
     useEffect(() => {
@@ -131,7 +134,6 @@ export default function PedidoDetallePage() {
     async function getUserName() {
         const { data: { user } } = await supabase.auth.getUser()
         if (user && user.email) {
-            // Try to find profile name or fallback to email part
             const { data: profile } = await supabase.from('profiles').select('nombre').eq('id', user.id).single()
             setCurrentUser(profile?.nombre || user.email.split('@')[0])
         }
@@ -155,6 +157,21 @@ export default function PedidoDetallePage() {
         })
         fetchLogs()
     }
+
+    // --- State for Confirmation Dialogs ---
+    const [confirmDeleteGuideOpen, setConfirmDeleteGuideOpen] = useState(false)
+    const [confirmDeletePaymentIndex, setConfirmDeletePaymentIndex] = useState<number | null>(null)
+
+    // Partial Return State
+    const [returnModalState, setReturnModalState] = useState<{
+        isOpen: boolean;
+        itemId: number | null;
+        maxReturn: number;
+        productName: string;
+        currentQty: number; // to validate input logic
+    }>({ isOpen: false, itemId: null, maxReturn: 0, productName: '', currentQty: 0 })
+    const [returnQtyInput, setReturnQtyInput] = useState<string>('')
+
 
     // --- Tracking Code Logic ---
     const [trackingCode, setTrackingCode] = useState("")
@@ -200,10 +217,10 @@ export default function PedidoDetallePage() {
             if (error) throw error
 
             await logAction('Tracking Actualizado', `Código: ${trackingCode}`)
-            alert("Código de seguimiento guardado")
+            toast.success("Código de seguimiento guardado")
             fetchPedido()
         } catch (error: any) {
-            alert("Error guardando tracking: " + error.message)
+            toast.error("Error guardando tracking: " + error.message)
         } finally {
             setSavingTracking(false)
         }
@@ -228,11 +245,11 @@ export default function PedidoDetallePage() {
             if (error) throw error
 
             await logAction('Datos Cliente Editados', `Se actualizaron datos de entrega/contacto`)
-            alert("Datos actualizados correctamente")
+            toast.success("Datos actualizados correctamente")
             setIsEditClientOpen(false)
             fetchPedido()
         } catch (error: any) {
-            alert("Error actualizando datos: " + error.message)
+            toast.error("Error actualizando datos: " + error.message)
         }
     }
 
@@ -251,26 +268,34 @@ export default function PedidoDetallePage() {
         return (now - updateTime) > threeDaysMs
     })()
 
-    // --- Partial Return Logic ---
-    async function handlePartialReturn(itemId: number, currentQty: number, alreadyReturned: number) {
+    // --- Partial Return Logic (Refactored for Dialog) ---
+    function openReturnDialog(itemId: number, currentQty: number, alreadyReturned: number, productName: string) {
         if (isLocked) return
 
         const maxReturn = currentQty - alreadyReturned
         if (maxReturn <= 0) {
-            alert("Este producto ya fue devuelto en su totalidad.")
+            toast.error("Este producto ya fue devuelto en su totalidad.")
             return
         }
 
-        const qtyStr = prompt(`¿Cuántas unidades deseas devolver? (Máx: ${maxReturn})`)
-        if (!qtyStr) return
+        setReturnModalState({
+            isOpen: true,
+            itemId,
+            maxReturn,
+            productName,
+            currentQty: 1 // default
+        })
+        setReturnQtyInput('1')
+    }
 
-        const qty = parseInt(qtyStr)
-        if (isNaN(qty) || qty <= 0 || qty > maxReturn) {
-            alert("Cantidad inválida.")
+    async function processPartialReturn() {
+        const { itemId, maxReturn } = returnModalState
+        const qty = parseInt(returnQtyInput)
+
+        if (!itemId || isNaN(qty) || qty <= 0 || qty > maxReturn) {
+            toast.error("Cantidad inválida.")
             return
         }
-
-        if (!confirm(`¿Confirmas devolver ${qty} unidad(es)? Esto sumará stock al inventario.`)) return
 
         setLoading(true)
         try {
@@ -283,15 +308,17 @@ export default function PedidoDetallePage() {
 
             if (error) throw error
 
-            alert("Devolución procesada correctamente")
+            toast.success("Devolución procesada correctamente")
+            setReturnModalState(prev => ({ ...prev, isOpen: false }))
             fetchPedido()
         } catch (error: any) {
             console.error("Error devolución:", error)
-            alert("Error al procesar devolución: " + error.message)
+            toast.error("Error al procesar devolución: " + error.message)
         } finally {
             setLoading(false)
         }
     }
+
 
     async function handleUpdateStatus() {
         if (!pedido) return
@@ -301,11 +328,11 @@ export default function PedidoDetallePage() {
             await updatePedidoStatusWithStock({
                 pedidoId: Number(id),
                 nextStatus: status,
-                stockDescontado: Boolean((pedido as any)?.stock_descontado),
+                stockDescontado: Boolean(pedido?.stock_descontado),
             })
 
             await logAction('Cambio de Estado', `De ${oldStatus} a ${status}`)
-            alert("Estado actualizado correctamente")
+            toast.success(`Estado actualizado a ${status}`)
             fetchPedido()
         } catch (err: any) {
             console.error("Error updating status:", err)
@@ -313,6 +340,7 @@ export default function PedidoDetallePage() {
         }
         setUpdating(false)
     }
+
 
     const [uploadingGuide, setUploadingGuide] = useState(false)
 
@@ -347,21 +375,18 @@ export default function PedidoDetallePage() {
             if (updateError) throw updateError
 
             fetchPedido()
-            alert("Guía subida correctamente")
+            toast.success("Guía subida correctamente")
         } catch (error: any) {
             console.error("Error uploading guide:", error)
-            alert("Error al subir guía: " + error.message)
+            toast.error("Error al subir guía: " + error.message)
         } finally {
             setUploadingGuide(false)
         }
     }
 
-    async function handleDeleteGuide() {
-        if (!confirm("¿Seguró que deseas eliminar la guía?")) return
+    async function performDeleteGuide() {
         setUploadingGuide(true)
         try {
-            // We only clear the URL from the DB for now. 
-            // Deleting from storage requires parsing the path which we can skip for MVP simplicity or implement if needed.
             const { error } = await supabase
                 .from('pedidos')
                 .update({ guia_archivo_url: null })
@@ -369,22 +394,26 @@ export default function PedidoDetallePage() {
 
             if (error) throw error
             fetchPedido()
+            toast.success("Guía eliminada")
         } catch (error: any) {
-            alert("Error al eliminar: " + error.message)
+            toast.error("Error al eliminar: " + error.message)
         } finally {
             setUploadingGuide(false)
+            setConfirmDeleteGuideOpen(false)
         }
     }
+
 
     const [uploadingPayment, setUploadingPayment] = useState(false)
 
     async function handleUploadPayment(e: React.ChangeEvent<HTMLInputElement>) {
         if (!e.target.files || e.target.files.length === 0) return
+        if (!pedido) return
 
         // Check current count
         const currentFiles = pedido.comprobante_pago_url || []
         if (currentFiles.length >= 2) {
-            alert("Solo puedes subir máximo 2 comprobantes.")
+            toast.error("Solo puedes subir máximo 2 comprobantes.")
             return
         }
 
@@ -420,10 +449,10 @@ export default function PedidoDetallePage() {
             if (updateError) throw updateError
 
             fetchPedido()
-            alert("Comprobante subido correctamente")
+            toast.success("Comprobante subido correctamente")
         } catch (error: any) {
             console.error("Error uploading payment:", error)
-            alert("Error al subir comprobante: " + error.message)
+            toast.error("Error al subir comprobante: " + error.message)
         } finally {
             setUploadingPayment(false)
             // Reset input
@@ -431,12 +460,13 @@ export default function PedidoDetallePage() {
         }
     }
 
-    async function handleDeletePayment(indexToDelete: number) {
-        if (!confirm("¿Seguró que deseas eliminar este comprobante?")) return
+    async function performDeletePayment() {
+        if (confirmDeletePaymentIndex === null || !pedido) return
+
         setUploadingPayment(true)
         try {
             const currentFiles = pedido.comprobante_pago_url || []
-            const updatedList = currentFiles.filter((_: any, idx: number) => idx !== indexToDelete)
+            const updatedList = currentFiles.filter((_: any, idx: number) => idx !== confirmDeletePaymentIndex)
 
             const { error } = await supabase
                 .from('pedidos')
@@ -445,12 +475,15 @@ export default function PedidoDetallePage() {
 
             if (error) throw error
             fetchPedido()
+            toast.success("Comprobante eliminado")
         } catch (error: any) {
-            alert("Error al eliminar: " + error.message)
+            toast.error("Error al eliminar: " + error.message)
         } finally {
             setUploadingPayment(false)
+            setConfirmDeletePaymentIndex(null)
         }
     }
+
 
     if (guard.loading) return <div className="p-10">Cargando...</div>
     if (guard.accessDenied) return <AccessDenied />
@@ -505,14 +538,57 @@ export default function PedidoDetallePage() {
                 </div>
             </div>
 
+            {/* Stepper Visual */}
+            <div className="w-full bg-white border rounded-lg p-6 overflow-hidden">
+                <div className="relative flex items-center justify-between w-full max-w-2xl mx-auto">
+                    {/* Line Background */}
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-100 -z-0"></div>
+
+                    {/* Steps */}
+                    {['Pendiente', 'Confirmado', 'Enviado', 'Entregado'].map((stepStatus, index) => {
+                        const allStatuses = ['Pendiente', 'Confirmado', 'Enviado', 'Entregado']
+                        const currentIndex = allStatuses.indexOf(pedido.status)
+                        const stepIndex = allStatuses.indexOf(stepStatus)
+
+                        const isCompleted = stepIndex <= currentIndex
+                        const isCurrent = stepIndex === currentIndex
+                        const isCancelled = pedido.status === 'Fallido' || pedido.status === 'Cancelado'
+
+                        let circleClass = "bg-white border-2 border-gray-200 text-gray-400"
+                        let textClass = "text-gray-400"
+
+                        if (isCancelled) {
+                            circleClass = "bg-red-50 border-2 border-red-200 text-red-400"
+                            textClass = "text-red-400"
+                        } else if (isCompleted) {
+                            circleClass = "bg-green-600 border-green-600 text-white"
+                            textClass = "text-green-600 font-medium"
+                        }
+
+                        return (
+                            <div key={stepStatus} className="relative z-10 flex flex-col items-center gap-2 bg-white px-2">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 ${circleClass}`}>
+                                    {isCompleted && !isCancelled ? <Check className="w-5 h-5" /> : <span>{index + 1}</span>}
+                                </div>
+                                <span className={`text-xs ${textClass}`}>{stepStatus}</span>
+                            </div>
+                        )
+                    })}
+                </div>
+                {/* Cancelled Alert in Stepper */}
+                {(pedido.status === 'Fallido' || pedido.status === 'Cancelado') && (
+                    <div className="mt-4 text-center text-red-600 bg-red-50 p-2 rounded text-sm font-medium">
+                        ⛔ Pedido Cancelado / Fallido
+                    </div>
+                )}
+            </div>
+
             {/* Locked Notice */}
             {isLocked && (
                 <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-4 rounded-r shadow-sm">
                     <div className="flex">
                         <div className="flex-shrink-0">
-                            <svg className="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                            </svg>
+                            <AlertCircle className="h-5 w-5 text-amber-400" />
                         </div>
                         <div className="ml-3">
                             <p className="text-sm text-amber-700">
@@ -549,7 +625,7 @@ export default function PedidoDetallePage() {
                                             <p className="text-xs text-gray-400">Variante: {item.variante_nombre}</p>
                                         )}
                                         {/* Partial Return Badge */}
-                                        {item.cantidad_devuelta > 0 && (
+                                        {(item.cantidad_devuelta || 0) > 0 && (
                                             <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 mt-1">
                                                 Devuelto: {item.cantidad_devuelta}
                                             </span>
@@ -566,10 +642,11 @@ export default function PedidoDetallePage() {
                                                 size="sm"
                                                 className="h-6 px-2 text-[10px] text-gray-400 hover:text-red-600 hover:bg-red-50"
                                                 title="Devolver parcialmente"
-                                                onClick={() => handlePartialReturn(item.id, item.cantidad, item.cantidad_devuelta || 0)}
+                                                onClick={() => openReturnDialog(item.id, item.cantidad, item.cantidad_devuelta || 0, item.productos?.nombre || 'Producto')}
                                             >
                                                 <RotateCcw className="h-3 w-3 mr-1" /> Devolver
                                             </Button>
+
                                         )}
                                     </div>
                                 </div>
@@ -583,10 +660,10 @@ export default function PedidoDetallePage() {
                                 <span>{formatCurrency(pedido.subtotal || pedido.total)}</span>
                             </div>
 
-                            {pedido.descuento > 0 && (
+                            {(pedido.descuento || 0) > 0 && (
                                 <div className="flex justify-between items-center text-sm text-green-600">
                                     <span>Descuento {pedido.cupon_codigo ? `(${pedido.cupon_codigo})` : ''}</span>
-                                    <span>- {formatCurrency(pedido.descuento)}</span>
+                                    <span>- {formatCurrency(pedido.descuento || 0)}</span>
                                 </div>
                             )}
 
@@ -847,7 +924,7 @@ export default function PedidoDetallePage() {
                                     <Button variant="outline" className="flex-1 gap-2" onClick={() => window.open(pedido.guia_archivo_url || '', '_blank')}>
                                         <ExternalLink className="h-4 w-4" /> Ver
                                     </Button>
-                                    <Button variant="outline" className="flex-none text-red-600 hover:text-red-700 hover:bg-red-50" onClick={handleDeleteGuide} disabled={isLocked}>
+                                    <Button variant="outline" className="flex-none text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => setConfirmDeleteGuideOpen(true)} disabled={isLocked}>
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
                                 </div>
@@ -921,7 +998,7 @@ export default function PedidoDetallePage() {
                                                     <Button variant="outline" size="sm" className="flex-1 h-8 text-xs" onClick={() => window.open(url, '_blank')}>
                                                         Ver Voucher
                                                     </Button>
-                                                    <Button variant="outline" size="sm" className="flex-none h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => handleDeletePayment(index)} disabled={isLocked}>
+                                                    <Button variant="outline" size="sm" className="flex-none h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => setConfirmDeletePaymentIndex(index)} disabled={isLocked}>
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
                                                 </div>
@@ -1001,24 +1078,93 @@ export default function PedidoDetallePage() {
                     )}
                 </div>
             </div>
+
+            {/* --- Dialogs --- */}
+
+            {/* 1. Delete Guide Confirmation */}
+            <Dialog open={confirmDeleteGuideOpen} onOpenChange={setConfirmDeleteGuideOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Eliminar Guía</DialogTitle>
+                    </DialogHeader>
+                    <p className="py-4 text-gray-500">¿Estás seguro que deseas eliminar el archivo de la guía de remisión?</p>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setConfirmDeleteGuideOpen(false)}>Cancelar</Button>
+                        <Button variant="destructive" onClick={performDeleteGuide}>Eliminar</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* 2. Delete Payment Confirmation */}
+            <Dialog open={confirmDeletePaymentIndex !== null} onOpenChange={(open) => !open && setConfirmDeletePaymentIndex(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Eliminar Comprobante</DialogTitle>
+                    </DialogHeader>
+                    <p className="py-4 text-gray-500">¿Estás seguro que deseas eliminar este comprobante de pago?</p>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setConfirmDeletePaymentIndex(null)}>Cancelar</Button>
+                        <Button variant="destructive" onClick={performDeletePayment}>Eliminar</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* 3. Partial Return Dialog */}
+            <Dialog open={returnModalState.isOpen} onOpenChange={(open) => setReturnModalState(prev => ({ ...prev, isOpen: open }))}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Devolución Parcial</DialogTitle>
+                    </DialogHeader>
+
+                    <div className="py-4 space-y-4">
+                        <div className="bg-blue-50 p-3 rounded text-sm text-blue-700">
+                            Producto: <strong>{returnModalState.productName}</strong><br />
+                            Máximo disponible para devolver: <strong>{returnModalState.maxReturn}</strong>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>Cantidad a devolver</Label>
+                            <Input
+                                type="number"
+                                min="1"
+                                max={returnModalState.maxReturn}
+                                value={returnQtyInput}
+                                onChange={(e) => setReturnQtyInput(e.target.value)}
+                            />
+                            <p className="text-xs text-gray-400">
+                                Esta acción sumará el stock al inventario automáticamente.
+                            </p>
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setReturnModalState(prev => ({ ...prev, isOpen: false }))}>Cancelar</Button>
+                        <Button onClick={processPartialReturn}>
+                            Confirmar Devolución
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
         </div >
     )
 }
 
 function StatusBadge({ status }: { status: string }) {
-    const styles: any = {
+    const styles: Record<string, string> = {
         'Pendiente': 'bg-yellow-100 text-yellow-800 border-yellow-200',
         'Confirmado': 'bg-blue-100 text-blue-800 border-blue-200',
+        'Enviado': 'bg-purple-100 text-purple-800 border-purple-200',
         'Entregado': 'bg-green-100 text-green-800 border-green-200',
         'Cancelado': 'bg-red-100 text-red-800 border-red-200',
+        'Fallido': 'bg-red-100 text-red-800 border-red-200',
     }
-    return (
-        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${styles[status] || 'bg-gray-100'}`}>
-            {status}
-        </span>
-    )
-}
 
-function ShoppingBagIcon({ className }: any) {
-    return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>
+    const defaultStyle = 'bg-gray-100 text-gray-800 border-gray-200'
+
+    return (
+        <Badge variant="outline" className={`${styles[status] || defaultStyle} border`}>
+            {status}
+        </Badge>
+    )
 }

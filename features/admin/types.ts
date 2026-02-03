@@ -22,6 +22,7 @@ export type PedidoRow = {
   status: string
   pago_status?: string | null
   created_at: string
+  updated_at?: string | null
   asignado_a?: string | null
   fecha_asignacion?: string | null
   stock_descontado?: boolean | null
@@ -52,6 +53,8 @@ export type PedidoItemRow = {
   producto_variante_id?: number | null
   cantidad: number
   cantidad_devuelta?: number | null
+  variante_nombre?: string | null
+  precio_unitario?: number | null
   productos?: { nombre?: string | null; precio?: number | null; imagen_url?: string | null } | null
 }
 
