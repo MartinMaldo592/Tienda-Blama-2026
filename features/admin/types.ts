@@ -42,6 +42,7 @@ export type PedidoRow = {
   metodo_envio?: string | null
   guia_archivo_url?: string | null
   comprobante_pago_url?: string[] | null
+  codigo_seguimiento?: string | null
 }
 
 export type PedidoItemRow = {

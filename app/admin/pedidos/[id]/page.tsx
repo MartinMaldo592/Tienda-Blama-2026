@@ -14,7 +14,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { ArrowLeft, MapPin, Phone, User, Calendar, CreditCard, Save, UserCheck, MessageCircle, FileUp, ExternalLink, Trash2 } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { ArrowLeft, MapPin, Phone, User, Calendar, CreditCard, Save, UserCheck, MessageCircle, FileUp, ExternalLink, Trash2, Pencil, Check } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidoDetail, updatePedidoStatusWithStock } from "@/features/admin"
 import { supabase } from "@/lib/supabaseClient"
@@ -151,6 +154,86 @@ export default function PedidoDetallePage() {
             detalles
         })
         fetchLogs()
+    }
+
+    // --- Tracking Code Logic ---
+    const [trackingCode, setTrackingCode] = useState("")
+    const [savingTracking, setSavingTracking] = useState(false)
+
+    // --- Client Edit Logic ---
+    const [isEditClientOpen, setIsEditClientOpen] = useState(false)
+    const [clientForm, setClientForm] = useState({
+        nombre: '',
+        dni: '',
+        telefono: '',
+        direccion: '',
+        distrito: '',
+        provincia: '',
+        departamento: '',
+        referencia: ''
+    })
+
+    useEffect(() => {
+        if (pedido) {
+            setTrackingCode(pedido.codigo_seguimiento || "")
+            setClientForm({
+                nombre: pedido.nombre_contacto || pedido.clientes?.nombre || '',
+                dni: pedido.dni_contacto || pedido.clientes?.dni || '',
+                telefono: pedido.telefono_contacto || pedido.clientes?.telefono || '',
+                direccion: pedido.direccion_calle || pedido.clientes?.direccion || '',
+                distrito: pedido.distrito || '',
+                provincia: pedido.provincia || '',
+                departamento: pedido.departamento || '',
+                referencia: pedido.referencia_direccion || ''
+            })
+        }
+    }, [pedido])
+
+    async function handleSaveTracking() {
+        setSavingTracking(true)
+        try {
+            const { error } = await supabase
+                .from('pedidos')
+                .update({ codigo_seguimiento: trackingCode })
+                .eq('id', id)
+
+            if (error) throw error
+
+            await logAction('Tracking Actualizado', `Código: ${trackingCode}`)
+            alert("Código de seguimiento guardado")
+            fetchPedido()
+        } catch (error: any) {
+            alert("Error guardando tracking: " + error.message)
+        } finally {
+            setSavingTracking(false)
+        }
+    }
+
+    async function handleSaveClientData() {
+        try {
+            const { error } = await supabase
+                .from('pedidos')
+                .update({
+                    nombre_contacto: clientForm.nombre,
+                    dni_contacto: clientForm.dni,
+                    telefono_contacto: clientForm.telefono,
+                    direccion_calle: clientForm.direccion,
+                    distrito: clientForm.distrito,
+                    provincia: clientForm.provincia,
+                    departamento: clientForm.departamento,
+                    referencia_direccion: clientForm.referencia
+                })
+                .eq('id', id)
+
+            if (error) throw error
+
+            await logAction('Datos Cliente Editados', `Se actualizaron datos de entrega/contacto`)
+            alert("Datos actualizados correctamente")
+            setIsEditClientOpen(false)
+            fetchPedido()
+        } catch (error: any) {
+            alert("Error actualizando datos: " + error.message)
+        }
     }
 
     async function handleUpdateStatus() {
@@ -466,9 +549,65 @@ export default function PedidoDetallePage() {
                 {/* Right Column: Customer Info */}
                 <div className="space-y-6">
                     <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">
-                        <h2 className="font-semibold text-lg mb-2 flex items-center gap-2">
-                            <User className="h-5 w-5" /> Cliente
-                        </h2>
+                        <div className="flex justify-between items-center mb-2">
+                            <h2 className="font-semibold text-lg flex items-center gap-2">
+                                <User className="h-5 w-5" /> Cliente
+                            </h2>
+                            <Dialog open={isEditClientOpen} onOpenChange={setIsEditClientOpen}>
+                                <DialogTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                        <Pencil className="h-4 w-4 text-gray-400 hover:text-blue-600" />
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+                                    <DialogHeader>
+                                        <DialogTitle>Editar Datos del Pedido</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="grid gap-4 py-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label>Nombre</Label>
+                                                <Input value={clientForm.nombre} onChange={e => setClientForm({ ...clientForm, nombre: e.target.value })} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>DNI</Label>
+                                                <Input value={clientForm.dni} onChange={e => setClientForm({ ...clientForm, dni: e.target.value })} />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Teléfono</Label>
+                                            <Input value={clientForm.telefono} onChange={e => setClientForm({ ...clientForm, telefono: e.target.value })} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Dirección</Label>
+                                            <Input value={clientForm.direccion} onChange={e => setClientForm({ ...clientForm, direccion: e.target.value })} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Referencia</Label>
+                                            <Input value={clientForm.referencia} onChange={e => setClientForm({ ...clientForm, referencia: e.target.value })} />
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <div className="space-y-2">
+                                                <Label className="text-xs">Dpto</Label>
+                                                <Input className="text-xs" value={clientForm.departamento} onChange={e => setClientForm({ ...clientForm, departamento: e.target.value })} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs">Prov</Label>
+                                                <Input className="text-xs" value={clientForm.provincia} onChange={e => setClientForm({ ...clientForm, provincia: e.target.value })} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs">Dist</Label>
+                                                <Input className="text-xs" value={clientForm.distrito} onChange={e => setClientForm({ ...clientForm, distrito: e.target.value })} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <DialogFooter>
+                                        <Button onClick={handleSaveClientData}>Guardar Cambios</Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
+
                         <div className="space-y-3">
                             <div>
                                 <p className="text-sm text-gray-500">Nombre</p>
@@ -519,25 +658,66 @@ export default function PedidoDetallePage() {
                             </Badge>
                         </div>
 
-                        <div>
-                            <p className="text-sm text-gray-500">Dirección</p>
-                            <div className="font-medium text-sm mt-1 space-y-1">
-                                {pedido.direccion_calle ? (
-                                    <>
-                                        <p>{pedido.direccion_calle}</p>
-                                        {(pedido.distrito || pedido.departamento || pedido.provincia) && (
-                                            <p className="text-gray-500 text-xs">
-                                                {Array.from(new Set([pedido.distrito, pedido.provincia, pedido.departamento].filter(Boolean))).join(", ")}
-                                            </p>
-                                        )}
-                                        {pedido.referencia_direccion && (
-                                            <p className="text-gray-500 text-xs italic">Ref: {pedido.referencia_direccion}</p>
-                                        )}
-                                    </>
-                                ) : (
-                                    <p>{pedido.clientes?.direccion}</p>
+                        {/* Tracking Code */}
+                        <div className="border-b pb-3">
+                            <div className="flex justify-between items-center mb-1">
+                                <p className="text-sm text-gray-500">Tracking / Clave de Envío</p>
+                                {trackingCode && (
+                                    <a
+                                        href={`https://rastrea.shalom.com.pe/?guia=${trackingCode}`} // Common default for Peru ecommerce handling Shalom
+                                        target="_blank"
+                                        className="text-[10px] text-blue-600 hover:underline flex items-center gap-1"
+                                    >
+                                        Ver en Shalom <ExternalLink className="h-3 w-3" />
+                                    </a>
                                 )}
                             </div>
+                            <div className="flex gap-2">
+                                <Input
+                                    className="h-8 text-sm"
+                                    placeholder="Ej: 8092-2311"
+                                    value={trackingCode}
+                                    onChange={(e) => setTrackingCode(e.target.value)}
+                                />
+                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0 border hover:bg-blue-50 hover:text-blue-600" onClick={handleSaveTracking} disabled={savingTracking}>
+                                    {savingTracking ? <span className="animate-spin">⌛</span> : <Save className="h-4 w-4" />}
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3 pt-1">
+                            <div className="grid grid-cols-2 gap-x-2 gap-y-3">
+                                <div>
+                                    <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Departamento</p>
+                                    <p className="text-sm font-medium text-gray-900">{pedido.departamento || '—'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Provincia</p>
+                                    <p className="text-sm font-medium text-gray-900">{pedido.provincia || '—'}</p>
+                                </div>
+                                <div className="col-span-2">
+                                    <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Distrito</p>
+                                    <p className="text-sm font-medium text-gray-900">{pedido.distrito || '—'}</p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Dirección Exacta</p>
+                                <p className="text-sm font-medium text-gray-900 mt-0.5 break-words">
+                                    {pedido.direccion_calle || pedido.clientes?.direccion || '—'}
+                                </p>
+                            </div>
+
+                            {pedido.referencia_direccion && (
+                                <div className="bg-amber-50 p-3 rounded-lg border border-amber-100">
+                                    <p className="text-[10px] font-bold text-amber-700 mb-1 flex items-center gap-1">
+                                        📌 REFERENCIA
+                                    </p>
+                                    <p className="text-xs text-amber-900 leading-relaxed italic">
+                                        "{pedido.referencia_direccion}"
+                                    </p>
+                                </div>
+                            )}
                         </div>
                         <Button variant="outline" className="w-full text-xs" onClick={() => {
                             const link = pedido.link_ubicacion
