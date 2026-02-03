@@ -51,6 +51,7 @@ export type PedidoItemRow = {
   producto_id: number
   producto_variante_id?: number | null
   cantidad: number
+  cantidad_devuelta?: number | null
   productos?: { nombre?: string | null; precio?: number | null; imagen_url?: string | null } | null
 }
 

@@ -17,7 +17,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, MapPin, Phone, User, Calendar, CreditCard, Save, UserCheck, MessageCircle, FileUp, ExternalLink, Trash2, Pencil, Check } from "lucide-react"
+import { ArrowLeft, MapPin, Phone, User, Calendar, CreditCard, Save, UserCheck, MessageCircle, FileUp, ExternalLink, Trash2, Pencil, Check, RotateCcw } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidoDetail, updatePedidoStatusWithStock } from "@/features/admin"
 import { supabase } from "@/lib/supabaseClient"
@@ -236,6 +236,63 @@ export default function PedidoDetallePage() {
         }
     }
 
+    // --- Locking Logic (Security) ---
+    const isLocked = (() => {
+        if (!pedido || userRole === 'admin') return false
+
+        const terminalStates = ['Entregado', 'Enviado', 'Fallido']
+        if (!terminalStates.includes(pedido.status)) return false
+
+        // Check time: 3 days = 72 hours * 60 * 60 * 1000
+        const updateTime = new Date(pedido.updated_at || pedido.created_at).getTime()
+        const now = Date.now()
+        const threeDaysMs = 3 * 24 * 60 * 60 * 1000
+
+        return (now - updateTime) > threeDaysMs
+    })()
+
+    // --- Partial Return Logic ---
+    async function handlePartialReturn(itemId: number, currentQty: number, alreadyReturned: number) {
+        if (isLocked) return
+
+        const maxReturn = currentQty - alreadyReturned
+        if (maxReturn <= 0) {
+            alert("Este producto ya fue devuelto en su totalidad.")
+            return
+        }
+
+        const qtyStr = prompt(`¿Cuántas unidades deseas devolver? (Máx: ${maxReturn})`)
+        if (!qtyStr) return
+
+        const qty = parseInt(qtyStr)
+        if (isNaN(qty) || qty <= 0 || qty > maxReturn) {
+            alert("Cantidad inválida.")
+            return
+        }
+
+        if (!confirm(`¿Confirmas devolver ${qty} unidad(es)? Esto sumará stock al inventario.`)) return
+
+        setLoading(true)
+        try {
+            const { error } = await supabase.rpc('admin_procesar_devolucion_parcial', {
+                p_item_id: itemId,
+                p_cantidad_a_devolver: qty,
+                p_usuario_nombre: currentUser,
+                p_pedido_id: Number(id)
+            })
+
+            if (error) throw error
+
+            alert("Devolución procesada correctamente")
+            fetchPedido()
+        } catch (error: any) {
+            console.error("Error devolución:", error)
+            alert("Error al procesar devolución: " + error.message)
+        } finally {
+            setLoading(false)
+        }
+    }
+
     async function handleUpdateStatus() {
         if (!pedido) return
         setUpdating(true)
@@ -428,7 +485,7 @@ export default function PedidoDetallePage() {
 
                     <div className="flex gap-2 items-center bg-white p-2 rounded-lg border shadow-sm">
                         <span className="text-sm font-medium">Estado del pedido:</span>
-                        <Select value={status} onValueChange={setStatus}>
+                        <Select value={status} onValueChange={setStatus} disabled={isLocked || updating}>
                             <SelectTrigger className="w-[180px]">
                                 <SelectValue />
                             </SelectTrigger>
@@ -440,13 +497,31 @@ export default function PedidoDetallePage() {
                                 <SelectItem value="Fallido">Fallido / Cancelado</SelectItem>
                             </SelectContent>
                         </Select>
-                        <Button size="sm" onClick={handleUpdateStatus} disabled={updating || status === pedido.status}>
+                        <Button size="sm" onClick={handleUpdateStatus} disabled={isLocked || updating || status === pedido.status}>
                             <Save className="h-4 w-4 mr-2" />
                             Guardar
                         </Button>
                     </div>
                 </div>
             </div>
+
+            {/* Locked Notice */}
+            {isLocked && (
+                <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-4 rounded-r shadow-sm">
+                    <div className="flex">
+                        <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                        <div className="ml-3">
+                            <p className="text-sm text-amber-700">
+                                <strong>Edición Bloqueada:</strong> Este pedido fue finalizado hace más de 3 días. Solo un administrador puede modificarlo.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
@@ -473,10 +548,29 @@ export default function PedidoDetallePage() {
                                         {item.variante_nombre && (
                                             <p className="text-xs text-gray-400">Variante: {item.variante_nombre}</p>
                                         )}
+                                        {/* Partial Return Badge */}
+                                        {item.cantidad_devuelta > 0 && (
+                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 mt-1">
+                                                Devuelto: {item.cantidad_devuelta}
+                                            </span>
+                                        )}
                                     </div>
-                                    <div className="text-right">
+                                    <div className="text-right flex flex-col items-end gap-1">
                                         <p className="font-medium">{formatCurrency((item.precio_unitario || item.productos?.precio || 0) * (item.cantidad || 0))}</p>
                                         <p className="text-xs text-gray-400">{formatCurrency(item.precio_unitario || item.productos?.precio || 0)} c/u</p>
+
+                                        {/* Return Action Button */}
+                                        {!isLocked && (item.cantidad - (item.cantidad_devuelta || 0) > 0) && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-6 px-2 text-[10px] text-gray-400 hover:text-red-600 hover:bg-red-50"
+                                                title="Devolver parcialmente"
+                                                onClick={() => handlePartialReturn(item.id, item.cantidad, item.cantidad_devuelta || 0)}
+                                            >
+                                                <RotateCcw className="h-3 w-3 mr-1" /> Devolver
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
                             ))}
@@ -555,9 +649,11 @@ export default function PedidoDetallePage() {
                             </h2>
                             <Dialog open={isEditClientOpen} onOpenChange={setIsEditClientOpen}>
                                 <DialogTrigger asChild>
-                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                        <Pencil className="h-4 w-4 text-gray-400 hover:text-blue-600" />
-                                    </Button>
+                                    {!isLocked && (
+                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                            <Pencil className="h-4 w-4 text-gray-400 hover:text-blue-600" />
+                                        </Button>
+                                    )}
                                 </DialogTrigger>
                                 <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                                     <DialogHeader>
@@ -617,33 +713,30 @@ export default function PedidoDetallePage() {
                                 <p className="text-sm text-gray-500">DNI</p>
                                 <p className="font-medium">{pedido.dni_contacto || pedido.clientes?.dni || '—'}</p>
                             </div>
-                            <div>
-                                <p className="text-sm text-gray-500">Teléfono</p>
-                                <div className="flex items-center gap-2">
-                                    <Phone className="h-4 w-4 text-gray-400" />
-                                    <a href={`tel:${pedido.telefono_contacto || pedido.clientes?.telefono}`} className="font-medium text-blue-600 hover:underline">
-                                        {pedido.telefono_contacto || pedido.clientes?.telefono}
-                                    </a>
-                                </div>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="w-full mt-2 gap-2 text-green-700 border-green-200 bg-green-50 hover:bg-green-100 hover:text-green-800"
-                                    onClick={() => {
-                                        const phone = pedido.telefono_contacto || pedido.clientes?.telefono
-                                        if (phone) {
-                                            // Ensure clean number and add country code if needed (assuming PE +51)
-                                            const clean = String(phone).replace(/\D/g, '')
-                                            window.open(`https://wa.me/51${clean}`, '_blank')
-                                        }
-                                    }}
-                                >
-                                    <MessageCircle className="h-4 w-4" />
-                                    Chat WhatsApp
-                                </Button>
+                            <div className="flex items-center gap-2">
+                                <Phone className="h-4 w-4 text-gray-400" />
+                                <a href={`tel:${pedido.telefono_contacto || pedido.clientes?.telefono}`} className="font-medium text-blue-600 hover:underline">
+                                    {pedido.telefono_contacto || pedido.clientes?.telefono}
+                                </a>
                             </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full mt-2 gap-2 text-green-700 border-green-200 bg-green-50 hover:bg-green-100 hover:text-green-800"
+                                onClick={() => {
+                                    const phone = pedido.telefono_contacto || pedido.clientes?.telefono
+                                    if (phone) {
+                                        const clean = String(phone).replace(/\D/g, '')
+                                        window.open(`https://wa.me/51${clean}`, '_blank')
+                                    }
+                                }}
+                            >
+                                <MessageCircle className="h-4 w-4" />
+                                Chat WhatsApp
+                            </Button>
                         </div>
                     </div>
+
 
                     <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">
                         <h2 className="font-semibold text-lg mb-2 flex items-center gap-2">
@@ -678,8 +771,9 @@ export default function PedidoDetallePage() {
                                     placeholder="Ej: 8092-2311"
                                     value={trackingCode}
                                     onChange={(e) => setTrackingCode(e.target.value)}
+                                    disabled={isLocked}
                                 />
-                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0 border hover:bg-blue-50 hover:text-blue-600" onClick={handleSaveTracking} disabled={savingTracking}>
+                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0 border hover:bg-blue-50 hover:text-blue-600" onClick={handleSaveTracking} disabled={savingTracking || isLocked}>
                                     {savingTracking ? <span className="animate-spin">⌛</span> : <Save className="h-4 w-4" />}
                                 </Button>
                             </div>
@@ -753,7 +847,7 @@ export default function PedidoDetallePage() {
                                     <Button variant="outline" className="flex-1 gap-2" onClick={() => window.open(pedido.guia_archivo_url || '', '_blank')}>
                                         <ExternalLink className="h-4 w-4" /> Ver
                                     </Button>
-                                    <Button variant="outline" className="flex-none text-red-600 hover:text-red-700 hover:bg-red-50" onClick={handleDeleteGuide}>
+                                    <Button variant="outline" className="flex-none text-red-600 hover:text-red-700 hover:bg-red-50" onClick={handleDeleteGuide} disabled={isLocked}>
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
                                 </div>
@@ -766,7 +860,7 @@ export default function PedidoDetallePage() {
                                     className="hidden"
                                     accept="image/*,.pdf"
                                     onChange={handleUploadGuide}
-                                    disabled={uploadingGuide}
+                                    disabled={uploadingGuide || isLocked}
                                 />
                                 <label htmlFor="guide-upload" className="cursor-pointer flex flex-col items-center gap-2">
                                     <div className="bg-blue-50 p-3 rounded-full text-blue-600">
@@ -827,7 +921,7 @@ export default function PedidoDetallePage() {
                                                     <Button variant="outline" size="sm" className="flex-1 h-8 text-xs" onClick={() => window.open(url, '_blank')}>
                                                         Ver Voucher
                                                     </Button>
-                                                    <Button variant="outline" size="sm" className="flex-none h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => handleDeletePayment(index)}>
+                                                    <Button variant="outline" size="sm" className="flex-none h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => handleDeletePayment(index)} disabled={isLocked}>
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
                                                 </div>
@@ -844,7 +938,7 @@ export default function PedidoDetallePage() {
                                                 className="hidden"
                                                 accept="image/*,.pdf"
                                                 onChange={handleUploadPayment}
-                                                disabled={uploadingPayment}
+                                                disabled={uploadingPayment || isLocked}
                                             />
                                             <label htmlFor="payment-upload" className="cursor-pointer block w-full text-center border border-dashed rounded-lg p-3 hover:bg-gray-50 transition-colors">
                                                 <span className="text-xs font-medium text-blue-600">
