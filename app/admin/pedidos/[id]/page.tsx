@@ -236,6 +236,82 @@ export default function PedidoDetallePage() {
         }
     }
 
+    const [uploadingPayment, setUploadingPayment] = useState(false)
+
+    async function handleUploadPayment(e: React.ChangeEvent<HTMLInputElement>) {
+        if (!e.target.files || e.target.files.length === 0) return
+
+        // Check current count
+        const currentFiles = pedido.comprobante_pago_url || []
+        if (currentFiles.length >= 2) {
+            alert("Solo puedes subir máximo 2 comprobantes.")
+            return
+        }
+
+        const file = e.target.files[0]
+        setUploadingPayment(true)
+
+        try {
+            const fileExt = file.name.split('.').pop()
+            const fileName = `pago_${id}_${Date.now()}.${fileExt}`
+            const filePath = `${fileName}`
+
+            // 1. Upload to Supabase Storage "pagos"
+            const { error: uploadError } = await supabase.storage
+                .from('pagos')
+                .upload(filePath, file)
+
+            if (uploadError) throw uploadError
+
+            // 2. Get Public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('pagos')
+                .getPublicUrl(filePath)
+
+            // 3. Update Pedido Row (Append to Array)
+            // Ideally we do this atomically but for now update via read-modify-write pattern with state
+            const updatedList = [...currentFiles, publicUrl]
+
+            const { error: updateError } = await supabase
+                .from('pedidos')
+                .update({ comprobante_pago_url: updatedList })
+                .eq('id', id)
+
+            if (updateError) throw updateError
+
+            fetchPedido()
+            alert("Comprobante subido correctamente")
+        } catch (error: any) {
+            console.error("Error uploading payment:", error)
+            alert("Error al subir comprobante: " + error.message)
+        } finally {
+            setUploadingPayment(false)
+            // Reset input
+            e.target.value = ''
+        }
+    }
+
+    async function handleDeletePayment(indexToDelete: number) {
+        if (!confirm("¿Seguró que deseas eliminar este comprobante?")) return
+        setUploadingPayment(true)
+        try {
+            const currentFiles = pedido.comprobante_pago_url || []
+            const updatedList = currentFiles.filter((_: any, idx: number) => idx !== indexToDelete)
+
+            const { error } = await supabase
+                .from('pedidos')
+                .update({ comprobante_pago_url: updatedList.length > 0 ? updatedList : null }) // Set to null if empty
+                .eq('id', id)
+
+            if (error) throw error
+            fetchPedido()
+        } catch (error: any) {
+            alert("Error al eliminar: " + error.message)
+        } finally {
+            setUploadingPayment(false)
+        }
+    }
+
     if (guard.loading) return <div className="p-10">Cargando...</div>
     if (guard.accessDenied) return <AccessDenied />
 
@@ -550,6 +626,54 @@ export default function PedidoDetallePage() {
                                         <span className="text-amber-600">⚠ No descontado</span>
                                     }
                                 </p>
+                            </div>
+
+                            <div className="mt-4 pt-4 border-t">
+                                <p className="text-sm text-gray-500 mb-2">Comprobantes de Pago</p>
+
+                                <div className="space-y-3">
+                                    {pedido.comprobante_pago_url && Array.isArray(pedido.comprobante_pago_url) && pedido.comprobante_pago_url.length > 0 ? (
+                                        pedido.comprobante_pago_url.map((url: string, index: number) => (
+                                            <div key={index} className="space-y-2">
+                                                <div className="p-2 border rounded bg-gray-50 flex items-center gap-2">
+                                                    <div className="bg-green-100 p-1.5 rounded text-green-600">
+                                                        <ExternalLink className="h-4 w-4" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-xs font-medium truncate">Voucher {index + 1}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <Button variant="outline" size="sm" className="flex-1 h-8 text-xs" onClick={() => window.open(url, '_blank')}>
+                                                        Ver Voucher
+                                                    </Button>
+                                                    <Button variant="outline" size="sm" className="flex-none h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => handleDeletePayment(index)}>
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : null}
+
+                                    {/* Upload Button - Only show if less than 2 files */}
+                                    {(!pedido.comprobante_pago_url || pedido.comprobante_pago_url.length < 2) && (
+                                        <div className="relative">
+                                            <input
+                                                type="file"
+                                                id="payment-upload"
+                                                className="hidden"
+                                                accept="image/*,.pdf"
+                                                onChange={handleUploadPayment}
+                                                disabled={uploadingPayment}
+                                            />
+                                            <label htmlFor="payment-upload" className="cursor-pointer block w-full text-center border border-dashed rounded-lg p-3 hover:bg-gray-50 transition-colors">
+                                                <span className="text-xs font-medium text-blue-600">
+                                                    {uploadingPayment ? 'Subiendo...' : '+ Subir Voucher/Foto'}
+                                                </span>
+                                            </label>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
