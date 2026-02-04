@@ -1,4 +1,4 @@
-# 📘 Manual de Operaciones - Sistema Administrativo Tienda Blama
+    # 📘 Manual de Operaciones - Sistema Administrativo Tienda Blama
 
 Este documento sirve como guía de capacitación para el personal encargado de gestionar los pedidos en el panel administrativo.
 

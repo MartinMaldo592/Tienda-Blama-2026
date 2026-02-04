@@ -594,7 +594,7 @@ export default function PedidoDetallePage() {
                     <OrderFileCard
                         title="Evidencia de Entrega"
                         icon={<Check className="h-5 w-5" />}
-                        fileUrl={pedido.evidencia_entrega_url}
+                        fileUrl={pedido.evidencia_entrega_url || null}
                         isLocked={isLocked}
                         isUploading={deliveryUpload.isUploading}
                         onUpload={(file) => deliveryUpload.upload(file, `entrega_${id}_${Date.now()}.${file.name.split('.').pop()}`)}
