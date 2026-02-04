@@ -983,7 +983,7 @@ export default function ProductoDetalleClient() {
                                 setQuickBuyOpen(true)
                             }}
                         >
-                            COMPRAR AHORA <ChevronRight className="h-5 w-5 animate-pulse" />
+                            REALIZAR PEDIDO <ChevronRight className="h-5 w-5 animate-pulse" />
                         </Button>
                     </div>
                 </div>
