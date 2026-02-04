@@ -178,7 +178,7 @@ export function OrderShippingCard({ pedido, isLocked, onLogAction, onRefresh }: 
                         onClick={() => {
                             // Logic determining URL based on method could go here
                             // Defaulting to generic tracking for now or Shalom logic if known
-                            window.open(`https://rastrea.shalom.com.pe/rastrear?orden=${shalomOrder}&codigo=${shalomPass}`, '_blank')
+                            window.open(`https://shalom.com.pe/rastrea`, '_blank')
                         }}
                     >
                         <Truck className="h-4 w-4" />
