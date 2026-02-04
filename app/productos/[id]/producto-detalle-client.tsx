@@ -548,7 +548,7 @@ export default function ProductoDetalleClient() {
                                                     setQuickBuyOpen(true)
                                                 }}
                                             >
-                                                <span className="drop-shadow-sm">COMPRAR AHORA</span>
+                                                <span className="drop-shadow-sm">REALIZAR PEDIDO</span>
                                                 <ChevronRight className="h-5 w-5 animate-pulse" />
                                             </Button>
                                             <Button className="w-full gap-2 h-11" onClick={() => {
@@ -629,7 +629,7 @@ export default function ProductoDetalleClient() {
                                             setQuickBuyOpen(true)
                                         }}
                                     >
-                                        <span className="drop-shadow-sm">COMPRAR AHORA</span>
+                                        <span className="drop-shadow-sm">REALIZAR PEDIDO</span>
                                         <ChevronRight className="h-5 w-5 animate-pulse" />
                                     </Button>
                                 )}
