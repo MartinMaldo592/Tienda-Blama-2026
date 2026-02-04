@@ -175,6 +175,8 @@ export default function PedidoDetallePage() {
 
     // --- Tracking Code Logic ---
     const [trackingCode, setTrackingCode] = useState("")
+    const [shalomOrder, setShalomOrder] = useState("")
+    const [shalomPass, setShalomPass] = useState("")
     const [savingTracking, setSavingTracking] = useState(false)
 
     // --- Client Edit Logic ---
@@ -193,6 +195,15 @@ export default function PedidoDetallePage() {
     useEffect(() => {
         if (pedido) {
             setTrackingCode(pedido.codigo_seguimiento || "")
+            if (pedido.metodo_envio === 'provincia' && pedido.codigo_seguimiento) {
+                const parts = (pedido.codigo_seguimiento || "").split('|')
+                setShalomOrder(parts[0] || "")
+                setShalomPass(parts[1] || "")
+            } else {
+                setShalomOrder("")
+                setShalomPass("")
+            }
+
             setClientForm({
                 nombre: pedido.nombre_contacto || pedido.clientes?.nombre || '',
                 dni: pedido.dni_contacto || pedido.clientes?.dni || '',
@@ -209,14 +220,20 @@ export default function PedidoDetallePage() {
     async function handleSaveTracking() {
         setSavingTracking(true)
         try {
+            let infoToSave = trackingCode
+            if (pedido?.metodo_envio === 'provincia') {
+                infoToSave = `${shalomOrder}|${shalomPass}`
+            }
+
             const { error } = await supabase
                 .from('pedidos')
-                .update({ codigo_seguimiento: trackingCode })
+                .update({ codigo_seguimiento: infoToSave })
                 .eq('id', id)
 
             if (error) throw error
 
-            await logAction('Tracking Actualizado', `Código: ${trackingCode}`)
+            setTrackingCode(infoToSave) // Update local single state to match
+            await logAction('Tracking Actualizado', `Código: ${infoToSave}`)
             toast.success("Código de seguimiento guardado")
             fetchPedido()
         } catch (error: any) {
@@ -851,7 +868,7 @@ export default function PedidoDetallePage() {
                                 <p className="text-sm text-gray-500">Tracking / Clave de Envío</p>
                                 {trackingCode && (
                                     <a
-                                        href={`https://rastrea.shalom.com.pe/?guia=${trackingCode}`} // Common default for Peru ecommerce handling Shalom
+                                        href="https://rastrea.shalom.com.pe/"
                                         target="_blank"
                                         className="text-[10px] text-blue-600 hover:underline flex items-center gap-1"
                                     >
@@ -859,18 +876,50 @@ export default function PedidoDetallePage() {
                                     </a>
                                 )}
                             </div>
-                            <div className="flex gap-2">
-                                <Input
-                                    className="h-8 text-sm"
-                                    placeholder="Ej: 8092-2311"
-                                    value={trackingCode}
-                                    onChange={(e) => setTrackingCode(e.target.value)}
-                                    disabled={isLocked}
-                                />
-                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0 border hover:bg-blue-50 hover:text-blue-600" onClick={handleSaveTracking} disabled={savingTracking || isLocked}>
-                                    {savingTracking ? <span className="animate-spin">⌛</span> : <Save className="h-4 w-4" />}
-                                </Button>
-                            </div>
+
+                            {pedido.metodo_envio === 'provincia' ? (
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] text-gray-400 font-bold uppercase">Nº Orden</label>
+                                        <Input
+                                            className="h-8 text-sm"
+                                            placeholder="Ej: 9560819"
+                                            value={shalomOrder}
+                                            onChange={(e) => setShalomOrder(e.target.value)}
+                                            disabled={isLocked}
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] text-gray-400 font-bold uppercase">Código</label>
+                                        <div className="flex gap-2">
+                                            <Input
+                                                className="h-8 text-sm"
+                                                placeholder="Ej: C7P9"
+                                                value={shalomPass}
+                                                onChange={(e) => setShalomPass(e.target.value)}
+                                                disabled={isLocked}
+                                            />
+                                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 border hover:bg-blue-50 hover:text-blue-600 shrink-0" onClick={handleSaveTracking} disabled={savingTracking || isLocked}>
+                                                {savingTracking ? <span className="animate-spin">⌛</span> : <Save className="h-4 w-4" />}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex gap-2">
+                                    <Input
+                                        className="h-8 text-sm"
+                                        placeholder="Ej: 8092-2311"
+                                        value={trackingCode}
+                                        onChange={(e) => setTrackingCode(e.target.value)}
+                                        disabled={isLocked}
+                                    />
+                                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0 border hover:bg-blue-50 hover:text-blue-600" onClick={handleSaveTracking} disabled={savingTracking || isLocked}>
+                                        {savingTracking ? <span className="animate-spin">⌛</span> : <Save className="h-4 w-4" />}
+                                    </Button>
+                                </div>
+                            )}
+
                         </div>
 
                         <div className="space-y-3 pt-1">
