@@ -345,6 +345,13 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 onSubmit={handleSubmit}
                 className="flex flex-col h-full outline-none"
             >
+                {/* 
+                    Hidden input to trap auto-focus on mobile browsers. 
+                    This prevents the keyboard from popping up immediately 
+                    because this input is off-screen/hidden but stealing the initial focus event.
+                */}
+                <input type="text" className="sr-only" autoFocus readOnly />
+
                 <div className="p-4 border-b flex items-center gap-2 bg-popover">
                     <Button type="button" variant="ghost" size="icon" onClick={onBack} disabled={isSubmitting} className="h-8 w-8 hover:bg-popover/80">
                         <ArrowLeft className="h-4 w-4" />
