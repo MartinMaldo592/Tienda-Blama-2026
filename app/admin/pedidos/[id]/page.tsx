@@ -195,10 +195,10 @@ export default function PedidoDetallePage() {
     useEffect(() => {
         if (pedido) {
             setTrackingCode(pedido.codigo_seguimiento || "")
-            if (pedido.metodo_envio === 'provincia' && pedido.codigo_seguimiento) {
-                const parts = (pedido.codigo_seguimiento || "").split('|')
-                setShalomOrder(parts[0] || "")
-                setShalomPass(parts[1] || "")
+            if (pedido.metodo_envio === 'provincia') {
+                // Prioritize new columns, fallback to splitting legacy field
+                setShalomOrder(pedido.shalom_orden || (pedido.codigo_seguimiento || "").split('|')[0] || "")
+                setShalomPass(pedido.shalom_clave || (pedido.codigo_seguimiento || "").split('|')[1] || "")
             } else {
                 setShalomOrder("")
                 setShalomPass("")
@@ -220,20 +220,34 @@ export default function PedidoDetallePage() {
     async function handleSaveTracking() {
         setSavingTracking(true)
         try {
-            let infoToSave = trackingCode
+            let updatePayload: any = {}
+            let logMsg = ""
+
             if (pedido?.metodo_envio === 'provincia') {
-                infoToSave = `${shalomOrder}|${shalomPass}`
+                const combined = `${shalomOrder}|${shalomPass}`
+                updatePayload = {
+                    codigo_seguimiento: combined, // Maintain legacy for compatibility
+                    shalom_orden: shalomOrder,
+                    shalom_clave: shalomPass
+                }
+                logMsg = `Shalom: Orden ${shalomOrder}, Clave ${shalomPass}`
+            } else {
+                updatePayload = {
+                    codigo_seguimiento: trackingCode
+                }
+                logMsg = `Código: ${trackingCode}`
             }
 
             const { error } = await supabase
                 .from('pedidos')
-                .update({ codigo_seguimiento: infoToSave })
+                .update(updatePayload)
                 .eq('id', id)
 
             if (error) throw error
 
-            setTrackingCode(infoToSave) // Update local single state to match
-            await logAction('Tracking Actualizado', `Código: ${infoToSave}`)
+            const displayCode = updatePayload.codigo_seguimiento
+            setTrackingCode(displayCode)
+            await logAction('Tracking Actualizado', logMsg)
             toast.success("Código de seguimiento guardado")
             fetchPedido()
         } catch (error: any) {

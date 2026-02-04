@@ -44,6 +44,8 @@ export type PedidoRow = {
   guia_archivo_url?: string | null
   comprobante_pago_url?: string[] | null
   codigo_seguimiento?: string | null
+  shalom_orden?: string | null
+  shalom_clave?: string | null
 }
 
 export type PedidoItemRow = {
