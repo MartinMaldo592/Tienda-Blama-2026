@@ -114,9 +114,26 @@ export function OrderCustomerCard({ pedido, isLocked, isEditOpen, onEditOpenChan
                     <p className="text-sm text-gray-500">Dirección de Entrega</p>
                     <p className="font-medium text-sm mt-1">{pedido.direccion_calle || pedido.clientes?.direccion}</p>
                     {pedido.referencia_direccion && <p className="text-xs text-gray-500 mt-1">Ref: {pedido.referencia_direccion}</p>}
-                    <p className="text-xs text-gray-500 mt-1">
-                        {[pedido.distrito, pedido.provincia, pedido.departamento].filter(Boolean).join(', ')}
-                    </p>
+                    <div className="mt-2 grid grid-cols-2 gap-x-2 gap-y-1">
+                        {pedido.departamento && (
+                            <div className="col-span-2 sm:col-span-1">
+                                <span className="text-[10px] uppercase text-gray-400 font-bold block">Departamento</span>
+                                <span className="text-xs text-gray-700">{pedido.departamento}</span>
+                            </div>
+                        )}
+                        {pedido.provincia && (
+                            <div className="col-span-2 sm:col-span-1">
+                                <span className="text-[10px] uppercase text-gray-400 font-bold block">Provincia</span>
+                                <span className="text-xs text-gray-700">{pedido.provincia}</span>
+                            </div>
+                        )}
+                        {pedido.distrito && (
+                            <div className="col-span-2">
+                                <span className="text-[10px] uppercase text-gray-400 font-bold block">Distrito</span>
+                                <span className="text-xs text-gray-700">{pedido.distrito}</span>
+                            </div>
+                        )}
+                    </div>
                 </div>
                 {pedido.metodo_envio && (
                     <div className="mt-2 pt-2 border-t">
