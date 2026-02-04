@@ -16,7 +16,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, MapPin, Phone, User, Calendar, CreditCard, Save, UserCheck, MessageCircle, FileUp, ExternalLink, Trash2, Pencil, Check, RotateCcw, AlertCircle, ShoppingBagIcon } from "lucide-react"
+import { ArrowLeft, MapPin, Phone, User, Calendar, CreditCard, Save, UserCheck, MessageCircle, FileUp, ExternalLink, Trash2, Pencil, Check, RotateCcw, AlertCircle, ShoppingBagIcon, Dices } from "lucide-react"
 import { toast } from "sonner"
 import { formatCurrency } from "@/lib/utils"
 // import types
@@ -1022,6 +1022,20 @@ export default function PedidoDetallePage() {
                                             onChange={(e) => setShalomPin(e.target.value)}
                                             disabled={isLocked}
                                         />
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="h-8 w-8 p-0 border-dashed text-gray-400 hover:text-blue-600 hover:border-blue-400"
+                                            title="Generar Clave Aleatoria"
+                                            onClick={() => {
+                                                if (isLocked) return
+                                                const randomPin = Math.floor(1000 + Math.random() * 9000).toString()
+                                                setShalomPin(randomPin)
+                                            }}
+                                            disabled={isLocked}
+                                        >
+                                            <Dices className="h-4 w-4" />
+                                        </Button>
                                         <Button size="sm" variant="ghost" className="h-8 w-8 p-0 border hover:bg-blue-50 hover:text-blue-600 shrink-0" onClick={handleSaveTracking} disabled={savingTracking || isLocked}>
                                             {savingTracking ? <span className="animate-spin">⌛</span> : <Save className="h-4 w-4" />}
                                         </Button>
