@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { useState } from "react"
 
+import { CommandMenu } from "@/components/admin/command-menu"
+
 // Force redeploy
 export default function AdminLayout({
     children,
@@ -69,10 +71,19 @@ export default function AdminLayout({
                         CRM Pro
                     </span>
                 </div>
+                <div className="flex items-center">
+                    <CommandMenu />
+                </div>
             </div>
 
             {/* Main Content */}
             <main className="flex-1 w-full lg:pl-64 pt-20 lg:pt-0">
+                <div className="hidden lg:flex items-center justify-between h-16 px-8 border-b bg-white/50 backdrop-blur-sm sticky top-0 z-40">
+                    <div className="flex items-center gap-4 w-full">
+                        <CommandMenu />
+                    </div>
+                </div>
+
                 {/* pt-20 on mobile to account for fixed header, p-8 on desktop */}
                 <div className="p-4 lg:p-8 max-w-7xl mx-auto">
                     {children}

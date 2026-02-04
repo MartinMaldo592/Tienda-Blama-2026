@@ -26,11 +26,14 @@ import { Eye, Search, UserPlus, RefreshCw, User, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidosForRole } from "@/features/admin"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { PedidoRow, ProfileRow } from "@/features/admin/types"
 
 export default function PedidosPage() {
     const queryClient = useQueryClient()
     const [userId, setUserId] = useState<string>('')
     const [filterWorker, setFilterWorker] = useState<string>('all')
+    const [searchTerm, setSearchTerm] = useState('')
+    const [statusFilter, setStatusFilter] = useState('all')
 
     const guard = useRoleGuard({ allowedRoles: ["admin", "worker"] })
     const userRole = String(guard.role || 'worker')
@@ -55,6 +58,33 @@ export default function PedidosPage() {
         enabled: userRole === 'admin' && !guard.loading,
     })
 
+    // Filter pedidos
+    const filteredPedidos = pedidos.filter((p: PedidoRow) => {
+        // 1. Worker Filter
+        if (userRole === 'admin' && filterWorker !== 'all') {
+            if (filterWorker === 'unassigned' && p.asignado_a) return false
+            if (filterWorker !== 'unassigned' && p.asignado_a !== filterWorker) return false
+        }
+
+        // 2. Status Filter
+        if (statusFilter !== 'all' && p.status !== statusFilter) return false
+
+        // 3. Search Term (ID, Client Name, Phone, DNI)
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase()
+            const id = p.id.toString()
+            const clientName = (p.nombre_contacto || p.clientes?.nombre || '').toLowerCase()
+            const phone = (p.telefono_contacto || p.clientes?.telefono || '')
+            const dni = (p.dni_contacto || p.clientes?.dni || '')
+
+            if (!id.includes(term) && !clientName.includes(term) && !phone.includes(term) && !dni.includes(term)) {
+                return false
+            }
+        }
+
+        return true
+    })
+
     // 2. Mutations
     const assignMutation = useMutation({
         mutationFn: async ({ pedidoId, workerId }: { pedidoId: number, workerId: string }) => {
@@ -65,7 +95,7 @@ export default function PedidosPage() {
             // Invalidate to refresh list
             queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
         },
-        onError: (error: any) => {
+        onError: (error: Error) => {
             const msg = String(error?.message || '').toLowerCase()
             if (msg.includes('permission denied') || msg.includes('row level security')) {
                 alert('No tienes permisos para realizar esta acción.')
@@ -74,7 +104,6 @@ export default function PedidosPage() {
             }
         }
     })
-
 
     function csvEscape(value: unknown) {
         const str = String(value ?? '')
@@ -105,12 +134,12 @@ export default function PedidosPage() {
     }
 
     function handleExportCsv() {
-        const rows = filteredPedidos.map((p: any) => ({
+        const rows = filteredPedidos.map((p: PedidoRow) => ({
             id: p.id,
             fecha: p.created_at,
-            cliente: p.clientes?.nombre || '',
-            telefono: p.clientes?.telefono || '',
-            dni: p.clientes?.dni || '',
+            cliente: p.clientes?.nombre || p.nombre_contacto || '',
+            telefono: p.clientes?.telefono || p.telefono_contacto || '',
+            dni: p.clientes?.dni || p.dni_contacto || '',
             total: p.total,
             status: p.status,
             pago_status: p.pago_status,
@@ -123,14 +152,6 @@ export default function PedidosPage() {
         const today = new Date().toISOString().slice(0, 10)
         downloadCsv(rows, `pedidos-${today}.csv`)
     }
-
-    // Filter pedidos for admin view
-    const filteredPedidos = userRole === 'admin' && filterWorker !== 'all'
-        ? pedidos.filter((p: any) => {
-            if (filterWorker === 'unassigned') return !p.asignado_a
-            return p.asignado_a === filterWorker
-        })
-        : pedidos
 
     if (guard.loading) {
         return <div className="p-10 flex gap-2"><Loader2 className="animate-spin" /> Verificando...</div>
@@ -171,29 +192,51 @@ export default function PedidosPage() {
                 </div>
             </div>
 
-            {/* Admin Filters */}
-            {userRole === 'admin' && (
-                <div className="flex gap-4 bg-white p-4 rounded-xl shadow-sm border">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input placeholder="Buscar por cliente, ID o teléfono..." className="pl-9 border-gray-200" />
-                    </div>
+            {/* Admin Filters Bar */}
+            <div className="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-xl shadow-sm border">
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                        placeholder="Buscar por cliente, ID, DNI o teléfono..."
+                        className="pl-9 border-gray-200"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+
+                {/* Status Filter */}
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-full md:w-[180px]">
+                        <SelectValue placeholder="Estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Todos los estados</SelectItem>
+                        <SelectItem value="Pendiente">Pendiente</SelectItem>
+                        <SelectItem value="Confirmado">Confirmado</SelectItem>
+                        <SelectItem value="Enviado">Enviado</SelectItem>
+                        <SelectItem value="Entregado">Entregado</SelectItem>
+                        <SelectItem value="Fallido">Fallido / Cancelado</SelectItem>
+                    </SelectContent>
+                </Select>
+
+                {/* Worker Filter (Admin Only) */}
+                {userRole === 'admin' && (
                     <Select value={filterWorker} onValueChange={setFilterWorker}>
-                        <SelectTrigger className="w-[200px]">
+                        <SelectTrigger className="w-full md:w-[200px]">
                             <SelectValue placeholder="Filtrar por trabajador" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">Todos los pedidos</SelectItem>
+                            <SelectItem value="all">Todos los trabajadores</SelectItem>
                             <SelectItem value="unassigned">Sin asignar</SelectItem>
-                            {workers.map((w: any) => (
+                            {workers.map((w: ProfileRow) => (
                                 <SelectItem key={w.id} value={w.id}>
                                     {w.nombre || w.email}
                                 </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
-                </div>
-            )}
+                )}
+            </div>
 
             {/* Empty State for Workers */}
             {userRole === 'worker' && pedidos.length === 0 && !loadingPedidos && (
@@ -240,7 +283,7 @@ export default function PedidosPage() {
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                filteredPedidos.map((pedido: any) => (
+                                filteredPedidos.map((pedido: PedidoRow) => (
                                     <TableRow key={pedido.id}>
                                         <TableCell className="font-mono font-medium">#{pedido.id.toString().padStart(6, '0')}</TableCell>
                                         <TableCell>
@@ -273,7 +316,7 @@ export default function PedidosPage() {
                                                         <SelectItem value="unassigned">
                                                             <span className="text-gray-500">Sin asignar</span>
                                                         </SelectItem>
-                                                        {workers.map((w: any) => (
+                                                        {workers.map((w: ProfileRow) => (
                                                             <SelectItem key={w.id} value={w.id}>
                                                                 {w.nombre || w.email}
                                                             </SelectItem>
@@ -301,7 +344,7 @@ export default function PedidosPage() {
 }
 
 function StatusBadge({ status }: { status: string }) {
-    const styles: any = {
+    const styles: Record<string, string> = {
         'Pendiente': 'bg-yellow-100 text-yellow-800 border-yellow-200',
         'Confirmado': 'bg-blue-100 text-blue-800 border-blue-200',
         'Enviado': 'bg-indigo-100 text-indigo-800 border-indigo-200',
