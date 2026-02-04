@@ -145,6 +145,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
     const [reference, setReference] = useState("")
     const [province, setProvince] = useState("Lima")
     const [district, setDistrict] = useState("")
+    const [urbanDistrict, setUrbanDistrict] = useState("")
     const [shippingMethod, setShippingMethod] = useState("lima")
     const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -202,7 +203,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
             variante_nombre: variant?.etiqueta ? String(variant.etiqueta) : null
         }]
 
-        const fullAddress = `${province}, ${district}. ${value || address}`.trim()
+        const fullAddress = `${province}, ${district}, ${urbanDistrict}. ${value || address}`.trim()
         const locationLink = "" // Can be added if we do Geocode
 
         const messageCliente = buildWhatsAppPreviewMessage({
@@ -228,8 +229,8 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                 phone: phoneClean,
                 dni: dniClean,
                 address: fullAddress,
-                province,
-                district,
+                province, // Department
+                district: `${district} - ${urbanDistrict}`, // Province - District (combined to fit API if needed, or just let API handle it if we modify types later)
                 street: value || address,
                 reference,
                 locationLink,
@@ -330,7 +331,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
             </div>
 
             <div className="space-y-1">
-                <Label className="text-sm font-bold">Provincia <span className="text-destructive">*</span></Label>
+                <Label className="text-sm font-bold">Departamento <span className="text-destructive">*</span></Label>
                 <div className="flex w-full items-center rounded-md border text-sm overflow-hidden h-10 ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
                     <div className="flex h-full w-10 items-center justify-center bg-muted/50 border-r">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -373,8 +374,13 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
             </div>
 
             <div className="space-y-1">
-                <Label className="text-sm font-bold">Distrito o Ciudad <span className="text-destructive">*</span></Label>
-                <IconInput icon={MapPin} required placeholder="Ej: Miraflores" value={district} onChange={(e: any) => setDistrict(e.target.value)} />
+                <Label className="text-sm font-bold">Provincia <span className="text-destructive">*</span></Label>
+                <IconInput icon={MapPin} required placeholder="Ej: Cañete" value={district} onChange={(e: any) => setDistrict(e.target.value)} />
+            </div>
+
+            <div className="space-y-1">
+                <Label className="text-sm font-bold">Distrito <span className="text-destructive">*</span></Label>
+                <IconInput icon={MapPin} required placeholder="Ej: Miraflores" value={urbanDistrict} onChange={(e: any) => setUrbanDistrict(e.target.value)} />
             </div>
 
             <div className="space-y-1 relative">
