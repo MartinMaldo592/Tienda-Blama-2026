@@ -197,29 +197,15 @@ export default function PedidoDetallePage() {
         if (pedido) {
             setTrackingCode(pedido.codigo_seguimiento || "")
 
-            // Determine if we should show Shalom format
-            const hasShalomData = !!pedido.shalom_orden || !!pedido.shalom_clave
-            const isProvincia = pedido.metodo_envio === 'provincia'
-            const isLegacyShalom = (pedido.codigo_seguimiento || "").includes('|')
-
-            const shouldUseShalom = hasShalomData || isProvincia || isLegacyShalom
-
-            setUseShalomFormat(shouldUseShalom)
-
-            if (shouldUseShalom) {
-                // Check if we have explicit columns, otherwise try to parse legacy
-                if (pedido.shalom_orden || pedido.shalom_clave) {
-                    setShalomOrder(pedido.shalom_orden || "")
-                    setShalomPass(pedido.shalom_clave || "")
-                } else {
-                    // Legacy fallback
-                    const parts = (pedido.codigo_seguimiento || "").split('|')
-                    setShalomOrder(parts[0] || "")
-                    setShalomPass(parts[1] || "")
-                }
+            // Always use Shalom format variables
+            if (pedido.shalom_orden || pedido.shalom_clave) {
+                setShalomOrder(pedido.shalom_orden || "")
+                setShalomPass(pedido.shalom_clave || "")
             } else {
-                setShalomOrder("")
-                setShalomPass("")
+                // Fallback attempt to parse legacy simple strings if they happen to look like pipe separated
+                const parts = (pedido.codigo_seguimiento || "").split('|')
+                setShalomOrder(parts[0] || "")
+                setShalomPass(parts[1] || "")
             }
 
             setClientForm({
@@ -241,22 +227,14 @@ export default function PedidoDetallePage() {
             let updatePayload: any = {}
             let logMsg = ""
 
-            if (useShalomFormat) {
-                const combined = `${shalomOrder}|${shalomPass}`
-                updatePayload = {
-                    codigo_seguimiento: combined, // Maintain legacy for compatibility
-                    shalom_orden: shalomOrder,
-                    shalom_clave: shalomPass
-                }
-                logMsg = `Shalom: Orden ${shalomOrder}, Clave ${shalomPass}`
-            } else {
-                updatePayload = {
-                    codigo_seguimiento: trackingCode,
-                    shalom_orden: null, // Clear if switching back to simple? Maybe keep them? Let's clear to avoid confusion.
-                    shalom_clave: null
-                }
-                logMsg = `Código: ${trackingCode}`
+            // Always save as Shalom format logic
+            const combined = `${shalomOrder}|${shalomPass}`
+            updatePayload = {
+                codigo_seguimiento: combined,
+                shalom_orden: shalomOrder,
+                shalom_clave: shalomPass
             }
+            logMsg = `Tracking: Orden ${shalomOrder}, Clave ${shalomPass}`
 
             const { error } = await supabase
                 .from('pedidos')
@@ -899,17 +877,7 @@ export default function PedidoDetallePage() {
                         {/* Tracking Code */}
                         <div className="border-b pb-3">
                             <div className="flex justify-between items-center mb-1">
-                                <div className="flex items-center gap-2">
-                                    <p className="text-sm text-gray-500">Tracking / Clave de Envío</p>
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="h-6 px-2 text-[10px] text-blue-600 bg-blue-50 hover:bg-blue-100 border-blue-200"
-                                        onClick={() => setUseShalomFormat(!useShalomFormat)}
-                                    >
-                                        {useShalomFormat ? "Cambiar a Simple" : "Usar formato Shalom"}
-                                    </Button>
-                                </div>
+                                <p className="text-sm text-gray-500">Tracking / Clave de Envío</p>
                                 {trackingCode && (
                                     <a
                                         href="https://rastrea.shalom.com.pe/"
@@ -921,48 +889,33 @@ export default function PedidoDetallePage() {
                                 )}
                             </div>
 
-                            {useShalomFormat ? (
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] text-gray-400 font-bold uppercase">Nº Orden</label>
-                                        <Input
-                                            className="h-8 text-sm"
-                                            placeholder="Ej: 9560819"
-                                            value={shalomOrder}
-                                            onChange={(e) => setShalomOrder(e.target.value)}
-                                            disabled={isLocked}
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] text-gray-400 font-bold uppercase">Código</label>
-                                        <div className="flex gap-2">
-                                            <Input
-                                                className="h-8 text-sm"
-                                                placeholder="Ej: C7P9"
-                                                value={shalomPass}
-                                                onChange={(e) => setShalomPass(e.target.value)}
-                                                disabled={isLocked}
-                                            />
-                                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 border hover:bg-blue-50 hover:text-blue-600 shrink-0" onClick={handleSaveTracking} disabled={savingTracking || isLocked}>
-                                                {savingTracking ? <span className="animate-spin">⌛</span> : <Save className="h-4 w-4" />}
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="flex gap-2">
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] text-gray-400 font-bold uppercase">Nº Orden</label>
                                     <Input
                                         className="h-8 text-sm"
-                                        placeholder="Ej: 8092-2311"
-                                        value={trackingCode}
-                                        onChange={(e) => setTrackingCode(e.target.value)}
+                                        placeholder="Ej: 9560819"
+                                        value={shalomOrder}
+                                        onChange={(e) => setShalomOrder(e.target.value)}
                                         disabled={isLocked}
                                     />
-                                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0 border hover:bg-blue-50 hover:text-blue-600" onClick={handleSaveTracking} disabled={savingTracking || isLocked}>
-                                        {savingTracking ? <span className="animate-spin">⌛</span> : <Save className="h-4 w-4" />}
-                                    </Button>
                                 </div>
-                            )}
+                                <div className="space-y-1">
+                                    <label className="text-[10px] text-gray-400 font-bold uppercase">Código</label>
+                                    <div className="flex gap-2">
+                                        <Input
+                                            className="h-8 text-sm"
+                                            placeholder="Ej: C7P9"
+                                            value={shalomPass}
+                                            onChange={(e) => setShalomPass(e.target.value)}
+                                            disabled={isLocked}
+                                        />
+                                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 border hover:bg-blue-50 hover:text-blue-600 shrink-0" onClick={handleSaveTracking} disabled={savingTracking || isLocked}>
+                                            {savingTracking ? <span className="animate-spin">⌛</span> : <Save className="h-4 w-4" />}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
 
                         </div>
 
