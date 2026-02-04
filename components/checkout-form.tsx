@@ -329,9 +329,22 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
         }
     }
 
+    // Prevent keyboard from opening automatically on mobile
+    useEffect(() => {
+        const container = document.getElementById('checkout-form-container')
+        if (container) {
+            container.focus()
+        }
+    }, [])
+
     return (
         <>
-            <form onSubmit={handleSubmit} className="flex flex-col h-full">
+            <form
+                id="checkout-form-container"
+                tabIndex={-1}
+                onSubmit={handleSubmit}
+                className="flex flex-col h-full outline-none"
+            >
                 <div className="p-4 border-b flex items-center gap-2 bg-popover">
                     <Button type="button" variant="ghost" size="icon" onClick={onBack} disabled={isSubmitting} className="h-8 w-8 hover:bg-popover/80">
                         <ArrowLeft className="h-4 w-4" />
