@@ -178,6 +178,7 @@ export default function PedidoDetallePage() {
     const [trackingCode, setTrackingCode] = useState("")
     const [shalomOrder, setShalomOrder] = useState("")
     const [shalomPass, setShalomPass] = useState("")
+    const [shalomPin, setShalomPin] = useState("")
     const [useShalomFormat, setUseShalomFormat] = useState(false)
     const [savingTracking, setSavingTracking] = useState(false)
 
@@ -203,11 +204,13 @@ export default function PedidoDetallePage() {
             if (pedido.shalom_orden || pedido.shalom_clave) {
                 setShalomOrder(pedido.shalom_orden || "")
                 setShalomPass(pedido.shalom_clave || "")
+                setShalomPin(pedido.shalom_pin || "")
             } else {
                 // Fallback attempt to parse legacy simple strings if they happen to look like pipe separated
                 const parts = (pedido.codigo_seguimiento || "").split('|')
                 setShalomOrder(parts[0] || "")
                 setShalomPass(parts[1] || "")
+                setShalomPin(pedido.shalom_pin || "")
             }
 
             setClientForm({
@@ -235,9 +238,10 @@ export default function PedidoDetallePage() {
             updatePayload = {
                 codigo_seguimiento: combined,
                 shalom_orden: shalomOrder,
-                shalom_clave: shalomPass
+                shalom_clave: shalomPass,
+                shalom_pin: shalomPin
             }
-            logMsg = `Tracking: Orden ${shalomOrder}, Clave ${shalomPass}`
+            logMsg = `Tracking: Orden ${shalomOrder}, Código ${shalomPass}, PIN ${shalomPin}`
 
             const { error } = await supabase
                 .from('pedidos')
@@ -984,25 +988,38 @@ export default function PedidoDetallePage() {
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] text-gray-400 font-bold uppercase">Nº Orden</label>
-                                    <Input
-                                        className="h-8 text-sm"
-                                        placeholder="Ej: 9560819"
-                                        value={shalomOrder}
-                                        onChange={(e) => setShalomOrder(e.target.value)}
-                                        disabled={isLocked}
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] text-gray-400 font-bold uppercase">Código</label>
-                                    <div className="flex gap-2">
+                            <div className="space-y-3">
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] text-gray-400 font-bold uppercase">Nº Orden (Shalom)</label>
                                         <Input
                                             className="h-8 text-sm"
-                                            placeholder="Ej: C7P9"
+                                            placeholder="Ej: 9560819"
+                                            value={shalomOrder}
+                                            onChange={(e) => setShalomOrder(e.target.value)}
+                                            disabled={isLocked}
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] text-gray-400 font-bold uppercase">Código de Orden</label>
+                                        <Input
+                                            className="h-8 text-sm"
+                                            placeholder="Ej: NKND"
                                             value={shalomPass}
                                             onChange={(e) => setShalomPass(e.target.value)}
+                                            disabled={isLocked}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] text-gray-400 font-bold uppercase text-red-500">Clave de Recojo (4 Dígitos)</label>
+                                    <div className="flex gap-2">
+                                        <Input
+                                            className="h-8 text-sm border-red-200 focus-visible:ring-red-500"
+                                            placeholder="Ej: 1234"
+                                            value={shalomPin}
+                                            maxLength={4}
+                                            onChange={(e) => setShalomPin(e.target.value)}
                                             disabled={isLocked}
                                         />
                                         <Button size="sm" variant="ghost" className="h-8 w-8 p-0 border hover:bg-blue-50 hover:text-blue-600 shrink-0" onClick={handleSaveTracking} disabled={savingTracking || isLocked}>

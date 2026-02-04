@@ -47,6 +47,7 @@ export type PedidoRow = {
   shalom_orden?: string | null
   shalom_clave?: string | null
   evidencia_entrega_url?: string | null
+  shalom_pin?: string | null
 }
 
 export type PedidoItemRow = {
