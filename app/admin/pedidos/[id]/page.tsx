@@ -523,11 +523,28 @@ export default function PedidoDetallePage() {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="Pendiente">Pendiente</SelectItem>
-                                <SelectItem value="Confirmado">Confirmado</SelectItem>
-                                <SelectItem value="Enviado">Enviado</SelectItem>
-                                <SelectItem value="Entregado">Entregado</SelectItem>
-                                <SelectItem value="Fallido">Fallido / Cancelado</SelectItem>
+                                {(() => {
+                                    const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+                                        'Pendiente': ['Pendiente', 'Confirmado', 'Cancelado', 'Fallido'],
+                                        'Confirmado': ['Confirmado', 'Enviado', 'Cancelado', 'Fallido', 'Pendiente'],
+                                        'Enviado': ['Enviado', 'Entregado', 'Fallido', 'Confirmado', 'Cancelado'],
+                                        'Entregado': ['Entregado', 'Enviado', 'Fallido'],
+                                        'Cancelado': ['Cancelado', 'Pendiente'],
+                                        'Fallido': ['Fallido', 'Pendiente']
+                                    }
+                                    const available = ALLOWED_TRANSITIONS[pedido.status] || ['Pendiente', 'Confirmado', 'Enviado', 'Entregado', 'Fallido', 'Cancelado']
+
+                                    return (
+                                        <>
+                                            {available.includes('Pendiente') && <SelectItem value="Pendiente">Pendiente</SelectItem>}
+                                            {available.includes('Confirmado') && <SelectItem value="Confirmado">Confirmado</SelectItem>}
+                                            {available.includes('Enviado') && <SelectItem value="Enviado">Enviado</SelectItem>}
+                                            {available.includes('Entregado') && <SelectItem value="Entregado">Entregado</SelectItem>}
+                                            {available.includes('Fallido') && <SelectItem value="Fallido">Fallido</SelectItem>}
+                                            {available.includes('Cancelado') && <SelectItem value="Cancelado">Cancelado</SelectItem>}
+                                        </>
+                                    )
+                                })()}
                             </SelectContent>
                         </Select>
                         <Button size="sm" onClick={handleUpdateStatus} disabled={isLocked || updating || status === pedido.status}>
@@ -613,7 +630,7 @@ export default function PedidoDetallePage() {
                                 <div key={item.id} className="flex gap-4 items-center border-b pb-4 last:border-0 last:pb-0">
                                     <div className="h-16 w-16 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
                                         {item.productos?.imagen_url ? (
-                                            <img src={item.productos.imagen_url} className="h-full w-full object-cover" />
+                                            <img src={item.productos.imagen_url} alt={item.productos.nombre || "Producto"} className="h-full w-full object-cover" />
                                         ) : (
                                             <div className="h-full w-full flex items-center justify-center text-gray-400 text-xs">Sin img</div>
                                         )}
@@ -885,7 +902,7 @@ export default function PedidoDetallePage() {
                                         📌 REFERENCIA
                                     </p>
                                     <p className="text-xs text-amber-900 leading-relaxed italic">
-                                        "{pedido.referencia_direccion}"
+                                        &quot;{pedido.referencia_direccion}&quot;
                                     </p>
                                 </div>
                             )}

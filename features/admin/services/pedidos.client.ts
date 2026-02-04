@@ -118,8 +118,11 @@ export async function fetchPedidoDetail(pedidoId: number) {
 export async function updatePedidoStatusWithStock(args: { pedidoId: number; nextStatus: string; stockDescontado: boolean }) {
   const pedidoId = Number(args.pedidoId)
   const nextStatus = String(args.nextStatus || "")
+  const isCurrentlyDeducted = args.stockDescontado
 
-  if (nextStatus === "Confirmado" && !args.stockDescontado) {
+  // 1. Logic for Deducting Stock (Pendiente -> Confirmado)
+  // Ensures we only deduct if not already deducted
+  if (nextStatus === "Confirmado" && !isCurrentlyDeducted) {
     const { data: itemsData, error: itemsError } = await supabase
       .from("pedido_items")
       .select("producto_id, producto_variante_id, cantidad")
@@ -136,6 +139,7 @@ export async function updatePedidoStatusWithStock(args: { pedidoId: number; next
       if (!productoId || qty <= 0) continue
 
       if (varianteId) {
+        // Decrease Variant Stock
         const { data: variante, error: varError } = await supabase
           .from("producto_variantes")
           .select("stock")
@@ -148,9 +152,9 @@ export async function updatePedidoStatusWithStock(args: { pedidoId: number; next
         const newStock = Math.max(0, currentStock - qty)
 
         const { error: updError } = await supabase.from("producto_variantes").update({ stock: newStock }).eq("id", varianteId)
-
         if (updError) throw updError
       } else {
+        // Decrease Product Stock
         const { data: producto, error: prodError } = await supabase.from("productos").select("stock").eq("id", productoId).single()
 
         if (prodError) throw prodError
@@ -159,7 +163,6 @@ export async function updatePedidoStatusWithStock(args: { pedidoId: number; next
         const newStock = Math.max(0, currentStock - qty)
 
         const { error: updError } = await supabase.from("productos").update({ stock: newStock }).eq("id", productoId)
-
         if (updError) throw updError
       }
     }
@@ -168,6 +171,65 @@ export async function updatePedidoStatusWithStock(args: { pedidoId: number; next
     if (markError) throw markError
   }
 
+  // 2. Logic for Restocking (Confirmado/Enviado -> Cancelado/Fallido/Pendiente)
+  // Ensures we only restock if it WAS deducted
+  const restockingStatuses = ["Pendiente", "Cancelado", "Fallido"]
+  if (restockingStatuses.includes(nextStatus) && isCurrentlyDeducted) {
+    const { data: itemsData, error: itemsError } = await supabase
+      .from("pedido_items")
+      .select("producto_id, producto_variante_id, cantidad")
+      .eq("pedido_id", pedidoId)
+
+    if (itemsError) throw itemsError
+
+    const safeItems = (itemsData || []).filter((it: any) => it.producto_id)
+
+    for (const it of safeItems) {
+      const productoId = Number(it.producto_id)
+      const varianteId = it.producto_variante_id != null ? Number(it.producto_variante_id) : null
+      const qty = Number(it.cantidad || 0)
+      if (!productoId || qty <= 0) continue
+
+      if (varianteId) {
+        // Increase Variant Stock
+        const { data: variante, error: varError } = await supabase
+          .from("producto_variantes")
+          .select("stock")
+          .eq("id", varianteId)
+          .single()
+
+        if (varError) {
+          console.error("Error fetching variant to restock", varError)
+          continue
+        }
+
+        const currentStock = Number((variante as any)?.stock ?? 0)
+        const newStock = currentStock + qty
+
+        const { error: updError } = await supabase.from("producto_variantes").update({ stock: newStock }).eq("id", varianteId)
+        if (updError) throw updError
+      } else {
+        // Increase Product Stock
+        const { data: producto, error: prodError } = await supabase.from("productos").select("stock").eq("id", productoId).single()
+
+        if (prodError) {
+          console.error("Error fetching product to restock", prodError)
+          continue
+        }
+
+        const currentStock = Number((producto as any)?.stock ?? 0)
+        const newStock = currentStock + qty
+
+        const { error: updError } = await supabase.from("productos").update({ stock: newStock }).eq("id", productoId)
+        if (updError) throw updError
+      }
+    }
+
+    const { error: markError } = await supabase.from("pedidos").update({ stock_descontado: false }).eq("id", pedidoId)
+    if (markError) throw markError
+  }
+
+  // 3. Update Status
   const { error } = await supabase.from("pedidos").update({ status: nextStatus }).eq("id", pedidoId)
   if (error) throw error
 }
