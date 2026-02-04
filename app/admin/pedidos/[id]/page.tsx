@@ -3,6 +3,10 @@
 import { useCallback, useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useRoleGuard } from "@/lib/use-role-guard"
+import { useFileUpload } from "@/hooks/use-file-upload"
+import { OrderItemsCard } from "@/components/admin/orders/order-items-card"
+import { OrderHistoryCard } from "@/components/admin/orders/order-history-card"
+import { OrderCustomerCard } from "@/components/admin/orders/order-customer-card"
 import { AccessDenied } from "@/components/admin/access-denied"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -16,9 +20,13 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, MapPin, Phone, User, Calendar, CreditCard, Save, UserCheck, MessageCircle, FileUp, ExternalLink, Trash2, Pencil, Check, RotateCcw, AlertCircle, ShoppingBagIcon, Dices } from "lucide-react"
+import { ArrowLeft, User, Calendar, FileUp, Check, Save, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 import { formatCurrency } from "@/lib/utils"
+import { OrderShippingCard } from "@/components/admin/orders/order-shipping-card"
+import { OrderFileCard } from "@/components/admin/orders/order-file-card"
+import { OrderPaymentCard } from "@/components/admin/orders/order-payment-card"
+import { OrderAssignmentCard } from "@/components/admin/orders/order-assignment-card"
 // import types
 import { PedidoRow, PedidoItemRow, ProfileRow, PedidoLog } from "@/features/admin/types"
 import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidoDetail, updatePedidoStatusWithStock } from "@/features/admin"
@@ -159,9 +167,11 @@ export default function PedidoDetallePage() {
     }
 
     // --- State for Confirmation Dialogs ---
-    const [confirmDeleteGuideOpen, setConfirmDeleteGuideOpen] = useState(false)
-    const [confirmDeleteDeliveryOpen, setConfirmDeleteDeliveryOpen] = useState(false) // New state for delivery evidence
-    const [confirmDeletePaymentIndex, setConfirmDeletePaymentIndex] = useState<number | null>(null)
+    // --- State for Confirmation Dialogs ---
+    // Moved dialogs to sub-components, kept here only if needed for global issues
+    // const [confirmDeleteGuideOpen, setConfirmDeleteGuideOpen] = useState(false)
+    // const [confirmDeleteDeliveryOpen, setConfirmDeleteDeliveryOpen] = useState(false)
+    // const [confirmDeletePaymentIndex, setConfirmDeletePaymentIndex] = useState<number | null>(null)
 
     // Partial Return State
     const [returnModalState, setReturnModalState] = useState<{
@@ -174,13 +184,7 @@ export default function PedidoDetallePage() {
     const [returnQtyInput, setReturnQtyInput] = useState<string>('')
 
 
-    // --- Tracking Code Logic ---
-    const [trackingCode, setTrackingCode] = useState("")
-    const [shalomOrder, setShalomOrder] = useState("")
-    const [shalomPass, setShalomPass] = useState("")
-    const [shalomPin, setShalomPin] = useState("")
-    const [useShalomFormat, setUseShalomFormat] = useState(false)
-    const [savingTracking, setSavingTracking] = useState(false)
+    // --- Tracking Logic Moved to Component ---
 
     // --- Client Edit Logic ---
     const [isEditClientOpen, setIsEditClientOpen] = useState(false)
@@ -193,26 +197,11 @@ export default function PedidoDetallePage() {
         provincia: '',
         departamento: '',
         referencia: '',
-        metodo_envio: '' // Added field
+        metodo_envio: ''
     })
 
     useEffect(() => {
         if (pedido) {
-            setTrackingCode(pedido.codigo_seguimiento || "")
-
-            // Always use Shalom format variables
-            if (pedido.shalom_orden || pedido.shalom_clave) {
-                setShalomOrder(pedido.shalom_orden || "")
-                setShalomPass(pedido.shalom_clave || "")
-                setShalomPin(pedido.shalom_pin || "")
-            } else {
-                // Fallback attempt to parse legacy simple strings if they happen to look like pipe separated
-                const parts = (pedido.codigo_seguimiento || "").split('|')
-                setShalomOrder(parts[0] || "")
-                setShalomPass(parts[1] || "")
-                setShalomPin(pedido.shalom_pin || "")
-            }
-
             setClientForm({
                 nombre: pedido.nombre_contacto || pedido.clientes?.nombre || '',
                 dni: pedido.dni_contacto || pedido.clientes?.dni || '',
@@ -222,45 +211,10 @@ export default function PedidoDetallePage() {
                 provincia: pedido.provincia || '',
                 departamento: pedido.departamento || '',
                 referencia: pedido.referencia_direccion || '',
-                metodo_envio: pedido.metodo_envio || '' // Populate field
+                metodo_envio: pedido.metodo_envio || ''
             })
         }
     }, [pedido])
-
-    async function handleSaveTracking() {
-        setSavingTracking(true)
-        try {
-            let updatePayload: any = {}
-            let logMsg = ""
-
-            // Always save as Shalom format logic
-            const combined = `${shalomOrder}|${shalomPass}`
-            updatePayload = {
-                codigo_seguimiento: combined,
-                shalom_orden: shalomOrder,
-                shalom_clave: shalomPass,
-                shalom_pin: shalomPin
-            }
-            logMsg = `Tracking: Orden ${shalomOrder}, Código ${shalomPass}, PIN ${shalomPin}`
-
-            const { error } = await supabase
-                .from('pedidos')
-                .update(updatePayload)
-                .eq('id', id)
-
-            if (error) throw error
-
-            const displayCode = updatePayload.codigo_seguimiento
-            setTrackingCode(displayCode)
-            await logAction('Tracking Actualizado', logMsg)
-            toast.success("Código de seguimiento guardado")
-            fetchPedido()
-        } catch (error: any) {
-            toast.error("Error guardando tracking: " + error.message)
-        } finally {
-            setSavingTracking(false)
-        }
-    }
 
     async function handleSaveClientData() {
         try {
@@ -379,213 +333,79 @@ export default function PedidoDetallePage() {
     }
 
 
-    const [uploadingGuide, setUploadingGuide] = useState(false)
+    // --- File Upload Hooks ---
 
-    async function handleUploadGuide(e: React.ChangeEvent<HTMLInputElement>) {
-        if (!e.target.files || e.target.files.length === 0) return
-        const file = e.target.files[0]
-        setUploadingGuide(true)
-
-        try {
-            const fileExt = file.name.split('.').pop()
-            const fileName = `pedido_${id}_${Date.now()}.${fileExt}`
-            const filePath = `${fileName}`
-
-            // 1. Upload to Supabase Storage "guias"
-            const { error: uploadError } = await supabase.storage
-                .from('guias')
-                .upload(filePath, file)
-
-            if (uploadError) throw uploadError
-
-            // 2. Get Public URL
-            const { data: { publicUrl } } = supabase.storage
-                .from('guias')
-                .getPublicUrl(filePath)
-
-            // 3. Update Pedido Row
-            const { error: updateError } = await supabase
+    const guideUpload = useFileUpload({
+        bucketName: 'guias',
+        onUploadComplete: async (url) => {
+            const { error } = await supabase
                 .from('pedidos')
-                .update({ guia_archivo_url: publicUrl })
+                .update({ guia_archivo_url: url })
                 .eq('id', id)
-
-            if (updateError) throw updateError
-
+            if (error) throw error
             fetchPedido()
-            toast.success("Guía subida correctamente")
-        } catch (error: any) {
-            console.error("Error uploading guide:", error)
-            toast.error("Error al subir guía: " + error.message)
-        } finally {
-            setUploadingGuide(false)
-        }
-    }
-
-    async function performDeleteGuide() {
-        setUploadingGuide(true)
-        try {
+        },
+        onDeleteComplete: async () => {
             const { error } = await supabase
                 .from('pedidos')
                 .update({ guia_archivo_url: null })
                 .eq('id', id)
-
             if (error) throw error
             fetchPedido()
-            toast.success("Guía eliminada")
-        } catch (error: any) {
-            toast.error("Error al eliminar: " + error.message)
-        } finally {
-            setUploadingGuide(false)
-            setConfirmDeleteGuideOpen(false)
         }
-    }
+    })
 
-    const [uploadingDelivery, setUploadingDelivery] = useState(false)
-
-    async function handleUploadDelivery(e: React.ChangeEvent<HTMLInputElement>) {
-        if (!e.target.files || e.target.files.length === 0) return
-        const file = e.target.files[0]
-        setUploadingDelivery(true)
-
-        try {
-            const fileExt = file.name.split('.').pop()
-            const fileName = `entrega_${id}_${Date.now()}.${fileExt}`
-            const filePath = `${fileName}`
-
-            // 1. Upload to Supabase Storage "entregas" (Note: User needs to ensure this bucket exists or reuse 'guias'/'pagos' if preferred, assuming 'guias' for logistics documents is fine or create new one)
-            // Let's assume 'guias' bucket is for general shipping docs or reusing it to avoid bucket creation overhead if not strictly separated. 
-            // OR better: use 'guias' bucket but maybe different folder if buckets support it, or just root.
-            // Let's stick to 'guias' bucket for now as it makes sense for "Delivery/Shipping" docs.
-
-            const { error: uploadError } = await supabase.storage
-                .from('guias')
-                .upload(filePath, file)
-
-            if (uploadError) throw uploadError
-
-            // 2. Get Public URL
-            const { data: { publicUrl } } = supabase.storage
-                .from('guias')
-                .getPublicUrl(filePath)
-
-            // 3. Update Pedido Row
-            const { error: updateError } = await supabase
+    const deliveryUpload = useFileUpload({
+        bucketName: 'guias', // Reusing guias bucket as per original code
+        onUploadComplete: async (url) => {
+            const { error } = await supabase
                 .from('pedidos')
-                .update({ evidencia_entrega_url: publicUrl })
+                .update({ evidencia_entrega_url: url })
                 .eq('id', id)
-
-            if (updateError) throw updateError
-
+            if (error) throw error
             fetchPedido()
-            toast.success("Evidencia de entrega subida correctamente")
-        } catch (error: any) {
-            console.error("Error uploading delivery evidence:", error)
-            toast.error("Error al subir evidencia: " + error.message)
-        } finally {
-            setUploadingDelivery(false)
-        }
-    }
-
-    async function performDeleteDelivery() {
-        setUploadingDelivery(true)
-        try {
+        },
+        onDeleteComplete: async () => {
             const { error } = await supabase
                 .from('pedidos')
                 .update({ evidencia_entrega_url: null })
                 .eq('id', id)
-
             if (error) throw error
             fetchPedido()
-            toast.success("Evidencia de entrega eliminada")
-        } catch (error: any) {
-            toast.error("Error al eliminar: " + error.message)
-        } finally {
-            setUploadingDelivery(false)
-            setConfirmDeleteDeliveryOpen(false)
         }
-    }
+    })
 
-
-    const [uploadingPayment, setUploadingPayment] = useState(false)
-
-    async function handleUploadPayment(e: React.ChangeEvent<HTMLInputElement>) {
-        if (!e.target.files || e.target.files.length === 0) return
-        if (!pedido) return
-
-        // Check current count
-        const currentFiles = pedido.comprobante_pago_url || []
-        if (currentFiles.length >= 2) {
-            toast.error("Solo puedes subir máximo 2 comprobantes.")
-            return
-        }
-
-        const file = e.target.files[0]
-        setUploadingPayment(true)
-
-        try {
-            const fileExt = file.name.split('.').pop()
-            const fileName = `pago_${id}_${Date.now()}.${fileExt}`
-            const filePath = `${fileName}`
-
-            // 1. Upload to Supabase Storage "pagos"
-            const { error: uploadError } = await supabase.storage
-                .from('pagos')
-                .upload(filePath, file)
-
-            if (uploadError) throw uploadError
-
-            // 2. Get Public URL
-            const { data: { publicUrl } } = supabase.storage
-                .from('pagos')
-                .getPublicUrl(filePath)
-
-            // 3. Update Pedido Row (Append to Array)
-            // Ideally we do this atomically but for now update via read-modify-write pattern with state
-            const updatedList = [...currentFiles, publicUrl]
-
-            const { error: updateError } = await supabase
+    const paymentUpload = useFileUpload({
+        bucketName: 'pagos',
+        onUploadComplete: async (url) => {
+            const currentFiles = pedido?.comprobante_pago_url || []
+            const updatedList = [...currentFiles, url]
+            const { error } = await supabase
                 .from('pedidos')
                 .update({ comprobante_pago_url: updatedList })
                 .eq('id', id)
-
-            if (updateError) throw updateError
-
+            if (error) throw error
             fetchPedido()
-            toast.success("Comprobante subido correctamente")
-        } catch (error: any) {
-            console.error("Error uploading payment:", error)
-            toast.error("Error al subir comprobante: " + error.message)
-        } finally {
-            setUploadingPayment(false)
-            // Reset input
-            e.target.value = ''
         }
-    }
+    })
 
-    async function performDeletePayment() {
-        if (confirmDeletePaymentIndex === null || !pedido) return
-
-        setUploadingPayment(true)
-        try {
-            const currentFiles = pedido.comprobante_pago_url || []
-            const updatedList = currentFiles.filter((_: any, idx: number) => idx !== confirmDeletePaymentIndex)
+    async function handleDeletePayment(index: number) {
+        // We use the generic remove method but override the action to handle the array logic
+        paymentUpload.remove(async () => {
+            const currentFiles = pedido?.comprobante_pago_url || []
+            const updatedList = currentFiles.filter((_: any, idx: number) => idx !== index)
 
             const { error } = await supabase
                 .from('pedidos')
-                .update({ comprobante_pago_url: updatedList.length > 0 ? updatedList : null }) // Set to null if empty
+                .update({ comprobante_pago_url: updatedList.length > 0 ? updatedList : null })
                 .eq('id', id)
 
             if (error) throw error
             fetchPedido()
-            toast.success("Comprobante eliminado")
-        } catch (error: any) {
-            toast.error("Error al eliminar: " + error.message)
-        } finally {
-            setUploadingPayment(false)
-            setConfirmDeletePaymentIndex(null)
-        }
+        })
     }
 
+    const displayedShippingMethod = isEditClientOpen ? clientForm.metodo_envio : (pedido?.metodo_envio || '')
 
     if (guard.loading) return <div className="p-10">Cargando...</div>
     if (guard.accessDenied) return <AccessDenied />
@@ -723,673 +543,90 @@ export default function PedidoDetallePage() {
                 {/* Left Column: Items & History */}
                 <div className="md:col-span-2 space-y-6">
                     {/* Products Card */}
-                    <div className="bg-white rounded-xl shadow-sm border p-6">
-                        <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                            <ShoppingBagIcon className="h-5 w-5" /> Productos
-                        </h2>
-                        <div className="space-y-4">
-                            {items.map((item) => (
-                                <div key={item.id} className="flex gap-4 items-center border-b pb-4 last:border-0 last:pb-0">
-                                    <div className="h-16 w-16 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
-                                        {item.productos?.imagen_url ? (
-                                            <img src={item.productos.imagen_url} alt={item.productos.nombre || "Producto"} className="h-full w-full object-cover" />
-                                        ) : (
-                                            <div className="h-full w-full flex items-center justify-center text-gray-400 text-xs">Sin img</div>
-                                        )}
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="font-medium">{item.productos?.nombre || 'Producto eliminado'}</p>
-                                        <p className="text-sm text-gray-500">Cantidad: {item.cantidad}</p>
-                                        {item.variante_nombre && (
-                                            <p className="text-xs text-gray-400">Variante: {item.variante_nombre}</p>
-                                        )}
-                                        {/* Partial Return Badge */}
-                                        {(item.cantidad_devuelta || 0) > 0 && (
-                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 mt-1">
-                                                Devuelto: {item.cantidad_devuelta}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="text-right flex flex-col items-end gap-1">
-                                        <p className="font-medium">{formatCurrency((item.precio_unitario || item.productos?.precio || 0) * (item.cantidad || 0))}</p>
-                                        <p className="text-xs text-gray-400">{formatCurrency(item.precio_unitario || item.productos?.precio || 0)} c/u</p>
-
-                                        {/* Return Action Button */}
-                                        {!isLocked && (item.cantidad - (item.cantidad_devuelta || 0) > 0) && (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-6 px-2 text-[10px] text-gray-400 hover:text-red-600 hover:bg-red-50"
-                                                title="Devolver parcialmente"
-                                                onClick={() => openReturnDialog(item.id, item.cantidad, item.cantidad_devuelta || 0, item.productos?.nombre || 'Producto')}
-                                            >
-                                                <RotateCcw className="h-3 w-3 mr-1" /> Devolver
-                                            </Button>
-
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Financial Summary */}
-                        <div className="mt-6 pt-4 border-t space-y-2">
-                            <div className="flex justify-between items-center text-sm text-gray-600">
-                                <span>Subtotal</span>
-                                <span>{formatCurrency(pedido.subtotal || pedido.total)}</span>
-                            </div>
-
-                            {(pedido.descuento || 0) > 0 && (
-                                <div className="flex justify-between items-center text-sm text-green-600">
-                                    <span>Descuento {pedido.cupon_codigo ? `(${pedido.cupon_codigo})` : ''}</span>
-                                    <span>- {formatCurrency(pedido.descuento || 0)}</span>
-                                </div>
-                            )}
-
-                            {/* Shipping Cost Logic Display */}
-                            <div className="flex justify-between items-center text-sm text-gray-600">
-                                <span>Costo de Envío</span>
-                                <span>
-                                    {pedido.metodo_envio === 'provincia' ? 'Por Pagar (Shalom/Agencia)' : 'Gratis'}
-                                </span>
-                            </div>
-
-                            <div className="flex justify-between items-center text-lg font-bold pt-2 border-t mt-2">
-                                <span>Total</span>
-                                <span>{formatCurrency(pedido.total)}</span>
-                            </div>
-                        </div>
-                    </div>
+                    {/* Products Card */}
+                    <OrderItemsCard
+                        items={items}
+                        pedido={pedido}
+                        isLocked={isLocked}
+                        displayedShippingMethod={displayedShippingMethod}
+                        onReturnClick={(item) => openReturnDialog(item.id, item.cantidad, item.cantidad_devuelta || 0, item.productos?.nombre || 'Producto')}
+                    />
 
                     {/* Activity History Card */}
-                    <div className="bg-white rounded-xl shadow-sm border p-6">
-                        <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                            <Calendar className="h-5 w-5" /> Historial de Actividad
-                        </h2>
-                        <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
-                            {logs.length === 0 ? (
-                                <p className="text-gray-500 text-sm text-center py-4">No hay actividad registrada aún.</p>
-                            ) : (
-                                logs.map((log) => (
-                                    <div key={log.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-
-                                        {/* Icon */}
-                                        <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-slate-300 group-[.is-active]:bg-emerald-500 text-slate-500 group-[.is-active]:text-emerald-50 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
-                                            <div className="text-[10px] font-bold">LOG</div>
-                                        </div>
-
-                                        {/* Content Card */}
-                                        <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded border border-slate-200 shadow">
-                                            <div className="flex items-center justify-between space-x-2 mb-1">
-                                                <div className="font-bold text-slate-900 text-sm">{log.accion}</div>
-                                                <time className="font-caveat font-medium text-xs text-indigo-500">
-                                                    {new Date(log.created_at).toLocaleString()}
-                                                </time>
-                                            </div>
-                                            <div className="text-slate-500 text-sm">{log.detalles}</div>
-                                            <div className="text-slate-400 text-xs mt-1">Por: {log.usuario_nombre || 'Sistema'}</div>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </div>
+                    <OrderHistoryCard logs={logs} />
                 </div>
 
                 {/* Right Column: Customer Info */}
                 <div className="space-y-6">
-                    <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">
-                        <div className="flex justify-between items-center mb-2">
-                            <h2 className="font-semibold text-lg flex items-center gap-2">
-                                <User className="h-5 w-5" /> Cliente
-                            </h2>
-                            <Dialog open={isEditClientOpen} onOpenChange={setIsEditClientOpen}>
-                                <DialogTrigger asChild>
-                                    {!isLocked && (
-                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                            <Pencil className="h-4 w-4 text-gray-400 hover:text-blue-600" />
-                                        </Button>
-                                    )}
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-                                    <DialogHeader>
-                                        <DialogTitle>Editar Datos del Pedido</DialogTitle>
-                                    </DialogHeader>
-                                    <div className="grid gap-4 py-4">
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label>Nombre</Label>
-                                                <Input value={clientForm.nombre} onChange={e => setClientForm({ ...clientForm, nombre: e.target.value })} />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label>DNI</Label>
-                                                <Input value={clientForm.dni} onChange={e => setClientForm({ ...clientForm, dni: e.target.value })} />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>Método de Envío</Label>
-                                            <Select
-                                                value={clientForm.metodo_envio}
-                                                onValueChange={(val) => setClientForm({ ...clientForm, metodo_envio: val })}
-                                            >
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Seleccionar método" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="lima">Lima (Gratis)</SelectItem>
-                                                    <SelectItem value="provincia">Provincia (Shalom)</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>Teléfono</Label>
-                                            <Input value={clientForm.telefono} onChange={e => setClientForm({ ...clientForm, telefono: e.target.value })} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>Dirección</Label>
-                                            <Input value={clientForm.direccion} onChange={e => setClientForm({ ...clientForm, direccion: e.target.value })} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>Referencia</Label>
-                                            <Input value={clientForm.referencia} onChange={e => setClientForm({ ...clientForm, referencia: e.target.value })} />
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            <div className="space-y-2">
-                                                <Label className="text-xs">Dpto</Label>
-                                                <Input className="text-xs" value={clientForm.departamento} onChange={e => setClientForm({ ...clientForm, departamento: e.target.value })} />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs">Prov</Label>
-                                                <Input className="text-xs" value={clientForm.provincia} onChange={e => setClientForm({ ...clientForm, provincia: e.target.value })} />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs">Dist</Label>
-                                                <Input className="text-xs" value={clientForm.distrito} onChange={e => setClientForm({ ...clientForm, distrito: e.target.value })} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <DialogFooter>
-                                        <Button onClick={handleSaveClientData}>Guardar Cambios</Button>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
-                        </div>
-
-                        <div className="space-y-3">
-                            <div>
-                                <p className="text-sm text-gray-500">Nombre</p>
-                                <p className="font-medium">{pedido.nombre_contacto || pedido.clientes?.nombre}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500">DNI</p>
-                                <p className="font-medium">{pedido.dni_contacto || pedido.clientes?.dni || '—'}</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Phone className="h-4 w-4 text-gray-400" />
-                                <a href={`tel:${pedido.telefono_contacto || pedido.clientes?.telefono}`} className="font-medium text-blue-600 hover:underline">
-                                    {pedido.telefono_contacto || pedido.clientes?.telefono}
-                                </a>
-                            </div>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full mt-2 gap-2 text-green-700 border-green-200 bg-green-50 hover:bg-green-100 hover:text-green-800"
-                                onClick={() => {
-                                    const phone = pedido.telefono_contacto || pedido.clientes?.telefono
-                                    if (phone) {
-                                        const clean = String(phone).replace(/\D/g, '')
-                                        window.open(`https://wa.me/51${clean}`, '_blank')
-                                    }
-                                }}
-                            >
-                                <MessageCircle className="h-4 w-4" />
-                                Chat WhatsApp
-                            </Button>
-                        </div>
-                    </div>
+                    {/* Customer Info Card */}
+                    <OrderCustomerCard
+                        pedido={pedido}
+                        isLocked={isLocked}
+                        isEditOpen={isEditClientOpen}
+                        onEditOpenChange={setIsEditClientOpen}
+                        form={clientForm}
+                        setForm={setClientForm}
+                        onSave={handleSaveClientData}
+                    />
 
 
-                    <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">
-                        <div className="flex justify-between items-center mb-2">
-                            <h2 className="font-semibold text-lg flex items-center gap-2">
-                                <MapPin className="h-5 w-5" /> Envío
-                            </h2>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
-                                onClick={() => setIsEditClientOpen(true)}
-                                disabled={isLocked}
-                            >
-                                <Pencil className="h-4 w-4 text-gray-400 hover:text-blue-600" />
-                            </Button>
-                        </div>
+                    <OrderShippingCard
+                        pedido={pedido}
+                        isLocked={isLocked}
+                        onLogAction={logAction}
+                        onRefresh={fetchPedido}
+                    />
 
-                        {/* Shipping Method */}
-                        <div className="border-b pb-3">
-                            <p className="text-sm text-gray-500">Método</p>
-                            <Badge variant="outline" className="mt-1">
-                                {pedido.metodo_envio === 'provincia' ? 'Provincia (Shalom)' : pedido.metodo_envio === 'lima' ? 'Lima (Gratis)' : pedido.metodo_envio || 'Estándar'}
-                            </Badge>
-                        </div>
+                    <OrderFileCard
+                        title="Guía de Remisión"
+                        icon={<FileUp className="h-5 w-5" />}
+                        fileUrl={pedido.guia_archivo_url || null}
+                        isLocked={isLocked}
+                        isUploading={guideUpload.isUploading}
+                        onUpload={(file) => guideUpload.upload(file, `pedido_${id}_${Date.now()}.${file.name.split('.').pop()}`)}
+                        onDelete={guideUpload.remove}
+                        uploadLabel={guideUpload.isUploading ? 'Subiendo...' : 'Subir Foto de Guía'}
+                        uploadSubLabel="PDF o Imagen (Shalom/Olva)"
+                        accept="image/*,.pdf"
+                        accentColor="blue"
+                    />
 
-                        {/* Tracking Code */}
-                        <div className="border-b pb-3">
-                            <div className="flex justify-between items-center mb-1">
-                                <p className="text-sm text-gray-500">Tracking / Clave de Envío</p>
-                                {trackingCode && (
-                                    <a
-                                        href="https://rastrea.shalom.com.pe/"
-                                        target="_blank"
-                                        className="text-[10px] text-blue-600 hover:underline flex items-center gap-1"
-                                    >
-                                        Ver en Shalom <ExternalLink className="h-3 w-3" />
-                                    </a>
-                                )}
-                            </div>
+                    <OrderFileCard
+                        title="Evidencia de Entrega"
+                        icon={<Check className="h-5 w-5" />}
+                        fileUrl={pedido.evidencia_entrega_url}
+                        isLocked={isLocked}
+                        isUploading={deliveryUpload.isUploading}
+                        onUpload={(file) => deliveryUpload.upload(file, `entrega_${id}_${Date.now()}.${file.name.split('.').pop()}`)}
+                        onDelete={deliveryUpload.remove}
+                        uploadLabel={deliveryUpload.isUploading ? 'Subiendo...' : 'Subir Foto de Entrega'}
+                        uploadSubLabel="Imagen (Motorizado)"
+                        accept="image/*"
+                        accentColor="green"
+                    />
 
-                            <div className="space-y-3">
-                                <div className="grid grid-cols-2 gap-2">
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] text-gray-400 font-bold uppercase">Nº Orden (Shalom)</label>
-                                        <Input
-                                            className="h-8 text-sm"
-                                            placeholder="Ej: 9560819"
-                                            value={shalomOrder}
-                                            onChange={(e) => setShalomOrder(e.target.value)}
-                                            disabled={isLocked}
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] text-gray-400 font-bold uppercase">Código de Orden</label>
-                                        <Input
-                                            className="h-8 text-sm"
-                                            placeholder="Ej: NKND"
-                                            value={shalomPass}
-                                            onChange={(e) => setShalomPass(e.target.value)}
-                                            disabled={isLocked}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] text-gray-400 font-bold uppercase text-red-500">Clave de Recojo (4 Dígitos)</label>
-                                    <div className="flex gap-2">
-                                        <Input
-                                            className="h-8 text-sm border-red-200 focus-visible:ring-red-500"
-                                            placeholder="Ej: 1234"
-                                            value={shalomPin}
-                                            maxLength={4}
-                                            onChange={(e) => setShalomPin(e.target.value)}
-                                            disabled={isLocked}
-                                        />
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="h-8 w-8 p-0 border-dashed text-gray-400 hover:text-blue-600 hover:border-blue-400"
-                                            title="Generar Clave Aleatoria"
-                                            onClick={() => {
-                                                if (isLocked) return
-                                                const randomPin = Math.floor(1000 + Math.random() * 9000).toString()
-                                                setShalomPin(randomPin)
-                                            }}
-                                            disabled={isLocked}
-                                        >
-                                            <Dices className="h-4 w-4" />
-                                        </Button>
-                                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 border hover:bg-blue-50 hover:text-blue-600 shrink-0" onClick={handleSaveTracking} disabled={savingTracking || isLocked}>
-                                            {savingTracking ? <span className="animate-spin">⌛</span> : <Save className="h-4 w-4" />}
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
+                    <OrderPaymentCard
+                        pedido={pedido}
+                        isLocked={isLocked}
+                        paymentUpload={paymentUpload}
+                        onDeletePayment={handleDeletePayment}
+                    />
 
-                        </div>
-
-                        <div className="space-y-3 pt-1">
-                            <div className="grid grid-cols-2 gap-x-2 gap-y-3">
-                                <div>
-                                    <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Departamento</p>
-                                    <p className="text-sm font-medium text-gray-900">{pedido.departamento || '—'}</p>
-                                </div>
-                                <div>
-                                    <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Provincia</p>
-                                    <p className="text-sm font-medium text-gray-900">{pedido.provincia || '—'}</p>
-                                </div>
-                                <div className="col-span-2">
-                                    <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Distrito</p>
-                                    <p className="text-sm font-medium text-gray-900">{pedido.distrito || '—'}</p>
-                                </div>
-                            </div>
-
-                            <div>
-                                <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Dirección Exacta</p>
-                                <p className="text-sm font-medium text-gray-900 mt-0.5 break-words">
-                                    {pedido.direccion_calle || pedido.clientes?.direccion || '—'}
-                                </p>
-                            </div>
-
-                            {pedido.referencia_direccion && (
-                                <div className="bg-amber-50 p-3 rounded-lg border border-amber-100">
-                                    <p className="text-[10px] font-bold text-amber-700 mb-1 flex items-center gap-1">
-                                        📌 REFERENCIA
-                                    </p>
-                                    <p className="text-xs text-amber-900 leading-relaxed italic">
-                                        &quot;{pedido.referencia_direccion}&quot;
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                        <Button variant="outline" className="w-full text-xs" onClick={() => {
-                            const link = pedido.link_ubicacion
-                            if (link && link.startsWith('http')) {
-                                window.open(link, '_blank')
-                            } else {
-                                const query = pedido.direccion_calle
-                                    ? `${pedido.direccion_calle}, ${pedido.distrito || ''}, ${pedido.departamento || ''}, Peru`
-                                    : pedido.clientes?.direccion
-                                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query || '')}`, '_blank')
-                            }
-                        }}>
-                            Ver en Google Maps
-                        </Button>
-                    </div>
-
-                    <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">
-                        <h2 className="font-semibold text-lg mb-2 flex items-center gap-2">
-                            <FileUp className="h-5 w-5" /> Evidencia de Envío
-                        </h2>
-                        {pedido.guia_archivo_url ? (
-                            <div className="space-y-3">
-                                {/* Thumbnail Preview */}
-                                {pedido.guia_archivo_url.match(/\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i) && (
-                                    <div className="relative w-full h-40 bg-gray-100 rounded-lg overflow-hidden border">
-                                        <img
-                                            src={pedido.guia_archivo_url}
-                                            alt="Guía de Remisión"
-                                            className="w-full h-full object-cover"
-                                        />
-                                    </div>
-                                )}
-
-                                <div className="p-3 border rounded-lg bg-gray-50 flex items-center gap-3">
-                                    <div className="bg-blue-100 p-2 rounded text-blue-600">
-                                        <FileUp className="h-5 w-5" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium truncate">Guía de Remisión</p>
-                                        <p className="text-xs text-gray-500">Documento adjunto</p>
-                                    </div>
-                                </div>
-                                <div className="flex gap-2">
-                                    <Button variant="outline" className="flex-1 gap-2" onClick={() => window.open(pedido.guia_archivo_url || '', '_blank')}>
-                                        <ExternalLink className="h-4 w-4" /> Ver Completo
-                                    </Button>
-                                    <Button variant="outline" className="flex-none text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => setConfirmDeleteGuideOpen(true)} disabled={isLocked}>
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="text-center p-6 border-2 border-dashed rounded-xl hover:bg-gray-50 transition-colors">
-                                <input
-                                    type="file"
-                                    id="guide-upload"
-                                    className="hidden"
-                                    accept="image/*,.pdf"
-                                    onChange={handleUploadGuide}
-                                    disabled={uploadingGuide || isLocked}
-                                />
-                                <label htmlFor="guide-upload" className="cursor-pointer flex flex-col items-center gap-2">
-                                    <div className="bg-blue-50 p-3 rounded-full text-blue-600">
-                                        <FileUp className="h-6 w-6" />
-                                    </div>
-                                    <span className="text-sm font-medium text-blue-600">
-                                        {uploadingGuide ? 'Subiendo...' : 'Subir Foto de Guía'}
-                                    </span>
-                                    <span className="text-xs text-gray-400">PDF o Imagen (Shalom/Olva)</span>
-                                </label>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Evidencia de Entrega Section */}
-                    <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">
-                        <h2 className="font-semibold text-lg mb-2 flex items-center gap-2">
-                            <Check className="h-5 w-5" /> Evidencia de Entrega
-                        </h2>
-                        {pedido.evidencia_entrega_url ? (
-                            <div className="space-y-3">
-                                {/* Thumbnail Preview */}
-                                {pedido.evidencia_entrega_url.match(/\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i) && (
-                                    <div className="relative w-full h-40 bg-gray-100 rounded-lg overflow-hidden border">
-                                        <img
-                                            src={pedido.evidencia_entrega_url}
-                                            alt="Evidencia de Entrega"
-                                            className="w-full h-full object-cover"
-                                        />
-                                    </div>
-                                )}
-                                <div className="p-3 border rounded-lg bg-gray-50 flex items-center gap-3">
-                                    <div className="bg-green-100 p-2 rounded text-green-600">
-                                        <Check className="h-5 w-5" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium truncate">Foto de Entrega</p>
-                                        <p className="text-xs text-gray-500">Documento adjunto</p>
-                                    </div>
-                                </div>
-                                <div className="flex gap-2">
-                                    <Button variant="outline" className="flex-1 gap-2" onClick={() => window.open(pedido.evidencia_entrega_url || '', '_blank')}>
-                                        <ExternalLink className="h-4 w-4" /> Ver Completo
-                                    </Button>
-                                    <Button variant="outline" className="flex-none text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => setConfirmDeleteDeliveryOpen(true)} disabled={isLocked}>
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="text-center p-6 border-2 border-dashed rounded-xl hover:bg-gray-50 transition-colors">
-                                <input
-                                    type="file"
-                                    id="delivery-upload"
-                                    className="hidden"
-                                    accept="image/*"
-                                    onChange={handleUploadDelivery}
-                                    disabled={uploadingDelivery || isLocked}
-                                />
-                                <label htmlFor="delivery-upload" className="cursor-pointer flex flex-col items-center gap-2">
-                                    <div className="bg-green-50 p-3 rounded-full text-green-600">
-                                        <Check className="h-6 w-6" />
-                                    </div>
-                                    <span className="text-sm font-medium text-green-600">
-                                        {uploadingDelivery ? 'Subiendo...' : 'Subir Foto de Entrega'}
-                                    </span>
-                                    <span className="text-xs text-gray-400">Imagen (Motorizado)</span>
-                                </label>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">
-                        <h2 className="font-semibold text-lg mb-2 flex items-center gap-2">
-                            <CreditCard className="h-5 w-5" /> Pago
-                        </h2>
-                        <div className="space-y-2">
-                            <div>
-                                <p className="text-sm text-gray-500">Estado de pago</p>
-                                <Badge variant="secondary" className="mt-1">
-                                    {pedido.pago_status}
-                                </Badge>
-                            </div>
-                            {pedido.cupon_codigo && (
-                                <div className="mt-2 pt-2 border-t">
-                                    <p className="text-sm text-gray-500">Cupón aplicado</p>
-                                    <p className="font-mono text-sm font-bold text-green-700">{pedido.cupon_codigo}</p>
-                                </div>
-                            )}
-                            <div className="mt-2 pt-2 border-t">
-                                <p className="text-sm text-gray-500">Stock</p>
-                                <p className="text-sm">
-                                    {pedido.stock_descontado ?
-                                        <span className="text-green-600 flex items-center gap-1">✔ Descontado</span> :
-                                        <span className="text-amber-600">⚠ No descontado</span>
-                                    }
-                                </p>
-                            </div>
-
-                            <div className="mt-4 pt-4 border-t">
-                                <p className="text-sm text-gray-500 mb-2">Comprobantes de Pago</p>
-
-                                <div className="space-y-3">
-                                    {pedido.comprobante_pago_url && Array.isArray(pedido.comprobante_pago_url) && pedido.comprobante_pago_url.length > 0 ? (
-                                        pedido.comprobante_pago_url.map((url: string, index: number) => (
-                                            <div key={index} className="space-y-2">
-                                                {/* Thumbnail Preview */}
-                                                {url.match(/\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i) && (
-                                                    <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden border">
-                                                        <img
-                                                            src={url}
-                                                            alt={`Voucher ${index + 1}`}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    </div>
-                                                )}
-                                                <div className="p-2 border rounded bg-gray-50 flex items-center gap-2">
-                                                    <div className="bg-green-100 p-1.5 rounded text-green-600">
-                                                        <ExternalLink className="h-4 w-4" />
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="text-xs font-medium truncate">Voucher {index + 1}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    <Button variant="outline" size="sm" className="flex-1 h-8 text-xs" onClick={() => window.open(url, '_blank')}>
-                                                        Ver Voucher
-                                                    </Button>
-                                                    <Button variant="outline" size="sm" className="flex-none h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => setConfirmDeletePaymentIndex(index)} disabled={isLocked}>
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        ))
-                                    ) : null}
-
-                                    {/* Upload Button - Only show if less than 2 files */}
-                                    {(!pedido.comprobante_pago_url || pedido.comprobante_pago_url.length < 2) && (
-                                        <div className="relative">
-                                            <input
-                                                type="file"
-                                                id="payment-upload"
-                                                className="hidden"
-                                                accept="image/*,.pdf"
-                                                onChange={handleUploadPayment}
-                                                disabled={uploadingPayment || isLocked}
-                                            />
-                                            <label htmlFor="payment-upload" className="cursor-pointer block w-full text-center border border-dashed rounded-lg p-3 hover:bg-gray-50 transition-colors">
-                                                <span className="text-xs font-medium text-blue-600">
-                                                    {uploadingPayment ? 'Subiendo...' : '+ Subir Voucher/Foto'}
-                                                </span>
-                                            </label>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Worker Assignment - Admin Only */}
-                    {userRole === 'admin' && (
-                        <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">
-                            <h2 className="font-semibold text-lg mb-2 flex items-center gap-2">
-                                <UserCheck className="h-5 w-5" /> Asignación
-                            </h2>
-                            <div>
-                                <p className="text-sm text-gray-500 mb-2">Trabajador asignado</p>
-                                <Select value={assignedTo} onValueChange={handleAssignWorker}>
-                                    <SelectTrigger>
-                                        <SelectValue>
-                                            {pedido.asignado_perfil?.nombre || pedido.asignado_perfil?.email || (
-                                                <span className="text-orange-600">Sin asignar</span>
-                                            )}
-                                        </SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="unassigned">
-                                            <span className="text-gray-500">Sin asignar</span>
-                                        </SelectItem>
-                                        {workers.map(w => (
-                                            <SelectItem key={w.id} value={w.id}>
-                                                {w.nombre || w.email}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            {pedido.fecha_asignacion && (
-                                <p className="text-xs text-gray-400">
-                                    Asignado el {new Date(pedido.fecha_asignacion).toLocaleString()}
-                                </p>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Show assigned worker for workers (read-only) */}
-                    {userRole === 'worker' && pedido.asignado_perfil && (
-                        <div className="bg-blue-50 rounded-xl border border-blue-200 p-4">
-                            <p className="text-xs text-blue-600 font-medium">Este pedido te fue asignado</p>
-                            {pedido.fecha_asignacion && (
-                                <p className="text-xs text-blue-500 mt-1">
-                                    {new Date(pedido.fecha_asignacion).toLocaleString()}
-                                </p>
-                            )}
-                        </div>
-                    )}
+                    <OrderAssignmentCard
+                        pedido={pedido}
+                        userRole={userRole}
+                        workers={workers}
+                        assignedTo={assignedTo}
+                        onAssign={handleAssignWorker}
+                    />
                 </div>
             </div>
 
             {/* --- Dialogs --- */}
 
-            {/* 1. Delete Guide Confirmation */}
-            <Dialog open={confirmDeleteGuideOpen} onOpenChange={setConfirmDeleteGuideOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Eliminar Guía</DialogTitle>
-                    </DialogHeader>
-                    <p className="py-4 text-gray-500">¿Estás seguro que deseas eliminar el archivo de la guía de remisión?</p>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setConfirmDeleteGuideOpen(false)}>Cancelar</Button>
-                        <Button variant="destructive" onClick={performDeleteGuide}>Eliminar</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* 1.5. Delete Delivery Evidence Confirmation */}
-            <Dialog open={confirmDeleteDeliveryOpen} onOpenChange={setConfirmDeleteDeliveryOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Eliminar Evidencia de Entrega</DialogTitle>
-                    </DialogHeader>
-                    <p className="py-4 text-gray-500">¿Estás seguro que deseas eliminar la foto de evidencia de entrega?</p>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setConfirmDeleteDeliveryOpen(false)}>Cancelar</Button>
-                        <Button variant="destructive" onClick={performDeleteDelivery}>Eliminar</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* 2. Delete Payment Confirmation */}
-            <Dialog open={confirmDeletePaymentIndex !== null} onOpenChange={(open) => !open && setConfirmDeletePaymentIndex(null)}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Eliminar Comprobante</DialogTitle>
-                    </DialogHeader>
-                    <p className="py-4 text-gray-500">¿Estás seguro que deseas eliminar este comprobante de pago?</p>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setConfirmDeletePaymentIndex(null)}>Cancelar</Button>
-                        <Button variant="destructive" onClick={performDeletePayment}>Eliminar</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            {/* 1. Delete Guide Confirmation - Deprecated, moved to component */}
+            {/* 1.5. Delete Delivery Evidence Confirmation - Deprecated, moved to component */}
+            {/* 2. Delete Payment Confirmation - Deprecated, moved to component */}
 
             {/* 3. Partial Return Dialog */}
             <Dialog open={returnModalState.isOpen} onOpenChange={(open) => setReturnModalState(prev => ({ ...prev, isOpen: open }))}>

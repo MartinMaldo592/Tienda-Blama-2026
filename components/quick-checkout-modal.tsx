@@ -137,7 +137,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
     const [dni, setDni] = useState("")
     const [address, setAddress] = useState("") // Google Maps Address
     const [reference, setReference] = useState("")
-    const [province, setProvince] = useState("")
+    const [department, setDepartment] = useState("")
     const [district, setDistrict] = useState("")
     const [urbanDistrict, setUrbanDistrict] = useState("")
     const [shippingMethod, setShippingMethod] = useState("lima")
@@ -197,7 +197,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
             variante_nombre: variant?.etiqueta ? String(variant.etiqueta) : null
         }]
 
-        const fullAddress = `${province}, ${district}, ${urbanDistrict}. ${value || address}`.trim()
+        const fullAddress = `${department}, ${district}, ${urbanDistrict}. ${value || address}`.trim()
         const locationLink = "" // Can be added if we do Geocode
 
         const messageCliente = buildWhatsAppPreviewMessage({
@@ -223,8 +223,9 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                 phone: phoneClean,
                 dni: dniClean,
                 address: fullAddress,
-                province, // Department
-                district: `${district} - ${urbanDistrict}`, // Province - District (combined to fit API if needed, or just let API handle it if we modify types later)
+                department, // Department
+                provinceName: district, // Province
+                district: urbanDistrict, // District
                 street: value || address,
                 reference,
                 locationLink,
@@ -326,7 +327,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
 
             <div className="space-y-1">
                 <Label className="text-sm font-bold">Departamento <span className="text-destructive">*</span></Label>
-                <IconInput icon={MapPin} required placeholder="Ej: Lima" value={province} onChange={(e: any) => setProvince(e.target.value)} />
+                <IconInput icon={MapPin} required placeholder="Ej: Lima" value={department} onChange={(e: any) => setDepartment(e.target.value)} />
             </div>
 
             <div className="space-y-1">
