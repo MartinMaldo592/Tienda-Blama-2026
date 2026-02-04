@@ -331,27 +331,20 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
 
     // Prevent keyboard from opening automatically on mobile
     useEffect(() => {
-        const container = document.getElementById('checkout-form-container')
-        if (container) {
-            container.focus()
+        // Aggressively blur any active element when this component mounts
+        // This ensures the keyboard doesn't pop up even if the browser tries to auto-focus
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur()
         }
+        window.scrollTo(0, 0)
     }, [])
 
     return (
         <>
             <form
-                id="checkout-form-container"
-                tabIndex={-1}
                 onSubmit={handleSubmit}
                 className="flex flex-col h-full outline-none"
             >
-                {/* 
-                    Hidden input to trap auto-focus on mobile browsers. 
-                    This prevents the keyboard from popping up immediately 
-                    because this input is off-screen/hidden but stealing the initial focus event.
-                */}
-                <input type="text" className="sr-only" autoFocus readOnly />
-
                 <div className="p-4 border-b flex items-center gap-2 bg-popover">
                     <Button type="button" variant="ghost" size="icon" onClick={onBack} disabled={isSubmitting} className="h-8 w-8 hover:bg-popover/80">
                         <ArrowLeft className="h-4 w-4" />
