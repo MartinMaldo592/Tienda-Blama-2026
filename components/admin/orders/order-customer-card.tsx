@@ -1,4 +1,4 @@
-import { User, Pencil, Phone, MessageCircle } from "lucide-react"
+import { User, Pencil, Phone, MessageCircle, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -141,6 +141,26 @@ export function OrderCustomerCard({ pedido, isLocked, isEditOpen, onEditOpenChan
                         <p className="font-medium capitalize">{pedido.metodo_envio}</p>
                     </div>
                 )}
+
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full mt-2 gap-2 text-blue-700 border-blue-200 bg-blue-50 hover:bg-blue-100 hover:text-blue-800"
+                    onClick={() => {
+                        const link = pedido.link_ubicacion
+                        if (link && link.startsWith('http')) {
+                            window.open(link, '_blank')
+                        } else {
+                            const query = pedido.direccion_calle
+                                ? `${pedido.direccion_calle}, ${pedido.distrito || ''}, ${pedido.departamento || ''}, Peru`
+                                : pedido.clientes?.direccion
+                            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query || '')}`, '_blank')
+                        }
+                    }}
+                >
+                    <MapPin className="h-4 w-4" />
+                    Ver Ubicación GPS
+                </Button>
 
                 <Button
                     variant="outline"
