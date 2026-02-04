@@ -65,9 +65,9 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
     const [dni, setDni] = useState("")
     const [dniError, setDniError] = useState("")
     const [reference, setReference] = useState("")
-    const [province, setProvince] = useState("") // Department
-    const [district, setDistrict] = useState("") // Province
-    const [urbanDistrict, setUrbanDistrict] = useState("") // District
+    const [department, setDepartment] = useState("")
+    const [province, setProvince] = useState("")
+    const [district, setDistrict] = useState("")
     const [locationLink, setLocationLink] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [waPromptOpen, setWaPromptOpen] = useState(false)
@@ -181,7 +181,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             variante_nombre: (it as any)?.variante_nombre ?? null,
         }))
 
-        const fullAddress = `${province}, ${district}, ${urbanDistrict}. ${value || ''}`.trim()
+        const fullAddress = `${department}, ${province}, ${district}. ${value || ''}`.trim()
         const messageClientePreview = buildWhatsAppPreviewMessage({
             name: name || 'Cliente',
             dni: normalizedDni,
@@ -226,8 +226,9 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 dni: normalizedDni,
                 address: fullAddress,
                 street: value,
-                province: province, // Department
-                district: `${district} - ${urbanDistrict}`, // Province - District
+                provinceName: province, // Mapped to provinceName in type
+                district: district,
+                department: department, // Added department if variable exists in scope, otherwise remove or verify source
                 reference,
                 locationLink,
                 couponCode: appliedCouponCode,
@@ -429,8 +430,8 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                             id="province"
                             required
                             placeholder="Ej: Lima"
-                            value={province}
-                            onChange={(e) => setProvince(e.target.value)}
+                            value={department}
+                            onChange={(e) => setDepartment(e.target.value)}
                             disabled={isSubmitting}
                         />
                     </div>
@@ -441,8 +442,8 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                             id="district"
                             required
                             placeholder="Ej: Cañete"
-                            value={district}
-                            onChange={(e) => setDistrict(e.target.value)}
+                            value={province}
+                            onChange={(e) => setProvince(e.target.value)}
                             disabled={isSubmitting}
                         />
                     </div>
@@ -453,8 +454,8 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                             id="urbanDistrict"
                             required
                             placeholder="Ej: Miraflores"
-                            value={urbanDistrict}
-                            onChange={(e) => setUrbanDistrict(e.target.value)}
+                            value={district}
+                            onChange={(e) => setDistrict(e.target.value)}
                             disabled={isSubmitting}
                         />
                     </div>
