@@ -23,13 +23,7 @@ import {
     Phone,
     ShoppingCart,
 } from "lucide-react"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
+
 import { formatCurrency } from "@/lib/utils"
 import {
     buildPreOpenUrl,
@@ -143,7 +137,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
     const [dni, setDni] = useState("")
     const [address, setAddress] = useState("") // Google Maps Address
     const [reference, setReference] = useState("")
-    const [province, setProvince] = useState("Lima")
+    const [province, setProvince] = useState("")
     const [district, setDistrict] = useState("")
     const [urbanDistrict, setUrbanDistrict] = useState("")
     const [shippingMethod, setShippingMethod] = useState("lima")
@@ -332,45 +326,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
 
             <div className="space-y-1">
                 <Label className="text-sm font-bold">Departamento <span className="text-destructive">*</span></Label>
-                <div className="flex w-full items-center rounded-md border text-sm overflow-hidden h-10 ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                    <div className="flex h-full w-10 items-center justify-center bg-muted/50 border-r">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                    <Select value={province} onValueChange={setProvince}>
-                        <SelectTrigger className="w-full h-full border-0 bg-transparent focus:ring-0 focus:ring-offset-0 rounded-none shadow-none px-3">
-                            <SelectValue placeholder="Selecciona" />
-                        </SelectTrigger>
-                        <SelectContent position="popper" className="max-h-[200px]">
-                            <SelectItem value="Amazonas">Amazonas</SelectItem>
-                            <SelectItem value="Áncash">Áncash</SelectItem>
-                            <SelectItem value="Apurímac">Apurímac</SelectItem>
-                            <SelectItem value="Arequipa">Arequipa</SelectItem>
-                            <SelectItem value="Ayacucho">Ayacucho</SelectItem>
-                            <SelectItem value="Cajamarca">Cajamarca</SelectItem>
-                            <SelectItem value="Callao">Callao</SelectItem>
-                            <SelectItem value="Cusco">Cusco</SelectItem>
-                            <SelectItem value="Huancavelica">Huancavelica</SelectItem>
-                            <SelectItem value="Huánuco">Huánuco</SelectItem>
-                            <SelectItem value="Ica">Ica</SelectItem>
-                            <SelectItem value="Junín">Junín</SelectItem>
-                            <SelectItem value="La Libertad">La Libertad</SelectItem>
-                            <SelectItem value="Lambayeque">Lambayeque</SelectItem>
-                            <SelectItem value="Lima">Lima</SelectItem>
-                            <SelectItem value="Lima Provincias">Lima Provincias</SelectItem>
-                            <SelectItem value="Loreto">Loreto</SelectItem>
-                            <SelectItem value="Madre de Dios">Madre de Dios</SelectItem>
-                            <SelectItem value="Moquegua">Moquegua</SelectItem>
-                            <SelectItem value="Pasco">Pasco</SelectItem>
-                            <SelectItem value="Piura">Piura</SelectItem>
-                            <SelectItem value="Puno">Puno</SelectItem>
-                            <SelectItem value="San Martín">San Martín</SelectItem>
-                            <SelectItem value="Tacna">Tacna</SelectItem>
-                            <SelectItem value="Tumbes">Tumbes</SelectItem>
-                            <SelectItem value="Ucayali">Ucayali</SelectItem>
-                        </SelectContent>
-
-                    </Select>
-                </div>
+                <IconInput icon={MapPin} required placeholder="Ej: Lima" value={province} onChange={(e: any) => setProvince(e.target.value)} />
             </div>
 
             <div className="space-y-1">
