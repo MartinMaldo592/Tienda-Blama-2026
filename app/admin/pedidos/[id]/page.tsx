@@ -190,7 +190,8 @@ export default function PedidoDetallePage() {
         distrito: '',
         provincia: '',
         departamento: '',
-        referencia: ''
+        referencia: '',
+        metodo_envio: '' // Added field
     })
 
     useEffect(() => {
@@ -216,7 +217,8 @@ export default function PedidoDetallePage() {
                 distrito: pedido.distrito || '',
                 provincia: pedido.provincia || '',
                 departamento: pedido.departamento || '',
-                referencia: pedido.referencia_direccion || ''
+                referencia: pedido.referencia_direccion || '',
+                metodo_envio: pedido.metodo_envio || '' // Populate field
             })
         }
     }, [pedido])
@@ -267,7 +269,8 @@ export default function PedidoDetallePage() {
                     distrito: clientForm.distrito,
                     provincia: clientForm.provincia,
                     departamento: clientForm.departamento,
-                    referencia_direccion: clientForm.referencia
+                    referencia_direccion: clientForm.referencia,
+                    metodo_envio: clientForm.metodo_envio // Save field
                 })
                 .eq('id', id)
 
@@ -794,6 +797,21 @@ export default function PedidoDetallePage() {
                                             </div>
                                         </div>
                                         <div className="space-y-2">
+                                            <Label>Método de Envío</Label>
+                                            <Select
+                                                value={clientForm.metodo_envio}
+                                                onValueChange={(val) => setClientForm({ ...clientForm, metodo_envio: val })}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Seleccionar método" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="lima">Lima (Gratis)</SelectItem>
+                                                    <SelectItem value="provincia">Provincia (Shalom)</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
                                             <Label>Teléfono</Label>
                                             <Input value={clientForm.telefono} onChange={e => setClientForm({ ...clientForm, telefono: e.target.value })} />
                                         </div>
@@ -862,9 +880,20 @@ export default function PedidoDetallePage() {
 
 
                     <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">
-                        <h2 className="font-semibold text-lg mb-2 flex items-center gap-2">
-                            <MapPin className="h-5 w-5" /> Envío
-                        </h2>
+                        <div className="flex justify-between items-center mb-2">
+                            <h2 className="font-semibold text-lg flex items-center gap-2">
+                                <MapPin className="h-5 w-5" /> Envío
+                            </h2>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={() => setIsEditClientOpen(true)}
+                                disabled={isLocked}
+                            >
+                                <Pencil className="h-4 w-4 text-gray-400 hover:text-blue-600" />
+                            </Button>
+                        </div>
 
                         {/* Shipping Method */}
                         <div className="border-b pb-3">
