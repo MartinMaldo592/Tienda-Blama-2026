@@ -37,7 +37,7 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
     const visibleMenuItems = menuItems.filter(item => item.roles.includes(role))
 
     return (
-        <div className="w-64 bg-sidebar h-screen text-sidebar-foreground flex flex-col fixed left-0 top-0 overflow-hidden">
+        <div className="w-full h-full bg-sidebar text-sidebar-foreground flex flex-col overflow-hidden">
             <div className="p-4 border-b border-border shrink-0">
                 <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
                     CRM Pro
