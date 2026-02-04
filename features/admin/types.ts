@@ -46,6 +46,7 @@ export type PedidoRow = {
   codigo_seguimiento?: string | null
   shalom_orden?: string | null
   shalom_clave?: string | null
+  evidencia_entrega_url?: string | null
 }
 
 export type PedidoItemRow = {

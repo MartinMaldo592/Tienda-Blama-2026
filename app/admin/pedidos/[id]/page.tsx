@@ -160,6 +160,7 @@ export default function PedidoDetallePage() {
 
     // --- State for Confirmation Dialogs ---
     const [confirmDeleteGuideOpen, setConfirmDeleteGuideOpen] = useState(false)
+    const [confirmDeleteDeliveryOpen, setConfirmDeleteDeliveryOpen] = useState(false) // New state for delivery evidence
     const [confirmDeletePaymentIndex, setConfirmDeletePaymentIndex] = useState<number | null>(null)
 
     // Partial Return State
@@ -432,6 +433,71 @@ export default function PedidoDetallePage() {
         } finally {
             setUploadingGuide(false)
             setConfirmDeleteGuideOpen(false)
+        }
+    }
+
+    const [uploadingDelivery, setUploadingDelivery] = useState(false)
+
+    async function handleUploadDelivery(e: React.ChangeEvent<HTMLInputElement>) {
+        if (!e.target.files || e.target.files.length === 0) return
+        const file = e.target.files[0]
+        setUploadingDelivery(true)
+
+        try {
+            const fileExt = file.name.split('.').pop()
+            const fileName = `entrega_${id}_${Date.now()}.${fileExt}`
+            const filePath = `${fileName}`
+
+            // 1. Upload to Supabase Storage "entregas" (Note: User needs to ensure this bucket exists or reuse 'guias'/'pagos' if preferred, assuming 'guias' for logistics documents is fine or create new one)
+            // Let's assume 'guias' bucket is for general shipping docs or reusing it to avoid bucket creation overhead if not strictly separated. 
+            // OR better: use 'guias' bucket but maybe different folder if buckets support it, or just root.
+            // Let's stick to 'guias' bucket for now as it makes sense for "Delivery/Shipping" docs.
+
+            const { error: uploadError } = await supabase.storage
+                .from('guias')
+                .upload(filePath, file)
+
+            if (uploadError) throw uploadError
+
+            // 2. Get Public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('guias')
+                .getPublicUrl(filePath)
+
+            // 3. Update Pedido Row
+            const { error: updateError } = await supabase
+                .from('pedidos')
+                .update({ evidencia_entrega_url: publicUrl })
+                .eq('id', id)
+
+            if (updateError) throw updateError
+
+            fetchPedido()
+            toast.success("Evidencia de entrega subida correctamente")
+        } catch (error: any) {
+            console.error("Error uploading delivery evidence:", error)
+            toast.error("Error al subir evidencia: " + error.message)
+        } finally {
+            setUploadingDelivery(false)
+        }
+    }
+
+    async function performDeleteDelivery() {
+        setUploadingDelivery(true)
+        try {
+            const { error } = await supabase
+                .from('pedidos')
+                .update({ evidencia_entrega_url: null })
+                .eq('id', id)
+
+            if (error) throw error
+            fetchPedido()
+            toast.success("Evidencia de entrega eliminada")
+        } catch (error: any) {
+            toast.error("Error al eliminar: " + error.message)
+        } finally {
+            setUploadingDelivery(false)
+            setConfirmDeleteDeliveryOpen(false)
         }
     }
 
@@ -1044,6 +1110,54 @@ export default function PedidoDetallePage() {
                         )}
                     </div>
 
+                    {/* Evidencia de Entrega Section */}
+                    <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">
+                        <h2 className="font-semibold text-lg mb-2 flex items-center gap-2">
+                            <Check className="h-5 w-5" /> Evidencia de Entrega
+                        </h2>
+                        {pedido.evidencia_entrega_url ? (
+                            <div className="space-y-3">
+                                <div className="p-3 border rounded-lg bg-gray-50 flex items-center gap-3">
+                                    <div className="bg-green-100 p-2 rounded text-green-600">
+                                        <Check className="h-5 w-5" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium truncate">Foto de Entrega</p>
+                                        <p className="text-xs text-gray-500">Documento adjunto</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button variant="outline" className="flex-1 gap-2" onClick={() => window.open(pedido.evidencia_entrega_url || '', '_blank')}>
+                                        <ExternalLink className="h-4 w-4" /> Ver
+                                    </Button>
+                                    <Button variant="outline" className="flex-none text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => setConfirmDeleteDeliveryOpen(true)} disabled={isLocked}>
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center p-6 border-2 border-dashed rounded-xl hover:bg-gray-50 transition-colors">
+                                <input
+                                    type="file"
+                                    id="delivery-upload"
+                                    className="hidden"
+                                    accept="image/*"
+                                    onChange={handleUploadDelivery}
+                                    disabled={uploadingDelivery || isLocked}
+                                />
+                                <label htmlFor="delivery-upload" className="cursor-pointer flex flex-col items-center gap-2">
+                                    <div className="bg-green-50 p-3 rounded-full text-green-600">
+                                        <Check className="h-6 w-6" />
+                                    </div>
+                                    <span className="text-sm font-medium text-green-600">
+                                        {uploadingDelivery ? 'Subiendo...' : 'Subir Foto de Entrega'}
+                                    </span>
+                                    <span className="text-xs text-gray-400">Imagen (Motorizado)</span>
+                                </label>
+                            </div>
+                        )}
+                    </div>
+
                     <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">
                         <h2 className="font-semibold text-lg mb-2 flex items-center gap-2">
                             <CreditCard className="h-5 w-5" /> Pago
@@ -1183,6 +1297,20 @@ export default function PedidoDetallePage() {
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setConfirmDeleteGuideOpen(false)}>Cancelar</Button>
                         <Button variant="destructive" onClick={performDeleteGuide}>Eliminar</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* 1.5. Delete Delivery Evidence Confirmation */}
+            <Dialog open={confirmDeleteDeliveryOpen} onOpenChange={setConfirmDeleteDeliveryOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Eliminar Evidencia de Entrega</DialogTitle>
+                    </DialogHeader>
+                    <p className="py-4 text-gray-500">¿Estás seguro que deseas eliminar la foto de evidencia de entrega?</p>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setConfirmDeleteDeliveryOpen(false)}>Cancelar</Button>
+                        <Button variant="destructive" onClick={performDeleteDelivery}>Eliminar</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
