@@ -177,6 +177,7 @@ export default function PedidoDetallePage() {
     const [trackingCode, setTrackingCode] = useState("")
     const [shalomOrder, setShalomOrder] = useState("")
     const [shalomPass, setShalomPass] = useState("")
+    const [useShalomFormat, setUseShalomFormat] = useState(false)
     const [savingTracking, setSavingTracking] = useState(false)
 
     // --- Client Edit Logic ---
@@ -195,10 +196,27 @@ export default function PedidoDetallePage() {
     useEffect(() => {
         if (pedido) {
             setTrackingCode(pedido.codigo_seguimiento || "")
-            if (pedido.metodo_envio === 'provincia') {
-                // Prioritize new columns, fallback to splitting legacy field
-                setShalomOrder(pedido.shalom_orden || (pedido.codigo_seguimiento || "").split('|')[0] || "")
-                setShalomPass(pedido.shalom_clave || (pedido.codigo_seguimiento || "").split('|')[1] || "")
+
+            // Determine if we should show Shalom format
+            const hasShalomData = !!pedido.shalom_orden || !!pedido.shalom_clave
+            const isProvincia = pedido.metodo_envio === 'provincia'
+            const isLegacyShalom = (pedido.codigo_seguimiento || "").includes('|')
+
+            const shouldUseShalom = hasShalomData || isProvincia || isLegacyShalom
+
+            setUseShalomFormat(shouldUseShalom)
+
+            if (shouldUseShalom) {
+                // Check if we have explicit columns, otherwise try to parse legacy
+                if (pedido.shalom_orden || pedido.shalom_clave) {
+                    setShalomOrder(pedido.shalom_orden || "")
+                    setShalomPass(pedido.shalom_clave || "")
+                } else {
+                    // Legacy fallback
+                    const parts = (pedido.codigo_seguimiento || "").split('|')
+                    setShalomOrder(parts[0] || "")
+                    setShalomPass(parts[1] || "")
+                }
             } else {
                 setShalomOrder("")
                 setShalomPass("")
@@ -223,7 +241,7 @@ export default function PedidoDetallePage() {
             let updatePayload: any = {}
             let logMsg = ""
 
-            if (pedido?.metodo_envio === 'provincia') {
+            if (useShalomFormat) {
                 const combined = `${shalomOrder}|${shalomPass}`
                 updatePayload = {
                     codigo_seguimiento: combined, // Maintain legacy for compatibility
@@ -233,7 +251,9 @@ export default function PedidoDetallePage() {
                 logMsg = `Shalom: Orden ${shalomOrder}, Clave ${shalomPass}`
             } else {
                 updatePayload = {
-                    codigo_seguimiento: trackingCode
+                    codigo_seguimiento: trackingCode,
+                    shalom_orden: null, // Clear if switching back to simple? Maybe keep them? Let's clear to avoid confusion.
+                    shalom_clave: null
                 }
                 logMsg = `Código: ${trackingCode}`
             }
@@ -879,7 +899,17 @@ export default function PedidoDetallePage() {
                         {/* Tracking Code */}
                         <div className="border-b pb-3">
                             <div className="flex justify-between items-center mb-1">
-                                <p className="text-sm text-gray-500">Tracking / Clave de Envío</p>
+                                <div className="flex items-center gap-2">
+                                    <p className="text-sm text-gray-500">Tracking / Clave de Envío</p>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-6 px-2 text-[10px] text-blue-600 bg-blue-50 hover:bg-blue-100 border-blue-200"
+                                        onClick={() => setUseShalomFormat(!useShalomFormat)}
+                                    >
+                                        {useShalomFormat ? "Cambiar a Simple" : "Usar formato Shalom"}
+                                    </Button>
+                                </div>
                                 {trackingCode && (
                                     <a
                                         href="https://rastrea.shalom.com.pe/"
@@ -891,7 +921,7 @@ export default function PedidoDetallePage() {
                                 )}
                             </div>
 
-                            {pedido.metodo_envio === 'provincia' ? (
+                            {useShalomFormat ? (
                                 <div className="grid grid-cols-2 gap-2">
                                     <div className="space-y-1">
                                         <label className="text-[10px] text-gray-400 font-bold uppercase">Nº Orden</label>
