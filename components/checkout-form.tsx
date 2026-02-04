@@ -65,6 +65,9 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
     const [dni, setDni] = useState("")
     const [dniError, setDniError] = useState("")
     const [reference, setReference] = useState("")
+    const [province, setProvince] = useState("") // Department
+    const [district, setDistrict] = useState("") // Province
+    const [urbanDistrict, setUrbanDistrict] = useState("") // District
     const [locationLink, setLocationLink] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [waPromptOpen, setWaPromptOpen] = useState(false)
@@ -98,22 +101,6 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             const results = await getGeocode({ address })
             const { lat, lng } = await getLatLng(results[0])
             setLocationLink(`https://www.google.com/maps/?q=${lat},${lng}`)
-
-            // Extract components
-            let dept = ""
-            let dist = ""
-            results[0].address_components.forEach(comp => {
-                const types = comp.types
-                if (types.includes("administrative_area_level_1")) {
-                    dept = comp.long_name
-                }
-                if (types.includes("locality") || types.includes("sublocality") || types.includes("administrative_area_level_3")) {
-                    if (!dist) dist = comp.long_name
-                }
-            })
-            setGeoProvince(dept)
-            setGeoDistrict(dist)
-
         } catch (error) {
             console.error("Error: ", error)
         }
@@ -194,14 +181,12 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             variante_nombre: (it as any)?.variante_nombre ?? null,
         }))
 
-        // Construimos el mensaje del pedido SYNCRONAMENTE usando los datos del formulario
-        // y los items disponibles. De esta forma podemos abrir la URL de WhatsApp
-        // en una nueva pestaña inmediatamente (evento de usuario) y evitar bloqueos.
+        const fullAddress = `${province}, ${district}, ${urbanDistrict}. ${value || ''}`.trim()
         const messageClientePreview = buildWhatsAppPreviewMessage({
             name: name || 'Cliente',
             dni: normalizedDni,
             phone,
-            address: value || '',
+            address: fullAddress,
             reference,
             locationLink,
             items: checkoutItems,
@@ -239,10 +224,10 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 name,
                 phone: normalizedPhone,
                 dni: normalizedDni,
-                address: value,
+                address: fullAddress,
                 street: value,
-                province: geoProvince,
-                district: geoDistrict,
+                province: province, // Department
+                district: `${district} - ${urbanDistrict}`, // Province - District
                 reference,
                 locationLink,
                 couponCode: appliedCouponCode,
@@ -267,7 +252,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 name,
                 dni: normalizedDni,
                 phone,
-                address: value,
+                address: fullAddress,
                 reference,
                 locationLink,
                 items: checkoutItems,
@@ -436,6 +421,42 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                             disabled={isSubmitting}
                         />
                         {dniError && <p className="text-xs text-destructive">{dniError}</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="province">Departamento <span className="text-destructive">*</span></Label>
+                        <Input
+                            id="province"
+                            required
+                            placeholder="Ej: Lima"
+                            value={province}
+                            onChange={(e) => setProvince(e.target.value)}
+                            disabled={isSubmitting}
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="district">Provincia <span className="text-destructive">*</span></Label>
+                        <Input
+                            id="district"
+                            required
+                            placeholder="Ej: Cañete"
+                            value={district}
+                            onChange={(e) => setDistrict(e.target.value)}
+                            disabled={isSubmitting}
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="urbanDistrict">Distrito <span className="text-destructive">*</span></Label>
+                        <Input
+                            id="urbanDistrict"
+                            required
+                            placeholder="Ej: Miraflores"
+                            value={urbanDistrict}
+                            onChange={(e) => setUrbanDistrict(e.target.value)}
+                            disabled={isSubmitting}
+                        />
                     </div>
 
                     <div className="space-y-2 relative">
