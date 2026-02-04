@@ -1100,6 +1100,17 @@ export default function PedidoDetallePage() {
                         </h2>
                         {pedido.guia_archivo_url ? (
                             <div className="space-y-3">
+                                {/* Thumbnail Preview */}
+                                {pedido.guia_archivo_url.match(/\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i) && (
+                                    <div className="relative w-full h-40 bg-gray-100 rounded-lg overflow-hidden border">
+                                        <img
+                                            src={pedido.guia_archivo_url}
+                                            alt="Guía de Remisión"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                )}
+
                                 <div className="p-3 border rounded-lg bg-gray-50 flex items-center gap-3">
                                     <div className="bg-blue-100 p-2 rounded text-blue-600">
                                         <FileUp className="h-5 w-5" />
@@ -1111,7 +1122,7 @@ export default function PedidoDetallePage() {
                                 </div>
                                 <div className="flex gap-2">
                                     <Button variant="outline" className="flex-1 gap-2" onClick={() => window.open(pedido.guia_archivo_url || '', '_blank')}>
-                                        <ExternalLink className="h-4 w-4" /> Ver
+                                        <ExternalLink className="h-4 w-4" /> Ver Completo
                                     </Button>
                                     <Button variant="outline" className="flex-none text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => setConfirmDeleteGuideOpen(true)} disabled={isLocked}>
                                         <Trash2 className="h-4 w-4" />
@@ -1148,6 +1159,16 @@ export default function PedidoDetallePage() {
                         </h2>
                         {pedido.evidencia_entrega_url ? (
                             <div className="space-y-3">
+                                {/* Thumbnail Preview */}
+                                {pedido.evidencia_entrega_url.match(/\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i) && (
+                                    <div className="relative w-full h-40 bg-gray-100 rounded-lg overflow-hidden border">
+                                        <img
+                                            src={pedido.evidencia_entrega_url}
+                                            alt="Evidencia de Entrega"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                )}
                                 <div className="p-3 border rounded-lg bg-gray-50 flex items-center gap-3">
                                     <div className="bg-green-100 p-2 rounded text-green-600">
                                         <Check className="h-5 w-5" />
@@ -1159,7 +1180,7 @@ export default function PedidoDetallePage() {
                                 </div>
                                 <div className="flex gap-2">
                                     <Button variant="outline" className="flex-1 gap-2" onClick={() => window.open(pedido.evidencia_entrega_url || '', '_blank')}>
-                                        <ExternalLink className="h-4 w-4" /> Ver
+                                        <ExternalLink className="h-4 w-4" /> Ver Completo
                                     </Button>
                                     <Button variant="outline" className="flex-none text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => setConfirmDeleteDeliveryOpen(true)} disabled={isLocked}>
                                         <Trash2 className="h-4 w-4" />
@@ -1223,6 +1244,16 @@ export default function PedidoDetallePage() {
                                     {pedido.comprobante_pago_url && Array.isArray(pedido.comprobante_pago_url) && pedido.comprobante_pago_url.length > 0 ? (
                                         pedido.comprobante_pago_url.map((url: string, index: number) => (
                                             <div key={index} className="space-y-2">
+                                                {/* Thumbnail Preview */}
+                                                {url.match(/\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i) && (
+                                                    <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden border">
+                                                        <img
+                                                            src={url}
+                                                            alt={`Voucher ${index + 1}`}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                )}
                                                 <div className="p-2 border rounded bg-gray-50 flex items-center gap-2">
                                                     <div className="bg-green-100 p-1.5 rounded text-green-600">
                                                         <ExternalLink className="h-4 w-4" />
