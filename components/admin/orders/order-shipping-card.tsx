@@ -170,21 +170,17 @@ export function OrderShippingCard({ pedido, isLocked, onLogAction, onRefresh }: 
                 </div>
 
                 {/* Tracking Link Button */}
-                {shalomOrder && (
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full gap-2 text-blue-600 border-blue-200 hover:bg-blue-50"
-                        onClick={() => {
-                            // Logic determining URL based on method could go here
-                            // Defaulting to generic tracking for now or Shalom logic if known
-                            window.open(`https://shalom.com.pe/rastrea`, '_blank')
-                        }}
-                    >
-                        <Truck className="h-4 w-4" />
-                        Rastrear en Shalom
-                    </Button>
-                )}
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+                    onClick={() => {
+                        window.open(`https://shalom.com.pe/rastrea`, '_blank')
+                    }}
+                >
+                    <Truck className="h-4 w-4" />
+                    Rastrear en Shalom
+                </Button>
             </div>
         </div>
     )
