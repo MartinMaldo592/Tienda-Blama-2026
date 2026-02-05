@@ -58,9 +58,9 @@ export default function ClientesPage() {
                             <TableHead>Teléfono</TableHead>
                             <TableHead>DNI</TableHead>
                             <TableHead>Dirección Registrada</TableHead>
-                            <TableHead>Dpto</TableHead>
-                            <TableHead>Prov</TableHead>
-                            <TableHead>Dist</TableHead>
+                            <TableHead>Departamento</TableHead>
+                            <TableHead>Provincia</TableHead>
+                            <TableHead>Distrito</TableHead>
                             <TableHead className="text-right">Historial</TableHead>
                         </TableRow>
                     </TableHeader>
