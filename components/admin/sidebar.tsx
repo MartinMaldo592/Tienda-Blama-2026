@@ -31,6 +31,7 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
         { href: "/admin/usuarios", icon: Users, label: "Usuarios Sistema", roles: ["admin"] },
         { href: "/admin/redes-sociales", icon: Share2, label: "Redes Sociales", roles: ["admin"] },
         { href: "/admin/incidencias", icon: AlertCircle, label: "Incidencias", roles: ["admin", "worker"] },
+        { href: "/admin/auditoria", icon: AlertCircle, label: "Auditoría", roles: ["admin"] },
     ]
 
     // Filter menu items based on user role
