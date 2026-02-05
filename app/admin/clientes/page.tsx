@@ -57,17 +57,20 @@ export default function ClientesPage() {
                             <TableHead>Nombre</TableHead>
                             <TableHead>Contacto</TableHead>
                             <TableHead>Dirección Registrada</TableHead>
+                            <TableHead>Dpto</TableHead>
+                            <TableHead>Prov</TableHead>
+                            <TableHead>Dist</TableHead>
                             <TableHead className="text-right">Historial</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={4} className="text-center py-10">Cargando...</TableCell>
+                                <TableCell colSpan={7} className="text-center py-10">Cargando...</TableCell>
                             </TableRow>
                         ) : clientes.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={4} className="text-center py-10">No hay clientes aún.</TableCell>
+                                <TableCell colSpan={7} className="text-center py-10">No hay clientes aún.</TableCell>
                             </TableRow>
                         ) : (
                             clientes.map((cliente) => (
@@ -80,28 +83,30 @@ export default function ClientesPage() {
                                         <div className="text-xs text-gray-500 mt-1">DNI: {cliente.dni || '—'}</div>
                                     </TableCell>
                                     <TableCell>
-                                        <div className="flex items-start gap-2 text-sm text-gray-500 max-w-[300px]">
+                                        <div className="flex items-start gap-2 text-sm text-gray-500 max-w-[250px]">
                                             <MapPin className="h-3 w-3 mt-1 flex-shrink-0" />
                                             <span className="line-clamp-2">{cliente.direccion || 'Sin dirección'}</span>
                                         </div>
-                                        {(cliente.departamento || cliente.provincia || cliente.distrito) && (
-                                            <div className="mt-2 ml-5 flex flex-wrap gap-2">
-                                                {cliente.departamento && (
-                                                    <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                                                        {cliente.departamento}
-                                                    </span>
-                                                )}
-                                                {cliente.provincia && (
-                                                    <span className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
-                                                        {cliente.provincia}
-                                                    </span>
-                                                )}
-                                                {cliente.distrito && (
-                                                    <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                                        {cliente.distrito}
-                                                    </span>
-                                                )}
-                                            </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        {cliente.departamento && (
+                                            <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                                                {cliente.departamento}
+                                            </span>
+                                        )}
+                                    </TableCell>
+                                    <TableCell>
+                                        {cliente.provincia && (
+                                            <span className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                                                {cliente.provincia}
+                                            </span>
+                                        )}
+                                    </TableCell>
+                                    <TableCell>
+                                        {cliente.distrito && (
+                                            <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                                {cliente.distrito}
+                                            </span>
                                         )}
                                     </TableCell>
                                     <TableCell className="text-right">
