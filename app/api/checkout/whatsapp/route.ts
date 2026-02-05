@@ -119,8 +119,16 @@ export async function POST(req: Request) {
       clienteId = Number((existingClients as any)[0]?.id)
       const { error: updErr } = await supabaseAdmin
         .from("clientes")
-        .update({ nombre: name, dni, direccion: direccionCompleta })
+        .update({
+          nombre: name,
+          dni,
+          direccion: direccionCompleta,
+          departamento: department,
+          provincia: provincia,
+          distrito: district
+        })
         .eq("id", clienteId)
+        .select()
 
       if (updErr) {
         return NextResponse.json({ error: updErr.message }, { status: 400 })
@@ -128,7 +136,15 @@ export async function POST(req: Request) {
     } else {
       const { data: newClient, error: clientError } = await supabaseAdmin
         .from("clientes")
-        .insert({ nombre: name, telefono: phone, dni, direccion: direccionCompleta })
+        .insert({
+          nombre: name,
+          telefono: phone,
+          dni,
+          direccion: direccionCompleta,
+          departamento: department,
+          provincia: provincia,
+          distrito: district
+        })
         .select()
         .single()
 

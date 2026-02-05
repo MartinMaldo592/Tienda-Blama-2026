@@ -84,6 +84,25 @@ export default function ClientesPage() {
                                             <MapPin className="h-3 w-3 mt-1 flex-shrink-0" />
                                             <span className="line-clamp-2">{cliente.direccion || 'Sin dirección'}</span>
                                         </div>
+                                        {(cliente.departamento || cliente.provincia || cliente.distrito) && (
+                                            <div className="mt-2 ml-5 flex flex-wrap gap-2">
+                                                {cliente.departamento && (
+                                                    <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                                                        {cliente.departamento}
+                                                    </span>
+                                                )}
+                                                {cliente.provincia && (
+                                                    <span className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                                                        {cliente.provincia}
+                                                    </span>
+                                                )}
+                                                {cliente.distrito && (
+                                                    <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                                        {cliente.distrito}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <Button variant="outline" size="sm" className="gap-2">
