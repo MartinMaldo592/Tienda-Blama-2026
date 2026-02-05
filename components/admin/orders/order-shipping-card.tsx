@@ -1,4 +1,4 @@
-import { MapPin, Save, Copy, RotateCcw, Truck } from "lucide-react"
+import { MapPin, Save, Copy, RotateCcw, Truck, Pencil, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -21,7 +21,9 @@ export function OrderShippingCard({ pedido, isLocked, onLogAction, onRefresh }: 
     const [shalomPin, setShalomPin] = useState("")
     const [savingTracking, setSavingTracking] = useState(false)
 
-    useEffect(() => {
+    const [isEditing, setIsEditing] = useState(false)
+
+    const resetFields = () => {
         if (pedido) {
             setTrackingCode(pedido.codigo_seguimiento || "")
             // Normalize Shalom variables
@@ -36,7 +38,17 @@ export function OrderShippingCard({ pedido, isLocked, onLogAction, onRefresh }: 
                 setShalomPin(pedido.shalom_pin || "")
             }
         }
+    }
+
+    useEffect(() => {
+        resetFields()
+        setIsEditing(false)
     }, [pedido])
+
+    const handleCancel = () => {
+        resetFields()
+        setIsEditing(false)
+    }
 
     async function handleSaveTracking() {
         setSavingTracking(true)
@@ -64,6 +76,7 @@ export function OrderShippingCard({ pedido, isLocked, onLogAction, onRefresh }: 
             setTrackingCode(combined)
             await onLogAction('Tracking Actualizado', logMsg)
             toast.success("Código de seguimiento guardado")
+            setIsEditing(false)
             onRefresh()
         } catch (error: any) {
             toast.error("Error guardando tracking: " + error.message)
@@ -78,7 +91,20 @@ export function OrderShippingCard({ pedido, isLocked, onLogAction, onRefresh }: 
                 <h2 className="font-semibold text-lg flex items-center gap-2">
                     <MapPin className="h-5 w-5" /> Envío
                 </h2>
-                {/* Could add a small edit button for shipping method here if desired */}
+                {!isLocked && (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={isEditing ? handleCancel : () => setIsEditing(true)}
+                    >
+                        {isEditing ? (
+                            <X className="h-4 w-4 text-gray-500 hover:text-red-600" />
+                        ) : (
+                            <Pencil className="h-4 w-4 text-gray-400 hover:text-blue-600" />
+                        )}
+                    </Button>
+                )}
             </div>
 
             {/* Method Badge */}
@@ -97,23 +123,51 @@ export function OrderShippingCard({ pedido, isLocked, onLogAction, onRefresh }: 
                     <div className="grid grid-cols-2 gap-2">
                         <div className="space-y-1">
                             <label className="text-xs font-medium text-blue-700">Orden / Guía</label>
-                            <Input
-                                className="bg-white h-8 text-sm"
-                                placeholder="Ej: 123456"
-                                value={shalomOrder}
-                                onChange={(e) => setShalomOrder(e.target.value)}
-                                disabled={isLocked}
-                            />
+                            <div className="relative">
+                                <Input
+                                    className="bg-white h-8 text-sm pr-8"
+                                    placeholder="Ej: 123456"
+                                    value={shalomOrder}
+                                    onChange={(e) => setShalomOrder(e.target.value)}
+                                    disabled={isLocked || !isEditing}
+                                />
+                                {shalomOrder && (
+                                    <button
+                                        className="absolute right-2 top-1.5 text-blue-400 hover:text-blue-600"
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(shalomOrder)
+                                            toast.success("Orden copiada")
+                                        }}
+                                        title="Copiar Orden"
+                                    >
+                                        <Copy className="h-4 w-4" />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                         <div className="space-y-1">
                             <label className="text-xs font-medium text-blue-700">Código / Clave</label>
-                            <Input
-                                className="bg-white h-8 text-sm"
-                                placeholder="Ej: 3456"
-                                value={shalomPass}
-                                onChange={(e) => setShalomPass(e.target.value)}
-                                disabled={isLocked}
-                            />
+                            <div className="relative">
+                                <Input
+                                    className="bg-white h-8 text-sm pr-8"
+                                    placeholder="Ej: 3456"
+                                    value={shalomPass}
+                                    onChange={(e) => setShalomPass(e.target.value)}
+                                    disabled={isLocked || !isEditing}
+                                />
+                                {shalomPass && (
+                                    <button
+                                        className="absolute right-2 top-1.5 text-blue-400 hover:text-blue-600"
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(shalomPass)
+                                            toast.success("Clave copiada")
+                                        }}
+                                        title="Copiar Clave"
+                                    >
+                                        <Copy className="h-4 w-4" />
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
 
@@ -149,14 +203,14 @@ export function OrderShippingCard({ pedido, isLocked, onLogAction, onRefresh }: 
                                 const pin = Math.floor(1000 + Math.random() * 9000).toString()
                                 setShalomPin(pin)
                             }}
-                            disabled={isLocked}
+                            disabled={isLocked || !isEditing}
                             title="Generar nuevo PIN"
                         >
                             <RotateCcw className="h-3 w-3" />
                         </Button>
                     </div>
 
-                    {!isLocked && (
+                    {!isLocked && isEditing && (
                         <Button
                             className="w-full h-8 text-xs bg-blue-600 hover:bg-blue-700"
                             size="sm"
