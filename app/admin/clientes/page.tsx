@@ -55,7 +55,8 @@ export default function ClientesPage() {
                     <TableHeader className="bg-gray-50">
                         <TableRow>
                             <TableHead>Nombre</TableHead>
-                            <TableHead>Contacto</TableHead>
+                            <TableHead>Teléfono</TableHead>
+                            <TableHead>DNI</TableHead>
                             <TableHead>Dirección Registrada</TableHead>
                             <TableHead>Dpto</TableHead>
                             <TableHead>Prov</TableHead>
@@ -66,11 +67,11 @@ export default function ClientesPage() {
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="text-center py-10">Cargando...</TableCell>
+                                <TableCell colSpan={8} className="text-center py-10">Cargando...</TableCell>
                             </TableRow>
                         ) : clientes.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={7} className="text-center py-10">No hay clientes aún.</TableCell>
+                                <TableCell colSpan={8} className="text-center py-10">No hay clientes aún.</TableCell>
                             </TableRow>
                         ) : (
                             clientes.map((cliente) => (
@@ -80,7 +81,9 @@ export default function ClientesPage() {
                                         <div className="flex items-center gap-2 text-sm text-gray-600">
                                             <Phone className="h-3 w-3" /> {cliente.telefono}
                                         </div>
-                                        <div className="text-xs text-gray-500 mt-1">DNI: {cliente.dni || '—'}</div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="text-sm text-gray-600 font-medium">{cliente.dni || '—'}</div>
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex items-start gap-2 text-sm text-gray-500 max-w-[250px]">
