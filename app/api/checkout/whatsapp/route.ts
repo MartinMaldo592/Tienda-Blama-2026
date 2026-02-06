@@ -56,8 +56,15 @@ export async function POST(req: Request) {
     const dni = normalizeDigits(body?.dni).slice(0, 8)
     const address = normalizeText(body?.address)
     const reference = normalizeText(body?.reference)
-    const locationLink = normalizeText(body?.locationLink)
+    const locationLink = normalizeText(body?.locationLink) || null
     const shippingMethod = normalizeText(body?.shippingMethod) || null
+
+    console.log("🐛 DEBUG CHECKOUT API:", {
+      receivedLocationLink: body?.locationLink,
+      normalizedLocationLink: locationLink,
+      address,
+      reference
+    })
 
     const couponCode = normalizeText(body?.couponCode) || null
     const discountRaw = Number(body?.discountAmount ?? 0)
