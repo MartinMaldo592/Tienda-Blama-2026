@@ -191,19 +191,10 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
         // Generar link de respaldo si no se usó el autocompletado del mapa
         let finalLocationLink = locationLink
 
-        console.log("🐛 DEBUG PRE-FALLBACK:", {
-            stateLink: locationLink,
-            fullAddress,
-            isLinkEmpty: !locationLink
-        })
-
         if ((!finalLocationLink || finalLocationLink.trim() === "") && fullAddress) {
-            console.log("🐛 GENERATING FALLBACK LINK NOW...")
             const encoded = encodeURIComponent(fullAddress)
             finalLocationLink = `https://www.google.com/maps/search/?api=1&query=${encoded}`
         }
-
-        console.log("🐛 DEBUG FINAL LINK TO SEND:", finalLocationLink)
 
         const messageClientePreview = buildWhatsAppPreviewMessage({
             name: name || 'Cliente',
@@ -253,7 +244,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 district: district,
                 department: department, // Added department if variable exists in scope, otherwise remove or verify source
                 reference,
-                locationLink: finalLocationLink,
+                locationLink: finalLocationLink || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`,
                 couponCode: appliedCouponCode,
                 discountAmount: finalDiscount,
                 shippingMethod,
