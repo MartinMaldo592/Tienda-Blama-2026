@@ -100,9 +100,14 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
         try {
             const results = await getGeocode({ address })
             const { lat, lng } = await getLatLng(results[0])
-            setLocationLink(`https://www.google.com/maps/?q=${lat},${lng}`)
+            const link = `https://www.google.com/maps/?q=${lat},${lng}`
+            setLocationLink(link)
+            console.log("📍 Location Link Generated:", link)
         } catch (error) {
-            console.error("Error: ", error)
+            console.error("Error Geocoding:", error)
+            // Fallback: search link
+            const encoded = encodeURIComponent(address)
+            setLocationLink(`https://www.google.com/maps/search/?api=1&query=${encoded}`)
         }
     }
 

@@ -123,6 +123,8 @@ export async function POST(req: Request) {
           nombre: name,
           dni,
           direccion: direccionCompleta,
+          referencia: reference,
+          link_ubicacion: locationLink,
           departamento: department,
           provincia: provincia,
           distrito: district
@@ -141,6 +143,8 @@ export async function POST(req: Request) {
           telefono: phone,
           dni,
           direccion: direccionCompleta,
+          referencia: reference,
+          link_ubicacion: locationLink,
           departamento: department,
           provincia: provincia,
           distrito: district
