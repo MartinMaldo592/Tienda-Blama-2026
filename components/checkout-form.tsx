@@ -187,13 +187,21 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
         }))
 
         const fullAddress = `${department}, ${province}, ${district}. ${value || ''}`.trim()
+
+        // Generar link de respaldo si no se usó el autocompletado del mapa
+        let finalLocationLink = locationLink
+        if (!finalLocationLink && fullAddress) {
+            const encoded = encodeURIComponent(fullAddress)
+            finalLocationLink = `https://www.google.com/maps/search/?api=1&query=${encoded}`
+        }
+
         const messageClientePreview = buildWhatsAppPreviewMessage({
             name: name || 'Cliente',
             dni: normalizedDni,
             phone,
             address: fullAddress,
             reference,
-            locationLink,
+            locationLink: finalLocationLink,
             items: checkoutItems,
             subtotal: subtotalAmount,
             discount: finalDiscount,
@@ -235,7 +243,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 district: district,
                 department: department, // Added department if variable exists in scope, otherwise remove or verify source
                 reference,
-                locationLink,
+                locationLink: finalLocationLink,
                 couponCode: appliedCouponCode,
                 discountAmount: finalDiscount,
                 shippingMethod,
@@ -260,7 +268,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 phone,
                 address: fullAddress,
                 reference,
-                locationLink,
+                locationLink: finalLocationLink,
                 items: checkoutItems,
                 subtotal: subtotalAmount,
                 discount: finalDiscount,
