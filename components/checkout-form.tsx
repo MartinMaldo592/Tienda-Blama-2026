@@ -190,10 +190,20 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
 
         // Generar link de respaldo si no se usó el autocompletado del mapa
         let finalLocationLink = locationLink
-        if (!finalLocationLink && fullAddress) {
+
+        console.log("🐛 DEBUG PRE-FALLBACK:", {
+            stateLink: locationLink,
+            fullAddress,
+            isLinkEmpty: !locationLink
+        })
+
+        if ((!finalLocationLink || finalLocationLink.trim() === "") && fullAddress) {
+            console.log("🐛 GENERATING FALLBACK LINK NOW...")
             const encoded = encodeURIComponent(fullAddress)
             finalLocationLink = `https://www.google.com/maps/search/?api=1&query=${encoded}`
         }
+
+        console.log("🐛 DEBUG FINAL LINK TO SEND:", finalLocationLink)
 
         const messageClientePreview = buildWhatsAppPreviewMessage({
             name: name || 'Cliente',
