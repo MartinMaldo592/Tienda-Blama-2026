@@ -66,10 +66,11 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
 
         setCartOpen(true)
 
-        if (imageRef.current && fallbackImages.length > 0) {
-            const rect = imageRef.current.getBoundingClientRect()
-            startAnimation(fallbackImages[0], rect)
-        }
+        // Animación de vuelo eliminada por solicitud
+        // if (imageRef.current && fallbackImages.length > 0) {
+        //     const rect = imageRef.current.getBoundingClientRect()
+        //     startAnimation(fallbackImages[0], rect)
+        // }
 
         // Feedback visual simple
         setIsAdded(true)

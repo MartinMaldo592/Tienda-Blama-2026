@@ -569,10 +569,10 @@ export default function ProductoDetalleClient() {
                                                     }
                                                 })
 
-                                                if (imageContainerRef.current && images.length > 0) {
-                                                    const rect = imageContainerRef.current.getBoundingClientRect()
-                                                    startAnimation(images[0], rect)
-                                                }
+                                                // if (imageContainerRef.current && images.length > 0) {
+                                                //     const rect = imageContainerRef.current.getBoundingClientRect()
+                                                //     startAnimation(images[0], rect)
+                                                // }
                                                 setAddedToastKey(Date.now())
                                                 setAddedToastOpen(true)
                                             }}>

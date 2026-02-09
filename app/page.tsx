@@ -65,7 +65,7 @@ export default async function Home({
   }
 
   return (
-    <main className="pb-20 font-sans">
+    <main className="pb-20 font-sans animate-in fade-in zoom-in-95 duration-500">
 
       <section className="p-4">
         <PromoCarousel />
