@@ -1,5 +1,7 @@
 "use client"
 
+import { toast } from "sonner"
+
 import { useState, useMemo } from "react"
 import { useLoadScript } from "@react-google-maps/api"
 import usePlacesAutocomplete, {
@@ -179,13 +181,13 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
         // Basic Validation
         const phoneClean = phone.replace(/\D/g, "")
         if (phoneClean.length !== 9) {
-            alert("El celular debe tener 9 dígitos")
+            toast.error("El celular debe tener 9 dígitos")
             setIsSubmitting(false)
             return
         }
         const dniClean = dni.replace(/\D/g, "")
         if (dniClean.length !== 8) {
-            alert("El DNI debe tener 8 dígitos")
+            toast.error("El DNI debe tener 8 dígitos")
             setIsSubmitting(false)
             return
         }
@@ -284,7 +286,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
             onClose()
 
         } catch (err: any) {
-            alert("Error al procesar: " + err.message)
+            toast.error("Error al procesar: " + err.message)
         } finally {
             setIsSubmitting(false)
         }
@@ -301,7 +303,16 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
 
             <div className="space-y-1">
                 <Label className="text-sm font-bold">DNI <span className="text-destructive">*</span></Label>
-                <IconInput icon={CreditCard} required placeholder="DNI" maxLength={8} value={dni} onChange={(e: any) => setDni(e.target.value.replace(/\D/g, ''))} />
+                <IconInput
+                    icon={CreditCard}
+                    required
+                    placeholder="DNI"
+                    maxLength={8}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={dni}
+                    onChange={(e: any) => setDni(e.target.value.replace(/\D/g, ''))}
+                />
             </div>
 
             <div className="space-y-1">
@@ -311,6 +322,8 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                     required
                     placeholder="Ej: 999 999 999"
                     maxLength={11}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={phone}
                     onChange={(e: any) => {
                         // Remove non-digits
