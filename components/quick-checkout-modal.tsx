@@ -295,6 +295,11 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
 
+            <div className="pt-2 pb-1">
+                <h3 className="text-center font-bold text-lg">Ingrese su dirección de envío</h3>
+            </div>
+
+
 
             <div className="space-y-1">
                 <Label className="text-sm font-bold">Nombre y Apellidos <span className="text-destructive">*</span></Label>
@@ -399,7 +404,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                             onChange={(e) => setShippingMethod(e.target.value)}
                             className="h-4 w-4 accent-black"
                         />
-                        <span className="text-sm font-medium">Lima (Gratis)</span>
+                        <span className="text-sm font-medium">Lima</span>
                     </label>
                     <label className="flex items-center gap-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                         <input
@@ -410,14 +415,14 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                             onChange={(e) => setShippingMethod(e.target.value)}
                             className="h-4 w-4 accent-black"
                         />
-                        <span className="text-sm font-medium">Provincia (Shalom)</span>
+                        <span className="text-sm font-medium">Provincia</span>
                     </label>
                 </div>
             </div>
 
             {/* Footer Summary */}
             <div className="bg-muted/30 -mx-6 -mb-6 p-4 mt-6 border-t space-y-3">
-                <div className="space-y-1 text-sm">
+                {/* <div className="space-y-1 text-sm">
                     <div className="flex justify-between text-muted-foreground">
                         <span>Subtotal</span>
                         <span>{formatCurrency(total)}</span>
@@ -430,7 +435,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                         <span>Total</span>
                         <span>{formatCurrency(total)}</span>
                     </div>
-                </div>
+                </div> */}
 
                 <Button type="submit" disabled={isSubmitting} className="w-full h-12 text-base font-bold bg-black hover:bg-gray-800 text-white shadow-lg">
                     {isSubmitting ? <Loader2 className="animate-spin" /> : `CONFIRMO MI PEDIDO POR - ${formatCurrency(total)}`}
