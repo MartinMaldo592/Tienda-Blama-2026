@@ -62,7 +62,7 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant }: QuickC
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent
-                className="max-w-md w-full p-0 gap-0 overflow-hidden rounded-xl max-h-[90vh] flex flex-col"
+                className="max-w-md w-full p-0 gap-0 overflow-hidden rounded-xl max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-300 slide-in-from-bottom-5"
                 onOpenAutoFocus={(e) => e.preventDefault()}
             >
                 <div className="overflow-y-auto flex-1 p-6">
