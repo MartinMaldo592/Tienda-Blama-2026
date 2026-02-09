@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import ProductoDetalleClient from "./producto-detalle-client"
 import { fetchProductForMeta } from "@/features/products/services/products.server"
+import type { Product } from "@/features/products/types"
 
 function parseProductId(raw: string) {
     const direct = Number(raw)
@@ -10,7 +11,7 @@ function parseProductId(raw: string) {
     return 0
 }
 
-function buildDescription(p: any) {
+function buildDescription(p: Pick<Product, "descripcion">) {
     const raw = String(p?.descripcion || "").trim()
     const safe = raw.replace(/\s+/g, " ").slice(0, 160)
     if (safe) return safe
@@ -43,15 +44,15 @@ export async function generateMetadata({
         }
     }
 
-    const price = Number((product as any).precio) || 0
+    const price = Number(product.precio) || 0
     const formattedPrice = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(price)
 
-    const title = `${String((product as any).nombre || "Producto")} - ${formattedPrice}`
+    const title = `${String(product.nombre || "Producto")} - ${formattedPrice}`
     const descText = buildDescription(product)
     const description = `Precio: ${formattedPrice}. ${descText}`
 
-    const imgs = Array.isArray((product as any).imagenes) ? ((product as any).imagenes as string[]).filter(Boolean) : []
-    const primaryImage = imgs[0] || String((product as any).imagen_url || "")
+    const imgs = Array.isArray(product.imagenes) ? (product.imagenes as string[]).filter(Boolean) : []
+    const primaryImage = imgs[0] || String(product.imagen_url || "")
     const url = `${baseUrl}/productos/${id}`
 
     return {

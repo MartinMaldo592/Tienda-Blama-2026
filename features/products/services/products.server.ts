@@ -1,16 +1,17 @@
 import { createClient } from "@supabase/supabase-js"
+import type { Database } from "@/types/database.types"
 import type { Category, Product } from "@/features/products/types"
 
 function createAnonServerClient() {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     if (!supabaseUrl || !supabaseAnonKey) return null
-    return createClient(supabaseUrl, supabaseAnonKey, {
+    return createClient<Database>(supabaseUrl, supabaseAnonKey, {
         auth: { persistSession: false },
     })
 }
 
-export async function fetchProductForMeta(id: number) {
+export async function fetchProductForMeta(id: number): Promise<Pick<Product, "id" | "nombre" | "descripcion" | "imagen_url" | "imagenes" | "precio"> | null> {
     const supabase = createAnonServerClient()
     if (!supabase) return null
 

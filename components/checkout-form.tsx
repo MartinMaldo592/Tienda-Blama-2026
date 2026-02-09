@@ -7,10 +7,7 @@ import usePlacesAutocomplete, {
     getLatLng,
 } from "use-places-autocomplete"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ArrowLeft, Loader2, MapPin } from "lucide-react"
-import { formatCurrency } from "@/lib/utils"
+import { ArrowLeft, Loader2 } from "lucide-react"
 import {
     buildPreOpenUrl,
     buildWhatsAppFinalMessage,
@@ -27,6 +24,12 @@ import {
     validateCoupon,
 } from "@/features/checkout"
 import { sendGTMEvent } from "@/lib/gtm"
+
+// New modular components
+import { CheckoutShipping } from "@/components/checkout/checkout-shipping"
+import { CheckoutCustomer } from "@/components/checkout/checkout-customer"
+import { CheckoutAddress } from "@/components/checkout/checkout-address"
+import { CheckoutSummary } from "@/components/checkout/checkout-summary"
 
 // Define libraries array outside component to prevent re-renders
 const libraries: ("places")[] = ["places"];
@@ -90,8 +93,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
         },
     })
 
-    const [geoProvince, setGeoProvince] = useState("")
-    const [geoDistrict, setGeoDistrict] = useState("")
+    // Removed unused geoProvince, geoDistrict
 
     const handleSelect = async (address: string) => {
         setValue(address, false)
@@ -109,12 +111,6 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             const encoded = encodeURIComponent(address)
             setLocationLink(`https://www.google.com/maps/search/?api=1&query=${encoded}`)
         }
-    }
-
-    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const raw = e.target.value.replace(/\D/g, "").slice(0, 9)
-        setPhone(raw)
-        if (phoneError) setPhoneError("")
     }
 
     const subtotalAmount = Number(total) || 0
@@ -242,7 +238,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 street: value,
                 provinceName: province, // Mapped to provinceName in type
                 district: district,
-                department: department, // Added department if variable exists in scope, otherwise remove or verify source
+                department: department, // Added department
                 reference,
                 locationLink: finalLocationLink || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`,
                 couponCode: appliedCouponCode,
@@ -366,212 +362,38 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                     <h3 className="font-semibold text-foreground">Datos de Envío</h3>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    <div className="space-y-3">
-                        <Label className="text-base">Método de envío <span className="text-destructive">*</span></Label>
-                        <div className="flex flex-col gap-2 pl-1">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="shipping"
-                                    value="lima"
-                                    checked={shippingMethod === 'lima'}
-                                    onChange={(e) => setShippingMethod(e.target.value)}
-                                    className="accent-black h-4 w-4"
-                                />
-                                <span className="text-sm font-medium">Lima (Gratis)</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="shipping"
-                                    value="provincia"
-                                    checked={shippingMethod === 'provincia'}
-                                    onChange={(e) => setShippingMethod(e.target.value)}
-                                    className="accent-black h-4 w-4"
-                                />
-                                <span className="text-sm font-medium">Provincia (Shalom)</span>
-                            </label>
-                        </div>
-                    </div>
+                <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                    <CheckoutShipping value={shippingMethod} onChange={setShippingMethod} disabled={isSubmitting} />
 
-                    <div className="space-y-2">
-                        <Label htmlFor="name">Nombre Completo</Label>
-                        <Input id="name" required placeholder="Juan Pérez" value={name} onChange={(e) => setName(e.target.value)} disabled={isSubmitting} />
-                    </div>
+                    <CheckoutCustomer
+                        name={name} setName={setName}
+                        phone={phone} setPhone={setPhone} phoneError={phoneError} setPhoneError={setPhoneError}
+                        dni={dni} setDni={setDni} dniError={dniError} setDniError={setDniError}
+                        disabled={isSubmitting}
+                    />
 
-                    <div className="space-y-2">
-                        <Label htmlFor="phone">Celular</Label>
-                        <Input
-                            id="phone"
-                            required
-                            type="tel"
-                            inputMode="numeric"
-                            pattern="[0-9]{9}"
-                            minLength={9}
-                            maxLength={9}
-                            placeholder="999 999 999"
-                            value={phone}
-                            onChange={handlePhoneChange}
-                            disabled={isSubmitting}
-                            onInvalid={(e) => {
-                                e.currentTarget.setCustomValidity('Ingresa un número de celular válido de 9 dígitos')
-                            }}
-                            onInput={(e) => {
-                                e.currentTarget.setCustomValidity('')
-                            }}
-                        />
-                        {phoneError && <p className="text-xs text-destructive">{phoneError}</p>}
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="dni">DNI</Label>
-                        <Input
-                            id="dni"
-                            required
-                            inputMode="numeric"
-                            pattern="[0-9]{8}"
-                            minLength={8}
-                            maxLength={8}
-                            placeholder="12345678"
-                            value={dni}
-                            onChange={(e) => {
-                                const next = e.target.value.replace(/\D/g, '').slice(0, 8)
-                                setDni(next)
-                                if (dniError) setDniError("")
-                            }}
-                            onInvalid={(e) => {
-                                e.currentTarget.setCustomValidity('Ingresa un DNI válido de 8 dígitos')
-                            }}
-                            onInput={(e) => {
-                                e.currentTarget.setCustomValidity('')
-                            }}
-                            disabled={isSubmitting}
-                        />
-                        {dniError && <p className="text-xs text-destructive">{dniError}</p>}
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="province">Departamento <span className="text-destructive">*</span></Label>
-                        <Input
-                            id="province"
-                            required
-                            placeholder="Ej: Lima"
-                            value={department}
-                            onChange={(e) => setDepartment(e.target.value)}
-                            disabled={isSubmitting}
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="district">Provincia <span className="text-destructive">*</span></Label>
-                        <Input
-                            id="district"
-                            required
-                            placeholder="Ej: Cañete"
-                            value={province}
-                            onChange={(e) => setProvince(e.target.value)}
-                            disabled={isSubmitting}
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="urbanDistrict">Distrito <span className="text-destructive">*</span></Label>
-                        <Input
-                            id="urbanDistrict"
-                            required
-                            placeholder="Ej: Miraflores"
-                            value={district}
-                            onChange={(e) => setDistrict(e.target.value)}
-                            disabled={isSubmitting}
-                        />
-                    </div>
-
-                    <div className="space-y-2 relative">
-                        <Label htmlFor="address">Dirección (Google Maps)</Label>
-                        <div className="relative">
-                            <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                id="address"
-                                value={value}
-                                onChange={(e) => setValue(e.target.value)}
-                                disabled={!ready || isSubmitting}
-                                placeholder="Escribe tu dirección..."
-                                className="pl-9"
-                                autoComplete="off"
-                            />
-                        </div>
-                        {status === "OK" && (
-                            <ul className="absolute z-10 w-full bg-card border border-border rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
-                                {data.map(({ place_id, description }) => (
-                                    <li key={place_id} onClick={() => handleSelect(description)} className="px-4 py-2 hover:bg-popover cursor-pointer text-sm text-muted-foreground">
-                                        {description}
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="reference">Referencia (Opcional)</Label>
-                        <Input id="reference" placeholder="Frente al parque, casa azul..." value={reference} onChange={(e) => setReference(e.target.value)} disabled={isSubmitting} />
-                    </div>
-
-                    {!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
-                        <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded">⚠️ Nota: Autocompletado deshabilitado. Falta API Key.</div>
-                    )}
+                    <CheckoutAddress
+                        department={department} setDepartment={setDepartment}
+                        province={province} setProvince={setProvince}
+                        district={district} setDistrict={setDistrict}
+                        reference={reference} setReference={setReference}
+                        addressValue={value} onAddressChange={setValue} addressReady={ready}
+                        suggestions={data} suggestionsStatus={status} onSuggestionSelect={handleSelect}
+                        disabled={isSubmitting}
+                        apiKeyMissing={!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                    />
                 </div>
 
                 <div className="p-4 border-t mt-auto bg-popover">
-                    <div className="space-y-3 mb-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="coupon">Cupón de descuento (Opcional)</Label>
-                            <div className="flex gap-2">
-                                <Input
-                                    id="coupon"
-                                    placeholder="Ej: PROMO10"
-                                    value={couponCode}
-                                    onChange={(e) => {
-                                        setCouponCode(e.target.value)
-                                        setCouponApplied(false)
-                                        setCouponError("")
-                                    }}
-                                    disabled={isSubmitting}
-                                />
-                                <Button type="button" variant="outline" onClick={handleApplyCoupon} disabled={isSubmitting || couponApplying}>
-                                    {couponApplying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Aplicar"}
-                                </Button>
-                            </div>
-                            {couponError && (
-                                <p className="text-xs text-destructive">{couponError}</p>
-                            )}
-                            {couponApplied && !couponError && (
-                                <p className="text-xs text-green-600">Cupón aplicado</p>
-                            )}
-                        </div>
-
-                        <div className="text-sm font-medium space-y-1">
-                            <div className="flex justify-between items-center text-muted-foreground">
-                                <span>Subtotal:</span>
-                                <span>{formatCurrency(subtotalAmount)}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-muted-foreground">
-                                <span>Envío:</span>
-                                <span>{shippingMethod === 'provincia' ? 'Precio a calcular' : 'Gratis'}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span>Descuento:</span>
-                                <span>-{formatCurrency(discountAmount)}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span>Total a Pagar:</span>
-                                <span className="text-lg font-bold">{formatCurrency(totalToPay)}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 h-12 text-base font-bold" disabled={isSubmitting}>
-                        {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</> : "Confirmar Pedido en WhatsApp"}
-                    </Button>
+                    <CheckoutSummary
+                        subtotal={subtotalAmount}
+                        shippingMethod={shippingMethod}
+                        discount={discountAmount}
+                        total={totalToPay}
+                        couponCode={couponCode} setCouponCode={setCouponCode}
+                        applyCoupon={handleApplyCoupon} couponApplying={couponApplying} couponApplied={couponApplied} couponError={couponError} setCouponApplied={setCouponApplied} setCouponError={setCouponError}
+                        isSubmitting={isSubmitting}
+                    />
                 </div>
             </form>
             {waPromptOpen && waUrl && (
