@@ -328,12 +328,11 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                     placeholder="Ej: 999 999 999"
                     maxLength={11}
                     inputMode="numeric"
-                    pattern="[0-9]*"
                     value={phone}
                     onChange={(e: any) => {
                         // Remove non-digits
                         const raw = e.target.value.replace(/\D/g, '')
-                        // Format with spaces
+                        // Format with spaces for display only
                         let formatted = raw
                         if (raw.length > 3) {
                             formatted = raw.slice(0, 3) + ' ' + raw.slice(3)
