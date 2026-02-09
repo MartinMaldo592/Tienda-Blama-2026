@@ -1,4 +1,3 @@
-
 import type { Metadata } from "next";
 import Script from "next/script";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -7,6 +6,7 @@ import "./globals.css";
 import { LayoutShell } from "@/components/layout-shell";
 import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/sonner";
+import { supabase } from "@/lib/supabaseClient";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -68,14 +68,39 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+async function getAnnouncementData() {
+  try {
+    const { data } = await supabase
+      .from("announcement_bar")
+      .select("enabled, interval_ms, messages")
+      .eq("id", 1)
+      .maybeSingle()
+
+    if (!data) return null
+
+    return {
+      enabled: Boolean(data.enabled),
+      intervalMs: Number(data.interval_ms) || 3500,
+      messages: (Array.isArray(data.messages) ? data.messages : []) as string[],
+    }
+  } catch (err) {
+    console.error("Error fetching announcement:", err)
+    return null
+  }
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const announcementData = await getAnnouncementData()
+
   return (
     <html lang="es" suppressHydrationWarning>
-      <head>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-background`}
+      >
         <Script id="gtm-script" strategy="afterInteractive">
           {`
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -85,10 +110,6 @@ export default function RootLayout({
             })(window,document,'script','dataLayer','${GTM_ID}');
           `}
         </Script>
-      </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-background`}
-      >
         <noscript>
           <iframe
             src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
@@ -98,7 +119,7 @@ export default function RootLayout({
           />
         </noscript>
         <Providers>
-          <LayoutShell>{children}</LayoutShell>
+          <LayoutShell announcementData={announcementData}>{children}</LayoutShell>
         </Providers>
         <SpeedInsights />
         <Toaster />

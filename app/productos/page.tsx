@@ -463,8 +463,8 @@ function ProductosPageContent() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 gap-4">
-                        {productos.map((producto) => (
-                            <ProductCard key={producto.id} product={producto as any} />
+                        {productos.map((producto, idx) => (
+                            <ProductCard key={producto.id} product={producto as any} imagePriority={idx < 4} />
                         ))}
                     </div>
                 )}

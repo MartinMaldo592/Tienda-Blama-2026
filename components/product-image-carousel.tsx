@@ -235,10 +235,15 @@ export function ProductImageCarousel({
       >
         {cleanImages.map((src, i) => (
           <div key={src} className="relative h-full w-full flex-none overflow-hidden">
-            {/* Background Blur for aesthetics */}
-            <div
-              className="absolute inset-0 bg-cover bg-center opacity-30 blur-2xl scale-125 saturate-150"
-              style={{ backgroundImage: `url('${src}')` }}
+            {/* Background Blur for aesthetics - Optimized with Next/Image */}
+            <Image
+              src={src}
+              alt=""
+              fill
+              className="object-cover opacity-30 blur-2xl scale-125 saturate-150 -z-10"
+              quality={10}
+              aria-hidden="true"
+              draggable={false}
             />
 
             <Image
@@ -250,7 +255,6 @@ export function ProductImageCarousel({
               sizes={sizes || "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"}
               quality={quality}
               draggable={false}
-              unoptimized={true}
             />
 
           </div>

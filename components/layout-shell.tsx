@@ -1,63 +1,37 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import { usePathname } from "next/navigation"
 
 import { Header } from "@/components/header"
 import { FlyingProductImage } from "@/components/flying-product-image"
 import { AnnouncementBar } from "@/components/announcement-bar"
 import { Footer } from "@/components/footer"
-import { supabase } from "@/lib/supabaseClient"
+
+type AnnouncementData = {
+  enabled: boolean
+  intervalMs: number
+  messages: string[]
+} | null
 
 type LayoutShellProps = {
   children: React.ReactNode
+  announcementData?: AnnouncementData
 }
 
-export function LayoutShell({ children }: LayoutShellProps) {
+export function LayoutShell({ children, announcementData }: LayoutShellProps) {
   const pathname = usePathname()
   const isAdmin = pathname?.startsWith("/admin")
   const isAuth = pathname?.startsWith("/auth")
   const isOpenWa = pathname?.startsWith("/open-wa")
 
-  const [announcementEnabled, setAnnouncementEnabled] = useState<boolean | null>(null)
-  const [announcementIntervalMs, setAnnouncementIntervalMs] = useState(3500)
-  const [announcementMessages, setAnnouncementMessages] = useState<string[] | undefined>(undefined)
-
   if (isAdmin || isAuth) {
     return <>{children}</>
   }
 
-  useEffect(() => {
-    let cancelled = false
-
-      ; (async () => {
-        const { data, error } = await supabase
-          .from("announcement_bar")
-          .select("enabled, interval_ms, messages")
-          .eq("id", 1)
-          .maybeSingle()
-
-        if (cancelled) return
-        if (error || !data) {
-          setAnnouncementEnabled(true)
-          return
-        }
-
-        setAnnouncementEnabled(Boolean((data as any).enabled))
-        setAnnouncementIntervalMs(Number((data as any).interval_ms) || 3500)
-
-        const msgs = Array.isArray((data as any).messages) ? ((data as any).messages as string[]) : []
-        setAnnouncementMessages(msgs.length > 0 ? msgs : undefined)
-      })()
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
   const shouldShowAnnouncement = useMemo(() => {
-    return announcementEnabled === true
-  }, [announcementEnabled])
+    return announcementData?.enabled === true && announcementData.messages.length > 0
+  }, [announcementData])
 
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "51999999999"
   const defaultMessage = encodeURIComponent("Hola, quisiera información sobre sus productos.")
@@ -67,15 +41,13 @@ export function LayoutShell({ children }: LayoutShellProps) {
     <>
       <Header />
       <FlyingProductImage />
-      {announcementEnabled === null ? (
-        <div className="sticky top-16 z-40 w-full h-10 sm:h-9 bg-blue-600 border-b border-blue-700 animate-pulse" />
-      ) : shouldShowAnnouncement ? (
+      {shouldShowAnnouncement && announcementData && (
         <AnnouncementBar
           className="sticky top-16 z-40"
-          intervalMs={announcementIntervalMs}
-          messages={announcementMessages}
+          intervalMs={announcementData.intervalMs}
+          messages={announcementData.messages}
         />
-      ) : null}
+      )}
       <div className="flex-1">{children}</div>
       <Footer />
 

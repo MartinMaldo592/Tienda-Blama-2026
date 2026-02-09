@@ -41,11 +41,25 @@ export async function getHomePageData(opts: {
         }
     }
 
-    const { data: categories } = await supabase.from("categorias").select("*").order("nombre", { ascending: true })
+    const [categoriesResult, soldItemsResult, offersResult] = await Promise.all([
+        supabase.from("categorias").select("*").order("nombre", { ascending: true }),
+        supabase.from("pedido_items")
+            .select(`
+                cantidad,
+                productos (*),
+                pedidos (status)
+            `)
+            .limit(1000),
+        supabase.from("productos")
+            .select("*")
+            .not("precio_antes", "is", null)
+            .limit(60)
+    ])
 
+    const categories = categoriesResult.data || []
 
     const selectedCategorySlug = String(opts.selectedCategorySlug || "").trim()
-    const selectedCategory = (categories as Category[] | null)?.find((c) => c.slug === selectedCategorySlug)
+    const selectedCategory = (categories as Category[] as any)?.find((c: any) => c.slug === selectedCategorySlug)
 
     let productsQuery = supabase.from("productos").select("*").order("created_at", { ascending: false })
     productsQuery = productsQuery.limit(opts.productsLimit)
@@ -62,15 +76,10 @@ export async function getHomePageData(opts: {
     let bestSellers: Product[] = []
     let offers: Product[] = []
 
+    // Process Best Sellers
     try {
-        const { data: soldItems, error: soldItemsError } = await supabase
-            .from("pedido_items")
-            .select(`
-        cantidad,
-        productos (*),
-        pedidos (status)
-      `)
-            .limit(1000)
+        const soldItems = soldItemsResult.data
+        const soldItemsError = soldItemsResult.error
 
         if (!soldItemsError && soldItems && soldItems.length > 0) {
             const soldByProductId = new Map<number, { product: Product; sold: number }>()
@@ -103,12 +112,10 @@ export async function getHomePageData(opts: {
         bestSellers = []
     }
 
+    // Process Offers
     try {
-        const { data: offersRaw, error: offersError } = await supabase
-            .from("productos")
-            .select("*")
-            .not("precio_antes", "is", null)
-            .limit(60)
+        const offersRaw = offersResult.data
+        const offersError = offersResult.error
 
         if (!offersError && offersRaw && offersRaw.length > 0) {
             offers = (offersRaw as Product[])
@@ -122,6 +129,7 @@ export async function getHomePageData(opts: {
                     const currentA = Number((a as any)?.precio ?? 0)
                     const beforeB = Number((b as any)?.precio_antes ?? 0)
                     const currentB = Number((b as any)?.precio ?? 0)
+                    // Mayor descuento primero
                     const discA = beforeA > 0 ? (beforeA - currentA) / beforeA : 0
                     const discB = beforeB > 0 ? (beforeB - currentB) / beforeB : 0
                     return discB - discA
