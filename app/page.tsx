@@ -9,8 +9,6 @@ import { StoreLocation } from "@/components/store-location"
 
 const HOME_PRODUCTS_LIMIT = 12
 
-
-
 export const metadata: Metadata = {
   title: "Tienda Online Premium",
   description:
@@ -37,21 +35,13 @@ export const metadata: Metadata = {
 
 export const revalidate = 300 // Disable cache for real-time feel (optional, better for dev)
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams?:
-  | Record<string, string | string[] | undefined>
-  | Promise<Record<string, string | string[] | undefined>>
-}) {
-  const resolvedSearchParams:
-    | Record<string, string | string[] | undefined>
-    | undefined =
-    searchParams && typeof (searchParams as any).then === 'function'
-      ? await (searchParams as Promise<Record<string, string | string[] | undefined>>)
-      : (searchParams as Record<string, string | string[] | undefined> | undefined)
+interface HomePageProps {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
+}
 
-  const rawCat = resolvedSearchParams?.cat
+export default async function Home(props: HomePageProps) {
+  const searchParams = await props.searchParams
+  const rawCat = searchParams?.cat
   const selectedCategorySlug = (Array.isArray(rawCat) ? rawCat[0] : rawCat || '').trim()
 
   const { categories, products, bestSellers, offers, productsError } = await getHomePageData({
@@ -70,8 +60,6 @@ export default async function Home({
       <section className="p-4">
         <PromoCarousel />
       </section>
-
-
 
       {bestSellers.length > 0 && (
         <section className="p-4 px-2" data-nosnippet>
@@ -145,9 +133,9 @@ export default async function Home({
         )}
 
         {!products || products.length === 0 ? (
-          <div className="text-center py-10 text-gray-500">
-            <p>No hay productos disponibles.</p>
-            <p className="text-xs mt-2 text-gray-400">Ejecuta el script de seed.sql en Supabase.</p>
+          <div className="text-center py-20 bg-muted/20 rounded-xl mx-4 border border-dashed">
+            <h3 className="text-xl font-semibold text-gray-700">Próximamente tendremos novedades para ti</h3>
+            <p className="text-gray-500 mt-2">Estamos actualizando nuestro catálogo.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
