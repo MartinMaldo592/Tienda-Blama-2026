@@ -18,7 +18,7 @@ export const productSchema = z.object({
     uso: z.string().optional(),
 
     // Pricing & Stock
-    precio: z.coerce.number({ invalid_type_error: "Debe ser un número" }).min(0.01, "Precio debe ser mayor a 0"),
+    precio: z.coerce.number().min(0.01, "Precio debe ser mayor a 0"),
     precio_antes: z.coerce.number().optional().nullable().transform(val => val === 0 ? null : val), // Handle 0 as valid or null explicitly? 
     // Actually, input could be empty string. coerce handles check logic.
     // But standard input type="number" returns "123" string or "".

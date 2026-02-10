@@ -47,7 +47,7 @@ export function ProductForm({ productToEdit, categories = DEFAULT_CATEGORIES, on
     const [videos, setVideos] = useState<string[]>([])
 
     const form = useForm<ProductFormValues>({
-        resolver: zodResolver(productSchema),
+        resolver: zodResolver(productSchema) as any,
         defaultValues: {
             nombre: "",
             descripcion: "",
@@ -66,7 +66,7 @@ export function ProductForm({ productToEdit, categories = DEFAULT_CATEGORIES, on
             especificaciones: [],
             variantes: [],
             categoria_id: null
-        }
+        } as any
     })
 
     const { register, control, handleSubmit, reset, setValue, formState: { errors } } = form

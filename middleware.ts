@@ -45,6 +45,19 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // SEO: Manejo de canonicals y noindex para URLs con parámetros en home y productos
+  const { pathname, searchParams } = request.nextUrl;
+  const isHome = pathname === "/";
+  const isProductos = pathname === "/productos" || pathname === "/productos/";
+
+  if ((isHome || isProductos) && searchParams.toString().length > 0) {
+    response.headers.set("x-robots-tag", "noindex,follow");
+
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.blama.shop";
+    const cleanPath = isProductos ? "/productos" : "/";
+    response.headers.set("link", `<${siteUrl}${cleanPath}>; rel="canonical"`);
+  }
+
   return response;
 }
 

@@ -196,11 +196,12 @@ export interface Database {
                     cupon_codigo?: string | null
                     total: number
                     stock_descontado: boolean
-                    status: 'Pendiente' | 'Confirmado' | 'Enviado' | 'Entregado' | 'Fallido' | 'Devuelto'
+                    status: 'Pendiente' | 'Confirmado' | 'Enviado' | 'Entregado' | 'Fallido' | 'Devuelto' | 'Cancelado'
                     pago_status: 'Pendiente' | 'Pagado Anticipado' | 'Pago Contraentrega' | 'Pagado al Recibir'
                     metodo_envio: string | null
                     voucher_url: string | null
                     created_at: string
+                    updated_at?: string | null
                 }
                 Insert: {
                     id?: number
@@ -210,11 +211,12 @@ export interface Database {
                     cupon_codigo?: string | null
                     total: number
                     stock_descontado?: boolean
-                    status?: 'Pendiente' | 'Confirmado' | 'Enviado' | 'Entregado' | 'Fallido' | 'Devuelto'
+                    status?: 'Pendiente' | 'Confirmado' | 'Enviado' | 'Entregado' | 'Fallido' | 'Devuelto' | 'Cancelado'
                     pago_status?: 'Pendiente' | 'Pagado Anticipado' | 'Pago Contraentrega' | 'Pagado al Recibir'
                     metodo_envio?: string | null
                     voucher_url?: string | null
                     created_at?: string
+                    updated_at?: string | null
                 }
                 Update: {
                     id?: number
@@ -224,11 +226,12 @@ export interface Database {
                     cupon_codigo?: string | null
                     total?: number
                     stock_descontado?: boolean
-                    status?: 'Pendiente' | 'Confirmado' | 'Enviado' | 'Entregado' | 'Fallido' | 'Devuelto'
+                    status?: 'Pendiente' | 'Confirmado' | 'Enviado' | 'Entregado' | 'Fallido' | 'Devuelto' | 'Cancelado'
                     pago_status?: 'Pendiente' | 'Pagado Anticipado' | 'Pago Contraentrega' | 'Pagado al Recibir'
                     metodo_envio?: string | null
                     voucher_url?: string | null
                     created_at?: string
+                    updated_at?: string | null
                 }
             }
             pedido_items: {

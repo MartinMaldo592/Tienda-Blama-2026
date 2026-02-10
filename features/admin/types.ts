@@ -69,6 +69,7 @@ export interface AdminPedido extends Pedido {
   shalom_clave?: string | null
   evidencia_entrega_url?: string | null
   shalom_pin?: string | null
+  updated_at?: string | null
 }
 
 // Aliases for backward compatibility during refactor
