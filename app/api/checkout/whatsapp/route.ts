@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { checkRateLimit, getClientIP } from "@/lib/rate-limit"
 
 export const runtime = "nodejs"
 
@@ -41,6 +42,21 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    // ── Rate Limiting: 5 pedidos/minuto por IP ──
+    const clientIP = getClientIP(req)
+    const rateCheck = checkRateLimit(clientIP, {
+      maxRequests: 5,
+      windowSeconds: 60,
+      prefix: "checkout",
+    })
+
+    if (!rateCheck.success) {
+      return NextResponse.json(
+        { error: "Demasiadas solicitudes. Por favor espera un momento antes de intentar de nuevo." },
+        { status: 429, headers: rateCheck.headers }
+      )
+    }
+
     const { url, service } = getEnv()
     if (!url || !service) {
       const missing: string[] = []
@@ -255,7 +271,7 @@ export async function POST(req: Request) {
       subtotal,
       descuento: discountAmount,
       total,
-    })
+    }, { headers: rateCheck.headers })
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || "Unknown error" }, { status: 500 })
   }
