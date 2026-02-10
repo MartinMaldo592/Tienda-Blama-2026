@@ -35,4 +35,12 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
-<!-- Deployment Trigger: 2026-01-30 v2 (Perf Update) -->
+
+## Environment Variables
+
+This project requires the following environment variables to be set in your `.env.local` file (for local development) and in your Vercel project settings (for deployment):
+
+- `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase Project URL.
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase Anonymous Key.
+
+<!-- Deployment Trigger: 2026-02-10 v1 (Supabase Fix) -->
