@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -123,9 +124,9 @@ export default function DashboardStockBajoPage() {
                                 <TableRow key={p.id}>
                                     <TableCell>
                                         <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 bg-gray-100 rounded-md overflow-hidden flex items-center justify-center">
+                                            <div className="h-10 w-10 bg-gray-100 rounded-md overflow-hidden flex items-center justify-center relative">
                                                 {p.imagen_url ? (
-                                                    <img src={p.imagen_url} alt={p.nombre} className="h-full w-full object-cover" />
+                                                    <Image src={p.imagen_url} alt={p.nombre} fill className="object-cover" sizes="40px" />
                                                 ) : (
                                                     <div className="h-full w-full" />
                                                 )}

@@ -2,22 +2,20 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Trash2 } from "lucide-react"
-
-interface Variant {
-    id?: number
-    etiqueta: string
-    precio: string
-    precio_antes: string
-    stock: string
-    activo: boolean
-}
+import { Control, UseFormRegister, useFieldArray } from "react-hook-form"
+import { ProductFormValues } from "@/features/admin/schemas/product.schema"
 
 interface VariantsEditorProps {
-    variants: Variant[]
-    setVariants: React.Dispatch<React.SetStateAction<Variant[]>>
+    control: Control<ProductFormValues>
+    register: UseFormRegister<ProductFormValues>
 }
 
-export function VariantsEditor({ variants, setVariants }: VariantsEditorProps) {
+export function VariantsEditor({ control, register }: VariantsEditorProps) {
+    const { fields, append, remove } = useFieldArray({
+        control,
+        name: "variantes"
+    })
+
     return (
         <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -26,76 +24,73 @@ export function VariantsEditor({ variants, setVariants }: VariantsEditorProps) {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setVariants((prev) => ([...prev, { etiqueta: '', precio: '', precio_antes: '', stock: '0', activo: true }]))}
+                    onClick={() => append({
+                        etiqueta: '',
+                        precio: '',
+                        precio_antes: '',
+                        stock: '0',
+                        activo: true
+                    })}
                 >
                     Agregar
                 </Button>
             </div>
 
-            {variants.length === 0 ? (
+            {fields.length === 0 ? (
                 <div className="text-sm text-muted-foreground">Sin variantes</div>
             ) : (
                 <div className="space-y-2">
-                    {variants.map((v, idx) => (
-                        <div key={v.id ?? `vnew-${idx}`} className="grid grid-cols-1 sm:grid-cols-12 gap-2 rounded-lg border bg-popover p-3">
-                            <div className="sm:col-span-4">
+                    {fields.map((field, index) => (
+                        <div key={field.id} className="grid grid-cols-1 sm:grid-cols-12 gap-2 rounded-lg border bg-popover p-3 items-end">
+                            <div className="sm:col-span-3 space-y-1">
                                 <Label className="text-xs">Etiqueta</Label>
                                 <Input
-                                    value={v.etiqueta}
-                                    onChange={(e) => {
-                                        const val = e.target.value
-                                        setVariants((prev) => prev.map((p) => (p === v ? { ...p, etiqueta: val } : p)))
-                                    }}
+                                    {...register(`variantes.${index}.etiqueta`)}
+                                    placeholder="Ej: Talla M"
                                 />
                             </div>
-                            <div className="sm:col-span-2">
-                                <Label className="text-xs">Precio (opcional)</Label>
+                            <div className="sm:col-span-2 space-y-1">
+                                <Label className="text-xs">Precio (opc)</Label>
                                 <Input
-                                    inputMode="decimal"
-                                    value={v.precio}
-                                    onChange={(e) => {
-                                        const val = e.target.value
-                                        setVariants((prev) => prev.map((p) => (p === v ? { ...p, precio: val } : p)))
-                                    }}
+                                    type="number"
+                                    step="0.01"
+                                    {...register(`variantes.${index}.precio`)}
+                                    placeholder="0.00"
                                 />
                             </div>
-                            <div className="sm:col-span-2">
-                                <Label className="text-xs">Precio antes (opcional)</Label>
+                            <div className="sm:col-span-2 space-y-1">
+                                <Label className="text-xs">Antes (opc)</Label>
                                 <Input
-                                    inputMode="decimal"
-                                    value={v.precio_antes}
-                                    onChange={(e) => {
-                                        const val = e.target.value
-                                        setVariants((prev) => prev.map((p) => (p === v ? { ...p, precio_antes: val } : p)))
-                                    }}
+                                    type="number"
+                                    step="0.01"
+                                    {...register(`variantes.${index}.precio_antes`)}
+                                    placeholder="0.00"
                                 />
                             </div>
-                            <div className="sm:col-span-2">
+                            <div className="sm:col-span-2 space-y-1">
                                 <Label className="text-xs">Stock</Label>
                                 <Input
-                                    inputMode="numeric"
-                                    value={v.stock}
-                                    onChange={(e) => {
-                                        const val = e.target.value
-                                        setVariants((prev) => prev.map((p) => (p === v ? { ...p, stock: val } : p)))
-                                    }}
+                                    type="number"
+                                    {...register(`variantes.${index}.stock`)}
+                                    placeholder="0"
                                 />
                             </div>
-                            <div className="sm:col-span-2 flex items-end gap-2">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setVariants((prev) => prev.map((p) => (p === v ? { ...p, activo: !p.activo } : p)))}
-                                >
-                                    {v.activo ? 'Activa' : 'Inactiva'}
-                                </Button>
+                            <div className="sm:col-span-3 flex items-center justify-end gap-2 h-[42px] pb-[2px]">
+                                <label className="flex items-center gap-2 h-9 border rounded px-3 text-sm cursor-pointer hover:bg-muted select-none bg-background">
+                                    <input
+                                        type="checkbox"
+                                        {...register(`variantes.${index}.activo`)}
+                                        className="accent-primary h-4 w-4"
+                                    />
+                                    <span>Activa</span>
+                                </label>
+
                                 <Button
                                     type="button"
                                     variant="ghost"
                                     size="icon"
-                                    className="h-9 w-9"
-                                    onClick={() => setVariants((prev) => prev.filter((p) => p !== v))}
+                                    className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    onClick={() => remove(index)}
                                 >
                                     <Trash2 className="h-4 w-4" />
                                 </Button>

@@ -1,14 +1,14 @@
 import { supabase } from "@/lib/supabaseClient"
 
-import type { AdminRole, PedidoItemRow, PedidoRow, ProfileRow } from "@/features/admin/types"
+import type { AdminRole, PedidoItemRow, PedidoRow, ProfileRow, ProductoVariante, Producto } from "@/features/admin/types"
 
-export async function fetchAdminWorkers() {
+export async function fetchAdminWorkers(): Promise<ProfileRow[]> {
   const { data, error } = await supabase.from("usuarios").select("id, email, nombre, role").eq("role", "worker")
   if (error) throw error
-  return ((data as any[]) || []) as ProfileRow[]
+  return (data as ProfileRow[]) || []
 }
 
-export async function fetchPedidosForRole(args: { role: AdminRole | string; currentUserId: string }) {
+export async function fetchPedidosForRole(args: { role: AdminRole | string; currentUserId: string }): Promise<PedidoRow[]> {
   const role = String(args.role || "worker")
   const currentUserId = String(args.currentUserId || "")
 
@@ -34,22 +34,23 @@ export async function fetchPedidosForRole(args: { role: AdminRole | string; curr
         .from("pedidos")
         .select(`*, clientes (nombre, telefono, dni)`)
         .order("created_at", { ascending: false })
-      return ((fallbackData as any[]) || []) as PedidoRow[]
+      return (fallbackData as PedidoRow[]) || []
     }
     throw error
   }
 
-  const rows = ((data as any[]) || []) as PedidoRow[]
+  const rows = (data as PedidoRow[]) || []
 
+  // Fetch worker profiles manually
   const withWorkers = await Promise.all(
-    rows.map(async (pedido: any) => {
+    rows.map(async (pedido) => {
       if (pedido.asignado_a) {
         const { data: workerProfile } = await supabase
           .from("usuarios")
           .select("id, email, nombre")
           .eq("id", pedido.asignado_a)
           .single()
-        return { ...pedido, asignado_perfil: (workerProfile as any) || null }
+        return { ...pedido, asignado_perfil: (workerProfile as ProfileRow) || null }
       }
       return { ...pedido, asignado_perfil: null }
     })
@@ -71,7 +72,7 @@ export async function assignPedidoToWorker(args: { pedidoId: number; workerId: s
   if (error) throw error
 }
 
-export async function fetchPedidoDetail(pedidoId: number) {
+export async function fetchPedidoDetail(pedidoId: number): Promise<{ pedido: PedidoRow; items: PedidoItemRow[] }> {
   const { data: pedidoData, error } = await supabase
     .from("pedidos")
     .select(
@@ -81,21 +82,24 @@ export async function fetchPedidoDetail(pedidoId: number) {
       `
     )
     .eq("id", pedidoId)
-    .single()
+    .maybeSingle()
 
   if (error) throw error
+  if (!pedidoData) throw new Error("Pedido no encontrado")
 
-  let asignadoPerfil: any = null
-  if ((pedidoData as any)?.asignado_a) {
+  let asignadoPerfil: ProfileRow | null = null
+  const pData = pedidoData as PedidoRow
+
+  if (pData.asignado_a) {
     const { data: workerProfile } = await supabase
       .from("usuarios")
       .select("id, email, nombre")
-      .eq("id", (pedidoData as any).asignado_a)
+      .eq("id", pData.asignado_a)
       .single()
-    asignadoPerfil = workerProfile
+    asignadoPerfil = workerProfile as ProfileRow
   }
 
-  const pedido = { ...(pedidoData as any), asignado_perfil: asignadoPerfil } as PedidoRow
+  const pedido = { ...pData, asignado_perfil: asignadoPerfil } as PedidoRow
 
   const { data: itemsData, error: itemsErr } = await supabase
     .from("pedido_items")
@@ -111,7 +115,7 @@ export async function fetchPedidoDetail(pedidoId: number) {
 
   return {
     pedido,
-    items: ((itemsData as any[]) || []) as PedidoItemRow[],
+    items: (itemsData as PedidoItemRow[]) || [],
   }
 }
 
@@ -120,9 +124,9 @@ export async function updatePedidoStatusWithStock(args: { pedidoId: number; next
   const nextStatus = String(args.nextStatus || "")
   const isCurrentlyDeducted = args.stockDescontado
 
-  // 1. Logic for Deducting Stock (Pendiente -> Confirmado)
-  // Ensures we only deduct if not already deducted
-  if (nextStatus === "Confirmado" && !isCurrentlyDeducted) {
+  // 1. Logic for Deducting Stock (Pendiente -> Confirmado/Enviado/Entregado)
+  const deducirStatuses = ["Confirmado", "Enviado", "Entregado"]
+  if (deducirStatuses.includes(nextStatus) && !isCurrentlyDeducted) {
     const { data: itemsData, error: itemsError } = await supabase
       .from("pedido_items")
       .select("producto_id, producto_variante_id, cantidad")
@@ -130,7 +134,7 @@ export async function updatePedidoStatusWithStock(args: { pedidoId: number; next
 
     if (itemsError) throw itemsError
 
-    const safeItems = (itemsData || []).filter((it: any) => it.producto_id)
+    const safeItems = (itemsData || []).filter((it): it is { producto_id: number; producto_variante_id: number | null; cantidad: number } => Boolean(it.producto_id))
 
     for (const it of safeItems) {
       const productoId = Number(it.producto_id)
@@ -148,7 +152,7 @@ export async function updatePedidoStatusWithStock(args: { pedidoId: number; next
 
         if (varError) throw varError
 
-        const currentStock = Number((variante as any)?.stock ?? 0)
+        const currentStock = Number((variante as ProductoVariante)?.stock ?? 0)
         const newStock = Math.max(0, currentStock - qty)
 
         const { error: updError } = await supabase.from("producto_variantes").update({ stock: newStock }).eq("id", varianteId)
@@ -159,7 +163,7 @@ export async function updatePedidoStatusWithStock(args: { pedidoId: number; next
 
         if (prodError) throw prodError
 
-        const currentStock = Number((producto as any)?.stock ?? 0)
+        const currentStock = Number((producto as Producto)?.stock ?? 0)
         const newStock = Math.max(0, currentStock - qty)
 
         const { error: updError } = await supabase.from("productos").update({ stock: newStock }).eq("id", productoId)
@@ -171,9 +175,8 @@ export async function updatePedidoStatusWithStock(args: { pedidoId: number; next
     if (markError) throw markError
   }
 
-  // 2. Logic for Restocking (Confirmado/Enviado -> Cancelado/Fallido/Pendiente)
-  // Ensures we only restock if it WAS deducted
-  const restockingStatuses = ["Pendiente", "Cancelado", "Fallido"]
+  // 2. Logic for Restocking (Confirmado -> Pendiente/Cancelado/Fallido/Devuelto)
+  const restockingStatuses = ["Pendiente", "Cancelado", "Fallido", "Devuelto"]
   if (restockingStatuses.includes(nextStatus) && isCurrentlyDeducted) {
     const { data: itemsData, error: itemsError } = await supabase
       .from("pedido_items")
@@ -182,7 +185,7 @@ export async function updatePedidoStatusWithStock(args: { pedidoId: number; next
 
     if (itemsError) throw itemsError
 
-    const safeItems = (itemsData || []).filter((it: any) => it.producto_id)
+    const safeItems = (itemsData || []).filter((it): it is { producto_id: number; producto_variante_id: number | null; cantidad: number } => Boolean(it.producto_id))
 
     for (const it of safeItems) {
       const productoId = Number(it.producto_id)
@@ -203,7 +206,7 @@ export async function updatePedidoStatusWithStock(args: { pedidoId: number; next
           continue
         }
 
-        const currentStock = Number((variante as any)?.stock ?? 0)
+        const currentStock = Number((variante as ProductoVariante)?.stock ?? 0)
         const newStock = currentStock + qty
 
         const { error: updError } = await supabase.from("producto_variantes").update({ stock: newStock }).eq("id", varianteId)
@@ -217,7 +220,7 @@ export async function updatePedidoStatusWithStock(args: { pedidoId: number; next
           continue
         }
 
-        const currentStock = Number((producto as any)?.stock ?? 0)
+        const currentStock = Number((producto as Producto)?.stock ?? 0)
         const newStock = currentStock + qty
 
         const { error: updError } = await supabase.from("productos").update({ stock: newStock }).eq("id", productoId)
@@ -230,6 +233,8 @@ export async function updatePedidoStatusWithStock(args: { pedidoId: number; next
   }
 
   // 3. Update Status
-  const { error } = await supabase.from("pedidos").update({ status: nextStatus }).eq("id", pedidoId)
+  // We use explicit 'any' for status only because the generic update type might expect strict Enum match,
+  // but nextStatus is string. If it's a valid enum value it works.
+  const { error } = await supabase.from("pedidos").update({ status: nextStatus as any }).eq("id", pedidoId)
   if (error) throw error
 }

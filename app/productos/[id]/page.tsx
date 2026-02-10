@@ -79,6 +79,46 @@ export async function generateMetadata({
     }
 }
 
-export default function ProductoDetallePage() {
+export default async function ProductoDetallePage({
+    params,
+}: {
+    params: Promise<{ id: string }>
+}) {
+    const resolvedParams = await params
+    const id = parseProductId(resolvedParams.id)
+    const product = await fetchProductForMeta(id)
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.blama.shop"
+
+    let jsonLd = null
+    if (product) {
+        const price = Number(product.precio) || 0
+        const images = Array.isArray(product.imagenes) ? (product.imagenes as string[]).filter(Boolean) : [product.imagen_url || ""]
+
+        const jsonLd = {
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: product.nombre,
+            description: buildDescription(product),
+            image: images,
+            offers: {
+                "@type": "Offer",
+                priceCurrency: "PEN",
+                price: price,
+                availability: product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+                url: `${baseUrl}/productos/${id}`
+            }
+        }
+
+        return (
+            <>
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+                />
+                <ProductoDetalleClient />
+            </>
+        )
+    }
+
     return <ProductoDetalleClient />
 }

@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useEffect, useState } from "react"
 import { useCartAnimationStore } from "@/features/cart/cart-animation" // Ensure this path is correct
 import { createPortal } from "react-dom"
@@ -102,11 +103,14 @@ function FlyingItem({
     }, [targetRef, onComplete])
 
     return (
-        <img
-            src={item.src}
-            alt=""
-            style={style}
-            className="object-cover border-2 border-white"
-        />
+        <div style={style}>
+            <Image
+                src={item.src}
+                alt=""
+                fill
+                className="object-cover border-2 border-white rounded-[inherit]"
+                sizes="48px"
+            />
+        </div>
     )
 }

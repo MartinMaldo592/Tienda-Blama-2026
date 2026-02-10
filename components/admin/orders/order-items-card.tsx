@@ -1,3 +1,4 @@
+import Image from "next/image"
 import { ShoppingBagIcon, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/utils"
@@ -20,9 +21,15 @@ export function OrderItemsCard({ items, pedido, isLocked, displayedShippingMetho
             <div className="space-y-4">
                 {items.map((item) => (
                     <div key={item.id} className="flex gap-4 items-center border-b pb-4 last:border-0 last:pb-0">
-                        <div className="h-16 w-16 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
+                        <div className="h-16 w-16 bg-gray-100 rounded-md overflow-hidden flex-shrink-0 relative">
                             {item.productos?.imagen_url ? (
-                                <img src={item.productos.imagen_url} alt={item.productos.nombre || "Producto"} className="h-full w-full object-cover" />
+                                <Image
+                                    src={item.productos.imagen_url}
+                                    alt={item.productos.nombre || "Producto"}
+                                    fill
+                                    className="object-cover"
+                                    sizes="64px"
+                                />
                             ) : (
                                 <div className="h-full w-full flex items-center justify-center text-gray-400 text-xs">Sin img</div>
                             )}

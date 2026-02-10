@@ -1,3 +1,4 @@
+import Image from "next/image"
 import { CreditCard, ExternalLink, Trash2, FileUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -61,10 +62,12 @@ export function OrderPaymentCard({ pedido, isLocked, paymentUpload, onDeletePaym
                                     {/* Thumbnail Preview */}
                                     {url.match(/\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i) && (
                                         <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden border">
-                                            <img
+                                            <Image
                                                 src={url}
                                                 alt={`Voucher ${index + 1}`}
-                                                className="w-full h-full object-cover"
+                                                fill
+                                                className="object-cover"
+                                                sizes="(max-width: 768px) 100vw, 300px"
                                             />
                                         </div>
                                     )}

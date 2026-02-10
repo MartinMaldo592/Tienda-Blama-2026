@@ -1,6 +1,7 @@
 
 "use client"
 
+import Image from "next/image"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRoleGuard } from "@/lib/use-role-guard"
@@ -298,7 +299,7 @@ export default function IncidenciasPage() {
                             <div className="grid grid-cols-5 gap-2">
                                 {fotos.map((url) => (
                                     <div key={url} className="relative aspect-square rounded-md overflow-hidden border bg-popover">
-                                        <img src={url} alt="Foto incidencia" className="h-full w-full object-cover" />
+                                        <Image src={url} alt="Foto incidencia" fill className="object-cover" />
                                         <button
                                             type="button"
                                             className="absolute top-1 right-1 h-7 w-7 rounded-full bg-background/80 border flex items-center justify-center"

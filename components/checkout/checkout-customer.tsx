@@ -87,3 +87,15 @@ export function CheckoutCustomer({
         </div>
     )
 }
+
+export const IconInput = ({ icon: Icon, ...props }: any) => (
+    <div className="flex w-full items-center rounded-md border text-sm overflow-hidden h-10 ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+        <div className="flex h-full w-10 items-center justify-center bg-muted/50 border-r">
+            <Icon className="h-4 w-4 text-muted-foreground" />
+        </div>
+        <input
+            {...props}
+            className={`flex h-full w-full bg-background px-3 py-2 placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${props.className || ''}`}
+        />
+    </div>
+)

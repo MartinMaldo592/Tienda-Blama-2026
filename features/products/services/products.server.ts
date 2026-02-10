@@ -11,13 +11,13 @@ function createAnonServerClient() {
     })
 }
 
-export async function fetchProductForMeta(id: number): Promise<Pick<Product, "id" | "nombre" | "descripcion" | "imagen_url" | "imagenes" | "precio"> | null> {
+export async function fetchProductForMeta(id: number): Promise<Pick<Product, "id" | "nombre" | "descripcion" | "imagen_url" | "imagenes" | "precio" | "stock"> | null> {
     const supabase = createAnonServerClient()
     if (!supabase) return null
 
     const { data, error } = await supabase
         .from("productos")
-        .select("id, nombre, descripcion, imagen_url, imagenes, precio")
+        .select("id, nombre, descripcion, imagen_url, imagenes, precio, stock")
         .eq("id", id)
         .maybeSingle()
 

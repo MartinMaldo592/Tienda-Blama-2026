@@ -60,7 +60,11 @@ export function CheckoutForm({ items, total, onBack, onComplete }: CheckoutFormP
 }
 
 
+import { useCheckoutDraft } from "@/features/checkout/hooks/use-checkout-draft"
+
 function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
+    const { draft, loaded, saveDraft, clearDraft } = useCheckoutDraft()
+
     const [name, setName] = useState("")
     const [shippingMethod, setShippingMethod] = useState("lima")
     const [phone, setPhone] = useState("")
@@ -81,6 +85,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
     const [couponError, setCouponError] = useState("")
     const [couponApplied, setCouponApplied] = useState(false)
 
+    // Google Maps Hook
     const {
         ready,
         value,
@@ -92,6 +97,41 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             componentRestrictions: { country: "pe" },
         },
     })
+
+    // Load draft when ready
+    useEffect(() => {
+        if (loaded && draft) {
+            if (draft.name) setName(draft.name)
+            if (draft.phone) setPhone(draft.phone)
+            if (draft.dni) setDni(draft.dni)
+            if (draft.department) setDepartment(draft.department)
+            if (draft.province) setProvince(draft.province)
+            if (draft.district) setDistrict(draft.district)
+            if (draft.reference) setReference(draft.reference)
+            if (draft.shippingMethod) setShippingMethod(draft.shippingMethod)
+            // Address value is handled by Google Maps hook, we can set it via setValue
+            if (draft.address) setValue(draft.address)
+        }
+    }, [loaded, draft, setValue])
+
+    // Save draft on changes
+    useEffect(() => {
+        if (!loaded) return
+        const timeout = setTimeout(() => {
+            saveDraft({
+                name,
+                phone,
+                dni,
+                department,
+                province,
+                district,
+                reference,
+                shippingMethod,
+                address: value
+            })
+        }, 500) // Debounce 500ms
+        return () => clearTimeout(timeout)
+    }, [name, phone, dni, department, province, district, reference, shippingMethod, value, loaded, saveDraft])
 
     // Removed unused geoProvince, geoDistrict
 

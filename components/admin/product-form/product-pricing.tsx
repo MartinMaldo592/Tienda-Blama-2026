@@ -1,58 +1,47 @@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { UseFormRegister, FieldErrors } from "react-hook-form"
+import { ProductFormValues } from "@/features/admin/schemas/product.schema"
 
 interface ProductPricingProps {
-    price: string
-    setPrice: (v: string) => void
-    priceBefore: string
-    setPriceBefore: (v: string) => void
-    stock: string
-    setStock: (v: string) => void
-    calificacion: string
-    setCalificacion: (v: string) => void
+    register: UseFormRegister<ProductFormValues>
+    errors: FieldErrors<ProductFormValues>
 }
 
-export function ProductPricing({
-    price, setPrice,
-    priceBefore, setPriceBefore,
-    stock, setStock,
-    calificacion, setCalificacion
-}: ProductPricingProps) {
+export function ProductPricing({ register, errors }: ProductPricingProps) {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
-                <Label htmlFor="price">Precio actual (S/)</Label>
+                <Label htmlFor="precio">Precio actual (S/)</Label>
                 <Input
-                    id="price"
+                    id="precio"
                     type="number"
                     step="0.01"
-                    required
                     placeholder="0.00"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
+                    {...register("precio")}
                 />
+                {errors.precio && <p className="text-sm text-red-500">{errors.precio.message}</p>}
             </div>
             <div className="space-y-2">
-                <Label htmlFor="priceBefore">Precio antes (S/) (opcional)</Label>
+                <Label htmlFor="precio_antes">Precio antes (S/) (opcional)</Label>
                 <Input
-                    id="priceBefore"
+                    id="precio_antes"
                     type="number"
                     step="0.01"
                     placeholder="0.00"
-                    value={priceBefore}
-                    onChange={(e) => setPriceBefore(e.target.value)}
+                    {...register("precio_antes")}
                 />
+                {errors.precio_antes && <p className="text-sm text-red-500">{errors.precio_antes.message}</p>}
             </div>
             <div className="space-y-2">
                 <Label htmlFor="stock">Stock (Unidades)</Label>
                 <Input
                     id="stock"
                     type="number"
-                    required
                     placeholder="10"
-                    value={stock}
-                    onChange={(e) => setStock(e.target.value)}
+                    {...register("stock")}
                 />
+                {errors.stock && <p className="text-sm text-red-500">{errors.stock.message}</p>}
             </div>
             <div className="space-y-2">
                 <Label htmlFor="calificacion">Calificación (0-5)</Label>
@@ -62,11 +51,10 @@ export function ProductPricing({
                     step="0.1"
                     min="0"
                     max="5"
-                    required
                     placeholder="5.0"
-                    value={calificacion}
-                    onChange={(e) => setCalificacion(e.target.value)}
+                    {...register("calificacion")}
                 />
+                {errors.calificacion && <p className="text-sm text-red-500">{errors.calificacion.message}</p>}
             </div>
         </div>
     )

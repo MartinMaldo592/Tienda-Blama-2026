@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
+import Image from "next/image"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -22,6 +22,7 @@ import { formatCurrency } from "@/lib/utils"
 
 import { Plus, Search, Edit, Trash2, Image as ImageIcon, Loader2 } from "lucide-react"
 import { deleteAdminProductoViaApi, fetchAdminProductos, deleteFromR2 } from "@/features/admin"
+import { Producto } from "@/features/admin/types"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 
 export default function ProductosPage() {
@@ -40,7 +41,7 @@ export default function ProductosPage() {
 
     // 2. Deletion Mutation
     const deleteMutation = useMutation({
-        mutationFn: async (producto: any) => {
+        mutationFn: async (producto: Producto) => {
             const sessionRes = await supabase.auth.getSession()
             const accessToken = sessionRes?.data?.session?.access_token
             if (!accessToken) throw new Error("Tu sesión expiró. Vuelve a iniciar sesión.")
@@ -50,8 +51,8 @@ export default function ProductosPage() {
             const urlsToDelete = [
                 producto.imagen_url,
                 ...(Array.isArray(producto.imagenes) ? producto.imagenes : []),
-                ...(Array.isArray(producto.videos) ? producto.videos : [])
-            ].filter(Boolean)
+                ...(Array.isArray(producto.videos) ? (producto.videos as string[]) : [])
+            ].filter((u): u is string => Boolean(u))
 
             // Execute deletions in parallel
             await Promise.all(urlsToDelete.map(url => deleteFromR2(url)))
@@ -64,18 +65,18 @@ export default function ProductosPage() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["adminProductos"] })
         },
-        onError: (err: any) => {
+        onError: (err: Error) => {
             alert("Error al eliminar: " + String(err?.message || 'No se pudo eliminar'))
         }
     })
 
-    const handleDelete = async (producto: any) => {
+    const handleDelete = async (producto: Producto) => {
         if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente el producto "${producto.nombre}"? Esto eliminará también todas sus imágenes y videos. esta acción no se puede deshacer.`)) return
         deleteMutation.mutate(producto)
     }
 
     // 3. Filtering
-    const filteredProductos = productos.filter((p: any) =>
+    const filteredProductos = productos.filter((p: Producto) =>
         p.nombre?.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
@@ -140,12 +141,12 @@ export default function ProductosPage() {
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            filteredProductos.map((producto: any) => (
+                            filteredProductos.map((producto: Producto) => (
                                 <TableRow key={producto.id} className={deleteMutation.isPending && deleteMutation.variables?.id === producto.id ? "opacity-50 pointer-events-none" : ""}>
                                     <TableCell>
-                                        <div className="h-10 w-10 bg-gray-100 rounded-md overflow-hidden flex items-center justify-center">
+                                        <div className="h-10 w-10 bg-gray-100 rounded-md overflow-hidden flex items-center justify-center relative">
                                             {producto.imagen_url ? (
-                                                <img src={producto.imagen_url} alt={producto.nombre} className="h-full w-full object-cover" />
+                                                <Image src={producto.imagen_url} alt={producto.nombre} fill className="object-cover" sizes="40px" />
                                             ) : (
                                                 <ImageIcon className="h-4 w-4 text-gray-400" />
                                             )}

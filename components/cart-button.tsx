@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useCartAnimationStore } from "@/features/cart/cart-animation"
 import { Button } from "@/components/ui/button"
 import { ShoppingCart, Trash2, Plus, Minus, Image as ImageIcon, CheckCircle } from "lucide-react"
@@ -249,9 +250,15 @@ export function CartButton() {
                                 ) : (
                                     items.map((item) => (
                                         <div key={`${item.id}-${item.producto_variante_id ?? 'base'}`} className="flex gap-3 bg-card p-2 rounded-lg border border-border shadow-sm">
-                                            <div className="h-20 w-20 bg-popover rounded-md overflow-hidden flex-shrink-0">
+                                            <div className="h-20 w-20 bg-popover rounded-md overflow-hidden flex-shrink-0 relative">
                                                 {item.imagen_url ? (
-                                                    <img src={item.imagen_url} alt={item.nombre} className="h-full w-full object-cover" />
+                                                    <Image
+                                                        src={item.imagen_url}
+                                                        alt={item.nombre}
+                                                        fill
+                                                        className="object-cover"
+                                                        sizes="80px"
+                                                    />
                                                 ) : (
                                                     <div className="h-full w-full flex items-center justify-center text-gray-400">
                                                         <ImageIcon className="h-6 w-6" />

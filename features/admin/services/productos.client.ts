@@ -1,30 +1,31 @@
 import { supabase } from "@/lib/supabaseClient"
 import { uploadToR2 } from "@/features/admin/services/storage.client"
+import { Categoria, Producto, ProductoEspecificacion, ProductoVariante } from "../types"
 
-export async function fetchAdminProductos() {
+export async function fetchAdminProductos(): Promise<Producto[]> {
   const { data, error } = await supabase.from("productos").select("*").order("id", { ascending: true })
   if (error) throw error
-  return (data as any[]) || []
+  return (data as Producto[]) || []
 }
 
-export async function fetchAdminProductoById(id: number) {
+export async function fetchAdminProductoById(id: number): Promise<Producto> {
   const { data, error } = await supabase.from("productos").select("*").eq("id", id).single()
   if (error) throw error
-  return data as any
+  return data as Producto
 }
 
-export async function fetchAdminCategorias() {
+export async function fetchAdminCategorias(): Promise<Categoria[]> {
   const { data, error } = await supabase.from("categorias").select("*")
   if (error) throw error
-  return (data as any[]) || []
+  return (data as Categoria[]) || []
 }
 
-export async function createAdminCategoria(args: { nombre: string }) {
+export async function createAdminCategoria(args: { nombre: string }): Promise<Categoria> {
   const nombre = String(args.nombre || "").trim()
   const slug = nombre.toLowerCase().replace(/ /g, "-").replace(/[^\w-]+/g, "")
   const { data, error } = await supabase.from("categorias").insert({ nombre, slug }).select().single()
   if (error) throw error
-  return data as any
+  return data as Categoria
 }
 
 export async function fetchProductoSpecsAndVariants(productId: number) {
@@ -34,8 +35,8 @@ export async function fetchProductoSpecsAndVariants(productId: number) {
   ])
 
   return {
-    specs: (specRes.data as any[]) || [],
-    variants: (varRes.data as any[]) || [],
+    specs: (specRes.data as ProductoEspecificacion[]) || [],
+    variants: (varRes.data as ProductoVariante[]) || [],
   }
 }
 
@@ -73,7 +74,7 @@ export async function saveAdminProductoViaApi(args: { accessToken: string; metho
     body: JSON.stringify(args.body),
   })
 
-  let json: any = null
+  let json: { ok: boolean; error?: string; data?: any } | null = null
   try {
     json = await res.json()
   } catch (err) {
@@ -97,7 +98,7 @@ export async function deleteAdminProductoViaApi(args: { accessToken: string; id:
     body: JSON.stringify({ id: args.id }),
   })
 
-  let json: any = null
+  let json: { ok: boolean; error?: string } | null = null
   try {
     json = await res.json()
   } catch (err) {

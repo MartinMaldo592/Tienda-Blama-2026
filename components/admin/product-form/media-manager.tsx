@@ -1,3 +1,4 @@
+import Image from "next/image"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -198,7 +199,7 @@ export function MediaManager({
 
                 {imageUrl && (
                     <div className="mt-2 h-32 w-32 rounded-lg border overflow-hidden relative bg-popover">
-                        <img src={imageUrl} alt="Preview" className="h-full w-full object-cover" />
+                        <Image src={imageUrl} alt="Preview" fill className="object-cover" />
                     </div>
                 )}
             </div>
@@ -238,8 +239,8 @@ export function MediaManager({
                                     {idx + 1}
                                 </div>
 
-                                <div className="h-12 w-12 rounded-md overflow-hidden border bg-background flex-shrink-0">
-                                    <img src={url} alt="Imagen" className="h-full w-full object-cover" />
+                                <div className="h-12 w-12 rounded-md overflow-hidden border bg-background flex-shrink-0 relative">
+                                    <Image src={url} alt="Imagen" fill className="object-cover" />
                                 </div>
 
                                 <div className="min-w-0 flex-1">

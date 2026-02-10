@@ -1,26 +1,25 @@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { UseFormRegister, FieldErrors } from "react-hook-form"
+import { ProductFormValues } from "@/features/admin/schemas/product.schema"
 
 interface ProductBasicsProps {
-    name: string
-    setName: (value: string) => void
-    descripcion: string
-    setDescripcion: (value: string) => void
+    register: UseFormRegister<ProductFormValues>
+    errors: FieldErrors<ProductFormValues>
 }
 
-export function ProductBasics({ name, setName, descripcion, setDescripcion }: ProductBasicsProps) {
+export function ProductBasics({ register, errors }: ProductBasicsProps) {
     return (
         <div className="space-y-6">
             <div className="space-y-2">
-                <Label htmlFor="name">Nombre del Producto</Label>
+                <Label htmlFor="nombre">Nombre del Producto</Label>
                 <Input
-                    id="name"
+                    id="nombre"
                     placeholder="Ej: Zapatillas Nike Air"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    {...register("nombre")}
                 />
+                {errors.nombre && <p className="text-sm text-red-500">{errors.nombre.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -28,9 +27,9 @@ export function ProductBasics({ name, setName, descripcion, setDescripcion }: Pr
                 <Textarea
                     id="descripcion"
                     placeholder="Descripción completa del producto..."
-                    value={descripcion}
-                    onChange={(e) => setDescripcion(e.target.value)}
+                    {...register("descripcion")}
                 />
+                {errors.descripcion && <p className="text-sm text-red-500">{errors.descripcion.message}</p>}
             </div>
         </div>
     )

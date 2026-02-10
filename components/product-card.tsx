@@ -26,13 +26,13 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
     const imageRef = useRef<HTMLDivElement>(null)
     const [isAdded, setIsAdded] = useState(false)
 
-    const currentPrice = Number((product as any)?.precio ?? 0)
-    const beforePrice = Number((product as any)?.precio_antes ?? 0)
+    const currentPrice = Number(product.precio ?? 0)
+    const beforePrice = Number(product.precio_antes ?? 0)
     const hasSale = Number.isFinite(beforePrice) && beforePrice > 0 && Number.isFinite(currentPrice) && currentPrice > 0 && beforePrice > currentPrice
     const discountPercent = hasSale ? Math.round((1 - currentPrice / beforePrice) * 100) : 0
 
     const images = (
-        (Array.isArray((product as any).imagenes) ? ((product as any).imagenes as string[]) : [])
+        (Array.isArray(product.imagenes) ? (product.imagenes as string[]) : [])
             .filter(Boolean)
             .filter((u) => {
                 const s = String(u || '').toLowerCase()

@@ -1,3 +1,4 @@
+import Image from "next/image"
 import { Trash2, ExternalLink, FileUp, Check, Image as ImageIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
@@ -71,10 +72,12 @@ export function OrderFileCard({
                     {/* Thumbnail Preview */}
                     {fileUrl.match(/\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i) ? (
                         <div className="relative w-full h-40 bg-gray-100 rounded-lg overflow-hidden border group cursor-pointer" onClick={() => window.open(fileUrl || '', '_blank')}>
-                            <img
+                            <Image
                                 src={fileUrl}
                                 alt={title}
-                                className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                fill
+                                className="object-cover transition-transform group-hover:scale-105"
+                                sizes="(max-width: 768px) 100vw, 300px"
                             />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                                 <ExternalLink className="text-white drop-shadow-md" />

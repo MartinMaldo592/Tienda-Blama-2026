@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import { Card, CardContent } from "@/components/ui/card"
@@ -256,12 +257,14 @@ export function ProductSocialProof({ productId, section = 'all' }: { productId: 
                   {Array.isArray(r.photo_urls) && r.photo_urls.length > 0 ? (
                     <div className="mt-3 flex gap-2 overflow-x-auto">
                       {r.photo_urls.slice(0, 6).map((u, idx) => (
-                        <img
+                        <Image
                           key={idx}
                           src={u}
                           alt="Foto del cliente"
+                          width={80}
+                          height={80}
                           className="h-20 w-20 rounded-lg border object-cover"
-                          loading="lazy"
+                          style={{ minWidth: "80px" }}
                         />
                       ))}
                     </div>
