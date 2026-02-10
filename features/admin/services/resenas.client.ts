@@ -1,6 +1,7 @@
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 
 export async function fetchAdminReviews() {
+  const supabase = createClient()
   const { data, error } = await supabase
     .from("product_reviews")
     .select("id, product_id, rating, title, body, customer_name, customer_city, verified, approved, created_at, productos(nombre)")
@@ -12,11 +13,13 @@ export async function fetchAdminReviews() {
 }
 
 export async function setReviewApproved(args: { id: number; approved: boolean }) {
+  const supabase = createClient()
   const { error } = await supabase.from("product_reviews").update({ approved: args.approved }).eq("id", args.id)
   if (error) throw error
 }
 
 export async function deleteReview(id: number) {
+  const supabase = createClient()
   const { error } = await supabase.from("product_reviews").delete().eq("id", id)
   if (error) throw error
 }

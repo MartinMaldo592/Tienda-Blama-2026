@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -90,6 +90,7 @@ export function ProductSocialProof({ productId, section = 'all' }: { productId: 
       // Only fetch what we need if we wanted to optimize, but typically fetching both is fine as they are related.
       // However, if section is specific, arguably we could only fetch that table.
       // For simplicity and avoiding large logic changes, we fetch both.
+      const supabase = createClient()
       const [reviewsRes, questionsRes] = await Promise.all([
         supabase
           .from("product_reviews")

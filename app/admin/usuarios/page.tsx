@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -40,6 +40,7 @@ export default function UsuariosPage() {
   // 2. Mutations
   const createWorkerMutation = useMutation({
     mutationFn: async () => {
+      const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) throw new Error("No hay sesión activa")
       return createWorkerViaApi({
@@ -74,6 +75,7 @@ export default function UsuariosPage() {
 
   const updateRoleMutation = useMutation({
     mutationFn: async ({ userId, newRole }: { userId: string, newRole: string }) => {
+      const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) throw new Error("No hay sesión activa")
       return updateUserRoleViaApi({

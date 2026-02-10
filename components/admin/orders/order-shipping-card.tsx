@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { useState, useEffect } from "react"
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 import { PedidoRow } from "@/features/admin/types"
 
 interface OrderShippingCardProps {
@@ -66,6 +66,7 @@ export function OrderShippingCard({ pedido, isLocked, onLogAction, onRefresh }: 
             }
             logMsg = `Tracking: Orden ${shalomOrder}, Código ${shalomPass}, PIN ${shalomPin}`
 
+            const supabase = createClient()
             const { error } = await supabase
                 .from('pedidos')
                 .update(updatePayload)

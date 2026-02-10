@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 
 export type AnnouncementBarConfig = {
   enabled: boolean
@@ -7,6 +7,7 @@ export type AnnouncementBarConfig = {
 }
 
 async function getAccessToken() {
+  const supabase = createClient()
   const res = await supabase.auth.getSession()
   const token = res?.data?.session?.access_token || ""
   return token

@@ -1,6 +1,7 @@
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 
 export async function fetchAdminQuestions() {
+  const supabase = createClient()
   const { data, error } = await supabase
     .from("product_questions")
     .select(
@@ -14,11 +15,13 @@ export async function fetchAdminQuestions() {
 }
 
 export async function setQuestionPublished(args: { id: number; published: boolean }) {
+  const supabase = createClient()
   const { error } = await supabase.from("product_questions").update({ published: args.published }).eq("id", args.id)
   if (error) throw error
 }
 
 export async function saveQuestionAnswer(args: { questionId: number; answer: string }) {
+  const supabase = createClient()
   const answer = String(args.answer || "").trim()
 
   const { data: sessionRes } = await supabase.auth.getSession()

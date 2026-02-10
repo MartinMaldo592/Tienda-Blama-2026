@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
 import {
@@ -40,6 +40,7 @@ export default function PedidosPage() {
 
     // Fetch Session User ID once
     useEffect(() => {
+        const supabase = createClient()
         supabase.auth.getSession().then(({ data }) => {
             if (data.session?.user?.id) setUserId(data.session.user.id)
         })

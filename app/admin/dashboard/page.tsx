@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -45,6 +45,7 @@ export default function AdminDashboard() {
         const role = guard.role || 'worker'
 
             ; (async () => {
+                const supabase = createClient()
                 const { data: { session } } = await supabase.auth.getSession()
                 const uid = session?.user?.id || ''
                 try {

@@ -1,6 +1,7 @@
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 
 export async function fetchPedidosForIncidencias() {
+  const supabase = createClient()
   const { data, error } = await supabase
     .from("pedidos")
     .select("id, status, created_at, clientes (nombre, telefono)")
@@ -12,6 +13,7 @@ export async function fetchPedidosForIncidencias() {
 }
 
 export async function fetchIncidencias() {
+  const supabase = createClient()
   const { data, error } = await supabase
     .from("incidencias")
     .select("*, pedidos (id, status, created_at, clientes (nombre, telefono))")
@@ -22,6 +24,7 @@ export async function fetchIncidencias() {
 }
 
 export async function uploadIncidenciaImages(args: { pedidoId: string; files: File[] }) {
+  const supabase = createClient()
   const pedidoId = String(args.pedidoId || "").trim()
   const files = Array.isArray(args.files) ? args.files : []
 
@@ -44,6 +47,7 @@ export async function uploadIncidenciaImages(args: { pedidoId: string; files: Fi
 }
 
 export async function createIncidencia(payload: any) {
+  const supabase = createClient()
   async function save(withFotos: boolean) {
     const p: any = { ...payload }
     if (!withFotos) delete p.fotos
@@ -61,6 +65,7 @@ export async function createIncidencia(payload: any) {
 }
 
 export async function deleteIncidencia(id: number) {
+  const supabase = createClient()
   const { error } = await supabase.from("incidencias").delete().eq("id", id)
   if (error) throw error
 }

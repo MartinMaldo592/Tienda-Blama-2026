@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 import type {
     Category,
     Product,
@@ -9,6 +9,7 @@ import type {
 } from "@/features/products/types"
 
 export async function listCategories(): Promise<Category[]> {
+    const supabase = createClient()
     const { data, error } = await supabase.from("categorias").select("*").order("nombre", { ascending: true })
     if (error) {
         console.error("Error fetching categories:", error)
@@ -34,6 +35,7 @@ export type ListProductsResult = {
 }
 
 export async function listProducts(params: ListProductsParams): Promise<ListProductsResult> {
+    const supabase = createClient()
     const q = (params.q || "").trim()
     const min = params.min ? Number(params.min) : null
     const max = params.max ? Number(params.max) : null
@@ -105,6 +107,7 @@ export type CountProductsParams = {
 }
 
 export async function countProducts(params: CountProductsParams): Promise<number | null> {
+    const supabase = createClient()
     const q = (params.q || "").trim()
     const min = params.min ? Number(params.min) : null
     const max = params.max ? Number(params.max) : null
@@ -160,6 +163,7 @@ export type ProductDetailResult = {
 }
 
 export async function getProductDetail(productId: number): Promise<ProductDetailResult> {
+    const supabase = createClient()
     const [prodRes, variantsRes, specsRes] = await Promise.all([
         supabase.from("productos").select(`*, categorias (id, nombre, slug)`).eq("id", productId).single(),
         supabase
@@ -197,6 +201,7 @@ export async function getProductDetail(productId: number): Promise<ProductDetail
 }
 
 export async function getRecommendedProducts(excludeId: number): Promise<any[]> {
+    const supabase = createClient()
     try {
         const { data: topData, error: topError } = await supabase.rpc("get_top_products", {
             limit_count: 8,

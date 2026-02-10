@@ -1,14 +1,16 @@
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 
 import type { AdminRole, PedidoItemRow, PedidoRow, ProfileRow, ProductoVariante, Producto } from "@/features/admin/types"
 
 export async function fetchAdminWorkers(): Promise<ProfileRow[]> {
+  const supabase = createClient()
   const { data, error } = await supabase.from("usuarios").select("id, email, nombre, role").eq("role", "worker")
   if (error) throw error
   return (data as ProfileRow[]) || []
 }
 
 export async function fetchPedidosForRole(args: { role: AdminRole | string; currentUserId: string }): Promise<PedidoRow[]> {
+  const supabase = createClient()
   const role = String(args.role || "worker")
   const currentUserId = String(args.currentUserId || "")
 
@@ -60,6 +62,7 @@ export async function fetchPedidosForRole(args: { role: AdminRole | string; curr
 }
 
 export async function assignPedidoToWorker(args: { pedidoId: number; workerId: string | null }) {
+  const supabase = createClient()
   const assignValue = args.workerId ? String(args.workerId) : null
   const { error } = await supabase
     .from("pedidos")
@@ -73,6 +76,7 @@ export async function assignPedidoToWorker(args: { pedidoId: number; workerId: s
 }
 
 export async function fetchPedidoDetail(pedidoId: number): Promise<{ pedido: PedidoRow; items: PedidoItemRow[] }> {
+  const supabase = createClient()
   const { data: pedidoData, error } = await supabase
     .from("pedidos")
     .select(
@@ -120,6 +124,7 @@ export async function fetchPedidoDetail(pedidoId: number): Promise<{ pedido: Ped
 }
 
 export async function updatePedidoStatusWithStock(args: { pedidoId: number; nextStatus: string; stockDescontado: boolean }) {
+  const supabase = createClient()
   const pedidoId = Number(args.pedidoId)
   const nextStatus = String(args.nextStatus || "")
   const isCurrentlyDeducted = args.stockDescontado

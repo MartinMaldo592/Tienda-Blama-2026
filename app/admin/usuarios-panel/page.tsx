@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 import { Input } from "@/components/ui/input"
 import {
     Table,
@@ -39,6 +39,7 @@ export default function UsersPanelPage() {
 
     async function fetchUsers() {
         setLoading(true)
+        const supabase = createClient()
         const { data, error } = await supabase
             .from('usuarios')
             .select('*')
@@ -56,6 +57,7 @@ export default function UsersPanelPage() {
         // Optimistic update
         setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u))
 
+        const supabase = createClient()
         const { error } = await supabase
             .from('usuarios')
             .update({ role: newRole })
@@ -113,8 +115,8 @@ export default function UsersPanelPage() {
                                     </TableCell>
                                     <TableCell>
                                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${user.role === 'admin'
-                                                ? 'bg-purple-100 text-purple-700'
-                                                : 'bg-blue-100 text-blue-700'
+                                            ? 'bg-purple-100 text-purple-700'
+                                            : 'bg-blue-100 text-blue-700'
                                             }`}>
                                             {user.role || 'user'}
                                         </span>

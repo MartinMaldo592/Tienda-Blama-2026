@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from '@/lib/supabase.client'
 import { toast } from 'sonner'
 
 interface UseFileUploadProps {
@@ -9,6 +9,7 @@ interface UseFileUploadProps {
 }
 
 export function useFileUpload({ bucketName, onUploadComplete, onDeleteComplete }: UseFileUploadProps) {
+    const supabase = createClient()
     const [isUploading, setIsUploading] = useState(false)
 
     /**

@@ -6,7 +6,7 @@ import "./globals.css";
 import { LayoutShell } from "@/components/layout-shell";
 import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/sonner";
-import { supabase } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase.server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -69,6 +69,7 @@ export const metadata: Metadata = {
 };
 
 async function getAnnouncementData() {
+  const supabase = await createClient()
   try {
     const { data } = await supabase
       .from("announcement_bar")

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabaseClient'
+import { createClient } from "@/lib/supabase.client"
 import { Facebook, Instagram, Linkedin, Twitter, Youtube, ExternalLink } from 'lucide-react'
 
 // Custom icons for complex SVGs
@@ -57,6 +57,7 @@ export function Footer() {
     useEffect(() => {
         const fetchLinks = async () => {
             try {
+                const supabase = createClient()
                 const { data } = await supabase
                     .from('social_links')
                     .select('*')

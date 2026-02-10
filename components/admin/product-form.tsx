@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 import {
     fetchProductoSpecsAndVariants,
     saveAdminProductoViaApi,
@@ -179,6 +179,7 @@ export function ProductForm({ productToEdit, categories = DEFAULT_CATEGORIES, on
     const onSubmit = async (data: ProductFormValues) => {
         setLoading(true)
         try {
+            const supabase = createClient()
             const sessionRes = await supabase.auth.getSession()
             const accessToken = sessionRes?.data?.session?.access_token
             if (!accessToken) {

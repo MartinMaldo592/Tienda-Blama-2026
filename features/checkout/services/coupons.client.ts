@@ -1,8 +1,9 @@
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 
 import type { ValidateCouponResult } from "@/features/checkout/types"
 
 export async function validateCoupon(rawCode: string, subtotal: number): Promise<ValidateCouponResult> {
+    const supabase = createClient()
     const code = String(rawCode || "").trim()
     if (!code) {
         return { descuento: 0, codigo: null }

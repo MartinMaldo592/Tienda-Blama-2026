@@ -1,8 +1,9 @@
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 
 import type { AdminDashboardStats, AdminRole } from "@/features/admin/types"
 
 export async function fetchAdminDashboardStats(args: { role: AdminRole | string; currentUserId: string }): Promise<AdminDashboardStats> {
+  const supabase = createClient()
   const role = String(args.role || "worker")
   const currentUserId = String(args.currentUserId || "")
 
@@ -56,6 +57,7 @@ export async function fetchAdminDashboardStats(args: { role: AdminRole | string;
 }
 
 export async function fetchAdminVentasEntregadas(args: { from: string; to: string }) {
+  const supabase = createClient()
   const fromIso = args.from ? `${args.from}T00:00:00.000Z` : undefined
   const toIso = args.to ? `${args.to}T23:59:59.999Z` : undefined
 
@@ -74,6 +76,7 @@ export async function fetchAdminVentasEntregadas(args: { from: string; to: strin
 }
 
 export async function fetchAdminStockBajo(args: { threshold: number }) {
+  const supabase = createClient()
   const th = Number(args.threshold)
   const { data, error } = await supabase
     .from("productos")
@@ -86,6 +89,7 @@ export async function fetchAdminStockBajo(args: { threshold: number }) {
 }
 
 export async function fetchAdminPedidosPendientes() {
+  const supabase = createClient()
   const { data, error } = await supabase
     .from("pedidos")
     .select("id, total, status, created_at, clientes (nombre, telefono, dni)")
@@ -101,6 +105,7 @@ type ProcessStatus = (typeof PROCESS_STATUSES)[number]
 type StatusFilter = ProcessStatus | "all"
 
 export async function fetchAdminPedidosEnProceso(args: { status: StatusFilter; from: string; to: string }) {
+  const supabase = createClient()
   const fromIso = args.from ? `${args.from}T00:00:00.000Z` : undefined
   const toIso = args.to ? `${args.to}T23:59:59.999Z` : undefined
 

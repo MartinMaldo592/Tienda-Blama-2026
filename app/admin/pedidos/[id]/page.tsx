@@ -30,7 +30,7 @@ import { OrderAssignmentCard } from "@/components/admin/orders/order-assignment-
 // import types
 import { PedidoRow, PedidoItemRow, ProfileRow, PedidoLog } from "@/features/admin/types"
 import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidoDetail, updatePedidoStatusWithStock } from "@/features/admin"
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 
 export default function PedidoDetallePage() {
     const params = useParams()
@@ -140,6 +140,7 @@ export default function PedidoDetallePage() {
     }, [id])
 
     async function getUserName() {
+        const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
         if (user && user.email) {
             const { data: profile } = await supabase.from('profiles').select('nombre').eq('id', user.id).single()
@@ -148,6 +149,7 @@ export default function PedidoDetallePage() {
     }
 
     async function fetchLogs() {
+        const supabase = createClient()
         const { data } = await supabase
             .from('pedido_logs')
             .select('*')
@@ -157,6 +159,7 @@ export default function PedidoDetallePage() {
     }
 
     async function logAction(accion: string, detalles: string) {
+        const supabase = createClient()
         await supabase.from('pedido_logs').insert({
             pedido_id: Number(id),
             usuario_nombre: currentUser,
@@ -218,6 +221,7 @@ export default function PedidoDetallePage() {
 
     async function handleSaveClientData() {
         try {
+            const supabase = createClient()
             const { error } = await supabase
                 .from('pedidos')
                 .update({
@@ -290,6 +294,7 @@ export default function PedidoDetallePage() {
 
         setLoading(true)
         try {
+            const supabase = createClient()
             const { error } = await supabase.rpc('admin_procesar_devolucion_parcial', {
                 p_item_id: itemId,
                 p_cantidad_a_devolver: qty,
@@ -338,6 +343,7 @@ export default function PedidoDetallePage() {
     const guideUpload = useFileUpload({
         bucketName: 'guias',
         onUploadComplete: async (url) => {
+            const supabase = createClient()
             const { error } = await supabase
                 .from('pedidos')
                 .update({ guia_archivo_url: url })
@@ -346,6 +352,7 @@ export default function PedidoDetallePage() {
             fetchPedido()
         },
         onDeleteComplete: async () => {
+            const supabase = createClient()
             const { error } = await supabase
                 .from('pedidos')
                 .update({ guia_archivo_url: null })
@@ -358,6 +365,7 @@ export default function PedidoDetallePage() {
     const deliveryUpload = useFileUpload({
         bucketName: 'guias', // Reusing guias bucket as per original code
         onUploadComplete: async (url) => {
+            const supabase = createClient()
             const { error } = await supabase
                 .from('pedidos')
                 .update({ evidencia_entrega_url: url })
@@ -366,6 +374,7 @@ export default function PedidoDetallePage() {
             fetchPedido()
         },
         onDeleteComplete: async () => {
+            const supabase = createClient()
             const { error } = await supabase
                 .from('pedidos')
                 .update({ evidencia_entrega_url: null })
@@ -380,6 +389,7 @@ export default function PedidoDetallePage() {
         onUploadComplete: async (url) => {
             const currentFiles = pedido?.comprobante_pago_url || []
             const updatedList = [...currentFiles, url]
+            const supabase = createClient()
             const { error } = await supabase
                 .from('pedidos')
                 .update({ comprobante_pago_url: updatedList })
@@ -395,6 +405,7 @@ export default function PedidoDetallePage() {
             const currentFiles = pedido?.comprobante_pago_url || []
             const updatedList = currentFiles.filter((_: any, idx: number) => idx !== index)
 
+            const supabase = createClient()
             const { error } = await supabase
                 .from('pedidos')
                 .update({ comprobante_pago_url: updatedList.length > 0 ? updatedList : null })

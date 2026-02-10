@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import {
@@ -33,6 +33,7 @@ export default function AuditLogsPage() {
         setLoading(true)
 
         // 1. Get Users mapping
+        const supabase = createClient()
         const { data: userData } = await supabase.from('usuarios').select('id, email, nombre')
         const userMap: Record<string, string> = {}
         userData?.forEach((u: any) => {

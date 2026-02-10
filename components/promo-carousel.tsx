@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useEffect, useMemo, useRef, useState, type TouchEvent } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 
 type PromoSlide = {
   id: string
@@ -46,6 +46,7 @@ export function PromoCarousel() {
     async function load() {
       setLoadingSlides(true)
 
+      const supabase = createClient()
       const { data, error } = await supabase
         .from("home_banners")
         .select(

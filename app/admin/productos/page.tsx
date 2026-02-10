@@ -4,7 +4,7 @@ import Image from "next/image"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useRoleGuard } from "@/lib/use-role-guard"
@@ -42,6 +42,7 @@ export default function ProductosPage() {
     // 2. Deletion Mutation
     const deleteMutation = useMutation({
         mutationFn: async (producto: Producto) => {
+            const supabase = createClient()
             const sessionRes = await supabase.auth.getSession()
             const accessToken = sessionRes?.data?.session?.access_token
             if (!accessToken) throw new Error("Tu sesión expiró. Vuelve a iniciar sesión.")

@@ -1,5 +1,5 @@
 
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 
 export type SocialLink = {
     id: number
@@ -11,6 +11,7 @@ export type SocialLink = {
 }
 
 export async function fetchSocialLinks() {
+    const supabase = createClient()
     const { data, error } = await supabase
         .from("social_links")
         .select("*")
@@ -23,6 +24,7 @@ export async function fetchSocialLinks() {
 }
 
 export async function saveSocialLink({ id, payload }: { id?: number | null; payload: any }) {
+    const supabase = createClient()
     if (id) {
         const { error } = await supabase
             .from("social_links")
@@ -37,6 +39,7 @@ export async function saveSocialLink({ id, payload }: { id?: number | null; payl
 }
 
 export async function deleteSocialLink(id: number) {
+    const supabase = createClient()
     const { error } = await supabase.from("social_links").delete().eq("id", id)
     if (error) throw new Error(error.message)
 }

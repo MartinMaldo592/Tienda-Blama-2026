@@ -1,12 +1,14 @@
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 
 export async function fetchHomeBanners() {
+  const supabase = createClient()
   const { data, error } = await supabase.from("home_banners").select("*").order("orden", { ascending: true }).order("id", { ascending: true })
   if (error) throw error
   return (data as any[]) || []
 }
 
 export async function saveHomeBanner(args: { id?: number | null; payload: any }) {
+  const supabase = createClient()
   if (args.id != null) {
     const { error } = await supabase.from("home_banners").update(args.payload).eq("id", args.id)
     if (error) throw error
@@ -18,6 +20,7 @@ export async function saveHomeBanner(args: { id?: number | null; payload: any })
 }
 
 export async function deleteHomeBanner(id: number) {
+  const supabase = createClient()
   const { error } = await supabase.from("home_banners").delete().eq("id", id)
   if (error) throw error
 }
