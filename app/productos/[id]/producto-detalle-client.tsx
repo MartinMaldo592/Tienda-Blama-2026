@@ -740,13 +740,13 @@ export default function ProductoDetalleClient() {
 
                     {/* TABS SECTION */}
                     <div className="mt-12">
-                        <div className="flex flex-wrap items-center justify-center gap-2 mb-8 select-none p-1 bg-muted/30 rounded-full w-fit mx-auto border">
+                        <div className="flex items-center gap-2 mb-8 select-none p-1 bg-muted/30 rounded-full mx-auto border overflow-x-auto scrollbar-hide max-w-full w-fit" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                             {producto?.descripcion && (
                                 <button
                                     type="button"
                                     onClick={() => setActiveTab('description')}
                                     className={`
-                                        relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2
+                                        relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0
                                         ${activeTab === 'description'
                                             ? 'bg-white text-foreground shadow-sm ring-1 ring-border'
                                             : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -762,7 +762,7 @@ export default function ProductoDetalleClient() {
                                     type="button"
                                     onClick={() => setActiveTab('details')}
                                     className={`
-                                        relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2
+                                        relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0
                                         ${activeTab === 'details'
                                             ? 'bg-white text-foreground shadow-sm ring-1 ring-border'
                                             : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -779,7 +779,7 @@ export default function ProductoDetalleClient() {
                                     type="button"
                                     onClick={() => setActiveTab('specs')}
                                     className={`
-                                        relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2
+                                        relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0
                                         ${activeTab === 'specs'
                                             ? 'bg-white text-foreground shadow-sm ring-1 ring-border'
                                             : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -794,7 +794,7 @@ export default function ProductoDetalleClient() {
                                 type="button"
                                 onClick={() => setActiveTab('reviews')}
                                 className={`
-                                    relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2
+                                    relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0
                                     ${activeTab === 'reviews'
                                         ? 'bg-white text-foreground shadow-sm ring-1 ring-border'
                                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -808,7 +808,7 @@ export default function ProductoDetalleClient() {
                                 type="button"
                                 onClick={() => setActiveTab('questions')}
                                 className={`
-                                    relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2
+                                    relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0
                                     ${activeTab === 'questions'
                                         ? 'bg-white text-foreground shadow-sm ring-1 ring-border'
                                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
