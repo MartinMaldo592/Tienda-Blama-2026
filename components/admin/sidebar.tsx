@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 import { LayoutDashboard, ShoppingBag, Package, Users, AlertCircle, LogOut, Percent, Image as ImageIcon, Star, MessageSquare, Megaphone, Share2 } from "lucide-react"
 
 interface AdminSidebarProps {
@@ -10,6 +10,7 @@ interface AdminSidebarProps {
 }
 
 export function AdminSidebar({ role }: AdminSidebarProps) {
+    const supabase = createClient()
     const router = useRouter()
 
     const handleLogout = async () => {

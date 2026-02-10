@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 
 type RoleGuardOptions = {
     allowedRoles: string[]
@@ -15,6 +15,7 @@ function isInvalidRefreshTokenError(err: unknown) {
 }
 
 export function useRoleGuard({ allowedRoles }: RoleGuardOptions) {
+    const supabase = createClient()
     const router = useRouter()
 
     const [loading, setLoading] = useState(true)

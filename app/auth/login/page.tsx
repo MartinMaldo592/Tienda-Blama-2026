@@ -2,7 +2,7 @@
 "use client"
 
 import { useState } from "react"
-import { supabase } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabase.client"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Lock, Mail, Loader2 } from "lucide-react"
 
 export default function LoginPage() {
+    const supabase = createClient()
     const router = useRouter()
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
