@@ -63,7 +63,7 @@ export function AnnouncementBar({
         .marquee-track {
           display: flex;
           width: max-content;
-          animation: marquee-move 40s linear infinite;
+          animation: marquee-move 50s linear infinite;
         }
         .marquee-content {
           display: flex;
