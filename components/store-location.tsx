@@ -81,16 +81,16 @@ export function StoreLocation() {
                     </div>
 
                     {/* Map */}
-                    <div className="w-full md:w-1/2 min-h-[500px] md:min-h-0 md:h-full relative rounded-3xl overflow-hidden shadow-lg border-2 border-muted group">
+                    <div className="w-full md:w-1/2 h-[450px] md:h-full relative rounded-3xl overflow-hidden shadow-lg border-2 border-muted group">
                         <iframe
-                            src="https://maps.google.com/maps?q=Calle%20Esperanza%20184%2C%20Miraflores&t=&z=17&ie=UTF8&iwloc=B&output=embed"
+                            src="https://maps.google.com/maps?q=Calle%20Los%20Piroxenos%20678&t=&z=17&ie=UTF8&iwloc=B&output=embed"
                             width="100%"
                             height="100%"
                             style={{ border: 0, filter: 'grayscale(0%)' }}
                             allowFullScreen
                             loading="lazy"
                             referrerPolicy="no-referrer-when-downgrade"
-                            className="w-full h-full"
+                            className="w-full h-full object-cover"
                         />
                         <div className="absolute bottom-6 right-6">
                             <Button
