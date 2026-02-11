@@ -2,16 +2,12 @@
 "use client"
 
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Plus, Image as ImageIcon } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Image as ImageIcon } from "lucide-react"
 import { formatCurrency, slugify } from "@/lib/utils"
 import { Database } from "@/types/database.types"
-import { useCartStore } from "@/features/cart"
-import { useState, useRef } from "react"
+import { useRef } from "react"
 import { ProductImageCarousel } from "@/components/product-image-carousel"
-import { useCartAnimationStore } from "@/features/cart/cart-animation"
-import { sendGTMEvent } from "@/lib/gtm"
 
 type Product = Database['public']['Tables']['productos']['Row']
 
@@ -21,10 +17,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, imagePriority = false }: ProductCardProps) {
-    const addItem = useCartStore((state) => state.addItem)
-    const startAnimation = useCartAnimationStore((state) => state.startAnimation)
     const imageRef = useRef<HTMLDivElement>(null)
-    const [isAdded, setIsAdded] = useState(false)
 
     const currentPrice = Number(product.precio ?? 0)
     const beforePrice = Number(product.precio_antes ?? 0)
@@ -41,41 +34,6 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
             .slice(0, 10)
     )
     const fallbackImages = images.length > 0 ? images : product.imagen_url ? [product.imagen_url] : []
-
-    const setCartOpen = useCartAnimationStore((state) => state.setCartOpen)
-
-    const handleAddToCart = (e: React.MouseEvent) => {
-        e.preventDefault() // Link wrapper might trigger navigation if we are not careful, but Button handles click.
-
-        addItem(product)
-
-        // GTM: Add to Cart
-        sendGTMEvent({
-            event: 'add_to_cart',
-            ecommerce: {
-                currency: 'PEN',
-                value: Number(product.precio) || 0,
-                items: [{
-                    item_id: String(product.id),
-                    item_name: product.nombre,
-                    price: Number(product.precio) || 0,
-                    quantity: 1
-                }]
-            }
-        })
-
-        setCartOpen(true)
-
-        // Animación de vuelo eliminada por solicitud
-        // if (imageRef.current && fallbackImages.length > 0) {
-        //     const rect = imageRef.current.getBoundingClientRect()
-        //     startAnimation(fallbackImages[0], rect)
-        // }
-
-        // Feedback visual simple
-        setIsAdded(true)
-        setTimeout(() => setIsAdded(false), 1000)
-    }
 
     const productHref = `/productos/${slugify(product.nombre)}-${product.id}`
 
@@ -130,22 +88,6 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
                     </div>
                 </div>
             </CardContent>
-
-            <CardFooter className="p-3 pt-0">
-                <Button
-                    onClick={handleAddToCart}
-                    className={`w-full h-9 font-semibold rounded-lg transition-all shadow-sm flex items-center justify-center gap-2 ${isAdded ? 'bg-green-600 hover:bg-green-700' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}
-                >
-                    {isAdded ? (
-                        <span>¡Agregado!</span>
-                    ) : (
-                        <>
-                            <Plus className="h-4 w-4" />
-                            <span>Agregar</span>
-                        </>
-                    )}
-                </Button>
-            </CardFooter>
         </Card>
     )
 }
