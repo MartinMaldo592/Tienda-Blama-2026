@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useMemo } from "react"
 
 type AnnouncementBarProps = {
   messages?: string[]
@@ -10,7 +10,6 @@ type AnnouncementBarProps = {
 
 export function AnnouncementBar({
   messages,
-  intervalMs = 3000,
   className,
 }: AnnouncementBarProps) {
   const defaultMessages = useMemo(
@@ -24,40 +23,39 @@ export function AnnouncementBar({
 
   const items = messages && messages.length > 0 ? messages : defaultMessages
 
-  const [index, setIndex] = useState(0)
-  const pausedRef = useRef(false)
-
-  useEffect(() => {
-    if (items.length <= 1) return
-
-    const id = window.setInterval(() => {
-      if (pausedRef.current) return
-      setIndex((prev) => (prev + 1) % items.length)
-    }, intervalMs)
-
-    return () => window.clearInterval(id)
-  }, [intervalMs, items.length])
+  // Build the marquee text by joining all messages with a separator
+  const marqueeText = items.join("  —  ") + "  —  "
 
   return (
-    <div
-      className={
-        "w-full h-10 sm:h-9 min-h-[40px] sm:min-h-[36px] bg-blue-600 text-white flex items-center justify-center px-4 border-b border-blue-700 " +
-        (className || "")
-      }
-      onMouseEnter={() => {
-        pausedRef.current = true
-      }}
-      onMouseLeave={() => {
-        pausedRef.current = false
-      }}
-      role="status"
-      aria-live="polite"
-    >
-      <div className="flex items-center justify-center text-center text-[12px] sm:text-[13px] tracking-wide uppercase font-extrabold animate-pulse">
-        <span key={index} className="animate-in fade-in duration-300 text-center">
-          {items[index]}
-        </span>
+    <>
+      <style jsx global>{`
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
+      <div
+        className={
+          "w-full bg-indigo-600 text-white py-2 overflow-hidden whitespace-nowrap border-b border-indigo-700 " +
+          (className || "")
+        }
+        role="status"
+        aria-live="polite"
+      >
+        <div
+          className="inline-block"
+          style={{
+            animation: "marquee 25s linear infinite",
+          }}
+        >
+          <span className="inline-block px-4 text-[12px] sm:text-[13px] tracking-wide uppercase font-extrabold">
+            {marqueeText}
+          </span>
+          <span className="inline-block px-4 text-[12px] sm:text-[13px] tracking-wide uppercase font-extrabold">
+            {marqueeText}
+          </span>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
