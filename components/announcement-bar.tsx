@@ -24,41 +24,67 @@ export function AnnouncementBar({
 
   const items = messages && messages.length > 0 ? messages : defaultMessages
 
+  // Repeat items enough times to fill wide screens
+  const repeated = [...items, ...items, ...items, ...items]
+
   return (
-    <>
-      <style jsx global>{`
-        @keyframes marquee-scroll {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-      `}</style>
-      <div
-        className={
-          "w-full bg-indigo-600 text-white py-2 overflow-hidden whitespace-nowrap " +
-          (className || "")
-        }
-        role="status"
-        aria-live="polite"
-      >
-        <div
-          className="inline-block"
-          style={{ animation: "marquee-scroll 30s linear infinite" }}
-        >
-          {/* Render the items twice for seamless loop */}
-          {[0, 1].map((copy) => (
-            <span key={copy} className="inline-flex items-center">
-              {items.map((msg, i) => (
-                <span key={`${copy}-${i}`} className="inline-flex items-center">
-                  <span className="text-[12px] sm:text-[13px] font-bold tracking-wide px-4">
-                    {msg}
-                  </span>
-                  <span className="text-indigo-300 text-[10px]">✦</span>
-                </span>
-              ))}
+    <div
+      className={
+        "w-full bg-indigo-600 text-white py-2 overflow-hidden " +
+        (className || "")
+      }
+      role="status"
+      aria-live="polite"
+    >
+      <div className="marquee-track">
+        <div className="marquee-content">
+          {repeated.map((msg, i) => (
+            <span key={i} className="marquee-item">
+              <span className="text-[12px] sm:text-[13px] font-bold tracking-wide">
+                {msg}
+              </span>
+              <span className="text-indigo-300 text-[10px] mx-4">✦</span>
+            </span>
+          ))}
+        </div>
+        <div className="marquee-content" aria-hidden="true">
+          {repeated.map((msg, i) => (
+            <span key={i} className="marquee-item">
+              <span className="text-[12px] sm:text-[13px] font-bold tracking-wide">
+                {msg}
+              </span>
+              <span className="text-indigo-300 text-[10px] mx-4">✦</span>
             </span>
           ))}
         </div>
       </div>
-    </>
+
+      <style jsx>{`
+        .marquee-track {
+          display: flex;
+          width: max-content;
+          animation: marquee-move 40s linear infinite;
+        }
+        .marquee-content {
+          display: flex;
+          flex-shrink: 0;
+          align-items: center;
+          white-space: nowrap;
+        }
+        .marquee-item {
+          display: inline-flex;
+          align-items: center;
+          flex-shrink: 0;
+        }
+        @keyframes marquee-move {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
+      `}</style>
+    </div>
   )
 }
