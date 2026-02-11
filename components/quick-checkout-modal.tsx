@@ -122,7 +122,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
     const [department, setDepartment] = useState("")
     const [district, setDistrict] = useState("")
     const [urbanDistrict, setUrbanDistrict] = useState("")
-    const [shippingMethod, setShippingMethod] = useState("lima")
+    const [shippingMethod, setShippingMethod] = useState("Lima")
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     // Derived values

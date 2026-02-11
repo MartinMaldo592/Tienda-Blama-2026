@@ -22,8 +22,8 @@ export function QuickSummary({ shippingMethod, setShippingMethod, total, isSubmi
                         <input
                             type="radio"
                             name="shipping"
-                            value="lima"
-                            checked={shippingMethod === 'lima'}
+                            value="Lima"
+                            checked={shippingMethod === 'Lima'}
                             onChange={(e) => setShippingMethod(e.target.value)}
                             className="h-4 w-4 accent-black"
                             disabled={isSubmitting}
@@ -34,8 +34,8 @@ export function QuickSummary({ shippingMethod, setShippingMethod, total, isSubmi
                         <input
                             type="radio"
                             name="shipping"
-                            value="provincia"
-                            checked={shippingMethod === 'provincia'}
+                            value="Provincia"
+                            checked={shippingMethod === 'Provincia'}
                             onChange={(e) => setShippingMethod(e.target.value)}
                             className="h-4 w-4 accent-black"
                             disabled={isSubmitting}

@@ -21,7 +21,7 @@ export function CheckoutShipping({ value, onChange, disabled }: CheckoutShipping
                         className="accent-black h-4 w-4"
                         disabled={disabled}
                     />
-                    <span className="text-sm font-medium">Lima (Gratis)</span>
+                    <span className="text-sm font-medium">Lima</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -33,7 +33,7 @@ export function CheckoutShipping({ value, onChange, disabled }: CheckoutShipping
                         className="accent-black h-4 w-4"
                         disabled={disabled}
                     />
-                    <span className="text-sm font-medium">Provincia (Shalom)</span>
+                    <span className="text-sm font-medium">Provincia</span>
                 </label>
             </div>
         </div>

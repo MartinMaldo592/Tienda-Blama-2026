@@ -49,15 +49,15 @@ export function OrderCustomerCard({ pedido, isLocked, isEditOpen, onEditOpenChan
                             <div className="space-y-2">
                                 <Label>Método de Envío</Label>
                                 <Select
-                                    value={form.metodo_envio}
+                                    value={form.metodo_envio === 'lima' ? 'Lima' : form.metodo_envio === 'provincia' ? 'Provincia' : form.metodo_envio}
                                     onValueChange={(val) => setForm({ ...form, metodo_envio: val })}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Seleccionar método" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="lima">Lima (Gratis)</SelectItem>
-                                        <SelectItem value="provincia">Provincia (Shalom)</SelectItem>
+                                        <SelectItem value="Lima">Lima</SelectItem>
+                                        <SelectItem value="Provincia">Provincia</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

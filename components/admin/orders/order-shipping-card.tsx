@@ -112,7 +112,7 @@ export function OrderShippingCard({ pedido, isLocked, onLogAction, onRefresh }: 
             <div className="border-b pb-3">
                 <p className="text-sm text-gray-500">Método</p>
                 <Badge variant="outline" className="mt-1">
-                    {pedido.metodo_envio === 'provincia' ? 'Provincia (Shalom)' : pedido.metodo_envio === 'lima' ? 'Lima (Gratis)' : pedido.metodo_envio || 'Estándar'}
+                    {['provincia', 'Provincia'].includes(pedido.metodo_envio || '') ? 'Provincia' : ['lima', 'Lima'].includes(pedido.metodo_envio || '') ? 'Lima' : pedido.metodo_envio || 'Estándar'}
                 </Badge>
             </div>
 

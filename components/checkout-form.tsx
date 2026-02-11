@@ -66,7 +66,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
     const { draft, loaded, saveDraft, clearDraft } = useCheckoutDraft()
 
     const [name, setName] = useState("")
-    const [shippingMethod, setShippingMethod] = useState("lima")
+    const [shippingMethod, setShippingMethod] = useState("Lima")
     const [phone, setPhone] = useState("")
     const [phoneError, setPhoneError] = useState("")
     const [dni, setDni] = useState("")
