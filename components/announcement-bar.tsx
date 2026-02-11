@@ -36,10 +36,10 @@ export function AnnouncementBar({
       role="status"
       aria-live="polite"
     >
-      <div className="marquee-track">
-        <div className="marquee-content">
+      <div className="marquee-track flex w-max will-change-transform animate-in fade-in duration-1000">
+        <div className="marquee-content flex items-center whitespace-nowrap shrink-0">
           {repeated.map((msg, i) => (
-            <span key={i} className="marquee-item">
+            <span key={i} className="marquee-item inline-flex items-center shrink-0">
               <span className="text-[12px] sm:text-[13px] font-bold tracking-wide">
                 {msg}
               </span>
@@ -47,9 +47,9 @@ export function AnnouncementBar({
             </span>
           ))}
         </div>
-        <div className="marquee-content" aria-hidden="true">
+        <div className="marquee-content flex items-center whitespace-nowrap shrink-0" aria-hidden="true">
           {repeated.map((msg, i) => (
-            <span key={i} className="marquee-item">
+            <span key={i} className="marquee-item inline-flex items-center shrink-0">
               <span className="text-[12px] sm:text-[13px] font-bold tracking-wide">
                 {msg}
               </span>
@@ -61,22 +61,7 @@ export function AnnouncementBar({
 
       <style jsx>{`
         .marquee-track {
-          display: flex;
-          width: max-content;
-          will-change: transform;
           animation: marquee-move 50s linear infinite;
-          transform: translateZ(0); /* Hardware acceleration */
-        }
-        .marquee-content {
-          display: flex;
-          align-items: center;
-          white-space: nowrap;
-          flex-shrink: 0;
-        }
-        .marquee-item {
-          display: inline-flex;
-          align-items: center;
-          flex-shrink: 0;
         }
         @keyframes marquee-move {
           0% { transform: translateX(0); }
