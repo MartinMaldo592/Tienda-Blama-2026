@@ -857,11 +857,11 @@ export default function ProductoDetalleClient() {
 
                             {/* Scroll progress bar */}
                             {tabsScrollInfo.hasOverflow && (
-                                <div className="mt-2 mx-auto max-w-[120px]">
+                                <div className="mt-2 px-4">
                                     <div className="h-1 bg-muted/50 rounded-full overflow-hidden">
                                         <div
-                                            className="h-full bg-primary/40 rounded-full transition-all duration-150"
-                                            style={{ width: '40%', marginLeft: `${tabsScrollInfo.scrollPercent * 60}%` }}
+                                            className="h-full bg-primary/50 rounded-full transition-all duration-150"
+                                            style={{ width: '30%', marginLeft: `${tabsScrollInfo.scrollPercent * 70}%` }}
                                         />
                                     </div>
                                     <p className="text-[10px] text-muted-foreground text-center mt-1">Desliza para ver más ›</p>
