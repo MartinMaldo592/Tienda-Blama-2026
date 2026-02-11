@@ -69,6 +69,8 @@ export default function ProductoDetalleClient() {
     const [recomendados, setRecomendados] = useState<any[]>([])
     const recoRef = useRef<HTMLDivElement | null>(null)
     const imageContainerRef = useRef<HTMLDivElement | null>(null)
+    const tabsScrollRef = useRef<HTMLDivElement | null>(null)
+    const [tabsScrollInfo, setTabsScrollInfo] = useState({ hasOverflow: false, scrollPercent: 0, atStart: true, atEnd: false })
 
     const [shareOpen, setShareOpen] = useState(false)
     const [copied, setCopied] = useState(false)
@@ -90,6 +92,28 @@ export default function ProductoDetalleClient() {
         }, 1600)
         return () => window.clearTimeout(id)
     }, [addedToastOpen])
+
+    useEffect(() => {
+        const el = tabsScrollRef.current
+        if (!el) return
+
+        const update = () => {
+            const hasOverflow = el.scrollWidth > el.clientWidth + 2
+            const maxScroll = el.scrollWidth - el.clientWidth
+            const scrollPercent = maxScroll > 0 ? el.scrollLeft / maxScroll : 0
+            const atStart = el.scrollLeft <= 2
+            const atEnd = el.scrollLeft >= maxScroll - 2
+            setTabsScrollInfo({ hasOverflow, scrollPercent, atStart, atEnd })
+        }
+
+        update()
+        el.addEventListener('scroll', update, { passive: true })
+        window.addEventListener('resize', update)
+        return () => {
+            el.removeEventListener('scroll', update)
+            window.removeEventListener('resize', update)
+        }
+    }, [loading])
 
     const quantity = useMemo(() => {
         const vid = selectedVarianteId ?? null
@@ -737,84 +761,112 @@ export default function ProductoDetalleClient() {
 
                     {/* TABS SECTION */}
                     <div className="mt-12">
-                        <div className="flex items-center gap-2 mb-8 select-none p-1 bg-muted/30 rounded-full mx-auto border overflow-x-auto scrollbar-hide max-w-full w-fit" style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                            {producto?.descripcion && (
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveTab('description')}
-                                    className={`
-                                        relative px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0
-                                        ${activeTab === 'description'
-                                            ? 'bg-primary text-primary-foreground shadow-md scale-[1.02]'
-                                            : 'text-muted-foreground hover:text-foreground hover:bg-white/80 hover:shadow-sm'
-                                        }
-                                    `}
-                                >
-                                    <FileText className="h-4 w-4" />
-                                    <span>Descripción</span>
-                                </button>
+                        {/* Tabs scroll container */}
+                        <div className="relative mb-8">
+                            {/* Fade indicators */}
+                            {tabsScrollInfo.hasOverflow && !tabsScrollInfo.atStart && (
+                                <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none rounded-l-full" />
                             )}
-                            {(producto?.materiales || producto?.tamano || producto?.color || producto?.cuidados || producto?.uso) && (
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveTab('details')}
-                                    className={`
-                                        relative px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0
-                                        ${activeTab === 'details'
-                                            ? 'bg-primary text-primary-foreground shadow-md scale-[1.02]'
-                                            : 'text-muted-foreground hover:text-foreground hover:bg-white/80 hover:shadow-sm'
-                                        }
-                                    `}
-                                >
-                                    <Sparkles className="h-4 w-4" />
-                                    <span>Detalles</span>
-                                </button>
+                            {tabsScrollInfo.hasOverflow && !tabsScrollInfo.atEnd && (
+                                <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none rounded-r-full" />
                             )}
 
-                            {especificaciones.length > 0 && (
+                            <div
+                                ref={tabsScrollRef}
+                                className="flex items-center gap-2 select-none p-1 bg-muted/30 rounded-full mx-auto border overflow-x-auto scrollbar-hide max-w-full w-fit"
+                                style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                            >
+                                {producto?.descripcion && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('description')}
+                                        className={`
+                                            relative px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0
+                                            ${activeTab === 'description'
+                                                ? 'bg-primary text-primary-foreground shadow-md scale-[1.02]'
+                                                : 'text-muted-foreground hover:text-foreground hover:bg-white/80 hover:shadow-sm'
+                                            }
+                                        `}
+                                    >
+                                        <FileText className="h-4 w-4" />
+                                        <span>Descripción</span>
+                                    </button>
+                                )}
+                                {(producto?.materiales || producto?.tamano || producto?.color || producto?.cuidados || producto?.uso) && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('details')}
+                                        className={`
+                                            relative px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0
+                                            ${activeTab === 'details'
+                                                ? 'bg-primary text-primary-foreground shadow-md scale-[1.02]'
+                                                : 'text-muted-foreground hover:text-foreground hover:bg-white/80 hover:shadow-sm'
+                                            }
+                                        `}
+                                    >
+                                        <Sparkles className="h-4 w-4" />
+                                        <span>Detalles</span>
+                                    </button>
+                                )}
+
+                                {especificaciones.length > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('specs')}
+                                        className={`
+                                            relative px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0
+                                            ${activeTab === 'specs'
+                                                ? 'bg-primary text-primary-foreground shadow-md scale-[1.02]'
+                                                : 'text-muted-foreground hover:text-foreground hover:bg-white/80 hover:shadow-sm'
+                                            }
+                                        `}
+                                    >
+                                        <Ruler className="h-4 w-4" />
+                                        <span>Especificaciones</span>
+                                    </button>
+                                )}
                                 <button
                                     type="button"
-                                    onClick={() => setActiveTab('specs')}
+                                    onClick={() => setActiveTab('reviews')}
                                     className={`
                                         relative px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0
-                                        ${activeTab === 'specs'
+                                        ${activeTab === 'reviews'
                                             ? 'bg-primary text-primary-foreground shadow-md scale-[1.02]'
                                             : 'text-muted-foreground hover:text-foreground hover:bg-white/80 hover:shadow-sm'
                                         }
                                     `}
                                 >
-                                    <Ruler className="h-4 w-4" />
-                                    <span>Especificaciones</span>
+                                    <Star className="h-4 w-4" />
+                                    <span>Valoraciones</span>
                                 </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab('questions')}
+                                    className={`
+                                        relative px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0
+                                        ${activeTab === 'questions'
+                                            ? 'bg-primary text-primary-foreground shadow-md scale-[1.02]'
+                                            : 'text-muted-foreground hover:text-foreground hover:bg-white/80 hover:shadow-sm'
+                                        }
+                                    `}
+                                >
+                                    <MessageCircle className="h-4 w-4" />
+                                    <span>Preguntas</span>
+                                </button>
+                            </div>
+
+                            {/* Scroll progress bar */}
+                            {tabsScrollInfo.hasOverflow && (
+                                <div className="mt-2 mx-auto max-w-[120px]">
+                                    <div className="h-1 bg-muted/50 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-primary/40 rounded-full transition-all duration-150"
+                                            style={{ width: '40%', marginLeft: `${tabsScrollInfo.scrollPercent * 60}%` }}
+                                        />
+                                    </div>
+                                    <p className="text-[10px] text-muted-foreground text-center mt-1">Desliza para ver más ›</p>
+                                </div>
                             )}
-                            <button
-                                type="button"
-                                onClick={() => setActiveTab('reviews')}
-                                className={`
-                                    relative px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0
-                                    ${activeTab === 'reviews'
-                                        ? 'bg-primary text-primary-foreground shadow-md scale-[1.02]'
-                                        : 'text-muted-foreground hover:text-foreground hover:bg-white/80 hover:shadow-sm'
-                                    }
-                                `}
-                            >
-                                <Star className="h-4 w-4" />
-                                <span>Valoraciones</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setActiveTab('questions')}
-                                className={`
-                                    relative px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0
-                                    ${activeTab === 'questions'
-                                        ? 'bg-primary text-primary-foreground shadow-md scale-[1.02]'
-                                        : 'text-muted-foreground hover:text-foreground hover:bg-white/80 hover:shadow-sm'
-                                    }
-                                `}
-                            >
-                                <MessageCircle className="h-4 w-4" />
-                                <span>Preguntas</span>
-                            </button>
                         </div>
 
                         <div className="min-h-[300px] pb-32 md:pb-0 animate-in fade-in slide-in-from-bottom-4 duration-500">
