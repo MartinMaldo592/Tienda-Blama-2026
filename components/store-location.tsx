@@ -81,9 +81,9 @@ export function StoreLocation() {
                     </div>
 
                     {/* Map */}
-                    <div className="w-full md:w-1/2 min-h-[400px] md:min-h-0 md:h-full relative rounded-3xl overflow-hidden shadow-lg border-2 border-muted group">
+                    <div className="w-full md:w-1/2 min-h-[500px] md:min-h-0 md:h-full relative rounded-3xl overflow-hidden shadow-lg border-2 border-muted group">
                         <iframe
-                            src="https://maps.google.com/maps?q=Galer%C3%ADa%20Multicentro%2C%20Av.%20Jos%C3%A9%20Larco%20345%2C%20Miraflores&t=&z=17&ie=UTF8&iwloc=B&output=embed"
+                            src="https://maps.google.com/maps?q=Calle%20Esperanza%20184%2C%20Miraflores&t=&z=17&ie=UTF8&iwloc=B&output=embed"
                             width="100%"
                             height="100%"
                             style={{ border: 0, filter: 'grayscale(0%)' }}
@@ -95,7 +95,7 @@ export function StoreLocation() {
                         <div className="absolute bottom-6 right-6">
                             <Button
                                 className="rounded-full bg-white text-black hover:bg-white/90 font-bold text-sm px-6 py-4 shadow-xl border border-gray-100 flex items-center gap-2"
-                                onClick={() => window.open(`https://www.google.com/maps/dir//Galer%C3%ADa+Multicentro,+Av.+Jos%C3%A9+Larco+345,+Miraflores`, "_blank")}
+                                onClick={() => window.open(`https://maps.app.goo.gl/G9Mgg6GwrrRDdMgt9`, "_blank")}
                             >
                                 <MapPin className="h-4 w-4 text-red-500" />
                                 Cómo llegar
