@@ -732,9 +732,6 @@ export default function ProductoDetalleClient() {
                                 )}
                             </div>
 
-                            <div className="pt-4 text-xs text-muted-foreground">
-                                ID: #{String(producto.id).padStart(6, "0")} • {new Date(producto.created_at).toLocaleString()}
-                            </div>
                         </CardContent>
                     </Card>
 
