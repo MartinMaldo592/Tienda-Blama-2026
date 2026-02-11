@@ -30,7 +30,7 @@ export function AnnouncementBar({
   return (
     <div
       className={
-        "w-full bg-indigo-600 text-white py-2 overflow-hidden " +
+        "w-full h-9 bg-indigo-600 text-white flex items-center overflow-hidden relative " +
         (className || "")
       }
       role="status"
@@ -63,13 +63,15 @@ export function AnnouncementBar({
         .marquee-track {
           display: flex;
           width: max-content;
+          will-change: transform;
           animation: marquee-move 50s linear infinite;
+          transform: translateZ(0); /* Hardware acceleration */
         }
         .marquee-content {
           display: flex;
-          flex-shrink: 0;
           align-items: center;
           white-space: nowrap;
+          flex-shrink: 0;
         }
         .marquee-item {
           display: inline-flex;
@@ -77,12 +79,8 @@ export function AnnouncementBar({
           flex-shrink: 0;
         }
         @keyframes marquee-move {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
         }
       `}</style>
     </div>
