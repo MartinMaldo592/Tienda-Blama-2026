@@ -197,7 +197,7 @@ export interface Database {
                     total: number
                     stock_descontado: boolean
                     status: 'Pendiente' | 'Confirmado' | 'Enviado' | 'Entregado' | 'Fallido' | 'Devuelto' | 'Cancelado'
-                    pago_status: 'Pendiente' | 'Pagado Anticipado' | 'Pago Contraentrega' | 'Pagado al Recibir'
+                    pago_status: 'Pendiente' | 'Pago Parcial' | 'Pagado' | 'Pagado Anticipado' | 'Pago Contraentrega' | 'Pagado al Recibir'
                     metodo_envio: string | null
                     voucher_url: string | null
                     created_at: string
@@ -212,7 +212,7 @@ export interface Database {
                     total: number
                     stock_descontado?: boolean
                     status?: 'Pendiente' | 'Confirmado' | 'Enviado' | 'Entregado' | 'Fallido' | 'Devuelto' | 'Cancelado'
-                    pago_status?: 'Pendiente' | 'Pagado Anticipado' | 'Pago Contraentrega' | 'Pagado al Recibir'
+                    pago_status?: 'Pendiente' | 'Pago Parcial' | 'Pagado' | 'Pagado Anticipado' | 'Pago Contraentrega' | 'Pagado al Recibir'
                     metodo_envio?: string | null
                     voucher_url?: string | null
                     created_at?: string
@@ -227,11 +227,46 @@ export interface Database {
                     total?: number
                     stock_descontado?: boolean
                     status?: 'Pendiente' | 'Confirmado' | 'Enviado' | 'Entregado' | 'Fallido' | 'Devuelto' | 'Cancelado'
-                    pago_status?: 'Pendiente' | 'Pagado Anticipado' | 'Pago Contraentrega' | 'Pagado al Recibir'
+                    pago_status?: 'Pendiente' | 'Pago Parcial' | 'Pagado' | 'Pagado Anticipado' | 'Pago Contraentrega' | 'Pagado al Recibir'
                     metodo_envio?: string | null
                     voucher_url?: string | null
                     created_at?: string
                     updated_at?: string | null
+                }
+            }
+            pedido_pagos: {
+                Row: {
+                    id: number
+                    pedido_id: number
+                    monto: number
+                    metodo_pago: 'Efectivo' | 'Yape' | 'Plin' | 'Transferencia BCP' | 'Transferencia Interbank' | 'Otro'
+                    tipo_pago: 'Adelanto' | 'Abono' | 'Pago Final' | 'Reembolso'
+                    comprobante_url: string | null
+                    nota: string | null
+                    registrado_por: string
+                    created_at: string
+                }
+                Insert: {
+                    id?: number
+                    pedido_id: number
+                    monto: number
+                    metodo_pago: 'Efectivo' | 'Yape' | 'Plin' | 'Transferencia BCP' | 'Transferencia Interbank' | 'Otro'
+                    tipo_pago: 'Adelanto' | 'Abono' | 'Pago Final' | 'Reembolso'
+                    comprobante_url?: string | null
+                    nota?: string | null
+                    registrado_por?: string
+                    created_at?: string
+                }
+                Update: {
+                    id?: number
+                    pedido_id?: number
+                    monto?: number
+                    metodo_pago?: 'Efectivo' | 'Yape' | 'Plin' | 'Transferencia BCP' | 'Transferencia Interbank' | 'Otro'
+                    tipo_pago?: 'Adelanto' | 'Abono' | 'Pago Final' | 'Reembolso'
+                    comprobante_url?: string | null
+                    nota?: string | null
+                    registrado_por?: string
+                    created_at?: string
                 }
             }
             pedido_items: {

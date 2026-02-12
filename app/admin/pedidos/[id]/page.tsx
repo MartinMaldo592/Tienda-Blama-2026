@@ -384,38 +384,6 @@ export default function PedidoDetallePage() {
         }
     })
 
-    const paymentUpload = useFileUpload({
-        bucketName: 'pagos',
-        onUploadComplete: async (url) => {
-            const currentFiles = pedido?.comprobante_pago_url || []
-            const updatedList = [...currentFiles, url]
-            const supabase = createClient()
-            const { error } = await supabase
-                .from('pedidos')
-                .update({ comprobante_pago_url: updatedList })
-                .eq('id', id)
-            if (error) throw error
-            fetchPedido()
-        }
-    })
-
-    async function handleDeletePayment(index: number) {
-        // We use the generic remove method but override the action to handle the array logic
-        paymentUpload.remove(async () => {
-            const currentFiles = pedido?.comprobante_pago_url || []
-            const updatedList = currentFiles.filter((_: any, idx: number) => idx !== index)
-
-            const supabase = createClient()
-            const { error } = await supabase
-                .from('pedidos')
-                .update({ comprobante_pago_url: updatedList.length > 0 ? updatedList : null })
-                .eq('id', id)
-
-            if (error) throw error
-            fetchPedido()
-        })
-    }
-
     const displayedShippingMethod = isEditClientOpen ? clientForm.metodo_envio : (pedido?.metodo_envio || '')
 
     if (guard.loading) return <div className="p-10">Cargando...</div>
@@ -619,8 +587,9 @@ export default function PedidoDetallePage() {
                     <OrderPaymentCard
                         pedido={pedido}
                         isLocked={isLocked}
-                        paymentUpload={paymentUpload}
-                        onDeletePayment={handleDeletePayment}
+                        currentUser={currentUser}
+                        onLogAction={logAction}
+                        onRefresh={fetchPedido}
                     />
 
                     <OrderAssignmentCard

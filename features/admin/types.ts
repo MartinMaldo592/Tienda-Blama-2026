@@ -96,3 +96,15 @@ export type PedidoLog = {
   detalles: string
   created_at: string
 }
+
+export type PedidoPago = {
+  id: number
+  pedido_id: number
+  monto: number
+  metodo_pago: 'Efectivo' | 'Yape' | 'Plin' | 'Transferencia BCP' | 'Transferencia Interbank' | 'Otro'
+  tipo_pago: 'Adelanto' | 'Abono' | 'Pago Final' | 'Reembolso'
+  comprobante_url: string | null
+  nota: string | null
+  registrado_por: string
+  created_at: string
+}
