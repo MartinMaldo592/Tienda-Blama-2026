@@ -20,7 +20,8 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, User, Calendar, FileUp, Check, Save, AlertCircle } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ArrowLeft, User, Calendar, FileUp, Check, Save, AlertCircle, Camera } from "lucide-react"
 import { toast } from "sonner"
 import { formatCurrency } from "@/lib/utils"
 import { OrderShippingCard } from "@/components/admin/orders/order-shipping-card"
@@ -32,6 +33,7 @@ import { PedidoRow, PedidoItemRow, ProfileRow, PedidoLog } from "@/features/admi
 import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidoDetail, updatePedidoStatusWithStock } from "@/features/admin"
 import { createClient } from "@/lib/supabase.client"
 import { OrderNotesCard } from "@/components/admin/orders/order-notes-card"
+import { OrderLabelGenerator } from "@/components/admin/orders/order-label-generator"
 
 export default function PedidoDetallePage() {
     const params = useParams()
@@ -410,14 +412,6 @@ export default function PedidoDetallePage() {
                     </p>
                 </div>
                 <div className="ml-auto flex gap-2 items-center">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => router.push(`/admin/pedidos/${id}/ticket`)}
-                    >
-                        Descargar ticket
-                    </Button>
-
                     <div className="flex gap-2 items-center bg-white p-2 rounded-lg border shadow-sm">
                         <span className="text-sm font-medium">Estado del pedido:</span>
                         <Select value={status} onValueChange={setStatus} disabled={isLocked || updating}>
@@ -518,96 +512,126 @@ export default function PedidoDetallePage() {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Tabs Layout */}
+            <Tabs defaultValue="resumen" className="w-full">
+                <TabsList className="grid w-full grid-cols-4 mb-8">
+                    <TabsTrigger value="resumen">Resumen General</TabsTrigger>
+                    <TabsTrigger value="logistica">Logística y Pagos</TabsTrigger>
+                    <TabsTrigger value="documentos">Documentos</TabsTrigger>
+                    <TabsTrigger value="historial">Historial y Auditoría</TabsTrigger>
+                </TabsList>
 
-                {/* Left Column: Items & History */}
-                <div className="md:col-span-2 space-y-6">
-                    {/* Products Card */}
-                    {/* Products Card */}
-                    <OrderItemsCard
-                        items={items}
-                        pedido={pedido}
-                        isLocked={isLocked}
-                        displayedShippingMethod={displayedShippingMethod}
-                        onReturnClick={(item) => openReturnDialog(item.id, item.cantidad, item.cantidad_devuelta || 0, item.productos?.nombre || 'Producto')}
-                    />
+                {/* TAB 1: RESUMEN (Atención al Cliente) */}
+                <TabsContent value="resumen" className="space-y-6 animate-in fade-in-50 duration-300">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Columna Izquierda: Cliente y Notas */}
+                        <div className="space-y-6">
+                            <OrderCustomerCard
+                                pedido={pedido}
+                                isLocked={isLocked}
+                                isEditOpen={isEditClientOpen}
+                                onEditOpenChange={setIsEditClientOpen}
+                                form={clientForm}
+                                setForm={setClientForm}
+                                onSave={handleSaveClientData}
+                            />
+                            <OrderNotesCard
+                                pedidoId={Number(pedido.id)}
+                                isLocked={isLocked}
+                                onLogAction={logAction}
+                            />
+                            <OrderAssignmentCard
+                                pedido={pedido}
+                                userRole={userRole}
+                                workers={workers}
+                                assignedTo={assignedTo}
+                                onAssign={handleAssignWorker}
+                            />
+                        </div>
 
-                    {/* Activity History Card */}
+                        {/* Columna Derecha: Productos (Más ancho) */}
+                        <div className="md:col-span-2 space-y-6">
+                            <OrderItemsCard
+                                items={items}
+                                pedido={pedido}
+                                isLocked={isLocked}
+                                displayedShippingMethod={displayedShippingMethod}
+                                onReturnClick={(item) => openReturnDialog(item.id, item.cantidad, item.cantidad_devuelta || 0, item.productos?.nombre || 'Producto')}
+                            />
+                        </div>
+                    </div>
+                </TabsContent>
+
+                {/* TAB 2: LOGÍSTICA (Operaciones) */}
+                <TabsContent value="logistica" className="space-y-6 animate-in fade-in-50 duration-300">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Columna Izquierda: Pagos y Evidencia */}
+                        <div className="space-y-6">
+                            <OrderPaymentCard
+                                pedido={pedido}
+                                isLocked={isLocked}
+                                currentUser={currentUser}
+                                onLogAction={logAction}
+                                onRefresh={fetchPedido}
+                            />
+
+                            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 pt-4">
+                                <Camera className="h-5 w-5" /> Confirmación de Recepción
+                            </h3>
+                            <OrderFileCard
+                                title="Evidencia de Entrega"
+                                icon={<Camera className="h-5 w-5" />}
+                                fileUrl={pedido.evidencia_entrega_url || null}
+                                isLocked={isLocked}
+                                isUploading={deliveryUpload.isUploading}
+                                onUpload={(file) => deliveryUpload.upload(file, `entrega_${id}_${Date.now()}.${file.name.split('.').pop()}`)}
+                                onDelete={deliveryUpload.remove}
+                                uploadLabel={deliveryUpload.isUploading ? 'Subiendo...' : 'Subir Foto de Entrega'}
+                                uploadSubLabel="Imagen (Motorizado)"
+                                accept="image/*"
+                                accentColor="green"
+                            />
+                        </div>
+
+                        {/* Columna Derecha: Envío y Guías */}
+                        <div className="space-y-6">
+                            <OrderShippingCard
+                                pedido={pedido}
+                                isLocked={isLocked}
+                                onLogAction={logAction}
+                                onRefresh={fetchPedido}
+                            />
+
+                            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 pt-4">
+                                <FileUp className="h-5 w-5" /> Guías de Remisión
+                            </h3>
+                            <OrderFileCard
+                                title="Guía de Remisión"
+                                icon={<FileUp className="h-5 w-5" />}
+                                fileUrl={pedido.guia_archivo_url || null}
+                                isLocked={isLocked}
+                                isUploading={guideUpload.isUploading}
+                                onUpload={(file) => guideUpload.upload(file, `pedido_${id}_${Date.now()}.${file.name.split('.').pop()}`)}
+                                onDelete={guideUpload.remove}
+                                uploadLabel={guideUpload.isUploading ? 'Subiendo...' : 'Subir Foto de Guía'}
+                                uploadSubLabel="PDF o Imagen (Shalom/Olva)"
+                                accept="image/*,.pdf"
+                                accentColor="blue"
+                            />
+                        </div>
+                    </div>
+                </TabsContent>
+
+                {/* TAB 3: DOCUMENTOS (Nuevo) */}
+                <TabsContent value="documentos" className="animate-in fade-in-50 duration-300">
+                    <OrderLabelGenerator pedido={pedido} isLocked={isLocked} />
+                </TabsContent>
+
+                {/* TAB 4: HISTORIAL (Auditoría) */}
+                <TabsContent value="historial" className="animate-in fade-in-50 duration-300">
                     <OrderHistoryCard logs={logs} />
-                </div>
-
-                {/* Right Column: Customer Info */}
-                <div className="space-y-6">
-                    {/* Customer Info Card */}
-                    <OrderCustomerCard
-                        pedido={pedido}
-                        isLocked={isLocked}
-                        isEditOpen={isEditClientOpen}
-                        onEditOpenChange={setIsEditClientOpen}
-                        form={clientForm}
-                        setForm={setClientForm}
-                        onSave={handleSaveClientData}
-                    />
-
-                    {/* NEW: Internal Notes for Team */}
-                    <OrderNotesCard
-                        pedidoId={Number(pedido.id)}
-                        isLocked={isLocked}
-                        onLogAction={logAction}
-                    />
-
-                    <OrderShippingCard
-                        pedido={pedido}
-                        isLocked={isLocked}
-                        onLogAction={logAction}
-                        onRefresh={fetchPedido}
-                    />
-
-                    <OrderFileCard
-                        title="Guía de Remisión"
-                        icon={<FileUp className="h-5 w-5" />}
-                        fileUrl={pedido.guia_archivo_url || null}
-                        isLocked={isLocked}
-                        isUploading={guideUpload.isUploading}
-                        onUpload={(file) => guideUpload.upload(file, `pedido_${id}_${Date.now()}.${file.name.split('.').pop()}`)}
-                        onDelete={guideUpload.remove}
-                        uploadLabel={guideUpload.isUploading ? 'Subiendo...' : 'Subir Foto de Guía'}
-                        uploadSubLabel="PDF o Imagen (Shalom/Olva)"
-                        accept="image/*,.pdf"
-                        accentColor="blue"
-                    />
-
-                    <OrderFileCard
-                        title="Evidencia de Entrega"
-                        icon={<Check className="h-5 w-5" />}
-                        fileUrl={pedido.evidencia_entrega_url || null}
-                        isLocked={isLocked}
-                        isUploading={deliveryUpload.isUploading}
-                        onUpload={(file) => deliveryUpload.upload(file, `entrega_${id}_${Date.now()}.${file.name.split('.').pop()}`)}
-                        onDelete={deliveryUpload.remove}
-                        uploadLabel={deliveryUpload.isUploading ? 'Subiendo...' : 'Subir Foto de Entrega'}
-                        uploadSubLabel="Imagen (Motorizado)"
-                        accept="image/*"
-                        accentColor="green"
-                    />
-
-                    <OrderPaymentCard
-                        pedido={pedido}
-                        isLocked={isLocked}
-                        currentUser={currentUser}
-                        onLogAction={logAction}
-                        onRefresh={fetchPedido}
-                    />
-
-                    <OrderAssignmentCard
-                        pedido={pedido}
-                        userRole={userRole}
-                        workers={workers}
-                        assignedTo={assignedTo}
-                        onAssign={handleAssignWorker}
-                    />
-                </div>
-            </div>
+                </TabsContent>
+            </Tabs>
 
             {/* --- Dialogs --- */}
 

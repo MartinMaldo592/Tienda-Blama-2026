@@ -69,6 +69,8 @@ export interface AdminPedido extends Pedido {
   shalom_clave?: string | null
   evidencia_entrega_url?: string | null
   shalom_pin?: string | null
+  agencia_origen?: string | null
+  agencia_destino?: string | null
   updated_at?: string | null
 }
 

@@ -18,6 +18,8 @@ export function OrderShippingCard({ pedido, isLocked, onLogAction, onRefresh }: 
     const [shalomOrder, setShalomOrder] = useState("")
     const [shalomPass, setShalomPass] = useState("")
     const [shalomPin, setShalomPin] = useState("")
+    const [agenciaOrigen, setAgenciaOrigen] = useState("")
+    const [agenciaDestino, setAgenciaDestino] = useState("")
     const [savingTracking, setSavingTracking] = useState(false)
     const [isEditing, setIsEditing] = useState(false)
 
@@ -27,18 +29,11 @@ export function OrderShippingCard({ pedido, isLocked, onLogAction, onRefresh }: 
 
     const resetFields = () => {
         if (pedido) {
-            // Normalize Shalom variables
-            if (pedido.shalom_orden || pedido.shalom_clave) {
-                setShalomOrder(pedido.shalom_orden || "")
-                setShalomPass(pedido.shalom_clave || "")
-                setShalomPin(pedido.shalom_pin || "")
-            } else {
-                // Fallback for old single-field tracking
-                const parts = (pedido.codigo_seguimiento || "").split('|')
-                setShalomOrder(parts[0] || "")
-                setShalomPass(parts[1] || "")
-                setShalomPin(pedido.shalom_pin || "")
-            }
+            setShalomOrder(pedido.shalom_orden || "")
+            setShalomPass(pedido.shalom_clave || "")
+            setShalomPin(pedido.shalom_pin || "")
+            setAgenciaOrigen(pedido.agencia_origen || "")
+            setAgenciaDestino(pedido.agencia_destino || "")
         }
     }
 
@@ -52,17 +47,17 @@ export function OrderShippingCard({ pedido, isLocked, onLogAction, onRefresh }: 
         setIsEditing(false)
     }
 
-    async function handleSaveTracking() {
+    const handleSaveTracking = async () => {
         setSavingTracking(true)
         try {
-            // Combine for legacy compatibility if needed, but primarily save individual fields
-            const combined = `${shalomOrder}|${shalomPass}`
-
             const updatePayload = {
-                codigo_seguimiento: combined,
                 shalom_orden: shalomOrder,
                 shalom_clave: shalomPass,
-                shalom_pin: shalomPin
+                shalom_pin: shalomPin,
+                agencia_origen: agenciaOrigen,
+                agencia_destino: agenciaDestino,
+                // Mantener codigo_seguimiento actualizado por si acaso se usa en otro lado (legacy)
+                codigo_seguimiento: `${shalomOrder}|${shalomPass}`
             }
 
             const logMsg = `Tracking: Orden ${shalomOrder}, Código ${shalomPass}, PIN ${shalomPin}`
@@ -104,6 +99,8 @@ export function OrderShippingCard({ pedido, isLocked, onLogAction, onRefresh }: 
                 `📦 Datos para rastreo:\n` +
                 `Nº de Orden: ${shalomOrder}\n` +
                 `Código de Orden: ${shalomPass}\n` +
+                (agenciaOrigen ? `📍 Origen: ${agenciaOrigen}\n` : '') +
+                (agenciaDestino ? `📍 Destino: ${agenciaDestino}\n` : '') +
                 `🔗 Rastrea aquí: https://rastrea.shalom.com.pe\n\n` +
                 `Para recibir tu clave de retiro, por favor cancela el saldo pendiente.\n` +
                 `¡Gracias por tu compra en Blama! 🛍️`
@@ -112,6 +109,7 @@ export function OrderShippingCard({ pedido, isLocked, onLogAction, onRefresh }: 
                 `¡Tu pago ha sido confirmado! Aquí están tus datos para recoger tu pedido #${orderId} en Shalom:\n\n` +
                 `📦 Nº de Orden: ${shalomOrder}\n` +
                 `📦 Código de Orden: ${shalomPass}\n` +
+                (agenciaDestino ? `📍 Agencia Destino: ${agenciaDestino}\n` : '') +
                 `🔐 Clave de Retiro: ${shalomPin}\n\n` +
                 `Ya puedes recoger tu paquete en la agencia Shalom de tu ciudad.\n` +
                 `¡Gracias por tu compra en Blama! 🛍️`
@@ -222,6 +220,30 @@ export function OrderShippingCard({ pedido, isLocked, onLogAction, onRefresh }: 
                         {/* Shalom Tracking Info */}
                         <div className="space-y-3">
                             <p className="text-sm font-medium text-gray-700">Datos del Ticket Shalom</p>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <label className="text-xs font-medium text-gray-500">Agencia Origen</label>
+                                    <Input
+                                        className="h-8 text-sm bg-white"
+                                        placeholder="Ej: Lima - La Victoria"
+                                        value={agenciaOrigen}
+                                        onChange={(e) => setAgenciaOrigen(e.target.value)}
+                                        disabled={isLocked || !isEditing}
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-xs font-medium text-gray-500">Agencia Destino</label>
+                                    <Input
+                                        className="h-8 text-sm bg-white"
+                                        placeholder="Ej: Trujillo - Centro"
+                                        value={agenciaDestino}
+                                        onChange={(e) => setAgenciaDestino(e.target.value)}
+                                        disabled={isLocked || !isEditing}
+                                    />
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1">
                                     <label className="text-xs font-medium text-gray-500">Nº Orden</label>
