@@ -31,6 +31,7 @@ import { OrderAssignmentCard } from "@/components/admin/orders/order-assignment-
 import { PedidoRow, PedidoItemRow, ProfileRow, PedidoLog } from "@/features/admin/types"
 import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidoDetail, updatePedidoStatusWithStock } from "@/features/admin"
 import { createClient } from "@/lib/supabase.client"
+import { OrderNotesCard } from "@/components/admin/orders/order-notes-card"
 
 export default function PedidoDetallePage() {
     const params = useParams()
@@ -143,7 +144,7 @@ export default function PedidoDetallePage() {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
         if (user && user.email) {
-            const { data: profile } = await supabase.from('profiles').select('nombre').eq('id', user.id).single()
+            const { data: profile } = await supabase.from('usuarios').select('nombre').eq('id', user.id).single()
             setCurrentUser(profile?.nombre || user.email.split('@')[0])
         }
     }
@@ -548,6 +549,12 @@ export default function PedidoDetallePage() {
                         onSave={handleSaveClientData}
                     />
 
+                    {/* NEW: Internal Notes for Team */}
+                    <OrderNotesCard
+                        pedidoId={Number(pedido.id)}
+                        isLocked={isLocked}
+                        onLogAction={logAction}
+                    />
 
                     <OrderShippingCard
                         pedido={pedido}
