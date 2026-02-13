@@ -37,6 +37,7 @@ function ProductosPageContent() {
     const [categorias, setCategorias] = useState<Category[]>([])
     const [loading, setLoading] = useState(true)
     const [selectedCategory, setSelectedCategory] = useState<string>("all")
+    const [selectedSubcategory, setSelectedSubcategory] = useState<string>("all")
     const [searchQuery, setSearchQuery] = useState("")
     const [sort, setSort] = useState<SortValue>('name-asc')
     const [minPrice, setMinPrice] = useState<string>('')
@@ -89,6 +90,7 @@ function ProductosPageContent() {
 
     async function fetchData(opts: {
         cat: string
+        subcat?: string
         q: string
         sort: SortValue
         min: string
@@ -100,6 +102,7 @@ function ProductosPageContent() {
 
         const { productos, totalCount } = await listProducts({
             cat: opts.cat,
+            subcat: opts.subcat,
             q: opts.q,
             sort: opts.sort,
             min: opts.min,
@@ -136,6 +139,7 @@ function ProductosPageContent() {
     const appliedFromUrl = useMemo(() => {
         const sp = new URLSearchParams(searchParamsString)
         const cat = sp.get('cat') ?? 'all'
+        const subcat = sp.get('subcat') ?? 'all'
         const q = sp.get('q') ?? ''
         const s = (sp.get('sort') ?? 'name-asc') as SortValue
         const min = sp.get('min') ?? ''
@@ -145,6 +149,7 @@ function ProductosPageContent() {
         const page = Math.max(1, Number.parseInt(pageRaw, 10) || 1)
         return {
             cat,
+            subcat,
             q,
             sort: (['name-asc', 'name-desc', 'price-asc', 'price-desc', 'newest'] as const).includes(s) ? s : 'name-asc',
             min,
@@ -160,6 +165,7 @@ function ProductosPageContent() {
 
     useEffect(() => {
         setSelectedCategory(appliedFromUrl.cat || 'all')
+        setSelectedSubcategory(appliedFromUrl.subcat || 'all')
         setSearchQuery(appliedFromUrl.q || '')
         setSort(appliedFromUrl.sort)
         setMinPrice(appliedFromUrl.min || '')
@@ -215,7 +221,7 @@ function ProductosPageContent() {
                     <div className="flex flex-wrap items-center gap-4">
                         <span className="text-sm font-medium">Filtrar:</span>
 
-                        {/* Category Filter Dropdown */}
+                        {/* Parent Category Filter Dropdown */}
                         <div className="relative">
                             <Button
                                 variant={activeFilter === 'cat' || selectedCategory !== 'all' ? "default" : "outline"}
@@ -225,7 +231,6 @@ function ProductosPageContent() {
                             >
                                 Categoría <Filter className="h-3 w-3" />
                             </Button>
-                            {/* Dropdown Container */}
                             {activeFilter === 'cat' && (
                                 <div className="absolute top-full left-0 pt-2 w-56 z-20">
                                     <div className="bg-white border border-border shadow-lg rounded-md p-2">
@@ -233,19 +238,21 @@ function ProductosPageContent() {
                                             <button
                                                 onClick={() => {
                                                     setSelectedCategory("all");
-                                                    updateUrl({ cat: undefined, page: undefined }, 'replace');
+                                                    setSelectedSubcategory("all");
+                                                    updateUrl({ cat: undefined, subcat: undefined, page: undefined }, 'replace');
                                                     setActiveFilter(null);
                                                 }}
                                                 className={`w-full text-left text-sm px-2 py-1.5 rounded-sm hover:bg-accent ${selectedCategory === "all" ? "bg-accent/50 font-medium" : ""}`}
                                             >
                                                 Todas
                                             </button>
-                                            {categorias.map(cat => (
+                                            {categorias.filter(c => !c.parent_id).map(cat => (
                                                 <button
                                                     key={cat.id}
                                                     onClick={() => {
                                                         setSelectedCategory(cat.id.toString());
-                                                        updateUrl({ cat: cat.id.toString(), page: undefined }, 'replace');
+                                                        setSelectedSubcategory("all");
+                                                        updateUrl({ cat: cat.id.toString(), subcat: undefined, page: undefined }, 'replace');
                                                         setActiveFilter(null);
                                                     }}
                                                     className={`w-full text-left text-sm px-2 py-1.5 rounded-sm hover:bg-accent ${selectedCategory === cat.id.toString() ? "bg-accent/50 font-medium" : ""}`}
@@ -258,6 +265,53 @@ function ProductosPageContent() {
                                 </div>
                             )}
                         </div>
+
+                        {/* Subcategory Filter Dropdown - Only visible if parent category selected */}
+                        {selectedCategory !== 'all' && (
+                            <div className="relative">
+                                <Button
+                                    variant={activeFilter === 'subcat' || selectedSubcategory !== 'all' ? "default" : "outline"}
+                                    size="sm"
+                                    className="gap-2 h-9"
+                                    onClick={() => setActiveFilter(activeFilter === 'subcat' ? null : 'subcat')}
+                                >
+                                    Subcategoría <Filter className="h-3 w-3" />
+                                </Button>
+                                {activeFilter === 'subcat' && (
+                                    <div className="absolute top-full left-0 pt-2 w-56 z-20">
+                                        <div className="bg-white border border-border shadow-lg rounded-md p-2">
+                                            <div className="space-y-1 max-h-60 overflow-y-auto">
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedSubcategory("all");
+                                                        updateUrl({ subcat: undefined, page: undefined }, 'replace');
+                                                        setActiveFilter(null);
+                                                    }}
+                                                    className={`w-full text-left text-sm px-2 py-1.5 rounded-sm hover:bg-accent ${selectedSubcategory === "all" ? "bg-accent/50 font-medium" : ""}`}
+                                                >
+                                                    Todas
+                                                </button>
+                                                {categorias
+                                                    .filter(c => c.parent_id?.toString() === selectedCategory)
+                                                    .map(cat => (
+                                                        <button
+                                                            key={cat.id}
+                                                            onClick={() => {
+                                                                setSelectedSubcategory(cat.id.toString());
+                                                                updateUrl({ subcat: cat.id.toString(), page: undefined }, 'replace');
+                                                                setActiveFilter(null);
+                                                            }}
+                                                            className={`w-full text-left text-sm px-2 py-1.5 rounded-sm hover:bg-accent ${selectedSubcategory === cat.id.toString() ? "bg-accent/50 font-medium" : ""}`}
+                                                        >
+                                                            {cat.nombre}
+                                                        </button>
+                                                    ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         {/* Availability Filter Dropdown */}
                         <div className="relative">
@@ -392,10 +446,25 @@ function ProductosPageContent() {
                                 className="h-7 text-xs rounded-full gap-1"
                                 onClick={() => {
                                     setSelectedCategory("all")
-                                    updateUrl({ cat: undefined, page: undefined }, 'replace')
+                                    setSelectedSubcategory("all")
+                                    updateUrl({ cat: undefined, subcat: undefined, page: undefined }, 'replace')
                                 }}
                             >
-                                Categoría: {categorias.find(c => c.id.toString() === selectedCategory)?.nombre || selectedCategory}
+                                Categoría: {categorias.find(c => c.id.toString() === selectedCategory)?.nombre}
+                                <X className="h-3 w-3" />
+                            </Button>
+                        )}
+                        {selectedSubcategory !== "all" && (
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                className="h-7 text-xs rounded-full gap-1"
+                                onClick={() => {
+                                    setSelectedSubcategory("all")
+                                    updateUrl({ subcat: undefined, page: undefined }, 'replace')
+                                }}
+                            >
+                                Sub: {categorias.find(c => c.id.toString() === selectedSubcategory)?.nombre}
                                 <X className="h-3 w-3" />
                             </Button>
                         )}
@@ -435,10 +504,11 @@ function ProductosPageContent() {
                             onClick={() => {
                                 setSearchQuery("")
                                 setSelectedCategory("all")
+                                setSelectedSubcategory("all")
                                 setOnlyInStock(false)
                                 setMinPrice("")
                                 setMaxPrice("")
-                                updateUrl({ cat: undefined, q: undefined, stock: undefined, min: undefined, max: undefined, page: undefined }, 'replace')
+                                updateUrl({ cat: undefined, subcat: undefined, q: undefined, stock: undefined, min: undefined, max: undefined, page: undefined }, 'replace')
                             }}
                         >
                             Limpiar todo

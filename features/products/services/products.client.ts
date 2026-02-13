@@ -20,6 +20,7 @@ export async function listCategories(): Promise<Category[]> {
 
 export type ListProductsParams = {
     cat: string
+    subcat?: string
     q: string
     sort: SortValue
     min: string
@@ -42,20 +43,50 @@ export async function listProducts(params: ListProductsParams): Promise<ListProd
 
     let productsQuery = supabase.from("productos").select("*", { count: "exact" })
 
-    if (params.cat !== "all") {
-        const categoryId = Number(params.cat)
-        if (Number.isFinite(categoryId) && categoryId > 0) {
-            productsQuery = productsQuery.eq("categoria_id", categoryId)
+    // Determine effective category filter
+    // If subcat is "all" or empty, we ignore it.
+    const hasSubcat = params.subcat && params.subcat !== "all"
+    const hasCat = params.cat && params.cat !== "all"
+
+    if (hasSubcat) {
+        // Exact match for subcategory
+        const subcatId = Number(params.subcat)
+        if (Number.isFinite(subcatId) && subcatId > 0) {
+            productsQuery = productsQuery.eq("categoria_id", subcatId)
         } else {
-            const { data: catRow, error: catError } = await supabase
+            const { data: catRow } = await supabase
+                .from("categorias")
+                .select("id")
+                .eq("slug", params.subcat!)
+                .maybeSingle()
+            if (catRow?.id) {
+                productsQuery = productsQuery.eq("categoria_id", catRow.id)
+            }
+        }
+    } else if (hasCat) {
+        // Parent category: Include children
+        let parentId = Number(params.cat)
+        if (!Number.isFinite(parentId) || parentId <= 0) {
+            const { data: catRow } = await supabase
                 .from("categorias")
                 .select("id")
                 .eq("slug", params.cat)
                 .maybeSingle()
-
-            if (!catError && catRow?.id) {
-                productsQuery = productsQuery.eq("categoria_id", catRow.id)
+            if (catRow?.id) {
+                parentId = catRow.id
+            } else {
+                parentId = 0
             }
+        }
+
+        if (parentId > 0) {
+            const { data: children } = await supabase
+                .from("categorias")
+                .select("id")
+                .eq("parent_id", parentId)
+
+            const ids = [parentId, ...(children?.map(c => c.id) || [])]
+            productsQuery = productsQuery.in("categoria_id", ids)
         }
     }
 

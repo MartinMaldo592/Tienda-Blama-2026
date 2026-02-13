@@ -25,7 +25,6 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
         { href: "/admin/productos", icon: Package, label: "Productos", roles: ["admin"] }, // Solo admin
         { href: "/admin/clientes", icon: Users, label: "Clientes", roles: ["admin"] }, // Solo admin
         { href: "/admin/cupones", icon: Percent, label: "Cupones", roles: ["admin"] },
-        { href: "/admin/banners", icon: ImageIcon, label: "Banners", roles: ["admin"] },
         { href: "/admin/announcement-bar", icon: Megaphone, label: "Announcement Bar", roles: ["admin"] },
         { href: "/admin/resenas", icon: Star, label: "Reseñas", roles: ["admin"] },
         { href: "/admin/preguntas", icon: MessageSquare, label: "Preguntas", roles: ["admin"] },
