@@ -4,57 +4,41 @@ import type { AdminDashboardStats, AdminRole } from "@/features/admin/types"
 
 export async function fetchAdminDashboardStats(args: { role: AdminRole | string; currentUserId: string }): Promise<AdminDashboardStats> {
   const supabase = createClient()
-  const role = String(args.role || "worker")
   const currentUserId = String(args.currentUserId || "")
 
-  const { data: pedidos } = await supabase
-    .from("pedidos")
-    .select("id, total, status, asignado_a, created_at")
+  // Llamada a la función RPC optimizada
+  const { data, error } = await supabase.rpc("get_admin_dashboard_stats", {
+    p_user_id: currentUserId || null
+  })
 
-  const deliveredSales = (pedidos || []).filter((p: any) => p.status === "Entregado")
-  const totalVentasReales = deliveredSales.reduce((sum: number, p: any) => sum + (Number(p.total) || 0), 0)
-
-  const today = new Date()
-  const yyyy = today.getFullYear()
-  const mm = String(today.getMonth() + 1).padStart(2, "0")
-  const dd = String(today.getDate()).padStart(2, "0")
-  const todayPrefix = `${yyyy}-${mm}-${dd}`
-
-  const ventasHoy = deliveredSales
-    .filter((p: any) => typeof p.created_at === "string" && p.created_at.startsWith(todayPrefix))
-    .reduce((sum: number, p: any) => sum + (Number(p.total) || 0), 0)
-
-  const pedidosPendientes = (pedidos || []).filter((p: any) => p.status === "Pendiente").length
-  const pedidosEnProceso = (pedidos || []).filter((p: any) => ["Confirmado", "Enviado"].includes(p.status)).length
-  const pedidosEntregados = deliveredSales.length
-
-  const pedidosAsignados = (pedidos || []).filter(
-    (p: any) => p.asignado_a === currentUserId && !["Fallido", "Devuelto", "Entregado"].includes(p.status)
-  ).length
-
-  let totalClientes = 0
-  if (role === "admin") {
-    const { count } = await supabase.from("clientes").select("*", { count: "exact", head: true })
-    totalClientes = count || 0
+  if (error) {
+    console.error("Error fetching dashboard stats via RPC:", error)
+    // Fallback: Si falla la RPC, devolvemos ceros en lugar de romper (o intentar hacerlo lento)
+    return {
+      totalVentasReales: 0,
+      ventasHoy: 0,
+      pedidosPendientes: 0,
+      pedidosEnProceso: 0,
+      pedidosEntregados: 0,
+      pedidosAsignados: 0,
+      totalClientes: 0,
+      productosLowStock: 0,
+    }
   }
 
-  let productosLowStock = 0
-  if (role === "admin") {
-    const { count } = await supabase.from("productos").select("*", { count: "exact", head: true }).lt("stock", 5)
-    productosLowStock = count || 0
-  }
-
+  // Mapeo directo del JSON devuelto por la RPC
   return {
-    totalVentasReales,
-    ventasHoy,
-    pedidosPendientes,
-    pedidosEnProceso,
-    pedidosEntregados,
-    pedidosAsignados,
-    totalClientes,
-    productosLowStock,
+    totalVentasReales: Number(data.totalVentasReales) || 0,
+    ventasHoy: Number(data.ventasHoy) || 0,
+    pedidosPendientes: Number(data.pedidosPendientes) || 0,
+    pedidosEnProceso: Number(data.pedidosEnProceso) || 0,
+    pedidosEntregados: Number(data.pedidosEntregados) || 0,
+    pedidosAsignados: Number(data.pedidosAsignados) || 0,
+    totalClientes: Number(data.totalClientes) || 0,
+    productosLowStock: Number(data.productosLowStock) || 0,
   }
 }
+
 
 export async function fetchAdminVentasEntregadas(args: { from: string; to: string }) {
   const supabase = createClient()
@@ -123,3 +107,41 @@ export async function fetchAdminPedidosEnProceso(args: { status: StatusFilter; f
   if (error) throw error
   return (data as any[]) || []
 }
+
+import type { SalesDataPoint } from "@/components/admin/dashboard/sales-chart"
+
+export async function fetchAdminSalesChart(period: "week" | "month" | "year"): Promise<SalesDataPoint[]> {
+  const supabase = createClient()
+
+  const endDate = new Date()
+  const startDate = new Date()
+  let interval = "day"
+
+  if (period === "week") {
+    startDate.setDate(endDate.getDate() - 7)
+  } else if (period === "month") {
+    startDate.setDate(endDate.getDate() - 30)
+  } else if (period === "year") {
+    startDate.setFullYear(endDate.getFullYear(), 0, 1) // First day of current year
+    interval = "month"
+  }
+
+  const { data, error } = await supabase.rpc("get_sales_chart_data", {
+    p_start_date: startDate.toISOString().split("T")[0],
+    p_end_date: endDate.toISOString().split("T")[0],
+    p_interval: interval
+  })
+
+  if (error) {
+    console.error("Chart Error:", error)
+    return []
+  }
+
+  // Map RPC result to component props
+  return (data || []).map((d: any) => ({
+    date: d.period_label,
+    total: Number(d.total_sales),
+    orders: Number(d.order_count)
+  }))
+}
+
