@@ -27,7 +27,6 @@ import { formatCurrency } from "@/lib/utils"
 import { OrderShippingCard } from "@/components/admin/orders/order-shipping-card"
 import { OrderFileCard } from "@/components/admin/orders/order-file-card"
 import { OrderPaymentCard } from "@/components/admin/orders/order-payment-card"
-import { OrderAssignmentCard } from "@/components/admin/orders/order-assignment-card"
 // import types
 import { PedidoRow, PedidoItemRow, ProfileRow, PedidoLog } from "@/features/admin/types"
 import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidoDetail, updatePedidoStatusWithStock } from "@/features/admin"
@@ -412,6 +411,28 @@ export default function PedidoDetallePage() {
                     </p>
                 </div>
                 <div className="ml-auto flex gap-2 items-center">
+                    {/* Asignación (Admin Only) */}
+                    {userRole === 'admin' && (
+                        <div className="flex gap-2 items-center bg-white p-2 rounded-lg border shadow-sm">
+                            <span className="text-sm font-medium">Asignar:</span>
+                            <Select value={assignedTo} onValueChange={handleAssignWorker} disabled={isLocked}>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Sin asignar" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="unassigned">
+                                        <span className="text-gray-500">Sin asignar</span>
+                                    </SelectItem>
+                                    {workers.map((w) => (
+                                        <SelectItem key={w.id} value={w.id}>
+                                            {w.nombre || w.email}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+
                     <div className="flex gap-2 items-center bg-white p-2 rounded-lg border shadow-sm">
                         <span className="text-sm font-medium">Estado del pedido:</span>
                         <Select value={status} onValueChange={setStatus} disabled={isLocked || updating}>
@@ -540,13 +561,7 @@ export default function PedidoDetallePage() {
                                 isLocked={isLocked}
                                 onLogAction={logAction}
                             />
-                            <OrderAssignmentCard
-                                pedido={pedido}
-                                userRole={userRole}
-                                workers={workers}
-                                assignedTo={assignedTo}
-                                onAssign={handleAssignWorker}
-                            />
+
                         </div>
 
                         {/* Columna Derecha: Productos (Más ancho) */}

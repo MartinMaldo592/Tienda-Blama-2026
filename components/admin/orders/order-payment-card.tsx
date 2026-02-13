@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { CreditCard, ExternalLink, Trash2, Plus, Upload, X, Banknote, Smartphone, Building2, HelpCircle } from "lucide-react"
+import { CreditCard, ExternalLink, Trash2, Plus, Upload, X, Banknote, Smartphone, Building2, HelpCircle, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -58,6 +58,14 @@ export function OrderPaymentCard({ pedido, isLocked, currentUser, onLogAction, o
     const [tipoPago, setTipoPago] = useState("")
     const [nota, setNota] = useState("")
     const [comprobanteUrl, setComprobanteUrl] = useState<string | null>(null)
+    const [visiblePayments, setVisiblePayments] = useState<Record<number, boolean>>({})
+
+    const togglePaymentVisibility = (id: number) => {
+        setVisiblePayments(prev => ({
+            ...prev,
+            [id]: !prev[id]
+        }))
+    }
 
     // Upload hook for payment proof
     const comprobanteUpload = useFileUpload({
@@ -346,15 +354,30 @@ export function OrderPaymentCard({ pedido, isLocked, currentUser, onLogAction, o
 
                                     <div className="flex items-center gap-1 shrink-0">
                                         {pago.comprobante_url && (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-7 w-7 p-0 text-blue-500 hover:text-blue-700"
-                                                onClick={() => window.open(pago.comprobante_url!, '_blank')}
-                                                title="Ver comprobante"
-                                            >
-                                                <ExternalLink className="h-3.5 w-3.5" />
-                                            </Button>
+                                            <>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-7 px-2 text-xs gap-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                                                    onClick={() => togglePaymentVisibility(pago.id)}
+                                                    title={visiblePayments[pago.id] ? "Ocultar foto" : "Ver foto completa"}
+                                                >
+                                                    {visiblePayments[pago.id] ? (
+                                                        <><EyeOff className="h-3.5 w-3.5" /> Ocultar</>
+                                                    ) : (
+                                                        <><Eye className="h-3.5 w-3.5" /> Ver Foto</>
+                                                    )}
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-7 w-7 p-0 text-gray-400 hover:text-blue-600"
+                                                    onClick={() => window.open(pago.comprobante_url!, '_blank')}
+                                                    title="Abrir original"
+                                                >
+                                                    <ExternalLink className="h-3.5 w-3.5" />
+                                                </Button>
+                                            </>
                                         )}
                                         {!isLocked && (
                                             <Button
@@ -370,17 +393,21 @@ export function OrderPaymentCard({ pedido, isLocked, currentUser, onLogAction, o
                                     </div>
                                 </div>
 
-                                {/* Thumbnail if image */}
-                                {pago.comprobante_url && pago.comprobante_url.match(/\.(jpeg|jpg|gif|png|webp)$/i) && (
-                                    <div className="relative w-full h-24 bg-gray-100 rounded-md overflow-hidden border mt-2 cursor-pointer"
-                                        onClick={() => window.open(pago.comprobante_url!, '_blank')}>
-                                        <Image
-                                            src={pago.comprobante_url}
-                                            alt="Comprobante"
-                                            fill
-                                            className="object-cover"
-                                            sizes="300px"
-                                        />
+                                {/* Full Image Preview (Hidden by default) */}
+                                {pago.comprobante_url && visiblePayments[pago.id] && (
+                                    <div className="mt-3 animate-in fade-in zoom-in-95 duration-200">
+                                        {pago.comprobante_url.match(/\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i) ? (
+                                            <img
+                                                src={pago.comprobante_url}
+                                                alt="Comprobante completo"
+                                                className="w-full h-auto rounded-lg border shadow-sm"
+                                                loading="lazy"
+                                            />
+                                        ) : (
+                                            <div className="p-4 bg-gray-100 rounded text-center text-sm">
+                                                Archivo no es imagen. <a href={pago.comprobante_url} target="_blank" className="underline text-blue-600">Descargar</a>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>

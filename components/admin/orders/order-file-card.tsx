@@ -1,5 +1,5 @@
 import Image from "next/image"
-import { Trash2, ExternalLink, FileUp, Check, Image as ImageIcon } from "lucide-react"
+import { Trash2, ExternalLink, FileUp, Check, Image as ImageIcon, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { useState } from "react"
@@ -32,6 +32,7 @@ export function OrderFileCard({
     accentColor = "blue"
 }: OrderFileCardProps) {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+    const [showPreview, setShowPreview] = useState(false)
 
     // Color maps
     const bgColors = {
@@ -69,55 +70,62 @@ export function OrderFileCard({
             </h2>
             {fileUrl ? (
                 <div className="space-y-3">
-                    {/* Thumbnail Preview */}
-                    {fileUrl.match(/\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i) ? (
-                        <div className="relative w-full h-40 bg-gray-100 rounded-lg overflow-hidden border group cursor-pointer" onClick={() => window.open(fileUrl || '', '_blank')}>
-                            <Image
+                    {/* Header with Buttons */}
+                    <div className="flex items-center gap-2 p-3 border rounded-lg bg-gray-50">
+                        <div className={`p-2 rounded ${currentBg}`}>
+                            {icon || <FileUp className="h-5 w-5" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{title}</p>
+                            <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline break-all">
+                                {fileUrl.split('/').pop()}
+                            </a>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            {fileUrl.match(/\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i) && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setShowPreview(!showPreview)}
+                                    className="h-8 gap-1 text-xs"
+                                >
+                                    {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    {showPreview ? 'Ocultar' : 'Ver'}
+                                </Button>
+                            )}
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={() => window.open(fileUrl || '', '_blank')}
+                                title="Abrir en pestaña nueva"
+                            >
+                                <ExternalLink className="h-4 w-4" />
+                            </Button>
+                            {!isLocked && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                    onClick={() => setIsDeleteDialogOpen(true)}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Image Preview (Conditional) */}
+                    {showPreview && fileUrl.match(/\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i) && (
+                        <div className="mt-2 animate-in fade-in zoom-in-95 duration-200">
+                            <img
                                 src={fileUrl}
                                 alt={title}
-                                fill
-                                className="object-cover transition-transform group-hover:scale-105"
-                                sizes="(max-width: 768px) 100vw, 300px"
+                                className="w-full h-auto rounded-lg border shadow-sm"
+                                loading="lazy"
                             />
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                <ExternalLink className="text-white drop-shadow-md" />
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-4 p-4 border rounded-lg bg-gray-50">
-                            <div className="bg-gray-200 p-2 rounded">
-                                <FileUp className="h-6 w-6 text-gray-500" />
-                            </div>
-                            <div className="flex-1">
-                                <p className="text-sm font-medium">Documento Adjunto</p>
-                                <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline break-all">
-                                    Ver archivo
-                                </a>
-                            </div>
                         </div>
                     )}
-
-                    {!fileUrl.match(/\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i) && (
-                        <div className="p-3 border rounded-lg bg-gray-50 flex items-center gap-3">
-                            <div className={`p-2 rounded ${currentBg}`}>
-                                {icon || <FileUp className="h-5 w-5" />}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">{title}</p>
-                                <p className="text-xs text-gray-500">Documento cargado</p>
-                            </div>
-                        </div>
-                    )}
-
-
-                    <div className="flex gap-2">
-                        <Button variant="outline" className="flex-1 gap-2" onClick={() => window.open(fileUrl || '', '_blank')}>
-                            <ExternalLink className="h-4 w-4" /> Ver Completo
-                        </Button>
-                        <Button variant="outline" className="flex-none text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => setIsDeleteDialogOpen(true)} disabled={isLocked}>
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                    </div>
                 </div>
             ) : (
                 <div className={`text-center p-6 border-2 border-dashed rounded-xl ${currentHover} transition-colors`}>
