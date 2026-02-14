@@ -2,11 +2,10 @@
 "use client"
 
 import Link from "next/link"
-import { Card, CardContent } from "@/components/ui/card"
-import { Image as ImageIcon } from "lucide-react"
+import { Flame, Zap, Eye } from "lucide-react"
 import { formatCurrency, slugify } from "@/lib/utils"
 import { Database } from "@/types/database.types"
-import { useRef } from "react"
+import { useEffect, useState } from "react"
 import { ProductImageCarousel } from "@/components/product-image-carousel"
 
 type Product = Database['public']['Tables']['productos']['Row']
@@ -17,8 +16,6 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, imagePriority = false }: ProductCardProps) {
-    const imageRef = useRef<HTMLDivElement>(null)
-
     const currentPrice = Number(product.precio ?? 0)
     const beforePrice = Number(product.precio_antes ?? 0)
     const hasSale = Number.isFinite(beforePrice) && beforePrice > 0 && Number.isFinite(currentPrice) && currentPrice > 0 && beforePrice > currentPrice
@@ -37,57 +34,104 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
 
     const productHref = `/productos/${slugify(product.nombre)}-${product.id}`
 
+    // Countdown logic
+    const [timeLeft, setTimeLeft] = useState({ m: 14, s: 59 })
+
+    useEffect(() => {
+        // Randomize start time slightly to avoid all cards looking identical on refresh
+        const randomMinutes = Math.floor(Math.random() * 15) + 5
+        setTimeLeft({ m: randomMinutes, s: 59 })
+
+        const interval = setInterval(() => {
+            setTimeLeft((prev) => {
+                if (prev.s > 0) return { ...prev, s: prev.s - 1 }
+                if (prev.m > 0) return { m: prev.m - 1, s: 59 }
+                return { m: 0, s: 0 }
+            })
+        }, 1000)
+        return () => clearInterval(interval)
+    }, [])
+
     return (
-        <Card className="group overflow-hidden border-none shadow-sm hover:shadow-md transition-all duration-300 bg-card flex flex-col rounded-xl">
-            <Link href={productHref} className="block">
-                <div className="aspect-square bg-popover relative overflow-hidden" ref={imageRef}>
+        <div className="bg-white rounded-3xl overflow-hidden shadow-md border border-gray-100 relative group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl block h-full">
+            {/* --- HEADER: LO MÁS VENDIDO --- */}
+            <div className="absolute top-4 left-4 z-20 flex flex-col gap-2 pointer-events-none">
+                <div className="bg-red-600 text-white text-[10px] font-black px-3 py-1 rounded-full flex items-center gap-1 animate-bounce shadow-lg">
+                    <Flame size={12} fill="white" /> ¡LO MÁS VENDIDO!
+                </div>
+            </div>
+
+            {/* --- IMAGE CAROUSEL --- */}
+            <Link href={productHref} className="block w-full">
+                <div className="relative w-full aspect-[3/4] overflow-hidden bg-gray-100">
                     {fallbackImages.length > 0 ? (
                         <ProductImageCarousel
                             images={fallbackImages}
                             alt={product.nombre}
-                            className="group-hover:scale-105 transition-transform duration-300"
+                            className="w-full h-full"
                             autoPlay
-                            intervalMs={2500}
+                            intervalMs={3000}
                             showControls={false}
                             priority={imagePriority}
-                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                             quality={90}
+                            imageFit="contain"
                         />
                     ) : (
-                        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground group-hover:scale-110 transition-transform duration-300">
-                            <ImageIcon className="h-10 w-10 opacity-50" />
-                        </div>
-                    )}
-                    {/* Quick Action Overlay */}
-                    <div className="absolute inset-0 bg-foreground/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                    {hasSale && (
-                        <div className="absolute left-2 top-2 flex items-center gap-2">
-                            <span className="inline-flex items-center rounded-full bg-gradient-to-r from-rose-600 to-orange-500 px-2.5 py-1 text-xs font-extrabold text-white shadow-md ring-1 ring-white/30 backdrop-blur">
-                                -{discountPercent}%
-                            </span>
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            No imagen
                         </div>
                     )}
                 </div>
             </Link>
 
-            <CardContent className="p-3 flex-1 flex flex-col justify-between">
-                <div>
-                    <Link href={productHref} className="hover:underline">
-                        <h4 className="font-medium text-sm line-clamp-2 leading-tight mb-1 text-foreground">{product.nombre}</h4>
-                    </Link>
+            {/* --- CONTENT --- */}
+            <div className="p-4 flex flex-col gap-3">
+                {/* Título del producto (Ocupa todo el ancho) */}
+                <Link href={productHref} className="block w-full">
+                    <h3 className="text-base font-black text-gray-900 leading-tight hover:text-red-600 transition-colors line-clamp-2 min-h-[2.5rem]">
+                        {product.nombre}
+                    </h3>
+                </Link>
+
+                {/* Precios (Debajo del título para evitar colisiones) */}
+                <div className="flex items-end gap-2">
+                    <p className="text-2xl font-black text-red-600 leading-none">
+                        {formatCurrency(currentPrice)}
+                    </p>
+                    {hasSale && (
+                        <p className="text-xs text-gray-400 line-through font-medium mb-1">
+                            {formatCurrency(beforePrice)}
+                        </p>
+                    )}
+                    {hasSale && (
+                        <span className="ml-auto text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded-full border border-red-100">
+                            -{discountPercent}%
+                        </span>
+                    )}
                 </div>
-                <div className="mt-1" data-nosnippet>
-                    <div className="flex items-baseline gap-2">
-                        <p className="text-lg font-extrabold text-primary tracking-tight">{formatCurrency(currentPrice)}</p>
-                        {hasSale && (
-                            <div className="flex items-baseline gap-2">
-                                <p className="text-sm text-muted-foreground line-through">{formatCurrency(beforePrice)}</p>
-                            </div>
-                        )}
+
+                {/* --- COUNTDOWN --- */}
+                <div className="bg-red-50 p-2 rounded-xl border border-red-100 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                        <p className="text-[10px] text-red-600 font-bold uppercase tracking-wider">Oferta expira en:</p>
+                        <div className="flex gap-1 font-mono text-lg font-black text-red-600 leading-none">
+                            <span>{timeLeft.m < 10 ? `0${timeLeft.m}` : timeLeft.m}</span>
+                            <span>:</span>
+                            <span>{timeLeft.s < 10 ? `0${timeLeft.s}` : timeLeft.s}</span>
+                        </div>
                     </div>
                 </div>
-            </CardContent>
-        </Card>
+
+                {/* --- BUTTON --- */}
+                <Link href={productHref} className="w-full">
+                    <button className="w-full bg-red-600 text-white py-2.5 rounded-xl font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-red-200 active:scale-95 transition-all hover:bg-red-700 uppercase tracking-wide">
+                        <Eye size={16} fill="white" />
+                        VER PRODUCTO
+                    </button>
+                </Link>
+            </div>
+        </div>
     )
 }
+

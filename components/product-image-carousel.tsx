@@ -16,6 +16,7 @@ interface ProductImageCarouselProps {
   priority?: boolean
   sizes?: string
   quality?: number
+  imageFit?: "cover" | "contain"
 }
 
 export function ProductImageCarousel({
@@ -28,6 +29,7 @@ export function ProductImageCarousel({
   priority = false,
   sizes,
   quality,
+  imageFit = "contain",
 }: ProductImageCarouselProps) {
   const isLikelyImageUrl = (url: string) => {
     const u = String(url || "").trim().toLowerCase()
@@ -250,7 +252,7 @@ export function ProductImageCarousel({
               src={src}
               alt={alt}
               fill
-              className="absolute inset-0 object-contain z-10"
+              className={cn("absolute inset-0 z-10", imageFit === "cover" ? "object-cover" : "object-contain")}
               priority={priority && i === 0}
               sizes={sizes || "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"}
               quality={quality}
