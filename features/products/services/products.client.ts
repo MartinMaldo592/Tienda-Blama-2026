@@ -91,7 +91,12 @@ export async function listProducts(params: ListProductsParams): Promise<ListProd
     }
 
     if (q) {
-        productsQuery = productsQuery.ilike("nombre", `%${q}%`)
+        // Use Full Text Search (FTS) for smarter matching
+        // Requires 'fts' column to exist (run migration 20260214080000_add_full_text_search.sql)
+        productsQuery = productsQuery.textSearch('fts', q, {
+            config: 'spanish',
+            type: 'websearch'
+        })
     }
 
     if (min !== null && Number.isFinite(min)) {
@@ -163,7 +168,11 @@ export async function countProducts(params: CountProductsParams): Promise<number
     }
 
     if (q) {
-        countQuery = countQuery.ilike("nombre", `%${q}%`)
+        // Use Full Text Search (FTS) for smarter matching
+        countQuery = countQuery.textSearch('fts', q, {
+            config: 'spanish',
+            type: 'websearch'
+        })
     }
 
     if (min !== null && Number.isFinite(min)) {
