@@ -17,6 +17,14 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { listCategories, listProducts } from "@/features/products/services/products.client"
 import type { Category, Product, SortValue } from "@/features/products/types"
 import { ProductCard } from "@/components/product-card"
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@/components/ui/sheet"
 
 export default function ProductosPage() {
     return (
@@ -218,7 +226,133 @@ function ProductosPageContent() {
                 {/* Filter Bar */}
                 <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center border-b border-border pb-4 mb-6">
                     {/* Left: Filters */}
-                    <div className="flex flex-wrap items-center gap-4">
+
+                    {/* Mobile Filters Drawer */}
+                    <div className="lg:hidden mb-4">
+                        <Sheet>
+                            <SheetTrigger asChild>
+                                <Button variant="outline" className="gap-2 w-full justify-between">
+                                    <span className="flex items-center gap-2">
+                                        <Filter className="h-4 w-4" /> Filtros
+                                    </span>
+                                    {(selectedCategory !== "all" || onlyInStock || minPrice || maxPrice) && (
+                                        <div className="h-2 w-2 rounded-full bg-primary" />
+                                    )}
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="left" className="w-[300px] overflow-y-auto">
+                                <SheetHeader className="mb-4">
+                                    <SheetTitle>Filtros</SheetTitle>
+                                    <SheetDescription>Refina tu búsqueda</SheetDescription>
+                                </SheetHeader>
+
+                                <div className="space-y-6">
+                                    {/* Categories */}
+                                    <div className="space-y-2">
+                                        <h3 className="text-sm font-semibold">Categoría</h3>
+                                        <div className="grid gap-1">
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedCategory("all")
+                                                    setSelectedSubcategory("all")
+                                                    updateUrl({ cat: undefined, subcat: undefined, page: undefined }, 'replace')
+                                                }}
+                                                className={`text-left text-sm px-2 py-1.5 rounded-md transition-colors ${selectedCategory === "all" ? "bg-accent font-medium text-accent-foreground" : "hover:bg-muted text-muted-foreground"}`}
+                                            >
+                                                Todas
+                                            </button>
+                                            {categorias.filter(c => !c.parent_id).map(cat => (
+                                                <button
+                                                    key={cat.id}
+                                                    onClick={() => {
+                                                        setSelectedCategory(cat.id.toString())
+                                                        setSelectedSubcategory("all")
+                                                        updateUrl({ cat: cat.id.toString(), subcat: undefined, page: undefined }, 'replace')
+                                                    }}
+                                                    className={`text-left text-sm px-2 py-1.5 rounded-md transition-colors ${selectedCategory === cat.id.toString() ? "bg-accent font-medium text-accent-foreground" : "hover:bg-muted text-muted-foreground"}`}
+                                                >
+                                                    {cat.nombre}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Subcategories (Conditional) */}
+                                    {selectedCategory !== 'all' && (
+                                        <div className="space-y-2 pt-2 border-t">
+                                            <h3 className="text-sm font-semibold">Subcategoría</h3>
+                                            <div className="grid gap-1 pl-2">
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedSubcategory("all")
+                                                        updateUrl({ subcat: undefined, page: undefined }, 'replace')
+                                                    }}
+                                                    className={`text-left text-sm px-2 py-1.5 rounded-md transition-colors ${selectedSubcategory === "all" ? "bg-accent font-medium text-accent-foreground" : "hover:bg-muted text-muted-foreground"}`}
+                                                >
+                                                    Todas
+                                                </button>
+                                                {categorias.filter(c => c.parent_id?.toString() === selectedCategory).map(cat => (
+                                                    <button
+                                                        key={cat.id}
+                                                        onClick={() => {
+                                                            setSelectedSubcategory(cat.id.toString())
+                                                            updateUrl({ subcat: cat.id.toString(), page: undefined }, 'replace')
+                                                        }}
+                                                        className={`text-left text-sm px-2 py-1.5 rounded-md transition-colors ${selectedSubcategory === cat.id.toString() ? "bg-accent font-medium text-accent-foreground" : "hover:bg-muted text-muted-foreground"}`}
+                                                    >
+                                                        {cat.nombre}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Price and Stock */}
+                                    <div className="space-y-4 pt-2 border-t">
+                                        <div className="space-y-2">
+                                            <h3 className="text-sm font-semibold">Precio</h3>
+                                            <div className="flex items-center gap-2">
+                                                <Input
+                                                    placeholder="Min"
+                                                    className="h-9"
+                                                    value={minPrice}
+                                                    onChange={(e) => setMinPrice(e.target.value)}
+                                                    onBlur={() => updateUrl({ min: minPrice || undefined, page: undefined }, 'push')}
+                                                />
+                                                <span className="text-muted-foreground">-</span>
+                                                <Input
+                                                    placeholder="Max"
+                                                    className="h-9"
+                                                    value={maxPrice}
+                                                    onChange={(e) => setMaxPrice(e.target.value)}
+                                                    onBlur={() => updateUrl({ max: maxPrice || undefined, page: undefined }, 'push')}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center space-x-2">
+                                            <input
+                                                type="checkbox"
+                                                id="mobile-stock-filter"
+                                                className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                                                checked={onlyInStock}
+                                                onChange={(e) => {
+                                                    const val = e.target.checked
+                                                    setOnlyInStock(val)
+                                                    updateUrl({ stock: val ? '1' : undefined, page: undefined }, 'push')
+                                                }}
+                                            />
+                                            <label htmlFor="mobile-stock-filter" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                                Solo en stock
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </SheetContent>
+                        </Sheet>
+                    </div>
+
+                    <div className="hidden lg:flex flex-wrap items-center gap-4">
                         <span className="text-sm font-medium">Filtrar:</span>
 
                         {/* Parent Category Filter Dropdown */}

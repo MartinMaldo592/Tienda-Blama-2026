@@ -52,6 +52,10 @@ function parseProductId(raw: string) {
     return 0
 }
 
+import { useWhatsAppStore } from "@/lib/whatsapp-store"
+
+// ... existing imports
+
 export default function ProductoDetalleClient() {
     const params = useParams()
     const router = useRouter()
@@ -81,6 +85,15 @@ export default function ProductoDetalleClient() {
     const [quickBuyOpen, setQuickBuyOpen] = useState(false)
 
     const { addItem, items, updateQuantity } = useCartStore()
+    const { setCustomMessage } = useWhatsAppStore()
+
+    useEffect(() => {
+        if (producto) {
+            const text = `Hola, estoy interesado en el producto *${producto.nombre}*. ¿Me podrían brindar más información?`
+            setCustomMessage(encodeURIComponent(text))
+        }
+        return () => setCustomMessage(null)
+    }, [producto?.id, producto?.nombre, setCustomMessage])
 
 
 

@@ -2,6 +2,7 @@
 
 import { useMemo } from "react"
 import { usePathname } from "next/navigation"
+import { useWhatsAppStore } from "@/lib/whatsapp-store"
 
 import { Header } from "@/components/header"
 import { FlyingProductImage } from "@/components/flying-product-image"
@@ -34,8 +35,9 @@ export function LayoutShell({ children, announcementData }: LayoutShellProps) {
   }, [announcementData])
 
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "51999999999"
-  const defaultMessage = encodeURIComponent("Hola, quisiera información sobre sus productos.")
-  const whatsappUrl = `https://api.whatsapp.com/send?phone=${encodeURIComponent(whatsappNumber)}&text=${defaultMessage}`
+  const { customMessage } = useWhatsAppStore()
+  const message = customMessage || encodeURIComponent("Hola, quisiera información sobre sus productos.")
+  const whatsappUrl = `https://api.whatsapp.com/send?phone=${encodeURIComponent(whatsappNumber)}&text=${message}`
 
   return (
     <>
