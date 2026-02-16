@@ -41,8 +41,8 @@ const formSchema = z.object({
     detalle_reclamo: z.string().min(20, "Detalle debe ser más específico"),
     pedido_relacionado: z.string().optional(),
 
-    acepto_terminos: z.literal(true, {
-        errorMap: () => ({ message: "Debes aceptar los términos y condiciones" })
+    acepto_terminos: z.boolean().refine(val => val === true, {
+        message: "Debes aceptar los términos y condiciones"
     }),
 }).refine((data) => {
     if (data.menor_edad && (!data.apoderado_nombres || !data.apoderado_dni)) {
