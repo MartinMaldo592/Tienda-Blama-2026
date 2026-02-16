@@ -61,7 +61,7 @@ export default function LibroReclamacionesPage() {
     const [successData, setSuccessData] = useState<{ codigo: string, fecha: string } | null>(null)
 
     const form = useForm<FormValues>({
-        resolver: zodResolver(formSchema),
+        resolver: zodResolver(formSchema) as any,
         defaultValues: {
             tipo_documento: "DNI",
             tipo_bien: "PRODUCTO",
