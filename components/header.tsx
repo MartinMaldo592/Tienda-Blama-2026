@@ -56,8 +56,8 @@ export function Header() {
                         <Menu className="h-6 w-6" />
                     </button>
 
-                    <Link href="/" className="text-xl font-extrabold tracking-tight text-primary">
-                        Blama Shop
+                    <Link href="/" className="text-2xl font-black uppercase tracking-widest text-primary">
+                        BLAMA SHOP
                     </Link>
                 </div>
 

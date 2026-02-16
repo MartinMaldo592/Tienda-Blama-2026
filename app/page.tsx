@@ -15,16 +15,16 @@ import { BenefitsBar } from "@/components/benefits-bar"
 const HOME_PRODUCTS_LIMIT = 12
 
 export const metadata: Metadata = {
-  title: "Tienda Online Premium",
+  title: "Blama Shop | Todo lo que buscas en un solo lugar",
   description:
-    "Blama.shop es una tienda online en Perú con productos seleccionados, compras simples y atención rápida por WhatsApp. Descubre novedades, ofertas y envíos a domicilio.",
+    "Descubre lo mejor en tecnología, hogar, moda y tendencias en Blama Shop. Envíos rápidos y seguros a todo el Perú.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Blama.shop | Tienda Online Premium",
+    title: "Blama Shop | Todo lo que buscas",
     description:
-      "Compra en Blama.shop: productos seleccionados, ofertas y atención rápida por WhatsApp. Envíos a domicilio y experiencia de compra simple.",
+      "Descubre lo mejor en tecnología, hogar, moda y tendencias en Blama Shop. Compra fácil y rápido.",
     url: "/",
     type: "website",
     locale: "es_ES",
@@ -87,7 +87,7 @@ export default async function Home(props: HomePageProps) {
             <div className="flex justify-between items-center mb-4 px-2">
               <div className="flex items-center gap-2">
                 <div className="w-1 h-6 bg-primary rounded-full" />
-                <h3 className="text-lg font-bold text-foreground">Lo más vendido</h3>
+                <h3 className="text-lg font-bold text-foreground">Lo más pedido hoy</h3>
               </div>
               <Button asChild variant="link" size="sm" className="text-muted-foreground hover:text-primary">
                 <Link href="/productos">Ver todo</Link>
@@ -110,9 +110,9 @@ export default async function Home(props: HomePageProps) {
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <div className="w-1 h-6 bg-gradient-to-b from-rose-500 to-orange-500 rounded-full" />
-                  <h3 className="text-lg font-bold text-foreground">Ofertas</h3>
+                  <h3 className="text-lg font-bold text-foreground">Ofertas Exclusivas</h3>
                 </div>
-                <span className="text-xs text-muted-foreground ml-3">Aprovecha descuento por tiempo limitado</span>
+                <span className="text-xs text-muted-foreground ml-3">Descuentos por tiempo limitado en productos seleccionados</span>
               </div>
               <Button asChild variant="link" size="sm" className="text-muted-foreground hover:text-primary">
                 <Link href="/productos">Ver todo</Link>

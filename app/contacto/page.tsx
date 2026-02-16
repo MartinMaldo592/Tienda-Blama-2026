@@ -4,74 +4,133 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Mail, Phone, MapPin } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Mail, Phone, MapPin, Clock } from "lucide-react"
 
 export default function ContactoPage() {
-    const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "51958279604"
+    const whatsappNumber = "51958279604"
     const defaultMessage = encodeURIComponent("Hola, quisiera información sobre sus productos.")
 
     return (
-        <div className="container mx-auto px-4 py-10 max-w-5xl">
-            <h1 className="text-3xl font-bold mb-8 text-center text-foreground">Contáctanos</h1>
+        <div className="container mx-auto px-4 py-12 max-w-6xl">
+            <div className="text-center mb-12">
+                <h1 className="text-4xl font-bold tracking-tight mb-4">Contáctanos</h1>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                    Estamos aquí para ayudarte. Si tienes alguna pregunta sobre tu pedido, nuestros productos o políticas, no dudes en contactarnos.
+                </p>
+            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Información de Contacto */}
-                <div className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg">Información Directa</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-center gap-3 text-muted-foreground">
-                                <Phone className="h-5 w-5 text-primary" />
-                                <span>+51 958 279 604</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-muted-foreground">
-                                <Mail className="h-5 w-5 text-primary" />
-                                <span>ventas@blama.shop</span>
-                            </div>
-                            <div className="flex items-center gap-3 text-muted-foreground">
-                                <MapPin className="h-5 w-5 text-primary" />
-                                <span>Lima, Perú</span>
-                            </div>
-                        </CardContent>
-                    </Card>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {/* Info Cards */}
+                <Card className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="flex flex-col items-center text-center pb-2">
+                        <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mb-4 text-primary">
+                            <Phone className="h-6 w-6" />
+                        </div>
+                        <CardTitle>Llámanos</CardTitle>
+                        <CardDescription>Atención telefónica directa</CardDescription>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                        <p className="font-semibold text-lg">+51 958 279 604</p>
+                        <p className="text-sm text-muted-foreground mt-1">Lunes a Viernes: 9am - 6pm</p>
+                    </CardContent>
+                </Card>
 
-                    <div className="bg-card text-card-foreground p-6 rounded-xl border border-border">
-                        <h3 className="font-semibold mb-2">¿Tienes una consulta urgente?</h3>
-                        <p className="text-sm text-muted-foreground mb-4">
-                            La forma más rápida de obtener respuesta es escribiéndonos directamente a nuestro WhatsApp de soporte.
-                        </p>
-                        <Button asChild className="w-full bg-green-600 hover:bg-green-700">
-                            <a href={`https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${defaultMessage}`}>Chat de Soporte WhatsApp</a>
-                        </Button>
-                    </div>
-                </div>
+                <Card className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="flex flex-col items-center text-center pb-2">
+                        <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mb-4 text-primary">
+                            <Mail className="h-6 w-6" />
+                        </div>
+                        <CardTitle>Escríbenos</CardTitle>
+                        <CardDescription>Responderemos en 24 horas</CardDescription>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                        <p className="font-semibold text-lg">soporte@blamashop.com</p>
+                        <p className="text-sm text-muted-foreground mt-1">Consultas generales y pedidos</p>
+                    </CardContent>
+                </Card>
+
+                <Card className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="flex flex-col items-center text-center pb-2">
+                        <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mb-4 text-primary">
+                            <MapPin className="h-6 w-6" />
+                        </div>
+                        <CardTitle>Visítanos</CardTitle>
+                        <CardDescription>Oficina Administrativa</CardDescription>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                        <p className="font-semibold text-base">Av. Larco 123, Miraflores</p>
+                        <p className="text-sm text-muted-foreground mt-1">Lima, Perú</p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
 
                 {/* Formulario */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Envíanos un Mensaje</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <form className="space-y-4">
+                <div className="space-y-6">
+                    <h2 className="text-2xl font-bold mb-4">Envíanos un mensaje</h2>
+                    <form className="space-y-4 bg-card border rounded-xl p-6 shadow-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-foreground">Nombre Completo</label>
+                                <label className="text-sm font-medium">Nombre</label>
                                 <Input placeholder="Tu nombre" />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-foreground">Correo Electrónico</label>
-                                <Input type="email" placeholder="tucorreo@ejemplo.com" />
+                                <label className="text-sm font-medium">Apellido</label>
+                                <Input placeholder="Tu apellido" />
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-foreground">Mensaje</label>
-                                <Textarea placeholder="¿En qué podemos ayudarte?" className="min-h-[120px]" />
-                            </div>
-                            <Button className="w-full">Enviar Mensaje</Button>
-                        </form>
-                    </CardContent>
-                </Card>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Email</label>
+                            <Input type="email" placeholder="tucorreo@ejemplo.com" />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Teléfono</label>
+                            <Input placeholder="+51 999 999 999" />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Mensaje</label>
+                            <Textarea placeholder="Cuéntanos en qué podemos ayudarte..." className="min-h-[120px]" />
+                        </div>
+
+                        <Button className="w-full h-11 text-base">Enviar Mensaje</Button>
+                    </form>
+                </div>
+
+                {/* Mapa o Imagen + WhatsApp CTA */}
+                <div className="space-y-6">
+                    <div className="bg-muted rounded-xl h-[300px] w-full flex items-center justify-center relative overflow-hidden border">
+                        {/* Embed Google Maps */}
+                        <iframe
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3900.7126139401944!2d-77.03222232417068!3d-12.126588243399996!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105c81f37e4c25b%3A0xe5495574378f8588!2sAv.%20Jos%C3%A9%20Larco%20123%2C%20Miraflores%2015074!5e0!3m2!1ses-419!2spe!4v1708100100000!5m2!1ses-419!2spe"
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0 }}
+                            allowFullScreen
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                        ></iframe>
+                    </div>
+
+                    <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-6 rounded-xl">
+                        <h3 className="text-xl font-bold text-green-800 dark:text-green-300 mb-2">¿Prefieres Chat Directo?</h3>
+                        <p className="text-muted-foreground mb-4">
+                            Nuestros asesores están disponibles en WhatsApp para resolver tus dudas al instante.
+                        </p>
+                        <Button asChild className="w-full bg-green-600 hover:bg-green-700 text-white h-11">
+                            <a href={`https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${defaultMessage}`} target="_blank" rel="noopener noreferrer">
+                                <span className="flex items-center gap-2">
+                                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.592 2.654-.694c1.003.545 1.972.82 2.8.82 3.181 0 5.768-2.586 5.768-5.766s-2.586-5.766-5.762-5.766zM12 4.156c4.291 0 7.78 3.489 7.78 7.78a7.78 7.78 0 0 1-7.78 7.78 7.75 7.75 0 0 1-4-.9l-5.61 1.48 1.49-5.46a7.76 7.76 0 0 1-.67-2.91C3.21 7.64 6.7 4.16 12 4.16z" /></svg>
+                                    Abrir WhatsApp
+                                </span>
+                            </a>
+                        </Button>
+                    </div>
+                </div>
             </div>
         </div>
     )

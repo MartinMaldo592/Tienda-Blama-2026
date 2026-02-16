@@ -1,51 +1,63 @@
 
-import { Truck, MapPin, Clock } from "lucide-react"
-
-export default function EnviosPage() {
+export default function PoliticaEnviosPage() {
     return (
-        <div className="container mx-auto px-4 py-10 max-w-4xl">
-            <h1 className="text-3xl font-bold mb-8 text-center text-foreground">Política de Envíos</h1>
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+            <h1 className="text-3xl font-bold mb-2 uppercase tracking-tight">Política de Envíos</h1>
+            <p className="text-muted-foreground mb-8">Última actualización: Febrero 2026</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <div className="bg-card border border-border p-6 rounded-xl flex flex-col items-center text-center shadow-sm">
-                    <div className="bg-primary/10 p-3 rounded-full mb-4">
-                        <Truck className="h-8 w-8 text-primary" />
-                    </div>
-                    <h3 className="font-bold text-lg mb-2">Envíos a Todo el Perú</h3>
-                    <p className="text-muted-foreground text-sm">Llegamos a donde estés, con cobertura nacional.</p>
-                </div>
-                <div className="bg-card border border-border p-6 rounded-xl flex flex-col items-center text-center shadow-sm">
-                    <div className="bg-primary/10 p-3 rounded-full mb-4">
-                        <MapPin className="h-8 w-8 text-primary" />
-                    </div>
-                    <h3 className="font-bold text-lg mb-2">Lima y Provincias</h3>
-                    <p className="text-muted-foreground text-sm">Tarifas preferenciales y tiempos de entrega optimizados.</p>
-                </div>
-                <div className="bg-card border border-border p-6 rounded-xl flex flex-col items-center text-center shadow-sm">
-                    <div className="bg-primary/10 p-3 rounded-full mb-4">
-                        <Clock className="h-8 w-8 text-primary" />
-                    </div>
-                    <h3 className="font-bold text-lg mb-2">Entrega Rápida</h3>
-                    <p className="text-muted-foreground text-sm">Procesamos tu pedido el mismo día de la confirmación.</p>
-                </div>
-            </div>
+            <div className="prose prose-slate dark:prose-invert max-w-none space-y-8">
+                <section>
+                    <h2 className="text-xl font-bold mb-2">1. COBERTURA</h2>
+                    <p>
+                        Realizamos envíos a nivel nacional en todo el territorio peruano.
+                    </p>
+                </section>
 
-            <div className="prose prose-lg dark:prose-invert max-w-none bg-card text-card-foreground border border-border p-8 rounded-2xl shadow-sm">
-                <h3 className="text-xl font-bold text-foreground mt-0">Tiempos de Entrega</h3>
-                <ul className="list-disc pl-5 mb-6">
-                    <li><strong>Lima Metropolitana:</strong> 24 a 48 horas hábiles.</li>
-                    <li><strong>Provincias:</strong> 2 a 5 días hábiles, dependiendo del destino.</li>
-                </ul>
+                <section>
+                    <h2 className="text-xl font-bold mb-2">2. TIEMPOS DE ENTREGA</h2>
+                    <ul className="list-disc pl-5 mt-2 space-y-1">
+                        <li><strong>Lima Metropolitana:</strong> De 24 a 48 horas hábiles después de confirmado el pedido.</li>
+                        <li><strong>Provincias:</strong> De 2 a 5 días hábiles, dependiendo del destino y la accesibilidad de la zona.</li>
+                    </ul>
+                    <p className="mt-2">
+                        Los tiempos de entrega pueden variar en fechas de alta demanda (Cyber Days, Navidad, etc.).
+                    </p>
+                </section>
 
-                <h3 className="text-xl font-bold text-foreground">Costo de Envío</h3>
-                <p>
-                    El costo de envío se calcula al momento de coordinar tu pedido y depende de la ubicación exacta de entrega y el volumen del paquete. ¡Consulta por nuestras promociones de <strong>Envío Gratis</strong>!
-                </p>
+                <section>
+                    <h2 className="text-xl font-bold mb-2">3. COSTOS DE ENVÍO</h2>
+                    <p>
+                        El costo de envío se calculará al momento de finalizar la compra, dependiendo del destino y el peso/volumen del paquete.
+                    </p>
+                    <ul className="list-disc pl-5 mt-2 space-y-1">
+                        <li><strong>Lima:</strong> Tarifa plana o variable según distrito.</li>
+                        <li><strong>Provincia:</strong> Pago en destino o tarifa calculada por agencia (Olva Courier / Shalom).</li>
+                    </ul>
+                </section>
 
-                <h3 className="text-xl font-bold text-foreground mt-6">Seguimiento de Pedido</h3>
-                <p className="mb-0">
-                    Una vez despachado tu pedido, te enviaremos el número de seguimiento o la confirmación de envío directamente a tu WhatsApp para que sepas exactamente cuándo llegará.
-                </p>
+                <section>
+                    <h2 className="text-xl font-bold mb-2">4. PROCESO DE ENTREGA</h2>
+                    <p>
+                        Las entregas se realizan de lunes a sábado en horario de oficina. Es responsabilidad del cliente asegurarse de que haya una persona mayor de edad disponible para recibir el pedido en la dirección indicada.
+                    </p>
+                    <p className="mt-2">
+                        Si no se encuentra a nadie en el domicilio, la empresa de mensajería realizará un segundo intento o dejará un aviso para coordinar el recojo en agencia.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 className="text-xl font-bold mb-2">5. SEGUIMIENTO DE PEDIDO</h2>
+                    <p>
+                        Una vez despachado su pedido, recibirá un número de seguimiento (tracking) vía correo electrónico o WhatsApp para que pueda monitorear el estado de su envío.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 className="text-xl font-bold mb-2">6. DAÑOS EN EL TRANSPORTE</h2>
+                    <p>
+                        Si recibe el paquete con signos visibles de daño o manipulación, por favor no lo reciba y contáctenos inmediatamente. Si el producto sufrió daños durante el transporte, gestionaremos el cambio sin costo adicional.
+                    </p>
+                </section>
             </div>
         </div>
     )

@@ -110,7 +110,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             if (draft.reference) setReference(draft.reference)
             if (draft.shippingMethod) setShippingMethod(draft.shippingMethod)
             // Address value is handled by Google Maps hook, we can set it via setValue
-            if (draft.address) setValue(draft.address)
+            if (draft.address) setValue(draft.address, false)
         }
     }, [loaded, draft, setValue])
 
@@ -247,7 +247,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             shippingMethod,
         })
 
-        const phoneNumberClienteInit = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "982432561";
+        const phoneNumberClienteInit = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "958279604";
 
         // Abrimos WhatsApp DIRECTO por API (sin páginas intermedias) en una pestaña nueva
         // para que la tienda no se cierre.
@@ -295,7 +295,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             })
 
             // E. WhatsApp mensaje al cliente
-            const phoneNumberCliente = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "982432561"
+            const phoneNumberCliente = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "958279604"
             const orderIdFormatted = newOrderId.toString().padStart(6, '0')
 
             const messageCliente = buildWhatsAppFinalMessage({

@@ -17,18 +17,18 @@ export function MinimalHero() {
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                     </span>
-                    Nueva Colección 2026 Disponible
+                    Lo último en Tendencias 2026
                 </div>
 
                 <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-foreground mb-4 leading-[1.1]">
-                    Eleva tu estilo <br />
+                    Todo lo que buscas, <br />
                     <span className="text-primary bg-clip-text text-transparent bg-gradient-to-r from-primary to-violet-600">
-                        con lo mejor.
+                        en un solo lugar.
                     </span>
                 </h1>
 
                 <p className="text-sm sm:text-lg md:text-xl text-muted-foreground mb-6 max-w-2xl leading-relaxed px-2">
-                    Descubre productos seleccionados con calidad premium. Envío gratis en pedidos seleccionados.
+                    Explora nuestra selección diversa de productos en tendencia. Tecnología, moda, hogar y más, con la calidad y rapidez que mereces.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto px-4 sm:px-0">

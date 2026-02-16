@@ -23,8 +23,8 @@ const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || "GTM-PCKTWQM3";
 
 export const metadata: Metadata = {
   title: {
-    default: "Blama.shop",
-    template: "%s | Blama.shop",
+    default: "Blama Shop | Lo mejor en Tendencias",
+    template: "%s | Blama Shop",
   },
   metadataBase: new URL(siteUrl),
   alternates: {
@@ -41,14 +41,14 @@ export const metadata: Metadata = {
   },
   applicationName: "Blama.shop",
   description:
-    "Blama.shop es una tienda online en Perú con productos seleccionados, compras simples y atención rápida por WhatsApp. Encuentra novedades, ofertas y envíos a domicilio.",
+    "Blama Shop es tu tienda online de confianza en Perú. Encuentra lo último en tecnología, hogar y moda con envíos rápidos a todo el país.",
   openGraph: {
-    title: "Blama.shop",
+    title: "Blama Shop | Lo mejor en Tendencias",
     description:
-      "Compra en Blama.shop: productos seleccionados, ofertas y atención rápida por WhatsApp. Envíos a domicilio y experiencia de compra simple.",
+      "Productos en tendencia con la mejor atención. Tecnología, hogar, moda y más. Envíos a todo el Perú.",
     type: "website",
     locale: "es_ES",
-    siteName: "Blama.shop",
+    siteName: "Blama Shop",
     url: siteUrl,
     images: [
       {
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Blama.shop",
+    title: "Blama Shop | Lo mejor en Tendencias",
     description:
       "Tienda online en Perú con atención rápida por WhatsApp. Novedades, ofertas y envíos a domicilio.",
     images: ["/twitter-image"],

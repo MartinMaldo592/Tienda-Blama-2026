@@ -56,7 +56,7 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
         <div className="bg-white rounded-3xl overflow-hidden shadow-md border border-gray-100 relative group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl block h-full">
             {/* --- HEADER: LO MÁS VENDIDO --- */}
             <div className="absolute top-4 left-4 z-20 flex flex-col gap-2 pointer-events-none">
-                <div className="bg-red-600 text-white text-[10px] font-black px-3 py-1 rounded-full flex items-center gap-1 animate-bounce shadow-lg">
+                <div className="bg-black text-white text-[10px] font-black px-3 py-1 rounded-full flex items-center gap-1 animate-bounce shadow-lg">
                     <Flame size={12} fill="white" /> ¡LO MÁS VENDIDO!
                 </div>
             </div>
@@ -73,8 +73,10 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
                             intervalMs={3000}
                             showControls={false}
                             priority={imagePriority}
-                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                            quality={90}
+                            // Aumentamos significativamente el tamaño solicitado para asegurar nitidez
+                            // en pantallas de alta densidad.
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 40vw"
+                            quality={100} // Máxima calidad de compresión
                             imageFit="contain"
                         />
                     ) : (
@@ -89,14 +91,14 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
             <div className="p-4 flex flex-col gap-3">
                 {/* Título del producto (Ocupa todo el ancho) */}
                 <Link href={productHref} className="block w-full">
-                    <h3 className="text-base font-black text-gray-900 leading-tight hover:text-red-600 transition-colors line-clamp-2 min-h-[2.5rem]">
+                    <h3 className="text-base font-black text-gray-900 leading-tight hover:text-black transition-colors line-clamp-2 min-h-[2.5rem]">
                         {product.nombre}
                     </h3>
                 </Link>
 
                 {/* Precios (Debajo del título para evitar colisiones) */}
                 <div className="flex items-end gap-2">
-                    <p className="text-2xl font-black text-red-600 leading-none">
+                    <p className="text-2xl font-black text-blue-800 leading-none">
                         {formatCurrency(currentPrice)}
                     </p>
                     {hasSale && (
@@ -105,17 +107,18 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
                         </p>
                     )}
                     {hasSale && (
-                        <span className="ml-auto text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded-full border border-red-100">
+                        <span className="ml-auto text-[10px] font-bold text-green-700 bg-green-50 px-2 py-1 rounded-full border border-green-200">
                             -{discountPercent}%
                         </span>
                     )}
                 </div>
 
                 {/* --- COUNTDOWN --- */}
-                <div className="bg-red-50 p-2 rounded-xl border border-red-100 text-center">
+                {/* --- COUNTDOWN --- */}
+                <div className="bg-blue-50/50 p-2 rounded-xl border border-blue-100 text-center">
                     <div className="flex items-center justify-center gap-2">
-                        <p className="text-[10px] text-red-600 font-bold uppercase tracking-wider">Oferta expira en:</p>
-                        <div className="flex gap-1 font-mono text-lg font-black text-red-600 leading-none">
+                        <p className="text-[10px] text-blue-700 font-bold uppercase tracking-wider">Oferta expira en:</p>
+                        <div className="flex gap-1 font-mono text-lg font-black text-blue-900 leading-none">
                             <span>{timeLeft.m < 10 ? `0${timeLeft.m}` : timeLeft.m}</span>
                             <span>:</span>
                             <span>{timeLeft.s < 10 ? `0${timeLeft.s}` : timeLeft.s}</span>
@@ -125,7 +128,7 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
 
                 {/* --- BUTTON --- */}
                 <Link href={productHref} className="w-full">
-                    <button className="w-full bg-red-600 text-white py-2.5 rounded-xl font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-red-200 active:scale-95 transition-all hover:bg-red-700 uppercase tracking-wide">
+                    <button className="w-full bg-black text-white py-2.5 rounded-xl font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-gray-200 active:scale-95 transition-all hover:bg-gray-800 uppercase tracking-wide">
                         <Eye size={16} fill="white" />
                         VER PRODUCTO
                     </button>

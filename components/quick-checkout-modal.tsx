@@ -3,7 +3,7 @@
 import Image from "next/image"
 import { toast } from "sonner"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useLoadScript } from "@react-google-maps/api"
 import usePlacesAutocomplete from "use-places-autocomplete"
 import {
@@ -25,6 +25,7 @@ import {
     isMobileDevice,
     setLastOrderSuccessMarker,
 } from "@/features/checkout"
+import { useCheckoutDraft } from "@/features/checkout/hooks/use-checkout-draft"
 import { sendGTMEvent } from "@/lib/gtm"
 import { QuickCustomer } from "@/components/checkout/quick-checkout/quick-customer"
 import { QuickAddress } from "@/components/checkout/quick-checkout/quick-address"
@@ -130,6 +131,8 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
     const quantity = 1
     const total = unitPrice * quantity
 
+    const { draft, loaded, saveDraft } = useCheckoutDraft()
+
     const {
         ready,
         value,
@@ -141,6 +144,44 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
             componentRestrictions: { country: "pe" },
         },
     })
+
+    // Load draft when ready
+    useEffect(() => {
+        if (loaded && draft) {
+            if (draft.name) setName(draft.name)
+            if (draft.phone) setPhone(draft.phone)
+            if (draft.dni) setDni(draft.dni)
+            if (draft.department) setDepartment(draft.department)
+            if (draft.province) setDistrict(draft.province) // Map draft.province to district (provincia)
+            if (draft.district) setUrbanDistrict(draft.district) // Map draft.district to urbanDistrict (distrito)
+            if (draft.reference) setReference(draft.reference)
+            if (draft.shippingMethod) setShippingMethod(draft.shippingMethod)
+            // Address value handling
+            if (draft.address) {
+                setValue(draft.address, false)
+                setAddress(draft.address)
+            }
+        }
+    }, [loaded, draft, setValue])
+
+    // Save draft on changes
+    useEffect(() => {
+        if (!loaded) return
+        const timeout = setTimeout(() => {
+            saveDraft({
+                name,
+                phone,
+                dni,
+                department,
+                province: district, // local district var is Province
+                district: urbanDistrict, // local urbanDistrict var is District
+                reference,
+                shippingMethod,
+                address: value || address
+            })
+        }, 500) // Debounce 500ms
+        return () => clearTimeout(timeout)
+    }, [name, phone, dni, department, district, urbanDistrict, reference, shippingMethod, value, address, loaded, saveDraft])
 
     const handleAddressSelect = async (addr: string) => {
         setValue(addr, false)
@@ -193,7 +234,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
             shippingMethod
         })
 
-        const phoneNumberClienteInit = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "982432561"
+        const phoneNumberClienteInit = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "958279604"
 
         try {
             // Create Order in Background

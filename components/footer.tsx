@@ -94,10 +94,24 @@ export function Footer() {
             <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
                 {/* Brand */}
                 <div className="space-y-4">
-                    <h3 className="text-2xl font-bold text-white tracking-tight">Blama Shop</h3>
-                    <p className="text-base leading-relaxed text-gray-300 max-w-xs">
-                        La mejor experiencia de compra online con atención personalizada vía WhatsApp. Calidad, rapidez y confianza en cada pedido.
+                    <h3 className="text-2xl font-bold text-white tracking-tight">BLAMA SHOP</h3>
+                    <p className="text-sm leading-relaxed text-gray-400">
+                        Tu tienda online favorita con la mejor variedad de productos en tendencia.
                     </p>
+                    <div className="space-y-2 text-sm text-gray-400 pt-2">
+                        <div className="flex items-start gap-2">
+                            <span className="font-bold text-white shrink-0">Dirección:</span>
+                            <span>Av. Larco 123, Miraflores, Lima, Perú</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="font-bold text-white shrink-0">Email:</span>
+                            <span>soporte@blamashop.com</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="font-bold text-white shrink-0">Teléfono:</span>
+                            <span>+51 958 279 604</span>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Links Rápidos */}
@@ -118,45 +132,59 @@ export function Footer() {
                         <li><Link href="/terminos" className="hover:text-white transition-colors duration-200">Términos y Condiciones</Link></li>
                         <li><Link href="/privacidad" className="hover:text-white transition-colors duration-200">Política de Privacidad</Link></li>
                         <li><Link href="/envios" className="hover:text-white transition-colors duration-200">Política de Envíos</Link></li>
+                        <li><Link href="/devoluciones" className="hover:text-white transition-colors duration-200">Cambios y Devoluciones</Link></li>
                     </ul>
                 </div>
 
                 {/* Redes */}
-                <div className="flex flex-col items-center md:items-start">
-                    <h4 className="text-white font-bold text-base uppercase tracking-wider mb-6 text-center md:text-left">
-                        ¡Únete a nuestra comunidad!
-                    </h4>
-                    <div className="flex gap-4 flex-wrap justify-center md:justify-start">
-                        {loading ? (
-                            // Skeleton loading
-                            [1, 2, 3].map(i => <div key={i} className="h-10 w-10 bg-gray-800 rounded-full animate-pulse" />)
-                        ) : socialLinks.length > 0 ? (
-                            socialLinks.map((link) => (
-                                <a
-                                    key={link.id}
-                                    href={link.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="hover:scale-110 transition-transform duration-200 hover:opacity-90"
-                                    aria-label={`Síguenos en ${link.platform}`}
-                                >
-                                    {getIcon(link.platform)}
-                                </a>
-                            ))
-                        ) : (
-                            // Fallback if no db links found
-                            <>
-                                <a href="https://www.tiktok.com" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform duration-200 hover:opacity-90" aria-label="Síguenos en TikTok">
-                                    <TiktokIcon className="h-10 w-10" />
-                                </a>
-                                <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform duration-200 hover:opacity-90" aria-label="Síguenos en Facebook">
-                                    <FacebookIcon className="h-10 w-10" />
-                                </a>
-                                <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform duration-200 hover:opacity-90" aria-label="Síguenos en Instagram">
-                                    <InstagramIcon className="h-10 w-10" />
-                                </a>
-                            </>
-                        )}
+                <div className="flex flex-col items-center md:items-start space-y-8">
+                    <div>
+                        <h4 className="text-white font-bold text-base uppercase tracking-wider mb-6 text-center md:text-left">
+                            Síguenos
+                        </h4>
+                        <div className="flex gap-4 flex-wrap justify-center md:justify-start">
+                            {/* ... existing social links code ... */}
+                            {loading ? (
+                                [1, 2, 3].map(i => <div key={i} className="h-10 w-10 bg-gray-800 rounded-full animate-pulse" />)
+                            ) : socialLinks.length > 0 ? (
+                                socialLinks.map((link) => (
+                                    <a
+                                        key={link.id}
+                                        href={link.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="hover:scale-110 transition-transform duration-200 hover:opacity-90"
+                                        aria-label={`Síguenos en ${link.platform}`}
+                                    >
+                                        {getIcon(link.platform)}
+                                    </a>
+                                ))
+                            ) : (
+                                <>
+                                    <a href="https://www.tiktok.com/@blamashop" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform duration-200 hover:opacity-90">
+                                        <TiktokIcon className="h-10 w-10" />
+                                    </a>
+                                    <a href="https://www.facebook.com/blamashop" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform duration-200 hover:opacity-90">
+                                        <FacebookIcon className="h-10 w-10" />
+                                    </a>
+                                    <a href="https://www.instagram.com/blamashop" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform duration-200 hover:opacity-90">
+                                        <InstagramIcon className="h-10 w-10" />
+                                    </a>
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-gray-800 w-full flex justify-center md:justify-start">
+                        <Link href="/libro-reclamaciones" className="group flex items-center gap-3 bg-white text-black px-4 py-2 rounded-lg border-b-4 border-gray-300 hover:border-primary active:border-b-0 active:translate-y-1 transition-all">
+                            <div className="p-1 border-2 border-black rounded">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg>
+                            </div>
+                            <div className="flex flex-col leading-none">
+                                <span className="text-[10px] font-bold uppercase tracking-wider">Libro de</span>
+                                <span className="text-sm font-black uppercase">Reclamaciones</span>
+                            </div>
+                        </Link>
                     </div>
                 </div>
             </div>
