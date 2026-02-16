@@ -459,7 +459,13 @@ export default function ProductoDetalleClient() {
                             ) : (
                                 <>
                                     {images.length > 0 ? (
-                                        <ProductImageCarousel images={images} alt={producto.nombre} />
+                                        <ProductImageCarousel
+                                            images={images}
+                                            alt={producto.nombre}
+                                            quality={100}
+                                            priority={true}
+                                            sizes="(max-width: 768px) 100vw, 50vw"
+                                        />
                                     ) : (
                                         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">Sin imagen</div>
                                     )}
