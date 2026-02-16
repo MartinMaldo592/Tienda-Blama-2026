@@ -7,6 +7,7 @@ import { useEffect, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { createPortal } from "react-dom"
 import { Input } from "@/components/ui/input"
+import { PeruFlag } from "@/components/ui/peru-flag"
 
 export function Header() {
     const pathname = usePathname()
@@ -123,6 +124,12 @@ export function Header() {
 
                 {/* Cart Action */}
                 <div className="flex items-center gap-2">
+                    {/* Peru Flag (Visible on all devices) */}
+                    <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700">
+                        <PeruFlag className="h-3 w-4 rounded-[1px] shadow-sm object-cover" />
+                        <span className="text-[10px] font-bold text-gray-600 dark:text-gray-300">PERÚ</span>
+                    </div>
+
                     {/* Search (Visible on all devices) */}
                     <div className="flex items-center">
                         <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showDesktopSearch ? 'w-40 md:w-64 opacity-100 mr-2' : 'w-0 opacity-0'}`}>
@@ -145,6 +152,8 @@ export function Header() {
                             <Search className="h-5 w-5" />
                         </button>
                     </div>
+
+
 
                     <CartButton />
                 </div>

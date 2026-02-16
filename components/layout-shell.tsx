@@ -59,7 +59,7 @@ export function LayoutShell({ children, announcementData }: LayoutShellProps) {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Abrir chat de WhatsApp"
-          className="fixed bottom-16 right-4 md:bottom-6 md:right-6 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-white shadow-lg transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
+          className="fixed bottom-20 right-4 md:bottom-8 md:right-6 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-green-600 text-white shadow-lg transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
         >
           <svg
             viewBox="0 0 32 32"

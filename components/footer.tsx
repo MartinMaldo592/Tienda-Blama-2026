@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { createClient } from "@/lib/supabase.client"
 import { Facebook, Instagram, Linkedin, Twitter, Youtube, ExternalLink } from 'lucide-react'
+import { PeruFlag } from "@/components/ui/peru-flag"
 
 // Custom icons for complex SVGs
 const TiktokIcon = ({ className }: { className?: string }) => (
@@ -191,8 +192,11 @@ export function Footer() {
 
             <div className="container mx-auto px-6 mt-12 pt-8 border-t border-gray-800 text-center md:flex md:justify-between md:text-left text-sm text-gray-500">
                 <p>© {new Date().getFullYear()} Blama Shop. Todos los derechos reservados.</p>
-                <div className="flex justify-center gap-4 mt-2 md:mt-0">
-                    <span className="hover:text-gray-300 cursor-pointer transition-colors">Perú</span>
+                <div className="flex justify-center flex-col md:flex-row items-center gap-4 mt-2 md:mt-0">
+                    <div className="flex items-center gap-2 bg-gray-900 px-3 py-1 rounded-full border border-gray-800">
+                        <PeruFlag className="h-3 w-4 rounded-[1px]" />
+                        <span className="text-white font-bold text-xs tracking-wider">LIMA, PERÚ</span>
+                    </div>
                 </div>
             </div>
         </footer>
