@@ -202,10 +202,41 @@ export type ProductDetailResult = {
     especificaciones: ProductSpecification[]
 }
 
-export async function getProductDetail(productId: number): Promise<ProductDetailResult> {
+
+export async function getProductDetail(identifier: string | number): Promise<ProductDetailResult> {
     const supabase = createClient()
-    const [prodRes, variantsRes, specsRes] = await Promise.all([
-        supabase.from("productos").select(`*, categorias (id, nombre, slug)`).eq("id", productId).single(),
+
+    let producto: ProductWithCategory | null = null
+    let error: any = null
+
+    // Fetch Product first based on identifier type
+    if (typeof identifier === "number") {
+        const { data, error: err } = await supabase
+            .from("productos")
+            .select(`*, categorias (id, nombre, slug)`)
+            .eq("id", identifier)
+            .single()
+        producto = data as ProductWithCategory
+        error = err
+    } else {
+        const { data, error: err } = await supabase
+            .from("productos")
+            .select(`*, categorias (id, nombre, slug)`)
+            .eq("slug", identifier) // Requires 'slug' column migration
+            .single()
+        producto = data as ProductWithCategory
+        error = err
+    }
+
+    if (error || !producto) {
+        console.error("Error fetching producto:", error)
+        return { producto: null, variantes: [], especificaciones: [] }
+    }
+
+    const productId = producto.id
+
+    // Fetch variants and specs using the retrieved numeric ID
+    const [variantsRes, specsRes] = await Promise.all([
         supabase
             .from("producto_variantes")
             .select("*")
@@ -220,18 +251,11 @@ export async function getProductDetail(productId: number): Promise<ProductDetail
             .order("id", { ascending: true }),
     ])
 
-    const { data, error } = prodRes
-
-    const producto = error ? null : ((data as ProductWithCategory) || null)
 
     const variantes = Array.isArray(variantsRes.data) ? (variantsRes.data as ProductVariant[]) : []
     const especificaciones = Array.isArray(specsRes.data)
         ? (specsRes.data as ProductSpecification[])
         : []
-
-    if (error) {
-        console.error("Error fetching producto:", error)
-    }
 
     return {
         producto,

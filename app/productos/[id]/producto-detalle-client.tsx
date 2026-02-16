@@ -44,12 +44,19 @@ import { ProductCard } from "@/components/product-card"
 import { ProductSocialProof } from "@/components/product-social-proof"
 import { QuickCheckoutModal } from "@/components/quick-checkout-modal"
 
-function parseProductId(raw: string) {
+
+function parseProductIdentifier(raw: string): string | number {
     const direct = Number(raw)
     if (Number.isFinite(direct) && direct > 0) return direct
-    const match = String(raw).match(/(\d+)(?:\D*)$/)
-    if (match && match[1]) return Number(match[1])
-    return 0
+
+    // Legacy Support: URLs que terminan en -ID ("zapato-123")
+    const match = String(raw).match(/-(\d+)$/)
+    if (match && match[1]) {
+        return Number(match[1])
+    }
+
+    // New Support: URLs limpias (Slug puro)
+    return raw
 }
 
 import { useWhatsAppStore } from "@/lib/whatsapp-store"
@@ -61,7 +68,7 @@ export default function ProductoDetalleClient() {
     const router = useRouter()
     const rawId = params.id as string
 
-    const numericId = useMemo(() => parseProductId(rawId), [rawId])
+    const identifier = useMemo(() => parseProductIdentifier(rawId), [rawId])
     const startAnimation = useCartAnimationStore((s) => s.startAnimation)
 
     const [loading, setLoading] = useState(true)
@@ -129,10 +136,12 @@ export default function ProductoDetalleClient() {
     }, [loading])
 
     const quantity = useMemo(() => {
+        if (!producto?.id) return 0
+        const pid = Number(producto.id)
         const vid = selectedVarianteId ?? null
-        const found = items.find((it: any) => it.id === numericId && ((it as any).producto_variante_id ?? null) === vid)
+        const found = items.find((it: any) => it.id === pid && ((it as any).producto_variante_id ?? null) === vid)
         return found?.quantity || 0
-    }, [items, numericId, selectedVarianteId])
+    }, [items, producto?.id, selectedVarianteId])
 
     useEffect(() => {
         if (!rawId) return
@@ -149,13 +158,13 @@ export default function ProductoDetalleClient() {
     async function fetchProducto() {
         setLoading(true)
 
-        if (!numericId) {
+        if (!identifier) {
             setProducto(null)
             setLoading(false)
             return
         }
 
-        const { producto, variantes, especificaciones } = await getProductDetail(numericId)
+        const { producto, variantes, especificaciones } = await getProductDetail(identifier)
         setProducto(producto)
 
         const vData = Array.isArray(variantes) ? variantes : []

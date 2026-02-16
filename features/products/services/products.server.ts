@@ -11,16 +11,25 @@ function createAnonServerClient() {
     })
 }
 
-export async function fetchProductForMeta(id: number) {
+
+export async function fetchProductForMeta(identifier: string | number) {
     const supabase = createAnonServerClient()
     if (!supabase) return null
 
-    const { data, error } = await supabase
+    let query = supabase
         .from("productos")
-        .select("id, nombre, descripcion, imagen_url, imagenes, precio, precio_antes, stock, categorias(nombre)")
-        .eq("id", id)
-        .maybeSingle()
+        .select("id, nombre, descripcion, imagen_url, imagenes, slug, precio, precio_antes, stock, categorias(nombre)")
 
+    // Si es un número, buscamos por ID
+    if (typeof identifier === "number") {
+        query = query.eq("id", identifier)
+    } else {
+        // Si es string, buscamos por slug
+        // Nota: Asegúrate de correr la migración SQL para agregar la columna 'slug' primero.
+        query = query.eq("slug", identifier)
+    }
+
+    const { data, error } = await query.maybeSingle()
     if (error) return null
     return data
 }

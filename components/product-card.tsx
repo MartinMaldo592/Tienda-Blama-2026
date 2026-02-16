@@ -32,7 +32,10 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
     )
     const fallbackImages = images.length > 0 ? images : product.imagen_url ? [product.imagen_url] : []
 
-    const productHref = `/productos/${slugify(product.nombre)}-${product.id}`
+    const slug = (product as any).slug
+    const productHref = slug
+        ? `/productos/${slug}`
+        : `/productos/${slugify(product.nombre)}-${product.id}`
 
     // Countdown logic
     const [timeLeft, setTimeLeft] = useState({ m: 14, s: 59 })

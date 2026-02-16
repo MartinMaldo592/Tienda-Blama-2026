@@ -6,24 +6,33 @@ import { slugify } from "@/lib/utils"
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.blama.shop"
 
 /**
- * Extrae el ID numérico del parámetro de ruta.
- * Soporta rutas con slug: "collar-plata-123" → 123
- * y rutas legacy solo con ID: "123" → 123
+ * Extrae el identificador del producto (ID o Slug).
+ * - Si es número puro ("123") -> devuelve número ID.
+ * - Si termina en guión número ("...-123") -> devuelve número ID (Legacy).
+ * - Si es texto ("zapato-azul") -> devuelve string Slug (Nuevo).
  */
-function parseProductId(raw: string) {
+function parseProductIdentifier(raw: string): string | number {
     const direct = Number(raw)
     if (Number.isFinite(direct) && direct > 0) return direct
-    const match = String(raw).match(/(\d+)(?:\D*)$/)
-    if (match && match[1]) return Number(match[1])
-    return 0
+
+    // Legacy Support: URLs que terminan en -ID ("zapato-123")
+    const match = String(raw).match(/-(\d+)$/)
+    if (match && match[1]) {
+        return Number(match[1])
+    }
+
+    // New Support: URLs limpias (Slug puro)
+    return raw
 }
 
 /**
- * Genera la URL canónica con slug SEO-friendly
+ * Genera la URL canónica preferida
  */
-function buildProductUrl(nombre: string, id: number) {
-    const slug = slugify(nombre)
-    return `${BASE_URL}/productos/${slug}-${id}`
+function buildProductUrl(nombre: string, id: number, slug?: string) {
+    if (slug) return `${BASE_URL}/productos/${slug}`
+    // Fallback legacy
+    const generatedSlug = slugify(nombre)
+    return `${BASE_URL}/productos/${generatedSlug}-${id}`
 }
 
 function buildDescription(p: any) {
@@ -39,9 +48,9 @@ export async function generateMetadata({
     params: Promise<{ id: string }>
 }): Promise<Metadata> {
     const resolvedParams = await params
-    const id = parseProductId(resolvedParams.id)
+    const identifier = parseProductIdentifier(resolvedParams.id)
 
-    if (!id) {
+    if (!identifier) {
         return {
             title: "Producto no encontrado",
             description: "El producto que buscas no existe.",
@@ -49,7 +58,7 @@ export async function generateMetadata({
         }
     }
 
-    const product = await fetchProductForMeta(id) as any
+    const product = await fetchProductForMeta(identifier) as any
     if (!product) {
         return {
             title: "Producto no encontrado",
@@ -67,7 +76,7 @@ export async function generateMetadata({
 
     const imgs = Array.isArray(product.imagenes) ? (product.imagenes as string[]).filter(Boolean) : []
     const primaryImage = imgs[0] || String(product.imagen_url || "")
-    const url = buildProductUrl(String(product.nombre), Number(product.id))
+    const url = buildProductUrl(String(product.nombre), Number(product.id), product.slug)
 
     return {
         title,
@@ -113,8 +122,8 @@ export default async function ProductoDetallePage({
     params: Promise<{ id: string }>
 }) {
     const resolvedParams = await params
-    const id = parseProductId(resolvedParams.id)
-    const product = await fetchProductForMeta(id) as any
+    const identifier = parseProductIdentifier(resolvedParams.id)
+    const product = await fetchProductForMeta(identifier) as any
 
     if (!product) {
         return <ProductoDetalleClient />
