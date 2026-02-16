@@ -102,7 +102,7 @@ export function Footer() {
                     <div className="space-y-2 text-sm text-gray-400 pt-2">
                         <div className="flex items-start gap-2">
                             <span className="font-bold text-white shrink-0">Dirección:</span>
-                            <span>Av. Larco 123, Miraflores, Lima, Perú</span>
+                            <span>Calle Los Piroxenos 678, Lima, Perú</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <span className="font-bold text-white shrink-0">Email:</span>

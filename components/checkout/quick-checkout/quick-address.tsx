@@ -60,7 +60,7 @@ export function QuickAddress({
                         value={addressValue}
                         onChange={(e) => setAddressValue(e.target.value)}
                         disabled={disabled || !ready}
-                        placeholder="Ej: Av. Larco 123"
+                        placeholder="Ej: Calle Los Piroxenos 678"
                         className="flex h-full w-full bg-background px-3 py-2 placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                     />
                 </div>

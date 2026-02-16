@@ -59,7 +59,7 @@ export default function ContactoPage() {
                         <CardDescription>Oficina Administrativa</CardDescription>
                     </CardHeader>
                     <CardContent className="text-center">
-                        <p className="font-semibold text-base">Av. Larco 123, Miraflores</p>
+                        <p className="font-semibold text-base">Calle Los Piroxenos 678</p>
                         <p className="text-sm text-muted-foreground mt-1">Lima, Perú</p>
                     </CardContent>
                 </Card>
@@ -106,7 +106,7 @@ export default function ContactoPage() {
                     <div className="bg-muted rounded-xl h-[300px] w-full flex items-center justify-center relative overflow-hidden border">
                         {/* Embed Google Maps */}
                         <iframe
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3900.7126139401944!2d-77.03222232417068!3d-12.126588243399996!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105c81f37e4c25b%3A0xe5495574378f8588!2sAv.%20Jos%C3%A9%20Larco%20123%2C%20Miraflores%2015074!5e0!3m2!1ses-419!2spe!4v1708100100000!5m2!1ses-419!2spe"
+                            src="https://maps.google.com/maps?q=Calle%20Los%20Piroxenos%20678&t=&z=17&ie=UTF8&iwloc=B&output=embed"
                             width="100%"
                             height="100%"
                             style={{ border: 0 }}
