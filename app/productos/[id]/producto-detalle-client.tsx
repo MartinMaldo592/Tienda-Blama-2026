@@ -426,7 +426,7 @@ export default function ProductoDetalleClient() {
 
             </div>
 
-            <div className="text-sm text-muted-foreground">
+            <div className="hidden sm:block text-sm text-muted-foreground">
                 <Link href="/" className="hover:underline">Inicio</Link>
                 <span className="mx-2">/</span>
                 <Link href="/productos" className="hover:underline">Productos</Link>
