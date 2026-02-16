@@ -445,7 +445,7 @@ export default function ProductoDetalleClient() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                     <Card className="overflow-hidden shadow-sm border">
-                        <div className="aspect-square bg-popover relative group" ref={imageContainerRef}>
+                        <div className="aspect-[3/4] bg-popover relative group" ref={imageContainerRef}>
                             {showVideo && activeVideo ? (
                                 <div className="absolute inset-0 flex items-center justify-center bg-black">
                                     <video
