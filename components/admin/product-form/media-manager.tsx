@@ -3,8 +3,9 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowDown, ArrowUp, Star, Trash2, UploadCloud } from "lucide-react"
-import { deleteFromR2, uploadProductImages, uploadProductVideos } from "@/features/admin"
+import { ArrowDown, ArrowUp, Star, Trash2, UploadCloud, Loader2, AlertCircle, CheckCircle2 } from "lucide-react"
+import { deleteFromR2, uploadToR2 } from "@/features/admin"
+import { toast } from "sonner" // Asumimos que existe sonner o usaremos alert si no
 
 interface MediaManagerProps {
     imageUrl: string
@@ -33,6 +34,7 @@ export function MediaManager({
     setUploading,
     setLoading
 }: MediaManagerProps) {
+    const [uploadStatus, setUploadStatus] = useState<string>("")
 
     function normalizeImages(input: string[]) {
         const unique: string[] = []
@@ -59,30 +61,64 @@ export function MediaManager({
     async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
         if (!e.target.files || e.target.files.length === 0) return;
 
+        setUploading(true)
+
+        const files = Array.from(e.target.files).filter((f) => {
+            const t = String(f?.type || '').toLowerCase()
+            const n = String(f?.name || '').toLowerCase()
+            if (t) return t.startsWith('image/')
+            return n.endsWith('.png') || n.endsWith('.jpg') || n.endsWith('.jpeg') || n.endsWith('.webp') || n.endsWith('.gif')
+        })
+
+        const remainingSlots = Math.max(0, 10 - galleryImages.length)
+        const toUpload = files.slice(0, remainingSlots)
+
+        if (toUpload.length === 0) {
+            alert("No se pueden seleccionar más imágenes (límite alcanzado o formato incorrecto).")
+            setUploading(false)
+            setUploadStatus("")
+            e.target.value = ''
+            return
+        }
+
+        setUploadStatus(`Subiendo ${toUpload.length} imágenes...`)
+
         try {
-            setUploading(true)
-            const files = Array.from(e.target.files).filter((f) => {
-                const t = String(f?.type || '').toLowerCase()
-                const n = String(f?.name || '').toLowerCase()
-                if (t) return t.startsWith('image/')
-                return n.endsWith('.png') || n.endsWith('.jpg') || n.endsWith('.jpeg') || n.endsWith('.webp') || n.endsWith('.gif')
+            // Subida en paralelo para mayor velocidad en imágenes
+            const uploadPromises = toUpload.map(async (file) => {
+                try {
+                    return await uploadToR2(file)
+                } catch (err) {
+                    console.error(`Falló subida de ${file.name}`, err)
+                    return null
+                }
             })
-            const remaining = Math.max(0, 10 - galleryImages.length)
-            const toUpload = files.slice(0, remaining)
 
-            const uploadedUrls = await uploadProductImages({ files: toUpload })
+            const results = await Promise.all(uploadPromises)
+            const successfulUrls = results.filter((url) => url !== null) as string[]
 
-            const next = normalizeImages([...galleryImages, ...uploadedUrls])
-            setGalleryImages(next)
+            if (successfulUrls.length > 0) {
+                const next = normalizeImages([...galleryImages, ...successfulUrls])
+                setGalleryImages(next)
 
-            if (!imageUrl && next.length > 0) {
-                setImageUrl(next[0])
+                if (!imageUrl && next.length > 0) {
+                    setImageUrl(next[0])
+                }
             }
 
+            const failedCount = toUpload.length - successfulUrls.length
+            setUploadStatus(failedCount === 0
+                ? "¡Imágenes subidas correctamente!"
+                : `Se subieron ${successfulUrls.length} de ${toUpload.length} imágenes.`)
+
         } catch (error: any) {
-            alert("Error subiendo imagen: " + error.message)
+            console.error("Error exception al subir imágenes:", error)
+            alert(`Error crítico al subir imágenes: ${error.message}`)
         } finally {
-            setUploading(false)
+            setTimeout(() => {
+                setUploading(false)
+                setUploadStatus("")
+            }, 1500)
             e.target.value = ''
         }
     }
@@ -90,22 +126,56 @@ export function MediaManager({
     async function handleVideoUpload(e: React.ChangeEvent<HTMLInputElement>) {
         if (!e.target.files || e.target.files.length === 0) return
 
-        try {
-            setUploading(true)
-            const files = Array.from(e.target.files)
-            const remaining = Math.max(0, 6 - videos.length)
-            const toUpload = files.slice(0, remaining)
+        setUploading(true)
+        setUploadStatus("Iniciando subida de videos...")
 
-            const uploadedUrls = await uploadProductVideos({ files: toUpload })
+        const files = Array.from(e.target.files)
+        const remainingSlots = Math.max(0, 6 - videos.length)
+        const toUpload = files.slice(0, remainingSlots)
 
-            const next = normalizeVideos([...videos, ...uploadedUrls])
-            setVideos(next)
-        } catch (error: any) {
-            alert("Error subiendo video: " + error.message)
-        } finally {
+        if (toUpload.length === 0) {
+            alert("No se pueden subir más videos (límite de 6 alcanzado).")
             setUploading(false)
+            setUploadStatus("")
             e.target.value = ''
+            return
         }
+
+        let successCount = 0
+        let currentVideos = [...videos]
+
+        for (let i = 0; i < toUpload.length; i++) {
+            const file = toUpload[i]
+            setUploadStatus(`Subiendo video ${i + 1} de ${toUpload.length}: ${file.name}...`)
+
+            try {
+                // Subida secuencial para evitar saturación y mejor feedback
+                const url = await uploadToR2(file)
+
+                if (url) {
+                    currentVideos = normalizeVideos([...currentVideos, url])
+                    setVideos(currentVideos)
+                    successCount++
+                } else {
+                    console.error(`Error al subir video ${file.name}`)
+                    alert(`Error al subir el video: ${file.name}. Verifica tu conexión o intenta con un archivo más ligero.`)
+                }
+            } catch (error: any) {
+                console.error(`Error exception video ${file.name}:`, error)
+                alert(`Error crítico al subir video ${file.name}: ${error.message}`)
+            }
+        }
+
+        setUploadStatus(successCount === toUpload.length
+            ? "¡Todos los videos se subieron correctamente!"
+            : `Se subieron ${successCount} de ${toUpload.length} videos.`)
+
+        setTimeout(() => {
+            setUploading(false)
+            setUploadStatus("")
+        }, 1500)
+
+        e.target.value = ''
     }
 
     function addGalleryUrl(url: string) {
@@ -170,7 +240,7 @@ export function MediaManager({
     return (
         <div className="space-y-6">
             <div className="space-y-2">
-                <Label>Imagen</Label>
+                <Label>Imagen Principal y Galería</Label>
                 <div className="flex gap-2 items-center">
                     <Input
                         value={imageUrl}
@@ -179,12 +249,12 @@ export function MediaManager({
                         className="flex-1"
                     />
                 </div>
-                <p className="text-xs text-muted-foreground">Pega una URL externa o sube una imagen (si tienes bucket).</p>
+                <p className="text-xs text-muted-foreground">Pega una URL externa o sube imágenes desde tu dispositivo.</p>
 
                 <div className="mt-2">
-                    <Label htmlFor="file-upload" className="cursor-pointer inline-flex items-center gap-2 text-sm bg-primary text-primary-foreground px-3 py-2 rounded-md transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 shadow-sm">
-                        <UploadCloud className="h-4 w-4" />
-                        {uploading ? "Subiendo..." : "Subir desde PC (puedes seleccionar varias)"}
+                    <Label htmlFor="file-upload" className={`cursor-pointer inline-flex items-center gap-2 text-sm px-4 py-2 rounded-md transition-all shadow-sm ${uploading ? 'bg-muted text-muted-foreground cursor-not-allowed' : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}>
+                        {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
+                        {uploading ? "Procesando archivos..." : "Subir imágenes (múltiple)"}
                     </Label>
                     <Input
                         id="file-upload"
@@ -197,24 +267,35 @@ export function MediaManager({
                     />
                 </div>
 
+                {/* Feedback de estado de subida */}
+                {uploadStatus && (
+                    <div className="mt-2 p-3 bg-blue-50 text-blue-700 text-sm rounded-md border border-blue-100 flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>{uploadStatus}</span>
+                    </div>
+                )}
+
                 {imageUrl && (
-                    <div className="mt-2 h-32 w-32 rounded-lg border overflow-hidden relative bg-popover">
-                        <Image src={imageUrl} alt="Preview" fill className="object-cover" />
+                    <div className="mt-4 p-4 border rounded-lg bg-card text-card-foreground shadow-sm">
+                        <Label className="mb-2 block">Vista Previa Principal</Label>
+                        <div className="h-48 w-full md:w-64 rounded-lg border overflow-hidden relative bg-muted/20">
+                            <Image src={imageUrl} alt="Preview" fill className="object-cover" />
+                        </div>
                     </div>
                 )}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-4 pt-4 border-t">
                 <div className="flex items-center justify-between">
-                    <Label>Galería (hasta 10)</Label>
-                    <span className="text-xs text-muted-foreground">{galleryImages.length}/10</span>
+                    <Label className="text-base">Galería de Imágenes (hasta 10)</Label>
+                    <span className="text-xs font-medium bg-muted px-2 py-1 rounded-full">{galleryImages.length}/10</span>
                 </div>
 
                 <div className="flex gap-2">
                     <Input
                         value={newGalleryUrl}
                         onChange={(e) => setNewGalleryUrl(e.target.value)}
-                        placeholder="Pega otra URL de imagen..."
+                        placeholder="Agregar URL de imagen manualmente..."
                         className="flex-1"
                     />
                     <Button
@@ -227,105 +308,117 @@ export function MediaManager({
                         }}
                         disabled={!newGalleryUrl.trim() || galleryImages.length >= 10}
                     >
-                        Agregar
+                        Agregar URL
                     </Button>
                 </div>
 
-                {galleryImages.length > 0 && (
-                    <div className="space-y-2">
+                {galleryImages.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         {galleryImages.map((url, idx) => (
-                            <div key={`${url}-${idx}`} className="flex items-center gap-3 rounded-lg border bg-popover p-2">
-                                <div className="h-7 w-7 rounded-md bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
-                                    {idx + 1}
+                            <div key={`${url}-${idx}`} className="group relative rounded-lg border bg-popover overflow-hidden hover:shadow-md transition-shadow">
+                                <div className="absolute top-2 left-2 z-10 bg-primary/90 text-primary-foreground text-xs font-bold px-2 py-0.5 rounded shadow-sm">
+                                    #{idx + 1}
                                 </div>
 
-                                <div className="h-12 w-12 rounded-md overflow-hidden border bg-background flex-shrink-0 relative">
-                                    <Image src={url} alt="Imagen" fill className="object-cover" />
+                                <div className="aspect-square relative bg-muted/30">
+                                    <Image src={url} alt={`Imagen ${idx + 1}`} fill className="object-cover" />
                                 </div>
 
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-xs text-muted-foreground truncate">{url}</p>
-                                    {idx === 0 && (
-                                        <p className="text-xs font-medium">Principal</p>
-                                    )}
-                                </div>
-
-                                <div className="flex items-center gap-1">
+                                <div className="p-2 space-y-1">
+                                    <div className="flex items-center justify-between gap-1">
+                                        <div className="flex gap-1">
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                                size="icon"
+                                                className="h-7 w-7"
+                                                title="Mover atrás"
+                                                onClick={() => moveGalleryIndex(idx, idx - 1)}
+                                                disabled={idx === 0}
+                                            >
+                                                <ArrowUp className="h-3 w-3" />
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                                size="icon"
+                                                className="h-7 w-7"
+                                                title="Mover adelante"
+                                                onClick={() => moveGalleryIndex(idx, idx + 1)}
+                                                disabled={idx === galleryImages.length - 1}
+                                            >
+                                                <ArrowDown className="h-3 w-3" />
+                                            </Button>
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            className="h-7 w-7"
+                                            title="Eliminar"
+                                            onClick={() => removeGalleryUrl(url)}
+                                        >
+                                            <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                    </div>
                                     <Button
                                         type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8"
+                                        variant={idx === 0 ? "default" : "outline"}
+                                        size="sm"
+                                        className="w-full h-7 text-xs"
                                         onClick={() => makeGalleryMain(url)}
                                         disabled={idx === 0}
                                     >
-                                        <Star className="h-4 w-4" />
-                                    </Button>
-
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        onClick={() => moveGalleryIndex(idx, idx - 1)}
-                                        disabled={idx === 0}
-                                    >
-                                        <ArrowUp className="h-4 w-4" />
-                                    </Button>
-
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        onClick={() => moveGalleryIndex(idx, idx + 1)}
-                                        disabled={idx === galleryImages.length - 1}
-                                    >
-                                        <ArrowDown className="h-4 w-4" />
-                                    </Button>
-
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8"
-                                        onClick={() => removeGalleryUrl(url)}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
+                                        {idx === 0 ? <><Star className="h-3 w-3 mr-1 fill-current" /> Principal</> : "Hacer Principal"}
                                     </Button>
                                 </div>
                             </div>
                         ))}
                     </div>
+                ) : (
+                    <div className="text-center py-8 border-2 border-dashed rounded-lg text-muted-foreground bg-muted/10">
+                        <p>No hay imágenes en la galería</p>
+                    </div>
                 )}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-4 pt-4 border-t">
                 <div className="flex items-center justify-between">
-                    <Label>Videos (hasta 6)</Label>
-                    <span className="text-xs text-muted-foreground">{videos.length}/6</span>
+                    <div>
+                        <Label className="text-base">Videos del Producto (hasta 6)</Label>
+                        <p className="text-xs text-muted-foreground mt-1">Sube videos cortos para mostrar mejor tu producto.</p>
+                    </div>
+                    <span className="text-xs font-medium bg-muted px-2 py-1 rounded-full">{videos.length}/6</span>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="mt-2">
+                    <Label htmlFor="video-upload" className={`cursor-pointer inline-flex items-center gap-2 text-sm px-4 py-2 rounded-md transition-all shadow-sm ${uploading || videos.length >= 6 ? 'bg-muted text-muted-foreground cursor-not-allowed' : 'bg-slate-800 text-white hover:bg-slate-700'}`}>
+                        {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
+                        {uploading ? "Subiendo videos..." : "Subir Videos (MP4/WebM)"}
+                    </Label>
                     <Input
+                        id="video-upload"
                         type="file"
                         accept="video/mp4,video/webm"
                         multiple
+                        className="hidden"
                         onChange={handleVideoUpload}
                         disabled={uploading || videos.length >= 6}
                     />
                 </div>
 
-                {videos.length > 0 && (
+                {videos.length > 0 ? (
                     <div className="space-y-2">
                         {videos.map((url, idx) => (
-                            <div key={`${url}-${idx}`} className="flex items-center gap-3 rounded-lg border bg-popover p-2">
-                                <div className="h-7 w-7 rounded-md bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
+                            <div key={`${url}-${idx}`} className="flex items-center gap-3 rounded-lg border bg-card p-3 shadow-sm">
+                                <div className="h-8 w-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold ring-1 ring-slate-200">
                                     {idx + 1}
                                 </div>
 
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-xs text-muted-foreground truncate">{url}</p>
+                                <div className="min-w-0 flex-1 overflow-hidden">
+                                    <a href={url} target="_blank" rel="noreferrer" className="text-sm font-medium hover:underline truncate block text-blue-600">
+                                        {url.split('/').pop()}
+                                    </a>
                                 </div>
 
                                 <div className="flex items-center gap-1">
@@ -333,7 +426,7 @@ export function MediaManager({
                                         type="button"
                                         variant="ghost"
                                         size="icon"
-                                        className="h-8 w-8"
+                                        title="Subir posición"
                                         onClick={() => moveVideoIndex(idx, idx - 1)}
                                         disabled={idx === 0}
                                     >
@@ -344,7 +437,7 @@ export function MediaManager({
                                         type="button"
                                         variant="ghost"
                                         size="icon"
-                                        className="h-8 w-8"
+                                        title="Bajar posición"
                                         onClick={() => moveVideoIndex(idx, idx + 1)}
                                         disabled={idx === videos.length - 1}
                                     >
@@ -353,9 +446,9 @@ export function MediaManager({
 
                                     <Button
                                         type="button"
-                                        variant="ghost"
+                                        variant="destructive"
                                         size="icon"
-                                        className="h-8 w-8"
+                                        title="Eliminar video"
                                         onClick={() => setVideos((prev) => prev.filter((x) => x !== url))}
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -363,6 +456,10 @@ export function MediaManager({
                                 </div>
                             </div>
                         ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-6 border-2 border-dashed rounded-lg text-muted-foreground bg-muted/10">
+                        <p>No hay videos cargados</p>
                     </div>
                 )}
             </div>
