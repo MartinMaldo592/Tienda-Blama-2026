@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import { ProductImageCarousel } from "@/components/product-image-carousel"
 import { useCartStore } from "@/features/cart"
-import { useCartAnimationStore } from "@/features/cart/cart-animation"
+
 import { getProductDetail, getRecommendedProducts } from "@/features/products/services/products.client"
 import { sendGTMEvent } from "@/lib/gtm"
 import {
@@ -69,7 +69,7 @@ export default function ProductoDetalleClient() {
     const rawId = params.id as string
 
     const identifier = useMemo(() => parseProductIdentifier(rawId), [rawId])
-    const startAnimation = useCartAnimationStore((s) => s.startAnimation)
+
 
     const [loading, setLoading] = useState(true)
     const [producto, setProducto] = useState<any>(null)

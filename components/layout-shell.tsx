@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { useWhatsAppStore } from "@/lib/whatsapp-store"
 
 import { Header } from "@/components/header"
-import { FlyingProductImage } from "@/components/flying-product-image"
+
 import { AnnouncementBar } from "@/components/announcement-bar"
 import { Footer } from "@/components/footer"
 
@@ -42,7 +42,7 @@ export function LayoutShell({ children, announcementData }: LayoutShellProps) {
   return (
     <>
       <Header />
-      <FlyingProductImage />
+
       {shouldShowAnnouncement && announcementData && (
         <AnnouncementBar
           className="sticky top-16 z-40"
