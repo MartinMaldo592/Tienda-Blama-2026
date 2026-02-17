@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { checkRateLimit, getClientIP } from "@/lib/rate-limit"
+import { z } from "zod"
 
 export const runtime = "nodejs"
 
@@ -10,22 +11,36 @@ function getEnv() {
   return { url, service }
 }
 
-function normalizeDigits(v: unknown) {
-  return String(v ?? "").replace(/\D/g, "")
-}
+// ── Zod Schemas ──
 
-function normalizeText(v: unknown) {
-  return String(v ?? "").trim()
-}
+const CheckoutItemSchema = z.object({
+  id: z.coerce.number().positive(),
+  quantity: z.coerce.number().positive(),
+  precio: z.coerce.number().optional(),
+  nombre: z.string().optional(),
+  producto_variante_id: z.coerce.number().nullable().optional(),
+  variante_nombre: z.string().nullable().optional(),
+})
 
-type CheckoutItemInput = {
-  id: number
-  quantity: number
-  precio?: number
-  nombre?: string
-  producto_variante_id?: number | null
-  variante_nombre?: string | null
-}
+const CheckoutBodySchema = z.object({
+  name: z.string().min(2, "Nombre requerido"),
+  phone: z.string().min(9, "Teléfono inválido").regex(/^\d+$/, "Solo números"),
+  dni: z.string().length(8, "DNI debe tener 8 dígitos").regex(/^\d+$/, "Solo números"),
+  address: z.string().min(5, "Dirección requerida"),
+  reference: z.string().optional(),
+  locationLink: z.string().url("Link de ubicación inválido").optional().or(z.literal("")),
+  shippingMethod: z.string().optional(),
+  couponCode: z.string().optional(),
+  discountAmount: z.coerce.number().min(0).optional(),
+  items: z.array(CheckoutItemSchema).min(1, "El carrito está vacío"),
+
+  // Location fields
+  department: z.string().optional(),
+  province: z.string().optional(),
+  provinceName: z.string().optional(), // compatibility
+  district: z.string().optional(),
+  street: z.string().optional(),
+})
 
 export async function GET() {
   const { url, service } = getEnv()
@@ -65,62 +80,53 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Server env not configured", missing }, { status: 500 })
     }
 
-    const body = await req.json()
+    const bodyRaw = await req.json()
 
-    const name = normalizeText(body?.name)
-    const phone = normalizeDigits(body?.phone)
-    const dni = normalizeDigits(body?.dni).slice(0, 8)
-    const address = normalizeText(body?.address)
-    const reference = normalizeText(body?.reference)
-    const locationLink = normalizeText(body?.locationLink) || null
-    const shippingMethod = normalizeText(body?.shippingMethod) || null
+    // ── Validation ──
+    const validation = CheckoutBodySchema.safeParse(bodyRaw)
+
+    if (!validation.success) {
+      const errorMsg = validation.error.issues[0]?.message || "Datos inválidos"
+      return NextResponse.json({ error: errorMsg, details: validation.error.format() }, { status: 400 })
+    }
+
+    const body = validation.data
 
     console.log("🐛 DEBUG CHECKOUT API:", {
-      receivedLocationLink: body?.locationLink,
-      normalizedLocationLink: locationLink,
-      address,
-      reference
+      receivedLocationLink: body.locationLink,
+      address: body.address,
+      reference: body.reference
     })
 
-    const couponCode = normalizeText(body?.couponCode) || null
-    const discountRaw = Number(body?.discountAmount ?? 0)
+    const name = body.name.trim()
+    const phone = body.phone.trim() // Already validated as digits by regex in schema? No, regex allows digits but string might have spaces if not trimmed. Zod regex applies to string.
+    const dni = body.dni
+    const address = body.address.trim()
+    const reference = body.reference?.trim() || ""
+    const locationLink = body.locationLink?.trim() || null
+    const shippingMethod = body.shippingMethod?.trim() || null
+    const couponCode = body.couponCode?.trim() || null
+    const discountAmount = body.discountAmount || 0
+    const items = body.items
 
-    const itemsRaw = Array.isArray(body?.items) ? (body.items as any[]) : []
-    const items: CheckoutItemInput[] = itemsRaw
-      .map((it) => ({
-        id: Number(it?.id ?? 0),
-        quantity: Number(it?.quantity ?? 0),
-        precio: it?.precio != null ? Number(it.precio) : undefined,
-        nombre: it?.nombre != null ? String(it.nombre) : undefined,
-        producto_variante_id: it?.producto_variante_id != null ? Number(it.producto_variante_id) : null,
-        variante_nombre: it?.variante_nombre != null ? String(it.variante_nombre) : null,
-      }))
-      .filter((it) => Number.isFinite(it.id) && it.id > 0 && Number.isFinite(it.quantity) && it.quantity > 0)
-
-    if (!name) return NextResponse.json({ error: "Nombre requerido" }, { status: 400 })
-    if (!phone) return NextResponse.json({ error: "Teléfono requerido" }, { status: 400 })
-    if (dni.length !== 8) return NextResponse.json({ error: "DNI inválido" }, { status: 400 })
-    if (!address) return NextResponse.json({ error: "Dirección requerida" }, { status: 400 })
-    if (items.length === 0) return NextResponse.json({ error: "Items inválidos" }, { status: 400 })
-
+    // Calculate totals
     const subtotal = Math.max(
       0,
       Math.round(
         items.reduce((acc, it) => {
           const unit = Number(it.precio ?? 0) || 0
-          return acc + unit * (Number(it.quantity) || 0)
+          return acc + unit * it.quantity
         }, 0) * 100
       ) / 100
     )
 
-    const discountAmount = Math.max(0, Math.min(subtotal, Number.isFinite(discountRaw) ? discountRaw : 0))
-    const total = Math.max(0, Math.round((subtotal - discountAmount) * 100) / 100)
+    const appliedDiscount = Math.max(0, Math.min(subtotal, discountAmount))
+    const total = Math.max(0, Math.round((subtotal - appliedDiscount) * 100) / 100)
 
-    const district = normalizeText(body?.district) || null
-    const provincia = normalizeText(body?.provinceName) || null
-    const province = normalizeText(body?.province) || null // Keep for backward compatibility if needed, but primary is department
-    const department = normalizeText(body?.department) || province // Use department, fallback to province
-    const street = normalizeText(body?.street) || null
+    const district = body.district?.trim() || null
+    const provincia = body.provinceName?.trim() || null
+    const department = body.department?.trim() || body.province?.trim() || null
+    const street = body.street?.trim() || null
 
     const direccionCompleta = `${address} ${reference ? `(Ref: ${reference})` : ""} ${locationLink ? `[Link: ${locationLink}]` : ""}`.trim()
 
@@ -209,7 +215,7 @@ export async function POST(req: Request) {
         .insert({
           ...commonPedidoData,
           subtotal,
-          descuento: discountAmount,
+          descuento: appliedDiscount,
           cupon_codigo: couponCode,
           total,
         })
@@ -233,7 +239,7 @@ export async function POST(req: Request) {
     let pedido = pedidoFull as any
 
     if (pedidoFullErr) {
-      if ((couponCode && couponCode.length > 0) || discountAmount > 0) {
+      if ((couponCode && couponCode.length > 0) || appliedDiscount > 0) {
         return NextResponse.json({ error: pedidoFullErr.message }, { status: 400 })
       }
 
@@ -255,9 +261,9 @@ export async function POST(req: Request) {
       producto_id: item.id,
       producto_variante_id: item.producto_variante_id ?? null,
       precio_unitario: Number(item.precio ?? 0) || 0,
-      producto_nombre: item.nombre ? String(item.nombre) : null,
-      variante_nombre: item.variante_nombre ? String(item.variante_nombre) : null,
-      cantidad: Number(item.quantity) || 1,
+      producto_nombre: item.nombre || null,
+      variante_nombre: item.variante_nombre || null,
+      cantidad: item.quantity,
     }))
 
     const { error: itemsError } = await supabaseAdmin.from("pedido_items").insert(orderItems)
@@ -269,10 +275,12 @@ export async function POST(req: Request) {
       ok: true,
       orderId: pedidoId,
       subtotal,
-      descuento: discountAmount,
+      descuento: appliedDiscount,
       total,
     }, { headers: rateCheck.headers })
   } catch (e: any) {
+    console.error("Checkout Error:", e)
     return NextResponse.json({ error: e?.message || "Unknown error" }, { status: 500 })
   }
 }
+
