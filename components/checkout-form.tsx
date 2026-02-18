@@ -271,11 +271,11 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             province: province, // Corregido: Coincide con schema Zod (antes provinceName)
             district,
             department,
-            reference,
-            locationLink: finalLocationLink,
-            couponCode: appliedCouponCode,
-            discountAmount: finalDiscount,
-            shippingMethod,
+            reference: reference || undefined,
+            locationLink: finalLocationLink || "",
+            couponCode: appliedCouponCode || undefined,
+            discountAmount: finalDiscount || 0,
+            shippingMethod: shippingMethod || undefined,
             items: checkoutItems,
             // Computed for logs
             subtotal: subtotalAmount,
@@ -466,7 +466,12 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
 
         } catch (err: any) {
             console.error("Culqi Error:", err)
-            alert("Error procesando el pago: " + err.message)
+            // Format error nicely if it's an object
+            let msg = err.message
+            if (!msg && typeof err === 'object') {
+                msg = JSON.stringify(err)
+            }
+            alert("Error procesando el pago: " + (msg || "Desconocido"))
             // Re-throw to stop button loader if needed
             throw err
         }

@@ -23,18 +23,18 @@ const CulqiCheckoutSchema = z.object({
     dni: z.string().length(8, "DNI debe tener 8 dígitos"),
     email: z.string().email("Email inválido"), // Culqi requiere email
     address: z.string().min(5, "Dirección requerida"),
-    reference: z.string().optional(),
-    locationLink: z.string().optional().or(z.literal("")),
+    reference: z.string().nullable().optional(),
+    locationLink: z.string().nullable().optional().or(z.literal("")),
 
     // Ubicación
-    department: z.string().optional(),
-    province: z.string().optional(),
-    district: z.string().optional(),
+    department: z.string().nullable().optional(),
+    province: z.string().nullable().optional(),
+    district: z.string().nullable().optional(),
 
     // Datos del Pedido
-    shippingMethod: z.string().optional(),
-    couponCode: z.string().optional(),
-    discountAmount: z.coerce.number().min(0).optional(),
+    shippingMethod: z.string().nullable().optional(),
+    couponCode: z.string().nullable().optional(),
+    discountAmount: z.coerce.number().nullable().optional(),
     items: z.array(CheckoutItemSchema).min(1, "El carrito está vacío"),
 
     // Datos de Culqi
