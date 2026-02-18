@@ -54,6 +54,7 @@ export default function ClientesPage() {
                 <Table>
                     <TableHeader className="bg-gray-50">
                         <TableRow>
+                            <TableHead className="w-[80px]">ID</TableHead>
                             <TableHead>Nombre</TableHead>
                             <TableHead>Teléfono</TableHead>
                             <TableHead>DNI</TableHead>
@@ -69,15 +70,16 @@ export default function ClientesPage() {
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={10} className="text-center py-10">Cargando...</TableCell>
+                                <TableCell colSpan={11} className="text-center py-10">Cargando...</TableCell>
                             </TableRow>
                         ) : clientes.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={10} className="text-center py-10">No hay clientes aún.</TableCell>
+                                <TableCell colSpan={11} className="text-center py-10">No hay clientes aún.</TableCell>
                             </TableRow>
                         ) : (
                             clientes.map((cliente) => (
                                 <TableRow key={cliente.id}>
+                                    <TableCell className="font-mono text-xs text-gray-500 font-medium">#{cliente.id}</TableCell>
                                     <TableCell className="font-bold text-gray-800">{cliente.nombre}</TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-2 text-sm text-gray-600">
