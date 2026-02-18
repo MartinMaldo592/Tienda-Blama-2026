@@ -286,7 +286,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 district: district,
                 department: department, // Added department
                 reference,
-                locationLink: finalLocationLink || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`,
+                locationLink: finalLocationLink, // Use the calculated link (which includes fallback)
                 couponCode: appliedCouponCode,
                 discountAmount: finalDiscount,
                 shippingMethod,
