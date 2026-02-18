@@ -31,23 +31,27 @@ export async function middleware(request: NextRequest) {
     }
   );
 
+  // IMPORTANT: Supabase SSR requires calling getUser to refresh the session
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protección de rutas administrativas
+  // Protection logic
   if (request.nextUrl.pathname.startsWith("/admin")) {
+    // If no user, redirect to login
     if (!user) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/auth/login";
-      url.searchParams.set("next", request.nextUrl.pathname);
-      return NextResponse.redirect(url);
+      const url = request.nextUrl.clone()
+      url.pathname = "/auth/login"
+      return NextResponse.redirect(url)
     }
+
+    // Optional: If you want to strictly check DB role here, you can.
+    // But usually role check happens in the layout or page.
   }
 
-  // SEO: Manejo de canonicals y noindex para URLs con parámetros en home y productos
+  // SEO Headers Logic
   const { pathname, searchParams } = request.nextUrl;
-  const isHome = pathname === "/";
+  const isHome = pathname === "/" || pathname === "";
   const isProductos = pathname === "/productos" || pathname === "/productos/";
 
   if ((isHome || isProductos) && searchParams.toString().length > 0) {
@@ -55,7 +59,7 @@ export async function middleware(request: NextRequest) {
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.blama.shop";
     const cleanPath = isProductos ? "/productos" : "/";
-    response.headers.set("link", `<${siteUrl}${cleanPath}>; rel="canonical"`);
+    response.headers.append("Link", `<${siteUrl}${cleanPath}>; rel="canonical"`);
   }
 
   return response;
