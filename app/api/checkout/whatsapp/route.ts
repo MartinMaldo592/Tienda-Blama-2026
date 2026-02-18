@@ -218,7 +218,7 @@ export async function POST(req: Request) {
       referencia_direccion: reference,
       link_ubicacion: locationLink,
       status: "Pendiente",
-      pago_status: "Pago Contraentrega",
+      pago_status: "Pendiente",
       metodo_envio: shippingMethod,
     }
 

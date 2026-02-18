@@ -262,7 +262,8 @@ export default function PedidosPage() {
                                 <TableHead>Cliente</TableHead>
                                 <TableHead>Fecha</TableHead>
                                 <TableHead>Total</TableHead>
-                                <TableHead>Estado</TableHead>
+                                <TableHead>Estado del Pago</TableHead>
+                                <TableHead>Estado de Pedido</TableHead>
                                 {userRole === 'admin' && <TableHead>Asignado a</TableHead>}
                                 <TableHead className="text-right">Acciones</TableHead>
                             </TableRow>
@@ -270,7 +271,7 @@ export default function PedidosPage() {
                         <TableBody>
                             {loadingPedidos ? (
                                 <TableRow>
-                                    <TableCell colSpan={userRole === 'admin' ? 7 : 6} className="text-center py-10">
+                                    <TableCell colSpan={userRole === 'admin' ? 8 : 7} className="text-center py-10">
                                         <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
                                             <Loader2 className="h-8 w-8 animate-spin" />
                                             Cargando pedidos...
@@ -279,7 +280,7 @@ export default function PedidosPage() {
                                 </TableRow>
                             ) : filteredPedidos.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={userRole === 'admin' ? 7 : 6} className="text-center py-10">
+                                    <TableCell colSpan={userRole === 'admin' ? 8 : 7} className="text-center py-10">
                                         No hay pedidos {filterWorker !== 'all' ? 'con este filtro' : ''}.
                                     </TableCell>
                                 </TableRow>
@@ -294,6 +295,9 @@ export default function PedidosPage() {
                                         </TableCell>
                                         <TableCell>{new Date(pedido.created_at).toLocaleDateString()}</TableCell>
                                         <TableCell className="font-bold">{formatCurrency(pedido.total)}</TableCell>
+                                        <TableCell>
+                                            <PaymentStatusBadge status={pedido.pago_status} />
+                                        </TableCell>
                                         <TableCell>
                                             <StatusBadge status={pedido.status} />
                                         </TableCell>
@@ -357,6 +361,36 @@ function StatusBadge({ status }: { status: string }) {
     return (
         <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${styles[status] || 'bg-gray-100'}`}>
             {status}
+        </span>
+    )
+}
+
+function PaymentStatusBadge({ status }: { status: string | null }) {
+    const styles: Record<string, string> = {
+        'pending': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        'pendiente': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        'pago contraentrega': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        'paid': 'bg-green-100 text-green-800 border-green-200',
+        'pagado': 'bg-green-100 text-green-800 border-green-200',
+        'failed': 'bg-red-100 text-red-800 border-red-200',
+        'fallido': 'bg-red-100 text-red-800 border-red-200',
+    }
+    const labels: Record<string, string> = {
+        'pending': 'Pendiente',
+        'pendiente': 'Pendiente',
+        'pago contraentrega': 'Contraentrega',
+        'paid': 'Pagado',
+        'pagado': 'Pagado',
+        'failed': 'Fallido',
+        'fallido': 'Fallido',
+    }
+
+    // Normalize status just in case
+    const normalized = (status || 'pending').toLowerCase()
+
+    return (
+        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${styles[normalized] || 'bg-gray-100'}`}>
+            {labels[normalized] || status || 'Pendiente'}
         </span>
     )
 }
