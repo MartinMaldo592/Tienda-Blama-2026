@@ -103,11 +103,24 @@ export async function POST(req: Request) {
     const dni = body.dni
     const address = body.address.trim()
     const reference = body.reference?.trim() || ""
-    const locationLink = body.locationLink?.trim() || null
-    const shippingMethod = body.shippingMethod?.trim() || null
     const couponCode = body.couponCode?.trim() || null
+    let locationLink = body.locationLink?.trim() || null
+
+    // 🛡️ Fallback: Si no llega link (por defecto del front), generarlo con la dirección
+    if (!locationLink && address) {
+      const encoded = encodeURIComponent(address)
+      locationLink = `https://www.google.com/maps/search/?api=1&query=${encoded}`
+    }
+
+    // Update debug log to show final link
+    console.log("🐛 DEBUG CHECKOUT API (Processed):", {
+      receivedLink: body.locationLink,
+      finalLink: locationLink,
+      address
+    })
     const discountAmount = body.discountAmount || 0
     const items = body.items
+    const shippingMethod = body.shippingMethod?.trim() || null
 
     // Calculate totals
     const subtotal = Math.max(

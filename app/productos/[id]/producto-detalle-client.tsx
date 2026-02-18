@@ -1101,10 +1101,11 @@ export default function ProductoDetalleClient() {
                             disabled={!inStock}
                             onClick={() => {
                                 addItem(producto, selectedVariante)
-                                if (imageContainerRef.current && images.length > 0) {
-                                    const rect = imageContainerRef.current.getBoundingClientRect()
-                                    startAnimation(images[0], rect)
-                                }
+                                // Animation removed
+                                // if (imageContainerRef.current && images.length > 0) {
+                                //     const rect = imageContainerRef.current.getBoundingClientRect()
+                                //     startAnimation(images[0], rect)
+                                // }
                                 setAddedToastKey(Date.now())
                                 setAddedToastOpen(true)
                             }}

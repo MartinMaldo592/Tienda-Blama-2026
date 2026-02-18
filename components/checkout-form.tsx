@@ -232,6 +232,12 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             finalLocationLink = `https://www.google.com/maps/search/?api=1&query=${encoded}`
         }
 
+        console.log("📍 Final Location Data:", {
+            address: fullAddress,
+            locationLink: finalLocationLink,
+            coordinates: locationLink ? "Yes" : "No (using search fallback)"
+        })
+
         const messageClientePreview = buildWhatsAppPreviewMessage({
             name: name || 'Cliente',
             dni: normalizedDni,
@@ -417,7 +423,12 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                         province={province} setProvince={setProvince}
                         district={district} setDistrict={setDistrict}
                         reference={reference} setReference={setReference}
-                        addressValue={value} onAddressChange={setValue} addressReady={ready}
+                        addressValue={value}
+                        onAddressChange={(val) => {
+                            setValue(val)
+                            setLocationLink("") // Clear specific link on manual edit to force fallback generation
+                        }}
+                        addressReady={ready}
                         suggestions={data} suggestionsStatus={status} onSuggestionSelect={handleSelect}
                         disabled={isSubmitting}
                         apiKeyMissing={!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
