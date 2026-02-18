@@ -249,6 +249,10 @@ export default function PedidosPage() {
                     <p className="text-gray-500 max-w-md mx-auto">
                         Aún no tienes pedidos delegados. El administrador te asignará pedidos cuando sea necesario.
                     </p>
+                    <p className="text-xs text-muted-foreground mt-4 border-t pt-2">
+                        Debug: Rol detectado: <strong>{userRole}</strong> (Original: {guard.role || 'null'}).
+                        ID: {userId.slice(0, 8)}...
+                    </p>
                 </div>
             )}
 
