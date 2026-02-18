@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import Script from "next/script"
 import { Button } from "@/components/ui/button"
 import { Loader2, CreditCard } from "lucide-react"
@@ -37,28 +37,85 @@ export function CulqiPaymentButton({
     const [isScriptLoaded, setIsScriptLoaded] = useState(false)
     const [isProcessing, setIsProcessing] = useState(false)
 
+    // Refs para mantener siempre las últimas versiones de las funciones sin reiniciar el efecto
+    const onTokenRef = useRef(onToken)
+    const onErrorRef = useRef(onError)
+
+    // Actualizar refs cuando cambian las props
+    useEffect(() => {
+        onTokenRef.current = onToken
+        onErrorRef.current = onError
+    }, [onToken, onError])
+
     const handleScriptLoad = () => {
         setIsScriptLoaded(true)
+        // Configuración inicial apenas carga el script
         if (window.Culqi) {
+            console.log("✅ Culqi Script cargado correctamente")
             window.Culqi.publicKey = process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY
             window.Culqi.options({
                 style: {
-                    logo: "https://static.culqi.com/v2/v2/static/img/logo-culqi-new.png",
+                    logo: "https://static.culqi.com/v2/v2/static/img/logo.png", // URL corregida clásica o vacía
                     maincolor: "#16a34a",
                 }
             })
         }
     }
 
+    // Definir la función global window.culqi UNA SOLA VEZ al montar
+    useEffect(() => {
+        console.log("🔧 Instalando handler global de Culqi")
+
+        window.culqi = async () => {
+            console.log("📣 Callback de Culqi disparado")
+
+            if (window.Culqi.token) {
+                try {
+                    const token = window.Culqi.token.id
+                    const tokenEmail = window.Culqi.token.email
+                    console.log('💳 Token generado:', token)
+
+                    // Usar la ref para llamar a la función más reciente
+                    if (onTokenRef.current) {
+                        await onTokenRef.current(token, tokenEmail)
+                    }
+                } catch (err) {
+                    console.error('Error procesando token:', err)
+                    if (onErrorRef.current) onErrorRef.current(err)
+                } finally {
+                    window.Culqi.close()
+                    setIsProcessing(false)
+                }
+            } else if (window.Culqi.error) {
+                console.error('❌ Error Culqi:', window.Culqi.error)
+                const userMsg = window.Culqi.error.user_message || "Error en el pago"
+                if (onErrorRef.current) onErrorRef.current(new Error(userMsg))
+                setIsProcessing(false)
+            } else {
+                console.log("ℹ️ Cierre modal sin acción")
+                setIsProcessing(false)
+            }
+        }
+
+        // Cleanup opcional: En teoría no queremos borrarla para no romper nada si el componente se desmonta mientras el modal está abierto,
+        // pero es buena práctica limpiar si el usuario navega fuera totalmente.
+        return () => {
+            // window.culqi = () => {} 
+        }
+    }, []) // Dependencias vacías = Se ejecuta 1 sola vez
+
     const handlePay = async (e: React.MouseEvent) => {
-        if (e) e.preventDefault() // Prevenir submit del form si está dentro
+        if (e) e.preventDefault()
 
         if (!isScriptLoaded || !window.Culqi) {
-            console.error("Culqi no está listo")
+            console.error("Culqi no está listo (Script no cargado)")
             return
         }
 
-        // Validación previa (ej: campos del form)
+        // Re-asegurar configuración pública antes de abrir
+        window.Culqi.publicKey = process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY
+
+        // Validación previa
         if (onBeforeOpen) {
             const isValid = await onBeforeOpen()
             if (!isValid) return
@@ -69,7 +126,6 @@ export function CulqiPaymentButton({
         try {
             const amountInCents = Math.round(amount * 100)
 
-            // Configurar settings justo antes de abrir
             window.Culqi.settings({
                 title: title,
                 currency: 'PEN',
@@ -83,39 +139,6 @@ export function CulqiPaymentButton({
             setIsProcessing(false)
         }
     }
-
-    useEffect(() => {
-        // Intervalo para definir el callback global window.culqi
-        const interval = setInterval(() => {
-            if (window.Culqi) {
-                window.culqi = async () => {
-                    if (window.Culqi.token) {
-                        try {
-                            const token = window.Culqi.token.id
-                            const tokenEmail = window.Culqi.token.email
-                            console.log('Token Culqi recibido:', token)
-                            await onToken(token, tokenEmail)
-                        } catch (err) {
-                            console.error('Error procesando token:', err)
-                            onError(err)
-                        } finally {
-                            window.Culqi.close()
-                            setIsProcessing(false) // Terminado
-                        }
-                    } else if (window.Culqi.error) {
-                        console.error('Error Culqi callback:', window.Culqi.error)
-                        onError(window.Culqi.error)
-                        setIsProcessing(false)
-                    } else {
-                        // Caso cierre manual
-                        setIsProcessing(false)
-                    }
-                }
-            }
-        }, 800)
-
-        return () => clearInterval(interval)
-    }, [onToken, onError])
 
     return (
         <>
