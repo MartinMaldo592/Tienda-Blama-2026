@@ -24,12 +24,15 @@ import {
     validateCoupon,
 } from "@/features/checkout"
 import { sendGTMEvent } from "@/lib/gtm"
+import { useRouter } from "next/navigation" // Nuevo hook
 
 // New modular components
 import { CheckoutShipping } from "@/components/checkout/checkout-shipping"
 import { CheckoutCustomer } from "@/components/checkout/checkout-customer"
 import { CheckoutAddress } from "@/components/checkout/checkout-address"
 import { CheckoutSummary } from "@/components/checkout/checkout-summary"
+import { CheckoutPayment } from "@/components/checkout/checkout-payment" // Nuevo
+import { CulqiPaymentButton } from "@/components/checkout/culqi-payment-button" // Nuevo
 
 // Define libraries array outside component to prevent re-renders
 const libraries: ("places")[] = ["places"];
@@ -64,7 +67,9 @@ import { useCheckoutDraft } from "@/features/checkout/hooks/use-checkout-draft"
 
 function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
     const { draft, loaded, saveDraft, clearDraft } = useCheckoutDraft()
+    const router = useRouter()
 
+    const [paymentMethod, setPaymentMethod] = useState("whatsapp") // Nuevo estado
     const [name, setName] = useState("")
     const [shippingMethod, setShippingMethod] = useState("Lima")
     const [phone, setPhone] = useState("")
@@ -109,6 +114,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             if (draft.district) setDistrict(draft.district)
             if (draft.reference) setReference(draft.reference)
             if (draft.shippingMethod) setShippingMethod(draft.shippingMethod)
+            if (draft.paymentMethod) setPaymentMethod(draft.paymentMethod) // Recuperar del draft si existe
             // Address value is handled by Google Maps hook, we can set it via setValue
             if (draft.address) setValue(draft.address, false)
         }
@@ -127,7 +133,8 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 district,
                 reference,
                 shippingMethod,
-                address: value
+                address: value,
+                paymentMethod // Guardar preferencia
             })
         }, 500) // Debounce 500ms
         return () => clearTimeout(timeout)
@@ -175,38 +182,63 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
         }
     }
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setIsSubmitting(true)
-
-        setCouponError("")
+    // ── Validation Helper ──
+    const validateFields = async () => {
+        setPhoneError("")
         setDniError("")
+        setCouponError("")
 
+        // 1. Validar Celular
         const normalizedPhone = phone.replace(/\D/g, "")
         if (normalizedPhone.length !== 9) {
             setPhoneError('El celular debe tener 9 dígitos')
-            setIsSubmitting(false)
-            return
+            return false
         }
 
+        // 2. Validar DNI
         const normalizedDni = normalizeDni(dni)
         if (normalizedDni.length !== 8) {
             setDniError('El DNI debe tener 8 dígitos')
-            setIsSubmitting(false)
-            return
+            return false
         }
 
+        // 3. Validar Dirección (Simple check)
+        if (!value || value.length < 5) {
+            alert("Por favor ingresa una dirección válida")
+            return false
+        }
+
+        // 4. Validar Cupón (Si hay uno escrito pero no aplicado)
+        if (couponCode.trim()) {
+            try {
+                // Re-validar para asegurar precio
+                await validateCoupon(couponCode, subtotalAmount)
+            } catch (err: any) {
+                setCouponError(err?.message || 'Cupón inválido')
+                return false
+            }
+        }
+
+        return true
+    }
+
+    // ── Helper para construir Payload (reutilizable) ──
+    const getOrderPayload = async () => {
+        const normalizedPhone = phone.replace(/\D/g, "")
+        const normalizedDni = normalizeDni(dni)
+
+        // Re-validar cupón para obtener descuento final seguro
         let appliedCouponCode: string | null = null
         let appliedDiscount = discountAmount
+
         if (couponCode.trim()) {
             try {
                 const res = await validateCoupon(couponCode, subtotalAmount)
                 appliedCouponCode = res.codigo
                 appliedDiscount = res.descuento
-            } catch (err: any) {
-                setCouponError(err?.message || 'Cupón inválido')
-                setIsSubmitting(false)
-                return
+            } catch (err) {
+                // Si falla aquí, usamos datos previos validos o 0
+                console.warn("Coupon re-validation failed silently", err)
             }
         }
 
@@ -224,40 +256,67 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
 
         const fullAddress = `${department}, ${province}, ${district}. ${value || ''}`.trim()
 
-        // Generar link de respaldo si no se usó el autocompletado del mapa
         let finalLocationLink = locationLink
-
         if ((!finalLocationLink || finalLocationLink.trim() === "") && fullAddress) {
             const encoded = encodeURIComponent(fullAddress)
             finalLocationLink = `https://www.google.com/maps/search/?api=1&query=${encoded}`
         }
 
-        console.log("📍 Final Location Data:", {
-            address: fullAddress,
-            locationLink: finalLocationLink,
-            coordinates: locationLink ? "Yes" : "No (using search fallback)"
-        })
-
-        const messageClientePreview = buildWhatsAppPreviewMessage({
-            name: name || 'Cliente',
+        return {
+            name,
+            phone: normalizedPhone,
             dni: normalizedDni,
-            phone,
-            address: fullAddress,
+            address: fullAddress, // Full Address string
+            street: value, // Google Maps clean part
+            provinceName: province,
+            district,
+            department,
             reference,
             locationLink: finalLocationLink,
-            items: checkoutItems,
-            subtotal: subtotalAmount,
-            discount: finalDiscount,
-            total: finalTotal,
             couponCode: appliedCouponCode,
+            discountAmount: finalDiscount,
             shippingMethod,
+            items: checkoutItems,
+            // Computed for logs
+            subtotal: subtotalAmount,
+            total: finalTotal
+        }
+    }
+
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (paymentMethod === 'culqi') return // Block submit if Culqi is selected (button handles it)
+
+        setIsSubmitting(true)
+
+        // 1. Validate
+        const isValid = await validateFields()
+        if (!isValid) {
+            setIsSubmitting(false)
+            return
+        }
+
+        // 2. Build Payload
+        const payload = await getOrderPayload()
+
+        // 3. WhatsApp Logic
+        const messageClientePreview = buildWhatsAppPreviewMessage({
+            name: payload.name,
+            dni: payload.dni,
+            phone: payload.phone,
+            address: payload.address,
+            reference: payload.reference,
+            locationLink: payload.locationLink,
+            items: payload.items,
+            subtotal: payload.subtotal,
+            discount: Number(payload.discountAmount),
+            total: payload.total,
+            couponCode: payload.couponCode,
+            shippingMethod: payload.shippingMethod,
         })
 
         const phoneNumberClienteInit = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "958279604";
-
-        // Abrimos WhatsApp DIRECTO por API (sin páginas intermedias) en una pestaña nueva
-        // para que la tienda no se cierre.
-        // Pre-abrimos la pestaña en blanco durante el click del usuario para minimizar bloqueos.
         const inApp = isInAppBrowser()
         const isMobile = isMobileDevice()
         let popup: Window | null = null
@@ -272,67 +331,37 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             }
         }
 
-
         try {
-            const normalizedPhone = normalizeDigits(phone)
-
-            const { orderId: newOrderId } = await createCheckoutOrder({
-                name,
-                phone: normalizedPhone,
-                dni: normalizedDni,
-                address: fullAddress,
-                street: value,
-                provinceName: province, // Mapped to provinceName in type
-                district: district,
-                department: department, // Added department
-                reference,
-                locationLink: finalLocationLink, // Use the calculated link (which includes fallback)
-                couponCode: appliedCouponCode,
-                discountAmount: finalDiscount,
-                shippingMethod,
-                items: checkoutItems.map((it) => ({
-                    id: it.id,
-                    quantity: it.quantity,
-                    precio: it.precio,
-                    nombre: it.nombre,
-                    producto_variante_id: it.producto_variante_id ?? null,
-                    variante_nombre: it.variante_nombre ?? null,
-                })),
-            })
+            const { orderId: newOrderId } = await createCheckoutOrder(payload)
 
             // E. WhatsApp mensaje al cliente
-            const phoneNumberCliente = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "958279604"
             const orderIdFormatted = newOrderId.toString().padStart(6, '0')
 
             const messageCliente = buildWhatsAppFinalMessage({
                 orderIdFormatted,
-                name,
-                dni: normalizedDni,
-                phone,
-                address: fullAddress,
-                reference,
-                locationLink: finalLocationLink,
-                items: checkoutItems,
-                subtotal: subtotalAmount,
-                discount: finalDiscount,
-                total: finalTotal,
-                couponCode: appliedCouponCode,
-                shippingMethod,
+                name: payload.name,
+                dni: payload.dni,
+                phone: payload.phone,
+                address: payload.address,
+                reference: payload.reference,
+                locationLink: payload.locationLink,
+                items: payload.items,
+                subtotal: payload.subtotal,
+                discount: Number(payload.discountAmount),
+                total: payload.total,
+                couponCode: payload.couponCode,
+                shippingMethod: payload.shippingMethod,
             })
-
-
 
             // GTM: Track Purchase
             sendGTMEvent({
                 event: 'purchase',
                 ecommerce: {
                     transaction_id: orderIdFormatted,
-                    value: finalTotal,
-                    tax: 0,
-                    shipping: 0,
+                    value: payload.total,
                     currency: 'PEN',
-                    coupon: appliedCouponCode,
-                    items: checkoutItems.map(item => ({
+                    coupon: payload.couponCode,
+                    items: payload.items.map(item => ({
                         item_id: String(item.id),
                         item_name: item.nombre,
                         price: item.precio,
@@ -341,7 +370,8 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 }
             })
 
-            // G. Preparar enlace de WhatsApp final (incluye id de pedido).
+            // G. Preparar enlace de WhatsApp final
+            const phoneNumberCliente = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "958279604"
             const urlCliente = buildWhatsAppUrl(phoneNumberCliente, messageCliente)
 
             setLastOrderSuccessMarker(orderIdFormatted)
@@ -368,20 +398,72 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
 
         } catch (error: any) {
             console.error("Error al procesar:", error)
-
             const msg = String(error?.message || '')
             if (isCouponRelatedError(msg)) {
-                setCouponDiscount(0)
+                setCouponDiscount(0) // Reset discount if invalid
                 setCouponApplied(false)
-                setCouponError(
-                    `El cupón ya no está disponible o no es válido en este momento. ` +
-                    `Vuelve a intentar aplicar el cupón o usa otro.\n\nDetalle: ${msg}`
-                )
+                setCouponError(msg)
             } else {
                 alert("Error al procesar el pedido: " + msg)
             }
         } finally {
             setIsSubmitting(false)
+        }
+    }
+
+    // ── CULQI Handler ──
+    const handleCulqiToken = async (token: string, email: string) => {
+        try {
+            const payload = await getOrderPayload()
+
+            // Call API
+            const res = await fetch("/api/checkout/culqi", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    ...payload,
+                    token,
+                    email // Email from Culqi modal or default
+                })
+            })
+
+            const data = await res.json()
+
+            if (!res.ok || !data.ok) {
+                throw new Error(data.error || "Error al procesar el pago")
+            }
+
+            // Success!
+            const orderIdFormatted = String(data.orderId || '0').padStart(6, '0')
+            setLastOrderSuccessMarker(orderIdFormatted)
+            clearCartStorage()
+
+            // GTM: Track Purchase
+            sendGTMEvent({
+                event: 'purchase',
+                ecommerce: {
+                    transaction_id: orderIdFormatted,
+                    value: payload.total,
+                    currency: 'PEN',
+                    coupon: payload.couponCode,
+                    items: payload.items.map(item => ({
+                        item_id: String(item.id),
+                        item_name: item.nombre,
+                        price: item.precio,
+                        quantity: item.quantity
+                    }))
+                }
+            })
+
+            onComplete()
+            // Redirect to success page
+            router.push(`/checkout/success?order_id=${data.orderId}&transaction_id=${data.transactionId}`)
+
+        } catch (err: any) {
+            console.error("Culqi Error:", err)
+            alert("Error procesando el pago: " + err.message)
+            // Re-throw to stop button loader if needed
+            throw err
         }
     }
 
@@ -433,6 +515,12 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                         disabled={isSubmitting}
                         apiKeyMissing={!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
                     />
+
+                    <CheckoutPayment
+                        value={paymentMethod}
+                        onChange={setPaymentMethod}
+                        disabled={isSubmitting}
+                    />
                 </div>
 
                 <div className="p-4 border-t mt-auto bg-popover">
@@ -444,6 +532,19 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                         couponCode={couponCode} setCouponCode={setCouponCode}
                         applyCoupon={handleApplyCoupon} couponApplying={couponApplying} couponApplied={couponApplied} couponError={couponError} setCouponApplied={setCouponApplied} setCouponError={setCouponError}
                         isSubmitting={isSubmitting}
+
+                        // Inyectar botón de Culqi si está seleccionado
+                        customButton={paymentMethod === 'culqi' ? (
+                            <CulqiPaymentButton
+                                amount={totalToPay}
+                                email="pedidos@blama.shop" // Email interno por ahora
+                                title={`Pedido Blama - S/ ${totalToPay}`}
+                                onBeforeOpen={validateFields}
+                                onToken={handleCulqiToken}
+                                onError={(e) => alert("Error en el pago: " + JSON.stringify(e))}
+                                disabled={isSubmitting}
+                            />
+                        ) : undefined}
                     />
                 </div>
             </form>
