@@ -268,7 +268,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             dni: normalizedDni,
             address: fullAddress, // Full Address string
             street: value, // Google Maps clean part
-            provinceName: province,
+            province: province, // Corregido: Coincide con schema Zod (antes provinceName)
             district,
             department,
             reference,
@@ -416,6 +416,9 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
         try {
             const payload = await getOrderPayload()
 
+            // Asegurar que siempre haya un email válido (fallback si Culqi no lo devuelve)
+            const emailToSend = email || "pedidos@blama.shop"
+
             // Call API
             const res = await fetch("/api/checkout/culqi", {
                 method: "POST",
@@ -423,14 +426,16 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 body: JSON.stringify({
                     ...payload,
                     token,
-                    email // Email from Culqi modal or default
+                    email: emailToSend
                 })
             })
 
             const data = await res.json()
 
             if (!res.ok || !data.ok) {
-                throw new Error(data.error || "Error al procesar el pago")
+                // Mejora de debug: Si hay detalles de validación, mostrarlos
+                const errorDetails = data.details ? `\nDetalles: ${JSON.stringify(data.details, null, 2)}` : ""
+                throw new Error((data.error || "Error al procesar el pago") + errorDetails)
             }
 
             // Success!
