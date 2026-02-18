@@ -106,52 +106,67 @@ export default function PedidosPage() {
         }
     })
 
-    function csvEscape(value: unknown) {
-        const str = String(value ?? '')
-        if (/[\n\r,\"]/g.test(str)) {
-            return '"' + str.replace(/\"/g, '""') + '"'
+    async function handleExportXlsx() {
+        try {
+            // Import dynamically to avoid loading xlsx on initial page load if possible, 
+            // or just use standard import if you prefer. Here standard import is simpler to write.
+            const XLSX = await import("xlsx")
+
+            const rows = filteredPedidos.map((p: PedidoRow) => {
+                const cliente = p.clientes as any
+                return {
+                    "ID": p.id,
+                    "Fecha": new Date(p.created_at).toLocaleDateString(),
+                    "Cliente": p.clientes?.nombre || p.nombre_contacto || '',
+                    "Teléfono": p.clientes?.telefono || p.telefono_contacto || '',
+                    "DNI": p.clientes?.dni || p.dni_contacto || '',
+                    "Dirección": p.clientes?.direccion || p.direccion_calle || '',
+                    "Referencia": cliente?.referencia || p.referencia_direccion || '',
+                    "Departamento": p.departamento || cliente?.departamento || '',
+                    "Provincia": p.provincia || cliente?.provincia || '',
+                    "Distrito": p.distrito || cliente?.distrito || '',
+                    "Total (S/)": p.total,
+                    "Estado Pedido": p.status,
+                    "Estado Pago": p.pago_status,
+                    "Cupón": p.cupon_codigo || '',
+                    "Descuento": p.descuento ?? '',
+                    "Subtotal": p.subtotal ?? '',
+                    "Asignado A": p.asignado_perfil?.nombre || p.asignado_perfil?.email || p.asignado_a || '',
+                }
+            })
+
+            const worksheet = XLSX.utils.json_to_sheet(rows)
+            const workbook = XLSX.utils.book_new()
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Pedidos")
+
+            // Adjust column widths visually (approximate)
+            const wscols = [
+                { wch: 10 }, // ID
+                { wch: 15 }, // Fecha
+                { wch: 30 }, // Cliente
+                { wch: 15 }, // Telefono
+                { wch: 12 }, // DNI
+                { wch: 40 }, // Dirección
+                { wch: 20 }, // Ref
+                { wch: 15 }, // Dep.
+                { wch: 15 }, // Prov.
+                { wch: 15 }, // Dist.
+                { wch: 10 }, // Total
+                { wch: 15 }, // Est Pedido
+                { wch: 15 }, // Est Pago
+                { wch: 10 }, // Cupon
+                { wch: 10 }, // Desc
+                { wch: 10 }, // Subtotal
+                { wch: 20 }, // Asignado
+            ]
+            worksheet['!cols'] = wscols
+
+            const today = new Date().toISOString().slice(0, 10)
+            XLSX.writeFile(workbook, `Pedidos_Blama_${today}.xlsx`)
+        } catch (error) {
+            console.error("Error exporting excel:", error)
+            alert("Error al exportar a Excel")
         }
-        return str
-    }
-
-    function downloadCsv(rows: Record<string, unknown>[], filename: string) {
-        const headers = rows.length > 0 ? Object.keys(rows[0]) : []
-        const csv =
-            '\ufeff' +
-            [
-                headers.join(','),
-                ...rows.map((row) => headers.map((h) => csvEscape(row[h])).join(',')),
-            ].join('\n')
-
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = filename
-        document.body.appendChild(a)
-        a.click()
-        a.remove()
-        URL.revokeObjectURL(url)
-    }
-
-    function handleExportCsv() {
-        const rows = filteredPedidos.map((p: PedidoRow) => ({
-            id: p.id,
-            fecha: p.created_at,
-            cliente: p.clientes?.nombre || p.nombre_contacto || '',
-            telefono: p.clientes?.telefono || p.telefono_contacto || '',
-            dni: p.clientes?.dni || p.dni_contacto || '',
-            total: p.total,
-            status: p.status,
-            pago_status: p.pago_status,
-            cupon_codigo: p.cupon_codigo || '',
-            descuento: p.descuento ?? '',
-            subtotal: p.subtotal ?? '',
-            asignado_a: p.asignado_a || '',
-        }))
-
-        const today = new Date().toISOString().slice(0, 10)
-        downloadCsv(rows, `pedidos-${today}.csv`)
     }
 
     if (guard.loading) {
@@ -177,8 +192,8 @@ export default function PedidosPage() {
                 </div>
                 <div className="flex gap-2">
                     {userRole === 'admin' && (
-                        <Button variant="outline" className="gap-2" onClick={handleExportCsv} disabled={pedidos.length === 0}>
-                            Exportar CSV
+                        <Button variant="outline" className="gap-2" onClick={handleExportXlsx} disabled={pedidos.length === 0}>
+                            Exportar Excel
                         </Button>
                     )}
                     <Button
