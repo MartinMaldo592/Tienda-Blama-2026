@@ -171,6 +171,27 @@ export function CulqiPaymentButton({
                 <span className="bg-gray-100 rounded px-1 py-0.5">🔒 Pago Seguro con Culqi</span>
                 <span>Tarjetas y Yape</span>
             </p>
+
+            <style jsx global>{`
+                /* Fix Culqi Mobile Responsive Issue */
+                #culqi_checkout_frame {
+                    max-width: 100vw !important;
+                    width: 100% !important;
+                    height: 100% !important;
+                    left: 0 !important;
+                    right: 0 !important;
+                    top: 0 !important;
+                    bottom: 0 !important;
+                    position: fixed !important;
+                    z-index: 99999 !important;
+                }
+                
+                /* Ensure scrolling works on small screens if content overflows */
+                .culqi_checkout_container {
+                     overflow-y: auto !important;
+                     -webkit-overflow-scrolling: touch !important;
+                }
+            `}</style>
         </>
     )
 }

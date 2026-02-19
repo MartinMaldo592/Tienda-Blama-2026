@@ -24,7 +24,11 @@ interface CheckoutSummaryProps {
     customButton?: React.ReactNode // Nuevo prop para inyectar botón (Culqi)
 }
 
-export function CheckoutSummary({
+import { memo } from "react"
+
+// ... imports ...
+
+export const CheckoutSummary = memo(function CheckoutSummary({
     subtotal, shippingMethod, discount, total,
     couponCode, setCouponCode, applyCoupon, couponApplying, couponApplied, couponError, setCouponApplied, setCouponError,
     isSubmitting,
@@ -87,4 +91,4 @@ export function CheckoutSummary({
             )}
         </div>
     )
-}
+})
