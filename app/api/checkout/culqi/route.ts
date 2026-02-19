@@ -149,7 +149,7 @@ export async function POST(req: Request) {
             nombre: data.name,
             dni: data.dni,
             telefono: data.phone,
-            // email: data.email, // Eliminado temporalmente por falta de columna en DB
+            email: data.email,
             direccion: direccionCompleta,
             referencia: data.reference,
             link_ubicacion: data.locationLink,
