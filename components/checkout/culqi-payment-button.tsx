@@ -55,7 +55,7 @@ export function CulqiPaymentButton({
             window.Culqi.options({
                 style: {
                     logo: "https://static.culqi.com/v2/v2/static/img/logo.png",
-                    maincolor: "#16a34a",
+                    maincolor: "#eb5e00", // Naranja Culqi
                 }
             })
         }

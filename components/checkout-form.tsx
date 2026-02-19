@@ -549,7 +549,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                             <CulqiPaymentButton
                                 amount={totalToPay}
                                 email="pedidos@blama.shop" // Email interno por ahora
-                                title={`Pedido Blama - S/ ${totalToPay}`}
+                                title={`Pedido Blama Shop - S/ ${totalToPay}`}
                                 onBeforeOpen={validateFields}
                                 onToken={handleCulqiToken}
                                 onError={(e: any) => {
