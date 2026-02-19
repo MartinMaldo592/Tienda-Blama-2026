@@ -49,18 +49,24 @@ export function CulqiPaymentButton({
 
     const handleScriptLoad = () => {
         setIsScriptLoaded(true)
-        // Configuración inicial apenas carga el script
         if (window.Culqi) {
             console.log("✅ Culqi Script cargado correctamente")
             window.Culqi.publicKey = process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY
             window.Culqi.options({
                 style: {
-                    logo: "https://static.culqi.com/v2/v2/static/img/logo.png", // URL corregida clásica o vacía
+                    logo: "https://static.culqi.com/v2/v2/static/img/logo.png",
                     maincolor: "#16a34a",
                 }
             })
         }
     }
+
+    // Verificar si el script ya estaba cargado de antes (Navegación o re-render)
+    useEffect(() => {
+        if (window.Culqi) {
+            handleScriptLoad()
+        }
+    }, [])
 
     // Definir la función global window.culqi UNA SOLA VEZ al montar
     useEffect(() => {
