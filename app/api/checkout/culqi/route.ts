@@ -131,46 +131,62 @@ export async function POST(req: Request) {
 
         // A. Gestión Cliente (Buscar o Crear)
         let clienteId: number | null = null
+        const direccionCompleta = data.address // Simplificamos, ya que address suele ser completa o agregamos detalles si quieres
 
-        // Buscar por teléfono primero (más único que nombre)
-        const { data: existingClients } = await supabase
+        // Intentar buscar por DNI o Teléfono (prioridad a DNI que es identificador legal)
+        const { data: existingClients, error: searchError } = await supabase
             .from("clientes")
             .select("id")
-            .eq("telefono", data.phone)
+            .or(`dni.eq.${data.dni},telefono.eq.${data.phone}`)
             .limit(1)
 
-        const direccionCompleta = `${data.address} - ${data.department || ''}, ${data.province || ''}, ${data.district || ''}`.trim()
-
-        if (existingClients && existingClients.length > 0) {
-            clienteId = existingClients[0].id
-            // Actualizar datos recientes
-            await supabase.from("clientes").update({
-                nombre: data.name,
-                dni: data.dni,
-                email: data.email, // Actualizar email si lo tenemos
-                direccion: direccionCompleta,
-                referencia: data.reference,
-                link_ubicacion: data.locationLink,
-                updated_at: new Date().toISOString()
-            }).eq("id", clienteId)
-        } else {
-            const { data: newClient } = await supabase.from("clientes").insert({
-                nombre: data.name,
-                telefono: data.phone,
-                dni: data.dni,
-                email: data.email,
-                direccion: direccionCompleta,
-                referencia: data.reference,
-                link_ubicacion: data.locationLink,
-                departamento: data.department,
-                provincia: data.province,
-                distrito: data.district
-            }).select().single()
-
-            if (newClient) clienteId = newClient.id
+        if (searchError) {
+            console.error("Error buscando cliente:", searchError)
+            throw new Error(`Error buscando cliente: ${searchError.message}`)
         }
 
-        if (!clienteId) throw new Error("Error al gestionar cliente")
+        const clientData = {
+            nombre: data.name,
+            dni: data.dni,
+            telefono: data.phone,
+            email: data.email,
+            direccion: direccionCompleta,
+            referencia: data.reference,
+            link_ubicacion: data.locationLink,
+            departamento: data.department,
+            provincia: data.province,
+            distrito: data.district,
+            updated_at: new Date().toISOString()
+        }
+
+        if (existingClients && existingClients.length > 0) {
+            // ACTUALIZAR
+            clienteId = existingClients[0].id
+            const { error: updateError } = await supabase
+                .from("clientes")
+                .update(clientData)
+                .eq("id", clienteId)
+
+            if (updateError) {
+                console.error("Error actualizando cliente:", updateError)
+                throw new Error(`Error actualizando cliente: ${updateError.message}`)
+            }
+        } else {
+            // CREAR NUEVO
+            const { data: newClient, error: insertError } = await supabase
+                .from("clientes")
+                .insert(clientData)
+                .select("id")
+                .single()
+
+            if (insertError) {
+                console.error("Error creando cliente:", insertError)
+                throw new Error(`Error creando cliente: ${insertError.message}`)
+            }
+            clienteId = newClient?.id || null
+        }
+
+        if (!clienteId) throw new Error("No se pudo obtener el ID del cliente tras la operación")
 
         // B. Crear Pedido
         const { data: pedido, error: pedidoError } = await supabase.from("pedidos").insert({
