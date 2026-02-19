@@ -174,7 +174,7 @@ export function CartButton() {
                 </div>
             )}
 
-            <Sheet open={isCartOpen} onOpenChange={handleOpenChange}>
+            <Sheet open={isCartOpen} onOpenChange={handleOpenChange} modal={view !== 'checkout'}>
                 <SheetTrigger asChild>
                     <Button variant="ghost" className={`relative hover:bg-popover flex items-center gap-2 px-3 h-10 rounded-full border border-border shadow-sm transition-all hover:shadow-md active:scale-95 ${isBumping ? 'scale-110 bg-accent text-accent-foreground ring-2 ring-primary duration-100' : 'duration-300'}`}>
                         <div className="relative" ref={(el) => registerCartButton(el as any)}>
