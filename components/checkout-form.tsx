@@ -8,6 +8,7 @@ import usePlacesAutocomplete, {
 } from "use-places-autocomplete"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 import {
     buildPreOpenUrl,
     buildWhatsAppFinalMessage,
@@ -551,7 +552,14 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                                 title={`Pedido Blama - S/ ${totalToPay}`}
                                 onBeforeOpen={validateFields}
                                 onToken={handleCulqiToken}
-                                onError={(e) => alert("Error en el pago: " + JSON.stringify(e))}
+                                onError={(e: any) => {
+                                    const msg = e.message || JSON.stringify(e)
+                                    if (msg.includes("cancelado")) {
+                                        toast.info("Operación Cancelada", { description: "Has cancelado el proceso de pago. Puedes intentarlo de nuevo cuando desees." })
+                                    } else {
+                                        toast.error("Error en el pago", { description: msg })
+                                    }
+                                }}
                                 disabled={isSubmitting}
                             />
                         ) : undefined}

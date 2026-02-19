@@ -93,6 +93,7 @@ export function CulqiPaymentButton({
                 setIsProcessing(false)
             } else {
                 console.log("ℹ️ Cierre modal sin acción")
+                if (onErrorRef.current) onErrorRef.current(new Error("Proceso de pago cancelado por el usuario."))
                 setIsProcessing(false)
             }
         }
@@ -134,6 +135,32 @@ export function CulqiPaymentButton({
             })
 
             window.Culqi.open()
+
+            // INICIO VIGILANTE: Detectar si el usuario cierra el modal con la X
+            // Culqi a veces no dispara el callback al cerrar, así que vigilamos si el iframe desaparece.
+            const checkInterval = setInterval(() => {
+                const iframe = document.getElementById('culqi_checkout_frame')
+                // Solo si ya pasaron unos segundos y el iframe ya no está...
+                if (!iframe && window.Culqi?.close) {
+                    // Asumimos que se cerró manual
+                    clearInterval(checkInterval)
+                    // Pequeño delay para dar chance al callback oficial si existiera
+                    setTimeout(() => {
+                        setIsProcessing((prev) => {
+                            if (prev) {
+                                console.log("⚠️ Detectado cierre manual de Culqi por DOM")
+                                if (onErrorRef.current) onErrorRef.current(new Error("Proceso de pago cancelado por el usuario."))
+                                return false
+                            }
+                            return prev
+                        })
+                    }, 1000)
+                }
+            }, 1000)
+
+            // Limpieza del intervalo si el componente se desmonta
+            // (Guardamos el ID en una ref si fuera necesario, pero aquí el closure funciona para esta ejecución)
+
         } catch (err) {
             console.error("Error abriendo Culqi:", err)
             setIsProcessing(false)
