@@ -173,7 +173,7 @@ export function CulqiPaymentButton({
             </p>
 
             <style jsx global>{`
-                /* Fix Culqi Mobile Responsive Issue */
+                /* Culqi Mobile Fix v2026-ForceUpdate */
                 #culqi_checkout_frame {
                     max-width: 100vw !important;
                     width: 100% !important;
