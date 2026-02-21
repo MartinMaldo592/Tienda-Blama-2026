@@ -125,17 +125,8 @@ export async function POST(req: Request) {
         const culqiAmount = Math.round(total * 100)
 
         // 4. Crear Pre-Pedido en Base de Datos (Idempotencia)
-        // A. Gestión Cliente (Buscar o Crear)
-        let clienteId: number | null = null
+        // A. Gestión Cliente (Almacenar como único por pedido)
         const direccionCompleta = data.address
-
-        const { data: existingClients, error: searchError } = await supabase
-            .from("clientes")
-            .select("id")
-            .or(`dni.eq.${data.dni},telefono.eq.${data.phone}`)
-            .limit(1)
-
-        if (searchError) throw new Error(`Error buscando cliente: ${searchError.message}`)
 
         const clientData = {
             nombre: data.name,
@@ -151,15 +142,10 @@ export async function POST(req: Request) {
             updated_at: new Date().toISOString()
         }
 
-        if (existingClients && existingClients.length > 0) {
-            clienteId = existingClients[0].id
-            const { error: updateError } = await supabase.from("clientes").update(clientData).eq("id", clienteId)
-            if (updateError) throw new Error(`Error actualizando cliente: ${updateError.message}`)
-        } else {
-            const { data: newClient, error: insertError } = await supabase.from("clientes").insert(clientData).select("id").single()
-            if (insertError) throw new Error(`Error creando cliente: ${insertError.message}`)
-            clienteId = newClient?.id || null
-        }
+        const { data: newClient, error: insertError } = await supabase.from("clientes").insert(clientData).select("id").single()
+        if (insertError) throw new Error(`Error creando cliente: ${insertError.message}`)
+
+        const clienteId: number | null = newClient?.id || null
 
         if (!clienteId) throw new Error("No se pudo obtener el ID del cliente tras la operación")
 

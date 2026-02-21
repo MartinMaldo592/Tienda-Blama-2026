@@ -172,64 +172,31 @@ export async function POST(req: Request) {
 
     const direccionCompleta = `${address} ${reference ? `(Ref: ${reference})` : ""} ${locationLink ? `[Link: ${locationLink}]` : ""}`.trim()
 
-    // A. Cliente
-    let clienteId: number | null = null
-    const { data: existingClients, error: existingClientsError } = await supabaseAdmin
+    // A. Cliente (Almacenar como único por pedido)
+    const { data: newClient, error: clientError } = await supabaseAdmin
       .from("clientes")
-      .select("id")
-      .eq("telefono", phone)
-      .limit(1)
+      .insert({
+        nombre: name,
+        telefono: phone,
+        dni,
+        direccion: direccionCompleta,
+        referencia: reference,
+        link_ubicacion: locationLink,
+        departamento: department,
+        provincia: provincia,
+        distrito: district
+      })
+      .select()
+      .single()
 
-    if (existingClientsError) {
-      return NextResponse.json({ error: existingClientsError.message }, { status: 400 })
+    if (clientError) {
+      return NextResponse.json({ error: clientError.message }, { status: 400 })
     }
 
-    if (existingClients && existingClients.length > 0) {
-      clienteId = Number((existingClients as any)[0]?.id)
-      const { error: updErr } = await supabaseAdmin
-        .from("clientes")
-        .update({
-          nombre: name,
-          dni,
-          direccion: direccionCompleta,
-          referencia: reference,
-          link_ubicacion: locationLink,
-          departamento: department,
-          provincia: provincia,
-          distrito: district
-        })
-        .eq("id", clienteId)
-        .select()
-
-      if (updErr) {
-        return NextResponse.json({ error: updErr.message }, { status: 400 })
-      }
-    } else {
-      const { data: newClient, error: clientError } = await supabaseAdmin
-        .from("clientes")
-        .insert({
-          nombre: name,
-          telefono: phone,
-          dni,
-          direccion: direccionCompleta,
-          referencia: reference,
-          link_ubicacion: locationLink,
-          departamento: department,
-          provincia: provincia,
-          distrito: district
-        })
-        .select()
-        .single()
-
-      if (clientError) {
-        return NextResponse.json({ error: clientError.message }, { status: 400 })
-      }
-
-      clienteId = Number((newClient as any)?.id)
-    }
+    const clienteId: number | null = Number((newClient as any)?.id) || null
 
     if (!clienteId) {
-      return NextResponse.json({ error: "No se pudo crear cliente" }, { status: 500 })
+      return NextResponse.json({ error: "No se pudo crear cliente para el pedido" }, { status: 500 })
     }
 
     // B. Pedido
