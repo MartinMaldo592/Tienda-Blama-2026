@@ -191,6 +191,11 @@ export async function POST(req: Request) {
         // 5. Procesar el cargo con Culqi
         console.log(`🔌 Procesando pago Culqi para: ${data.email} por S/ ${total} (Pedido ID: ${pedido.id})`)
 
+        // --- Enriquecer Datos para el Anti-Fraude y Panel de Culqi ---
+        const nameParts = data.name.trim().split(" ");
+        const firstName = nameParts[0] || "Cliente";
+        const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "Blama";
+
         const culqiRes = await fetch("https://api.culqi.com/v2/charges", {
             method: "POST",
             headers: {
@@ -204,7 +209,12 @@ export async function POST(req: Request) {
                 source_id: data.token,
                 description: `Pedido ${pedido.id} Tienda Blama - ${data.dni}`,
                 antifraud_details: {
+                    first_name: firstName.substring(0, 50),
+                    last_name: lastName.substring(0, 100),
                     phone_number: data.phone,
+                    address: direccionCompleta ? direccionCompleta.substring(0, 100) : "No indicada",
+                    address_city: data.province ? data.province.substring(0, 50) : "Lima",
+                    country_code: "PE",
                 },
                 metadata: {
                     pedido_id: pedido.id
