@@ -122,16 +122,45 @@ export async function POST(req: Request) {
     const items = body.items
     const shippingMethod = body.shippingMethod?.trim() || null
 
-    // Calculate totals
+    const supabaseAdmin = createClient(url, service)
+
+    // ── Obtener Precios Oficiales (Validación de backend crítica) ──
+    const productIds = items.map(it => it.id)
+    if (productIds.length === 0) {
+      return NextResponse.json({ error: "El carrito está vacío" }, { status: 400 })
+    }
+
+    const { data: dbProducts, error: dbError } = await supabaseAdmin
+      .from("productos")
+      .select("id, precio")
+      .in("id", productIds)
+
+    if (dbError) {
+      return NextResponse.json({ error: "Error validando catálogo de productos" }, { status: 500 })
+    }
+
+    const officialPrices = new Map<number, number>()
+    dbProducts?.forEach((p: any) => officialPrices.set(p.id, Number(p.precio) || 0))
+
+    // Calculate totals using official prices
+    let hasInvalidProducts = false
     const subtotal = Math.max(
       0,
       Math.round(
         items.reduce((acc, it) => {
-          const unit = Number(it.precio ?? 0) || 0
+          const unit = officialPrices.get(it.id)
+          if (unit === undefined) {
+            hasInvalidProducts = true
+            return acc
+          }
           return acc + unit * it.quantity
         }, 0) * 100
       ) / 100
     )
+
+    if (hasInvalidProducts) {
+      return NextResponse.json({ error: "Algunos productos en el carrito ya no están disponibles" }, { status: 400 })
+    }
 
     const appliedDiscount = Math.max(0, Math.min(subtotal, discountAmount))
     const total = Math.max(0, Math.round((subtotal - appliedDiscount) * 100) / 100)
@@ -142,8 +171,6 @@ export async function POST(req: Request) {
     const street = body.street?.trim() || null
 
     const direccionCompleta = `${address} ${reference ? `(Ref: ${reference})` : ""} ${locationLink ? `[Link: ${locationLink}]` : ""}`.trim()
-
-    const supabaseAdmin = createClient(url, service)
 
     // A. Cliente
     let clienteId: number | null = null
@@ -273,7 +300,7 @@ export async function POST(req: Request) {
       pedido_id: pedidoId,
       producto_id: item.id,
       producto_variante_id: item.producto_variante_id ?? null,
-      precio_unitario: Number(item.precio ?? 0) || 0,
+      precio_unitario: officialPrices.get(item.id) || 0,
       producto_nombre: item.nombre || null,
       variante_nombre: item.variante_nombre || null,
       cantidad: item.quantity,

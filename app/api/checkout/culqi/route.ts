@@ -81,11 +81,42 @@ export async function POST(req: Request) {
 
         const data = validation.data
 
-        // 3. Calcular Totales (Validación de backend importante)
+        // Crear cliente Supabase temprano para validar precios
+        const supabase = createClient(url, service)
+
+        // 3. Obtener Precios Oficiales (Validación de backend crítica)
+        const productIds = data.items.map(it => it.id)
+        if (productIds.length === 0) {
+            return NextResponse.json({ error: "El carrito está vacío" }, { status: 400 })
+        }
+
+        const { data: dbProducts, error: dbError } = await supabase
+            .from("productos")
+            .select("id, precio")
+            .in("id", productIds)
+
+        if (dbError) {
+            console.error("Error obteniendo precios de la base de datos:", dbError)
+            return NextResponse.json({ error: "Error interno verificando catálogo." }, { status: 500 })
+        }
+
+        const preciosOficiales = new Map<number, number>()
+        dbProducts?.forEach((p: any) => preciosOficiales.set(p.id, Number(p.precio) || 0))
+
+        // Calcular subtotal con precios oficiales
+        let hasInvalidProducts = false
         const subtotal = Math.max(0, Math.round(data.items.reduce((acc, it) => {
-            const unit = Number(it.precio ?? 0) || 0
+            const unit = preciosOficiales.get(it.id)
+            if (unit === undefined) {
+                hasInvalidProducts = true;
+                return acc;
+            }
             return acc + (unit * it.quantity)
         }, 0) * 100) / 100)
+
+        if (hasInvalidProducts) {
+            return NextResponse.json({ error: "Algunos productos en el carrito ya no están disponibles." }, { status: 400 })
+        }
 
         const appliedDiscount = Math.max(0, Math.min(subtotal, data.discountAmount || 0))
         const total = Math.max(0, Math.round((subtotal - appliedDiscount) * 100) / 100)
@@ -93,57 +124,18 @@ export async function POST(req: Request) {
         // El monto para Culqi debe ser en CÉNTIMOS (enteros)
         const culqiAmount = Math.round(total * 100)
 
-        // 4. Procesar el cargo con Culqi
-        console.log(`🔌 Procesando pago Culqi para: ${data.email} por S/ ${total}`)
-
-        const culqiRes = await fetch("https://api.culqi.com/v2/charges", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${culqiSecret}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                amount: culqiAmount,
-                currency_code: "PEN",
-                email: data.email,
-                source_id: data.token,
-                description: `Pedido Tienda Blama - ${data.dni}`, // Descripción en estado de cuenta
-                antifraud_details: {
-                    phone_number: data.phone,
-                }
-            })
-        })
-
-        const culqiData = await culqiRes.json()
-
-        if (!culqiRes.ok) {
-            // Error en el pago (Tarjeta denegada, fondos insuficientes, etc.)
-            console.error("❌ Error Culqi:", culqiData)
-            const userMsg = culqiData.user_message || culqiData.merchant_message || "No se pudo procesar el pago."
-            return NextResponse.json({ error: userMsg, code: culqiData.code }, { status: 400 })
-        }
-
-        // ✅ ¡PAGO EXITOSO!
-        console.log("✅ Pago exitoso ID:", culqiData.id)
-
-        // 5. Guardar en Base de Datos (Supabase)
-        const supabase = createClient(url, service)
-
+        // 4. Crear Pre-Pedido en Base de Datos (Idempotencia)
         // A. Gestión Cliente (Buscar o Crear)
         let clienteId: number | null = null
-        const direccionCompleta = data.address // Simplificamos, ya que address suele ser completa o agregamos detalles si quieres
+        const direccionCompleta = data.address
 
-        // Intentar buscar por DNI o Teléfono (prioridad a DNI que es identificador legal)
         const { data: existingClients, error: searchError } = await supabase
             .from("clientes")
             .select("id")
             .or(`dni.eq.${data.dni},telefono.eq.${data.phone}`)
             .limit(1)
 
-        if (searchError) {
-            console.error("Error buscando cliente:", searchError)
-            throw new Error(`Error buscando cliente: ${searchError.message}`)
-        }
+        if (searchError) throw new Error(`Error buscando cliente: ${searchError.message}`)
 
         const clientData = {
             nombre: data.name,
@@ -160,35 +152,18 @@ export async function POST(req: Request) {
         }
 
         if (existingClients && existingClients.length > 0) {
-            // ACTUALIZAR
             clienteId = existingClients[0].id
-            const { error: updateError } = await supabase
-                .from("clientes")
-                .update(clientData)
-                .eq("id", clienteId)
-
-            if (updateError) {
-                console.error("Error actualizando cliente:", updateError)
-                throw new Error(`Error actualizando cliente: ${updateError.message}`)
-            }
+            const { error: updateError } = await supabase.from("clientes").update(clientData).eq("id", clienteId)
+            if (updateError) throw new Error(`Error actualizando cliente: ${updateError.message}`)
         } else {
-            // CREAR NUEVO
-            const { data: newClient, error: insertError } = await supabase
-                .from("clientes")
-                .insert(clientData)
-                .select("id")
-                .single()
-
-            if (insertError) {
-                console.error("Error creando cliente:", insertError)
-                throw new Error(`Error creando cliente: ${insertError.message}`)
-            }
+            const { data: newClient, error: insertError } = await supabase.from("clientes").insert(clientData).select("id").single()
+            if (insertError) throw new Error(`Error creando cliente: ${insertError.message}`)
             clienteId = newClient?.id || null
         }
 
         if (!clienteId) throw new Error("No se pudo obtener el ID del cliente tras la operación")
 
-        // B. Crear Pedido
+        // B. Crear Pedido Pendiente
         const { data: pedido, error: pedidoError } = await supabase.from("pedidos").insert({
             cliente_id: clienteId,
             nombre_contacto: data.name,
@@ -200,27 +175,17 @@ export async function POST(req: Request) {
             departamento: data.department,
             provincia: data.province,
             distrito: data.district,
-
             metodo_envio: data.shippingMethod,
-
-            // Totales
             subtotal: subtotal,
             descuento: appliedDiscount,
             cupon_codigo: data.couponCode || null,
             total: total,
-
-            // ESTADOS IMPORTANTES
-            status: "Confirmado", // Ya está pagado, nace confirmado
-            pago_status: "Pagado", // ✅ PAGADO
-            metodo_pago: "Tarjeta" // O el valor que uses en tu DB
+            status: "Pendiente", // Nace como pendiente
+            pago_status: "Pendiente", // Pendiente de pago
+            metodo_pago: "Tarjeta"
         }).select().single()
 
-        if (pedidoError || !pedido) {
-            console.error("Error creando pedido DB:", pedidoError)
-            // NOTA CRÍTICA: El pago ya se hizo pero falló la DB. 
-            // En un sistema avanzado aquí haríamos un reembolso automático o alerta crítica.
-            throw new Error("El pago se procesó pero hubo un error guardando el pedido. Contáctanos con tu comprobante.")
-        }
+        if (pedidoError || !pedido) throw new Error("Error creando el pre-pedido en base de datos. Intente nuevamente.")
 
         // C. Guardar Items
         const itemsToInsert = data.items.map(it => ({
@@ -228,12 +193,58 @@ export async function POST(req: Request) {
             producto_id: it.id,
             producto_variante_id: it.producto_variante_id,
             cantidad: it.quantity,
-            precio_unitario: Number(it.precio || 0),
+            precio_unitario: preciosOficiales.get(it.id) || 0,
             producto_nombre: it.nombre,
             variante_nombre: it.variante_nombre
         }))
 
         await supabase.from("pedido_items").insert(itemsToInsert)
+
+        // 5. Procesar el cargo con Culqi
+        console.log(`🔌 Procesando pago Culqi para: ${data.email} por S/ ${total} (Pedido ID: ${pedido.id})`)
+
+        const culqiRes = await fetch("https://api.culqi.com/v2/charges", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${culqiSecret}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                amount: culqiAmount,
+                currency_code: "PEN",
+                email: data.email,
+                source_id: data.token,
+                description: `Pedido ${pedido.id} Tienda Blama - ${data.dni}`,
+                antifraud_details: {
+                    phone_number: data.phone,
+                },
+                metadata: {
+                    pedido_id: pedido.id
+                }
+            })
+        })
+
+        const culqiData = await culqiRes.json()
+
+        if (!culqiRes.ok) {
+            console.error("❌ Error Culqi:", culqiData)
+            // Marcar pedido como fallido para tener trazabilidad
+            await supabase.from("pedidos").update({
+                status: "Fallido",
+                pago_status: "Fallido"
+            }).eq("id", pedido.id)
+
+            const userMsg = culqiData.user_message || culqiData.merchant_message || "No se pudo procesar el pago."
+            return NextResponse.json({ error: userMsg, code: culqiData.code }, { status: 400 })
+        }
+
+        console.log("✅ Pago exitoso ID:", culqiData.id)
+
+        // 6. Actualizar Pedido a Pagado
+        await supabase.from("pedidos").update({
+            status: "Confirmado",
+            pago_status: "Pagado"
+        }).eq("id", pedido.id)
 
         // D. Registrar el Pago en la tabla financiera
         await supabase.from("pedido_pagos").insert({
