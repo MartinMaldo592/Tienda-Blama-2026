@@ -182,10 +182,12 @@ export async function POST(req: Request) {
             total: total,
             status: "Pendiente", // Nace como pendiente
             pago_status: "Pendiente", // Pendiente de pago
-            metodo_pago: "Tarjeta"
         }).select().single()
 
-        if (pedidoError || !pedido) throw new Error("Error creando el pre-pedido en base de datos. Intente nuevamente.")
+        if (pedidoError || !pedido) {
+            console.error("🔴 ERROR CRÍTICO INSERTANDO PRE-PEDIDO SUPABASE:", pedidoError)
+            throw new Error(`Error creando el pre-pedido en base de datos. Detalles: ${pedidoError?.message || "Desconocido"}. Intente nuevamente.`)
+        }
 
         // C. Guardar Items
         const itemsToInsert = data.items.map(it => ({
@@ -243,7 +245,7 @@ export async function POST(req: Request) {
         // 6. Actualizar Pedido a Pagado
         await supabase.from("pedidos").update({
             status: "Confirmado",
-            pago_status: "Pagado"
+            pago_status: "Pagado Anticipado"
         }).eq("id", pedido.id)
 
         // D. Registrar el Pago en la tabla financiera
