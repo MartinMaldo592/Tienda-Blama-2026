@@ -166,8 +166,8 @@ export async function POST(req: Request) {
     const total = Math.max(0, Math.round((subtotal - appliedDiscount) * 100) / 100)
 
     const district = body.district?.trim() || null
-    const provincia = body.provinceName?.trim() || null
-    const department = body.department?.trim() || body.province?.trim() || null
+    const provincia = body.province?.trim() || body.provinceName?.trim() || null
+    const department = body.department?.trim() || null
     const street = body.street?.trim() || null
 
     const direccionCompleta = `${address} ${reference ? `(Ref: ${reference})` : ""} ${locationLink ? `[Link: ${locationLink}]` : ""}`.trim()

@@ -35,8 +35,26 @@ import { CheckoutSummary } from "@/components/checkout/checkout-summary"
 import { CheckoutPayment } from "@/components/checkout/checkout-payment" // Nuevo
 import { CulqiPaymentButton } from "@/components/checkout/culqi-payment-button" // Nuevo
 
+import { useForm, Controller } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+
 // Define libraries array outside component to prevent re-renders
 const libraries: ("places")[] = ["places"];
+
+const checkoutFormSchema = z.object({
+    name: z.string().min(2, "Obligatorio"),
+    phone: z.string().length(9, "Debe tener 9 dígitos"),
+    dni: z.string().length(8, "Debe tener 8 dígitos"),
+    department: z.string().min(2, "Requerido"),
+    province: z.string().min(2, "Requerido"),
+    district: z.string().min(2, "Requerido"),
+    reference: z.string().optional(),
+    shippingMethod: z.string(),
+    paymentMethod: z.string(),
+})
+
+type CheckoutFormValues = z.infer<typeof checkoutFormSchema>
 
 interface CheckoutFormProps {
     items: any[]
@@ -70,17 +88,24 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
     const { draft, loaded, saveDraft, clearDraft } = useCheckoutDraft()
     const router = useRouter()
 
-    const [paymentMethod, setPaymentMethod] = useState("whatsapp") // Nuevo estado
-    const [name, setName] = useState("")
-    const [shippingMethod, setShippingMethod] = useState("Lima")
-    const [phone, setPhone] = useState("")
-    const [phoneError, setPhoneError] = useState("")
-    const [dni, setDni] = useState("")
-    const [dniError, setDniError] = useState("")
-    const [reference, setReference] = useState("")
-    const [department, setDepartment] = useState("")
-    const [province, setProvince] = useState("")
-    const [district, setDistrict] = useState("")
+    const form = useForm<CheckoutFormValues>({
+        resolver: zodResolver(checkoutFormSchema),
+        defaultValues: {
+            name: "",
+            phone: "",
+            dni: "",
+            department: "",
+            province: "",
+            district: "",
+            reference: "",
+            shippingMethod: "Lima",
+            paymentMethod: "whatsapp"
+        }
+    })
+
+    const { register, handleSubmit, trigger, control, watch, setValue: setFormValue, formState: { errors } } = form
+    const formValues = watch()
+    const paymentMethod = formValues.paymentMethod
     const [locationLink, setLocationLink] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [waPromptOpen, setWaPromptOpen] = useState(false)
@@ -107,39 +132,31 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
     // Load draft when ready
     useEffect(() => {
         if (loaded && draft) {
-            if (draft.name) setName(draft.name)
-            if (draft.phone) setPhone(draft.phone)
-            if (draft.dni) setDni(draft.dni)
-            if (draft.department) setDepartment(draft.department)
-            if (draft.province) setProvince(draft.province)
-            if (draft.district) setDistrict(draft.district)
-            if (draft.reference) setReference(draft.reference)
-            if (draft.shippingMethod) setShippingMethod(draft.shippingMethod)
-            if (draft.paymentMethod) setPaymentMethod(draft.paymentMethod) // Recuperar del draft si existe
+            if (draft.name) setFormValue("name", draft.name)
+            if (draft.phone) setFormValue("phone", draft.phone)
+            if (draft.dni) setFormValue("dni", draft.dni)
+            if (draft.department) setFormValue("department", draft.department)
+            if (draft.province) setFormValue("province", draft.province)
+            if (draft.district) setFormValue("district", draft.district)
+            if (draft.reference) setFormValue("reference", draft.reference)
+            if (draft.shippingMethod) setFormValue("shippingMethod", draft.shippingMethod)
+            if (draft.paymentMethod) setFormValue("paymentMethod", draft.paymentMethod)
             // Address value is handled by Google Maps hook, we can set it via setValue
             if (draft.address) setValue(draft.address, false)
         }
-    }, [loaded, draft, setValue])
+    }, [loaded, draft, setFormValue, setValue])
 
     // Save draft on changes
     useEffect(() => {
         if (!loaded) return
         const timeout = setTimeout(() => {
             saveDraft({
-                name,
-                phone,
-                dni,
-                department,
-                province,
-                district,
-                reference,
-                shippingMethod,
+                ...formValues,
                 address: value,
-                paymentMethod // Guardar preferencia
             })
         }, 500) // Debounce 500ms
         return () => clearTimeout(timeout)
-    }, [name, phone, dni, department, province, district, reference, shippingMethod, value, loaded, saveDraft])
+    }, [formValues, value, loaded, saveDraft])
 
     // Removed unused geoProvince, geoDistrict
 
@@ -149,6 +166,32 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
 
         try {
             const results = await getGeocode({ address })
+
+            // --- NUEVO: AUTOCOMPLETADO INTELIGENTE ---
+            const addressComponents = results[0].address_components;
+
+            let departamentoEncontrado = "";
+            let provinciaEncontrada = "";
+            let distritoEncontrado = "";
+
+            addressComponents.forEach((component: any) => {
+                const types = component.types;
+                if (types.includes("administrative_area_level_1")) {
+                    departamentoEncontrado = component.long_name;
+                }
+                if (types.includes("administrative_area_level_2")) {
+                    provinciaEncontrada = component.long_name;
+                }
+                if (types.includes("locality") || types.includes("sublocality")) {
+                    distritoEncontrado = component.long_name;
+                }
+            });
+
+            if (departamentoEncontrado) setFormValue("department", departamentoEncontrado, { shouldValidate: true });
+            if (provinciaEncontrada) setFormValue("province", provinciaEncontrada, { shouldValidate: true });
+            if (distritoEncontrado) setFormValue("district", distritoEncontrado, { shouldValidate: true });
+            // ----------------------------------------
+
             const { lat, lng } = await getLatLng(results[0])
             const link = `https://www.google.com/maps/?q=${lat},${lng}`
             setLocationLink(link)
@@ -184,49 +227,32 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
     }
 
     // ── Validation Helper ──
-    const validateFields = async () => {
-        setPhoneError("")
-        setDniError("")
+    const validateFieldsForCulqi = async () => {
+        const isValid = await trigger()
+        if (!isValid) return false
+
         setCouponError("")
 
-        // 1. Validar Celular
-        const normalizedPhone = phone.replace(/\D/g, "")
-        if (normalizedPhone.length !== 9) {
-            setPhoneError('El celular debe tener 9 dígitos')
-            return false
-        }
-
-        // 2. Validar DNI
-        const normalizedDni = normalizeDni(dni)
-        if (normalizedDni.length !== 8) {
-            setDniError('El DNI debe tener 8 dígitos')
-            return false
-        }
-
-        // 3. Validar Dirección (Simple check)
         if (!value || value.length < 5) {
-            alert("Por favor ingresa una dirección válida")
+            alert("Por favor ingresa una dirección de mapa válida")
             return false
         }
 
-        // 4. Validar Cupón (Si hay uno escrito pero no aplicado)
         if (couponCode.trim()) {
             try {
-                // Re-validar para asegurar precio
                 await validateCoupon(couponCode, subtotalAmount)
             } catch (err: any) {
                 setCouponError(err?.message || 'Cupón inválido')
                 return false
             }
         }
-
         return true
     }
 
     // ── Helper para construir Payload (reutilizable) ──
-    const getOrderPayload = async () => {
-        const normalizedPhone = phone.replace(/\D/g, "")
-        const normalizedDni = normalizeDni(dni)
+    const getOrderPayload = async (data: CheckoutFormValues) => {
+        const normalizedPhone = data.phone.replace(/\D/g, "")
+        const normalizedDni = normalizeDni(data.dni)
 
         // Re-validar cupón para obtener descuento final seguro
         let appliedCouponCode: string | null = null
@@ -255,7 +281,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             variante_nombre: (it as any)?.variante_nombre ?? null,
         }))
 
-        const fullAddress = `${department}, ${province}, ${district}. ${value || ''}`.trim()
+        const fullAddress = `${data.department}, ${data.province}, ${data.district}. ${value || ''}`.trim()
 
         let finalLocationLink = locationLink
         if ((!finalLocationLink || finalLocationLink.trim() === "") && fullAddress) {
@@ -264,19 +290,19 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
         }
 
         return {
-            name,
+            name: data.name,
             phone: normalizedPhone,
             dni: normalizedDni,
             address: fullAddress, // Full Address string
             street: value, // Google Maps clean part
-            province: province, // Corregido: Coincide con schema Zod (antes provinceName)
-            district,
-            department,
-            reference: reference || undefined,
+            province: data.province,
+            district: data.district,
+            department: data.department,
+            reference: data.reference || undefined,
             locationLink: finalLocationLink || "",
             couponCode: appliedCouponCode || undefined,
             discountAmount: finalDiscount || 0,
-            shippingMethod: shippingMethod || undefined,
+            shippingMethod: data.shippingMethod || undefined,
             items: checkoutItems,
             // Computed for logs
             subtotal: subtotalAmount,
@@ -285,21 +311,30 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
     }
 
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if (paymentMethod === 'culqi') return // Block submit if Culqi is selected (button handles it)
+    const onSubmit = async (data: CheckoutFormValues) => {
+        if (data.paymentMethod === 'culqi') return // Block submit if Culqi is selected (button handles it)
 
-        setIsSubmitting(true)
-
-        // 1. Validate
-        const isValid = await validateFields()
-        if (!isValid) {
-            setIsSubmitting(false)
+        if (!value || value.length < 5) {
+            alert("Por favor ingresa una dirección de mapa válida")
             return
         }
 
+        setIsSubmitting(true)
+        setCouponError("")
+
+        if (couponCode.trim()) {
+            try {
+                // Re-validar cupón
+                await validateCoupon(couponCode, subtotalAmount)
+            } catch (err: any) {
+                setCouponError(err?.message || 'Cupón inválido')
+                setIsSubmitting(false)
+                return
+            }
+        }
+
         // 2. Build Payload
-        const payload = await getOrderPayload()
+        const payload = await getOrderPayload(data)
 
         // 3. WhatsApp Logic
         const messageClientePreview = buildWhatsAppPreviewMessage({
@@ -415,7 +450,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
     // ── CULQI Handler ──
     const handleCulqiToken = async (token: string, email: string) => {
         try {
-            const payload = await getOrderPayload()
+            const payload = await getOrderPayload(formValues)
 
             // Asegurar que siempre haya un email válido (fallback si Culqi no lo devuelve)
             const emailToSend = email || "pedidos@blama.shop"
@@ -491,7 +526,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
     return (
         <>
             <form
-                onSubmit={handleSubmit}
+                onSubmit={handleSubmit(onSubmit)}
                 className="flex flex-col h-full outline-none"
             >
                 <div className="p-4 border-b flex items-center gap-2 bg-popover">
@@ -502,20 +537,21 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                    <CheckoutShipping value={shippingMethod} onChange={setShippingMethod} disabled={isSubmitting} />
+                    <Controller
+                        control={control}
+                        name="shippingMethod"
+                        render={({ field }) => (
+                            <CheckoutShipping value={field.value} onChange={field.onChange} disabled={isSubmitting} />
+                        )}
+                    />
 
                     <CheckoutCustomer
-                        name={name} setName={setName}
-                        phone={phone} setPhone={setPhone} phoneError={phoneError} setPhoneError={setPhoneError}
-                        dni={dni} setDni={setDni} dniError={dniError} setDniError={setDniError}
+                        register={register} errors={errors}
                         disabled={isSubmitting}
                     />
 
                     <CheckoutAddress
-                        department={department} setDepartment={setDepartment}
-                        province={province} setProvince={setProvince}
-                        district={district} setDistrict={setDistrict}
-                        reference={reference} setReference={setReference}
+                        register={register} errors={errors}
                         addressValue={value}
                         onAddressChange={(val) => {
                             setValue(val)
@@ -527,17 +563,23 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                         apiKeyMissing={!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
                     />
 
-                    <CheckoutPayment
-                        value={paymentMethod}
-                        onChange={setPaymentMethod}
-                        disabled={isSubmitting}
+                    <Controller
+                        control={control}
+                        name="paymentMethod"
+                        render={({ field }) => (
+                            <CheckoutPayment
+                                value={field.value}
+                                onChange={field.onChange}
+                                disabled={isSubmitting}
+                            />
+                        )}
                     />
                 </div>
 
                 <div className="p-4 border-t mt-auto bg-popover">
                     <CheckoutSummary
                         subtotal={subtotalAmount}
-                        shippingMethod={shippingMethod}
+                        shippingMethod={formValues.shippingMethod}
                         discount={discountAmount}
                         total={totalToPay}
                         couponCode={couponCode} setCouponCode={setCouponCode}
@@ -550,7 +592,7 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                                 amount={totalToPay}
                                 email="pedidos@blama.shop" // Email interno por ahora
                                 title={`Pedido Blama Shop - S/ ${totalToPay}`}
-                                onBeforeOpen={validateFields}
+                                onBeforeOpen={validateFieldsForCulqi}
                                 onToken={handleCulqiToken}
                                 onError={(e: any) => {
                                     const msg = e.message || JSON.stringify(e)

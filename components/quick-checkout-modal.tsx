@@ -121,8 +121,8 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
     const [address, setAddress] = useState("") // Google Maps Address
     const [reference, setReference] = useState("")
     const [department, setDepartment] = useState("")
+    const [province, setProvince] = useState("")
     const [district, setDistrict] = useState("")
-    const [urbanDistrict, setUrbanDistrict] = useState("")
     const [shippingMethod, setShippingMethod] = useState("Lima")
     const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -152,8 +152,8 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
             if (draft.phone) setPhone(draft.phone)
             if (draft.dni) setDni(draft.dni)
             if (draft.department) setDepartment(draft.department)
-            if (draft.province) setDistrict(draft.province) // Map draft.province to district (provincia)
-            if (draft.district) setUrbanDistrict(draft.district) // Map draft.district to urbanDistrict (distrito)
+            if (draft.province) setProvince(draft.province)
+            if (draft.district) setDistrict(draft.district)
             if (draft.reference) setReference(draft.reference)
             if (draft.shippingMethod) setShippingMethod(draft.shippingMethod)
             // Address value handling
@@ -173,20 +173,49 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                 phone,
                 dni,
                 department,
-                province: district, // local district var is Province
-                district: urbanDistrict, // local urbanDistrict var is District
+                province,
+                district,
                 reference,
                 shippingMethod,
                 address: value || address
             })
         }, 500) // Debounce 500ms
         return () => clearTimeout(timeout)
-    }, [name, phone, dni, department, district, urbanDistrict, reference, shippingMethod, value, address, loaded, saveDraft])
+    }, [name, phone, dni, department, province, district, reference, shippingMethod, value, address, loaded, saveDraft])
 
     const handleAddressSelect = async (addr: string) => {
         setValue(addr, false)
         clearSuggestions()
         setAddress(addr)
+
+        try {
+            const { getGeocode } = await import("use-places-autocomplete");
+            const results = await getGeocode({ address: addr })
+            const addressComponents = results[0].address_components;
+
+            let prop_department = "";
+            let prop_province = "";
+            let prop_district = "";
+
+            addressComponents.forEach((component: any) => {
+                const types = component.types;
+                if (types.includes("administrative_area_level_1")) {
+                    prop_department = component.long_name;
+                }
+                if (types.includes("administrative_area_level_2")) {
+                    prop_province = component.long_name;
+                }
+                if (types.includes("locality") || types.includes("sublocality")) {
+                    prop_district = component.long_name;
+                }
+            });
+
+            if (prop_department) setDepartment(prop_department);
+            if (prop_province) setProvince(prop_province);
+            if (prop_district) setDistrict(prop_district);
+        } catch (error) {
+            console.error("Error Quick Geocoding:", error)
+        }
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -217,7 +246,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
             variante_nombre: variant?.etiqueta ? String(variant.etiqueta) : null
         }]
 
-        const fullAddress = `${department}, ${district}, ${urbanDistrict}. ${value || address}`.trim()
+        const fullAddress = `${department}, ${province}, ${district}. ${value || address}`.trim()
         const locationLink = "" // Can be added if we do Geocode
 
         const messageCliente = buildWhatsAppPreviewMessage({
@@ -244,8 +273,8 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                 dni: dniClean,
                 address: fullAddress,
                 department, // Department
-                provinceName: district, // Province
-                district: urbanDistrict, // District
+                provinceName: province, // Province
+                district: district, // District
                 street: value || address,
                 reference,
                 locationLink,
@@ -323,8 +352,8 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
 
             <QuickAddress
                 department={department} setDepartment={setDepartment}
+                province={province} setProvince={setProvince}
                 district={district} setDistrict={setDistrict}
-                urbanDistrict={urbanDistrict} setUrbanDistrict={setUrbanDistrict}
                 addressValue={value} setAddressValue={setValue}
                 reference={reference} setReference={setReference}
                 ready={ready} suggestionsStatus={status} suggestionsData={data} onSuggestionSelect={handleAddressSelect}

@@ -7,10 +7,10 @@ import { MapPin } from "lucide-react"
 interface QuickAddressProps {
     department: string
     setDepartment: (v: string) => void
-    district: string // This is Province in modal usage
+    province: string // This is Province
+    setProvince: (v: string) => void
+    district: string // This is District
     setDistrict: (v: string) => void
-    urbanDistrict: string // This is District in modal usage
-    setUrbanDistrict: (v: string) => void
     addressValue: string
     setAddressValue: (v: string) => void
     reference: string
@@ -26,8 +26,8 @@ interface QuickAddressProps {
 
 export function QuickAddress({
     department, setDepartment,
+    province, setProvince,
     district, setDistrict,
-    urbanDistrict, setUrbanDistrict,
     addressValue, setAddressValue,
     reference, setReference,
     disabled,
@@ -35,21 +35,6 @@ export function QuickAddress({
 }: QuickAddressProps) {
     return (
         <div className="space-y-4">
-            <div className="space-y-1">
-                <Label className="text-sm font-bold">Departamento <span className="text-destructive">*</span></Label>
-                <IconInput icon={MapPin} required placeholder="Ej: Lima" value={department} onChange={(e: any) => setDepartment(e.target.value)} disabled={disabled} />
-            </div>
-
-            <div className="space-y-1">
-                <Label className="text-sm font-bold">Provincia <span className="text-destructive">*</span></Label>
-                <IconInput icon={MapPin} required placeholder="Ej: Cañete" value={district} onChange={(e: any) => setDistrict(e.target.value)} disabled={disabled} />
-            </div>
-
-            <div className="space-y-1">
-                <Label className="text-sm font-bold">Distrito <span className="text-destructive">*</span></Label>
-                <IconInput icon={MapPin} required placeholder="Ej: Miraflores" value={urbanDistrict} onChange={(e: any) => setUrbanDistrict(e.target.value)} disabled={disabled} />
-            </div>
-
             <div className="space-y-1 relative">
                 <Label className="text-sm font-bold">Dirección <span className="text-destructive">*</span></Label>
                 <div className="flex w-full items-center rounded-md border text-sm overflow-hidden h-10 ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
@@ -73,6 +58,21 @@ export function QuickAddress({
                         ))}
                     </ul>
                 )}
+            </div>
+
+            <div className="space-y-1">
+                <Label className="text-sm font-bold">Departamento <span className="text-destructive">*</span></Label>
+                <IconInput icon={MapPin} required placeholder="Ej: Lima" value={department} onChange={(e: any) => setDepartment(e.target.value)} disabled={disabled} />
+            </div>
+
+            <div className="space-y-1">
+                <Label className="text-sm font-bold">Provincia <span className="text-destructive">*</span></Label>
+                <IconInput icon={MapPin} required placeholder="Ej: Cañete" value={province} onChange={(e: any) => setProvince(e.target.value)} disabled={disabled} />
+            </div>
+
+            <div className="space-y-1">
+                <Label className="text-sm font-bold">Distrito <span className="text-destructive">*</span></Label>
+                <IconInput icon={MapPin} required placeholder="Ej: Miraflores" value={district} onChange={(e: any) => setDistrict(e.target.value)} disabled={disabled} />
             </div>
 
             <div className="space-y-1">

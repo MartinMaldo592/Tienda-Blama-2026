@@ -1,52 +1,51 @@
-# 📊 Análisis Profesional y Estratégico — Tienda Blama 2026
+ # 📊 Análisis Profesional y Estratégico — Tienda Blama 2026
 
 > **Fecha:** Febrero 2026  
 > **Proyecto:** Tienda Blama — E-commerce B2C con CRM Administrativo Propio  
-> **Estado del Análisis:** Auditoría Completa de Código, Arquitectura y Negocio  
+> **Estado del Análisis:** Auditoría Completa de Código, Arquitectura y Negocio (Actualizada)
 
 ---
 
 ## 📑 Tabla de Contenidos
 
-1. [Resumen Ejecutivo](#1-resumen-ejecutivo)
-2. [Modelo de Negocio: E-commerce B2C Híbrido](#2-modelo-de-negocio-e-commerce-b2c-híbrido)
+1. [Resumen Ejecutivo e Historial de Auditoría](#1-resumen-ejecutivo-e-historial-de-auditoría)
+2. [Modelo de Negocio: E-commerce B2C Híbrido](#2-modelo-de-negocio-e-commerce-b2c-hybrido)
 3. [Arquitectura General y Tech Stack](#3-arquitectura-general-y-tech-stack)
-4. [🚨 Hallazgos Críticos de Seguridad](#4--hallazgos-críticos-de-seguridad)
+4. [🛡️ Estado de Seguridad y Vulnerabilidades Resueltas](#4-estado-de-seguridad-y-vulnerabilidades-resueltas)
 5. [Evaluación del Panel Administrativo (CRM)](#5-evaluación-del-panel-administrativo-crm)
 6. [Oportunidades de Implementación Futura (Roadmap)](#6-oportunidades-de-implementación-futura-roadmap)
-7. [Plan de Acción Inmediato](#7-plan-de-acción-inmediato)
+7. [Plan de Acción Siguiente Fase](#7-plan-de-acción-siguiente-fase)
 
 ---
 
-## 1. Resumen Ejecutivo
+## 1. Resumen Ejecutivo e Historial de Auditoría
 
-Tienda Blama 2026 es una plataforma altamente sofisticada. En lugar de utilizar soluciones empaquetadas (como Shopify o Tiendanube), se ha optado por un **desarrollo "Headless" completamente a medida**, combinando un storefront público muy rápido y un panel administrativo propio (CRM/ERP).
+Tienda Blama 2026 es una plataforma altamente sofisticada. En lugar de utilizar soluciones empaquetadas o CMS tradicionales, se ha optado por un **desarrollo "Headless" completamente a medida**, combinando un storefront público extremadamente rápido con un panel administrativo propio (CRM/ERP).
 
-### ✅ Puntos Fuertes Detectados en el Código:
-* **Stack Tecnológico Puntero:** Next.js 15, React 19, Supabase, Tailwind CSS 4 y Zustand. Cuentan con un entorno a prueba de futuro.
-* **Validaciones Robustas:** Has implementado validación estricta de datos con `Zod` (ej. en las APIs de checkout) y Limitación de Peticiones (`checkRateLimit`) para evitar spam o ataques DDoS a los endpoints.
-* **Manejo de Roles:** Gestión de permisos a múltiples niveles (`usuarios`, `clientes`, roles de sistema como `admin` o `worker`), preparado para el control del personal logístico de la tienda.
-* **Checkout Inteligente:** Tienes capacidad de procesar tanto pagos automáticos (Culqi con tarjetas) como pagos manuales (transferencias, Yape/Plin vía WhatsApp).
+En una auditoría previa se detectaron vulnerabilidades críticas (como la confianza ciega en precios enviados por el cliente y problemas de idempotencia al cobrar con Culqi). **Tras analizar el código fuente actual, es grato notar que estos problemas críticos han sido solucionados exitosamente con altos estándares de desarrollo.**
 
-### ⚠️ Áreas Críticas que requieren atención inmediata:
-* Falta **verificación de precios desde el servidor** (se está confiando en los precios enviados por el frontend).
-* Optimización de algunas integraciones financieras para asegurar **Idempotencia** (evitar cobros duplicados).
+### ✅ Puntos Fuertes Detectados en el Código Actual:
+* **Stack Tecnológico Puntero:** Next.js 15, React 19, Supabase (con RLS y policies firmes), Tailwind CSS 4 y Zustand. Cuentan con un entorno totalmente "future-proof".
+* **Validaciones Robustas:** Implementación estricta de validación de datos con `Zod` y `Limitación de Peticiones` por IP (Rate Limit de 5 peticiones por minuto) para evitar spam o ataques DDoS a los endpoints de checkout.
+* **Manejo de Roles (Role Guard):** Gestión de permisos modular y controlada mediante el hook `useRoleGuard`, lo que prepara el sistema para operarios con niveles de acceso granulares.
+* **Checkout Inteligente:** Procesamiento paralelo y robusto.
+* **Integración de Archivos Optimizada:** Integración limpia con Amazon S3 / Cloudflare R2 sin exponer tokens privados.
 
 ---
 
 ## 2. Modelo de Negocio: E-commerce B2C Híbrido
 
-El diseño de Tienda Blama revela una estrategia de mercado inteligente, adaptada a la idiosincrasia del comprador latinoamericano:
+El diseño de la tienda revela una estrategia omnicanal sólida para el mercado local:
 
 1. **Flujo de Pago Omnicanal (Hybrid Checkout):**
-   * **Automático (Culqi):** Para clientes que prefieren usar tarjeta de crédito/débito y tener una compra sin fricción ni intervención humana, cerrando el pedido al instante en estado *Pagado* y *Confirmado*.
-   * **Asistido (WhatsApp):** Para aquellos que no confían en poner su tarjeta o prefieren Yape/Plin o transferencias directas. El sistema captura la pre-orden y la envía a WhatsApp, donde el equipo ("workers" o "admins") atiende, recibe el voucher (subido a Cloudflare R2) y marca el pedido como pagado.
-   
-2. **Logística y Cadena de Suministro Propias:**
-   El CRM interno se encarga de todo el ciclo de vida de los envíos, incluso con variables para envíos vía **Shalom** (claves, órdenes, pines). Tienes un control de inventario que descuenta stock o lo devuelve en caso de cancelaciones o "devoluciones parciales". 
+   * **Automático (Culqi):** Procesa directo a tarjeta conectando pasarelas robustas con medidas contra fraudes inyectadas en la petición POST. Cierra el pedido marcando status *Pagado Anticipado*.
+   * **Asistido / Manual (WhatsApp):** Para el mercado que prefiere Yape/Plin o transferencias directas. Genera un enlace de WhatsApp persistente y permite control del voucher respaldado en la nube (R2).
 
-3. **Crecimiento Orgánico (SEO) y Marketing:**
-   El uso de cupones completos (`porcentaje`, `monto_fijo`, fechas de expiración, límite de usos) muestra una clara intención de ejecutar campañas recurrentes en redes sociales y retargeting.
+2. **Logística y Cadena de Suministro Propias:**
+   El CRM interno se encarga de todo el ciclo de vida de los envíos (preparado, en camino, finalizado), control de variables para agencias externas (Shalom, Olva) y un sólido sistema para mantener notas temporales que solo el equipo interno puede ver.
+
+3. **Interacciones Inmersivas:**
+   Componentes visuales muy cuidados en el Frontend (`store-location`, `product-social-proof`, animaciones en scroll) que transmiten confianza y sentido de "Premium".
 
 ---
 
@@ -54,92 +53,67 @@ El diseño de Tienda Blama revela una estrategia de mercado inteligente, adaptad
 
 ```text
 CLIENTE (Navegador Móvil / Escritorio)
-   │ (Zustand: Estado de Carrito en caché local)
+   │ (Zustand: Caché de canasta; UX rápido sin loaders entre páginas)
    ▼
-[ FRONTEND ] ── Next.js 15 (App Router) + Tailwind CSS + Radix UI
+[ FRONTEND ] ── Next.js 15 (App Router Server Components + Client Hooks)
    │
-   ├─ Rutas Dinámicas (Catálogos SEO Friendly)
-   ├─ /admin (Rutas Protegidas por Middleware + useRoleGuard)
-   └─ APIs (/api/checkout/whatsapp, /api/checkout/culqi, /api/upload)
+   ├─ Rutas SEO Friendly (Catálogos precargados e imágenes optimizadas)
+   ├─ /admin (Rutas Protegidas bajo Middleware)
+   └─ API Routes (/api/checkout/whatsapp, /api/checkout/culqi, /api/upload)
    │
-[ MIDDLEWARE & PROTECCIONES ]
-   ├─ Rate Limiting (5 requests/minuto para checkouts)
-   ├─ Supabase SSR Auth (Verificación de Sesión Activa)
+[ MIDDLEWARE & RATE LIMITING ] (Edge/Node Proxying)
+   ├─ Control de Abuso (Prevención de fuerza bruta a endpoits de inserción)
+   ├─ Supabase SSR Auth (Verificación por Tokens y Cookies asíncronas)
    │
-[ BACKEND (BaaS) ]
-   ├─ SUPABASE: Autenticación OAuth, Base de Datos PostgreSQL, Row Level Security (RLS)
-   └─ CLOUDFLARE R2 (S3 API): Alojamiento de imágenes, comprobantes, sin costo de egress.
+[ BACKEND (BaaS) & STORAGE ]
+   ├─ SUPABASE: DB PostgreSQL, Control RLS, Funciones Nativas.
+   └─ CLOUDFLARE R2: Alojamiento escalable para comprobantes y medios visuales.
 ```
-
-**Evaluación Técnica:**
-El uso combinado de Next.js como servidor intermediario que se conecta a Supabase mediante la clave de servicio (en entornos críticos como los checkouts) **es una decisión excelente.**
 
 ---
 
-## 4. 🚨 Hallazgos Críticos de Seguridad
+## 4. 🛡️ Estado de Seguridad y Vulnerabilidades Resueltas
 
-He analizado a profundidad el código base actual de tus integraciones financieras y he detectado una vulnerabilidad prioritaria:
+La auditoría de código profunda confirma una madurez sobresaliente en la seguridad transaccional. Varias amenazas identificadas originalmente en la arquitectura lógica **han sido neutralizadas:**
 
-### 🔴 4.1 Confianza Ciega en Precios del Cliente (Client-Side Price Trust)
-**Dónde:** `app/api/checkout/culqi/route.ts` y `app/api/checkout/whatsapp/route.ts`
-**Problema:**
-En las líneas donde calculas los subtotales usando `data.items.reduce()`, el sistema toma `it.precio` directamente desde la solicitud del cliente (Frontend).
-```typescript
-// LO QUE HACE EL CÓDIGO AHORA:
-const unit = Number(it.precio ?? 0) || 0; // ⚠️ El usuario puede modificar it.precio a "1"
-return acc + (unit * it.quantity);
-```
-**Riesgo:** Un usuario con conocimientos básicos de herramientas de navegador (como Postman o DevTools) podría modificar el payload JSON en el momento del checkout y enviar `precio: 1` para un iPhone. Culqi cobrará 1 Sol, y Supabase guardará que el cliente pagó el total correctamente.
-**Solución Inmediata:** Modificar la API para que extraiga los IDs de los productos (`it.id` e `it.producto_variante_id`), haga un `SELECT precio FROM productos WHERE id IN (...)` a la base de datos de manera segura y **recalcule** los totales desde el Backend sin mirar el precio del frontend en absoluto.
+### 🟢 Vulnerabilidad Corregida: "Client-Side Price Trust"
+**Problema Previo:** Los endpoints aceptaban el precio y subtotal enviado por el carrito del frontend de Next.js, abriendo paso a manipulación de requests.
+**Solución Implementada:** Los endpoints `/api/checkout/culqi` y `/api/checkout/whatsapp` ahora realizan una consulta `supabase.from("productos").select("id, precio").in("id", productIds)` con la clave de origen segura (`Service Role Key`) para generar un **Mapa de Precios Oficiales (SSoT)**. El frontend solo envía IDs y cantidades, y el backend **recalcula** los montos. Excelente práctica.
 
-### 🟡 4.2 Falta de Idempotencia en Pagos con Culqi
-Cuando la API de tu sitio falla al insertar el pedido en Supabase inmediatamente después de cobrar a la tarjeta en Culqi (ej. base de datos temporalmente no disponible), el cobro ya se hizo, pero el pedido no queda registrado. 
-**Recomendación:** Se debe implementar un sistema de **"Intent" o "Pre-pedido pendiente"**, crear el registro en Supabase *antes* de llamar a Culqi, o usar "Idempotency Keys" si la API de pago lo soporta.
+### 🟢 Vulnerabilidad Corregida: "Idempotencia y Orquestación Fallida en Culqi"
+**Problema Previo:** Existía el riesgo de cobrar con éxito la tarjeta de un cliente y que luego fallara la inserción en la base de datos de Supabase, dejando al cliente cobrado pero sin registro de su pedido.
+**Solución Implementada:** Se refactorizó la lógica en patrón de "Intención". Primero se crea el registro temporal del cliente, luego se inyecta un estado `"Pendiente"` para el `pedido` en base de datos. Solo si esto es exitoso, se llama al enpoint de `api.culqi.com`. Si falla la pasarela, se marca como estado `"Fallido"`. Además, se agregó enriquecimiento de datos de antifraude enviando el Nombre, Dirección, y Teléfono a la pasarela Culqi.
 
 ---
 
 ## 5. Evaluación del Panel Administrativo (CRM)
 
-La robustez que has implementado bajo `/app/admin` es lo que realmente da valor a nivel de software "SaaS":
+El CRM ubicado en `/app/admin` distingue a la plataforma de una "plantilla normal". Entre las características destacan:
 
-* **Auditoría:** Manejo de historiales de cambio (Logs) de quién modificó el stock o quién procesó reembolsos. Esto es estándar empresarial.
-* **Incidencias y Libro de Reclamaciones:** Módulos listos para gestionar quejas, que cumple con normativas de Indecopi (vital en el mercado peruano).
-* **Gestión de Variantes de Productos:** Capacidades de atributos cruzados (tallas, variables).
-* **Dashboards y Estadísticas:** Análisis interno fundamental para la junta directiva y el control contable semanal sin tener que abrir Excel o hojas de cálculo externas.
-
-**Áreas de mejora para el CRM:**
-* El módulo de **Reseñas/Preguntas** debe integrarse de forma reactiva al frontend. Cuando un admin responda en el CRM, el cliente idealmente debería recibir un email automático usando integraciones como `Resend`.
+* **Libro de Reclamaciones:** Cumple cabalmente con los requisitos de Indecopi brindando un flujo independiente y rastreable por código.
+* **Notas Internas de Pedido:** Capacidad de inyectar anotaciones desde el mismo sistema ("Pago aprobado mediante Culqi: Tarjeta X") o notas creadas por los trabajadores logísticos.
+* **Componentización Modular:** Se utilizan librerías como `Recharts` para analítica y UI controlada por `Radix` y componentes Shadcn-like personalizados, aumentando la predictibilidad en la renderización.
 
 ---
 
 ## 6. Oportunidades de Implementación Futura (Roadmap)
 
-Pensando a 6 - 12 meses vista, cuando la tienda crezca de 12 pedidos semanales a 100 diarios, tu plataforma puede incorporar lo siguiente:
+La plataforma ya tiene los cimientos para escalar masivamente. Como siguientes pasos sugeridos a nivel técnico e hiper-crecimiento:
 
-1. **Email y SMS Transaccional:**
-   * Integración con `Resend` (Emails) y `Twilio`/`WhatsApp Business API`.
-   * Trigger Automático: Cuando la orden pasa a `Enviado`, se dispara un correo con el tracking en tiempo real o clave de Shalom.
-2. **Generación Automática de PDFs y Guías Térmicas:**
-   * Usar bibliotecas para crear etiquetas en tamaño *Ticket de 80mm*. Agilizará todo el trabajo de despacho físico y pegado en la caja de encomienda.
-3. **Módulo de Fidelización (Sistema de Puntos):**
-   * Ya que tienes control de clientes únicos (DNI, Celular), puedes crear una tabla `cliente_puntos`. Cada sol gastado suma puntos para canjear en próximos pedidos.
-4. **Recuperación de Carritos Abandonados:**
-   * Cuando el usuario deja datos en checkout pero no pulsa el botón final de pago de Culqi o cancela, el CRM debe generar un prospecto (`Lead`) y, a las 24 horas, automatizar un correo: "Aún tienes tus productos esperando, usa este cupón VUELVE10".
-5. **Autenticación con Google/Facebook:**
-   * Agregar un entorno simplificado de sesión para clientes recurrentes de modo que la dirección de envío y DNI queden pre-cargados.
+1. **Webhooks Asíncronos para Prevención de Chargebacks:**
+   * Configurar los "Eventos" en el panel propio de Culqi para que golpeen una nueva ruta `/api/webhooks/culqi`. Si un cliente hace una disputa semanas después, Culqi notifica, y Supabase debería congelar automáticamente el pedido (si aún no fue enviado) o poner banderas rojas de "Devolución" al CRM de inmediato.
+2. **Generación de "Shipping Labels":**
+   * Ya cuentas con los datos ordenados en el CRM. Utilizando librerías como `jspdf` o `react-pdf`, se puede añadir un botón para generar automáticamente la "Etiqueta de Courier para el Paquete" a tamaño de impresión ZEBRA estándar (Ej: 100x150mm), optimizando la operación de la bodega.
+3. **Módulo de Reseñas de Producto Post-Compra (Email Marketing):**
+   * Utilizando `Resend` (API de Emails), a los 7 días de marcado un producto como "Entregado", detonar automáticamente una invitación por correo para añadir Reseñas/Preguntas en la página web, alimentando tu módulo SEO de Reviews.
 
 ---
 
-## 7. Plan de Acción Inmediato
+## 7. Plan de Acción Siguiente Fase
 
-Este debe ser el norte de desarrollo para los próximos días:
+Dado que el apartado crítico transaccional **ya es seguro y estable**, las próximas tareas deberían centrarse en:
 
-### SPRINT DE SEGURIDAD Y PRE-LANZAMIENTO
-- [ ] **1. Fix de Precios en Backend (CRÍTICO):** Refactorizar inmediatamente `app/api/checkout/whatsapp/route.ts` y `culqi/route.ts` para cruzar los precios del carrito del usuario directamente contra los precios oficiales almacenados en Supabase.
-- [ ] **2. Webhooks de Pagos:** Diseñar webhooks asíncronos para actualizar estados verdaderos de transacciones en lugar de confiar solo en el tiempo de ejecución secuencial en la API de *edge/serverless*.
-- [ ] **3. Implementación Sentry (Opcional pero Recomendado):** Para rastreo de errores que los "workers"/administradores puedan estar experimentando de forma silenciosa.
-- [ ] **4. End-to-End Testing (E2E):** Implementar Playwright, al menos para simular automáticamente todo el flujo: Añadir Carrito -> Checkout -> Validación de Yape/Culqi.
-- [ ] **5. Limpieza de Políticas RLS:** Seguir perfeccionando Supabase, asegurando que las roles como `public` solo tienen permiso para lectura a menos que estén creando sus propios clientes.
+- [ ] ✅ **Mejora Logística (UX Interna):** Agregar opciones de exportación masiva (`xlsx` o `csv` provisto en el archivo package.json actual) de pedidos del día para entregar listados a Shalom/Olva u Olva Courier más rápidamente.
+- [ ] ✅ **Testing e Integración:** Añadir `Jest` o `Playwright` para ejecutar scripts automáticos que prueben las rutas críticas (/api/checkout/...) previniendo que futuras reescrituras de código vuelvan a abrir las vulnerabilidades que ya habías arreglado.
 
----
-> *Este análisis de sistema de alto nivel demuestra que tu plataforma tiene unos cimientos técnicos profesionales, con capacidad de convertirse en un SAAS competitivo mas allá de una simple tienda si se refinan los puntos lógicos sensibles encontrados.*
+> **Veredicto Final:** El código refleja una evolución muy sólida. Un proyecto bien ejecutado que demuestra capacidades avanzadas en seguridad y arquitectura web e-commerce. Funciona como un producto final digno de la escala empresarial.

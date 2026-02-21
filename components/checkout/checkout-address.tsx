@@ -3,14 +3,8 @@ import { Label } from "@/components/ui/label"
 import { MapPin } from "lucide-react"
 
 interface CheckoutAddressProps {
-    department: string
-    setDepartment: (val: string) => void
-    province: string
-    setProvince: (val: string) => void
-    district: string
-    setDistrict: (val: string) => void
-    reference: string
-    setReference: (val: string) => void
+    register: any
+    errors: any
 
     // Autocomplete props
     addressValue: string
@@ -25,54 +19,15 @@ interface CheckoutAddressProps {
 }
 
 export function CheckoutAddress({
-    department, setDepartment,
-    province, setProvince,
-    district, setDistrict,
-    reference, setReference,
+    register, errors,
     addressValue, onAddressChange, addressReady,
     suggestions, suggestionsStatus, onSuggestionSelect,
     disabled, apiKeyMissing
 }: CheckoutAddressProps) {
     return (
         <div className="space-y-4">
-            <div className="space-y-2">
-                <Label htmlFor="department">Departamento <span className="text-destructive">*</span></Label>
-                <Input
-                    id="department"
-                    required
-                    placeholder="Ej: Lima"
-                    value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
-                    disabled={disabled}
-                />
-            </div>
-
-            <div className="space-y-2">
-                <Label htmlFor="province">Provincia <span className="text-destructive">*</span></Label>
-                <Input
-                    id="province"
-                    required
-                    placeholder="Ej: Cañete"
-                    value={province}
-                    onChange={(e) => setProvince(e.target.value)}
-                    disabled={disabled}
-                />
-            </div>
-
-            <div className="space-y-2">
-                <Label htmlFor="district">Distrito <span className="text-destructive">*</span></Label>
-                <Input
-                    id="district"
-                    required
-                    placeholder="Ej: Miraflores"
-                    value={district}
-                    onChange={(e) => setDistrict(e.target.value)}
-                    disabled={disabled}
-                />
-            </div>
-
             <div className="space-y-2 relative">
-                <Label htmlFor="address">Dirección (Google Maps)</Label>
+                <Label htmlFor="address">Dirección (Google Maps) <span className="text-destructive">*</span></Label>
                 <div className="relative">
                     <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -97,8 +52,41 @@ export function CheckoutAddress({
             </div>
 
             <div className="space-y-2">
+                <Label htmlFor="department">Departamento <span className="text-destructive">*</span></Label>
+                <Input
+                    id="department"
+                    placeholder="Ej: Lima"
+                    disabled={disabled}
+                    {...register("department")}
+                />
+                {errors.department && <p className="text-xs text-destructive">{errors.department.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="province">Provincia <span className="text-destructive">*</span></Label>
+                <Input
+                    id="province"
+                    placeholder="Ej: Cañete"
+                    disabled={disabled}
+                    {...register("province")}
+                />
+                {errors.province && <p className="text-xs text-destructive">{errors.province.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="district">Distrito <span className="text-destructive">*</span></Label>
+                <Input
+                    id="district"
+                    placeholder="Ej: Miraflores"
+                    disabled={disabled}
+                    {...register("district")}
+                />
+                {errors.district && <p className="text-xs text-destructive">{errors.district.message}</p>}
+            </div>
+
+            <div className="space-y-2">
                 <Label htmlFor="reference">Referencia (Opcional)</Label>
-                <Input id="reference" placeholder="Frente al parque, casa azul..." value={reference} onChange={(e) => setReference(e.target.value)} disabled={disabled} />
+                <Input id="reference" placeholder="Frente al parque, casa azul..." disabled={disabled} {...register("reference")} />
             </div>
 
             {apiKeyMissing && (
