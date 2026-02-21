@@ -4,11 +4,14 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, ShoppingBag, MessageCircle } from "lucide-react"
 
+import React from "react"
+
 export default function SuccessPage({
-    searchParams,
+    searchParams: searchParamsPromise,
 }: {
-    searchParams: { [key: string]: string | string[] | undefined }
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
+    const searchParams = React.use(searchParamsPromise)
     const orderId = searchParams.order_id
     const transactionId = searchParams.transaction_id || "culqi-verified"
 
