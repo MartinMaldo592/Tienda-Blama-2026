@@ -20,6 +20,7 @@ interface OrderPaymentCardProps {
     pedido: PedidoRow
     isLocked: boolean
     currentUser: string
+    userRole?: string
     onLogAction: (action: string, details: string) => Promise<void>
     onRefresh: () => void
 }
@@ -30,6 +31,8 @@ const METODO_ICONS: Record<string, React.ReactNode> = {
     'Plin': <Smartphone className="h-4 w-4" />,
     'Transferencia BCP': <Building2 className="h-4 w-4" />,
     'Transferencia Interbank': <Building2 className="h-4 w-4" />,
+    'Tarjeta': <CreditCard className="h-4 w-4" />,
+    'Pasarela Culqi': <CreditCard className="h-4 w-4" />,
     'Otro': <HelpCircle className="h-4 w-4" />,
 }
 
@@ -44,7 +47,7 @@ const PAGO_STATUS_STYLES: Record<string, string> = {
     'Pagado al Recibir': 'bg-green-100 text-green-800 border-green-200',
 }
 
-export function OrderPaymentCard({ pedido, isLocked, currentUser, onLogAction, onRefresh }: OrderPaymentCardProps) {
+export function OrderPaymentCard({ pedido, isLocked, currentUser, userRole = 'worker', onLogAction, onRefresh }: OrderPaymentCardProps) {
     const [pagos, setPagos] = useState<PedidoPago[]>([])
     const [loadingPagos, setLoadingPagos] = useState(true)
     const [showForm, setShowForm] = useState(false)
@@ -379,7 +382,7 @@ export function OrderPaymentCard({ pedido, isLocked, currentUser, onLogAction, o
                                                 </Button>
                                             </>
                                         )}
-                                        {!isLocked && (
+                                        {(!isLocked && (!pago.registrado_por?.toLowerCase().includes("sistema") || userRole === 'admin')) && (
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
@@ -478,6 +481,8 @@ export function OrderPaymentCard({ pedido, isLocked, currentUser, onLogAction, o
                                         <SelectItem value="Plin">📱 Plin</SelectItem>
                                         <SelectItem value="Transferencia BCP">🏦 Transferencia BCP</SelectItem>
                                         <SelectItem value="Transferencia Interbank">🏦 Transferencia Interbank</SelectItem>
+                                        <SelectItem value="Tarjeta">💳 Tarjeta</SelectItem>
+                                        <SelectItem value="Pasarela Culqi">💳 Pasarela Culqi</SelectItem>
                                         <SelectItem value="Otro">📝 Otro</SelectItem>
                                     </SelectContent>
                                 </Select>

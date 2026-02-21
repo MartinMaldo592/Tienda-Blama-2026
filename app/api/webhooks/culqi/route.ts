@@ -98,10 +98,19 @@ export async function POST(req: Request) {
                 await supabase.from("pedido_pagos").insert({
                     pedido_id: pedidoId,
                     monto: cargoOficial.amount / 100, // Culqi responde en céntimos
-                    metodo_pago: "Otro",
+                    metodo_pago: "Tarjeta", // Actualizado de 'Otro' a 'Tarjeta'
                     tipo_pago: "Pago Final",
                     nota: `[Recuperado por Webhook] Culqi ID: ${cargoOficial.id} - Tarjeta ${cargoOficial.source?.iin?.card_brand || 'Desconocida'}`,
                     registrado_por: "Sistema (Webhook Respaldo)",
+                })
+
+                // E. Inyectar la Nota de Seguimiento Automática en el panel (Webhook)
+                await supabase.from("pedido_notas").insert({
+                    pedido_id: pedidoId,
+                    autor_id: "00000000-0000-0000-0000-000000000000",
+                    autor_nombre: "Sistema Inteligente (Respaldo)",
+                    contenido: `Pago recuperado automáticamente por Webhook de Culqi. ID Transacción: ${cargoOficial.id}. Tarjeta: ${cargoOficial.source?.iin?.card_brand || 'Desconocida'}.`,
+                    tipo: "info"
                 })
             }
         }

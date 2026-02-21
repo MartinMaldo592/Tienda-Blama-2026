@@ -248,10 +248,19 @@ export async function POST(req: Request) {
         await supabase.from("pedido_pagos").insert({
             pedido_id: pedido.id,
             monto: total,
-            metodo_pago: "Otro", // O 'Tarjeta' si actualizas tu enum
+            metodo_pago: "Tarjeta", // Actualizado a 'Tarjeta' tras la ampliación en la base de datos
             tipo_pago: "Pago Final",
             nota: `Culqi ID: ${culqiData.id} - Tarjeta ${culqiData.source?.iin?.card_brand || 'Desconocida'}`,
             registrado_por: "Sistema (Web)",
+        })
+
+        // E. Inyectar la Nota de Seguimiento Automática en el panel (Nueva Funcionalidad)
+        await supabase.from("pedido_notas").insert({
+            pedido_id: pedido.id,
+            autor_id: "00000000-0000-0000-0000-000000000000", // UUID base o "vacio" soportado por la DB, o preferiblemente ignorado si autor_id admite nulos. Si es UUID estricto podemos usar un zero-uuid. Espera, 'autor_id' is NOT NULL UUID.
+            autor_nombre: "Sistema Inteligente",
+            contenido: `Pago aprobado automáticamente por Culqi. ID Transacción: ${culqiData.id}. Tarjeta: ${culqiData.source?.iin?.card_brand || 'Desconocida'}.`,
+            tipo: "info"
         })
 
         return NextResponse.json({

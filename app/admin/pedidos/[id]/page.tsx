@@ -584,8 +584,9 @@ export default function PedidoDetallePage() {
                         <div className="space-y-6">
                             <OrderPaymentCard
                                 pedido={pedido}
-                                isLocked={isLocked}
+                                isLocked={pedido.status === 'Entregado' || pedido.status === 'Cancelado'}
                                 currentUser={currentUser}
+                                userRole={userRole}
                                 onLogAction={logAction}
                                 onRefresh={fetchPedido}
                             />
