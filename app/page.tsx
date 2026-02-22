@@ -5,7 +5,7 @@ import { ProductCard } from "@/components/product-card"
 import Link from "next/link"
 import { slugify } from "@/lib/utils"
 import { getHomePageData } from "@/features/products/services/products.server"
-import { StoreLocation } from "@/components/store-location"
+import { ContactSection } from "@/components/contact-section"
 import { HomeScrollReveal } from "@/components/home-scroll-reveal"
 import { CategoryGrid } from "@/components/category-grid"
 import { NewsletterSection } from "@/components/newsletter-section"
@@ -139,9 +139,9 @@ export default async function Home(props: HomePageProps) {
         <BenefitsBar />
       </HomeScrollReveal>
 
-      {/* Store Location */}
+      {/* Contact Section */}
       <HomeScrollReveal direction="up" delay={150}>
-        <StoreLocation />
+        <ContactSection />
       </HomeScrollReveal>
     </main>
   )
