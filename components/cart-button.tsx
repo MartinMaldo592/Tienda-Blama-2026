@@ -203,6 +203,19 @@ export function CartButton() {
         setSuccessToastOpen(true)
     }
 
+    // Culqi (tarjeta): cierra el carrito directamente sin mostrar
+    // la pantalla de éxito intermedia, ya que la página de éxito
+    // se encarga de toda la confirmación.
+    const handleCompleteCulqi = () => {
+        clearCart()
+        try {
+            localStorage.removeItem('cart-storage')
+        } catch (err) {
+        }
+        setCartOpen(false)
+        setTimeout(() => setView('cart'), 300)
+    }
+
     const handleContinueShopping = () => {
         setCartOpen(false)
         setView('cart')
@@ -283,6 +296,7 @@ export function CartButton() {
                             total={total}
                             onBack={() => setView('cart')}
                             onComplete={handleComplete}
+                            onCompleteCulqi={handleCompleteCulqi}
                         />
                     )}
 

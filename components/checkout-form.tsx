@@ -61,9 +61,12 @@ interface CheckoutFormProps {
     total: number
     onBack: () => void
     onComplete: () => void
+    /** Callback específica para el flujo Culqi (tarjeta). Si se pasa, cierra el
+     *  carrito directamente en lugar de mostrar la pantalla de éxito intermedia. */
+    onCompleteCulqi?: () => void
 }
 
-export function CheckoutForm({ items, total, onBack, onComplete }: CheckoutFormProps) {
+export function CheckoutForm({ items, total, onBack, onComplete, onCompleteCulqi }: CheckoutFormProps) {
     const { isLoaded } = useLoadScript({
         googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
         libraries: libraries,
@@ -78,13 +81,13 @@ export function CheckoutForm({ items, total, onBack, onComplete }: CheckoutFormP
         )
     }
 
-    return <FormContent items={items} total={total} onBack={onBack} onComplete={onComplete} />
+    return <FormContent items={items} total={total} onBack={onBack} onComplete={onComplete} onCompleteCulqi={onCompleteCulqi} />
 }
 
 
 import { useCheckoutDraft } from "@/features/checkout/hooks/use-checkout-draft"
 
-function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
+function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: CheckoutFormProps) {
     const { draft, loaded, saveDraft, clearDraft } = useCheckoutDraft()
     const router = useRouter()
 
@@ -530,8 +533,13 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 }
             })
 
-            onComplete()
-            // Redirect to success page
+            // Para Culqi: cerrar el carrito directamente (sin pantalla de éxito intermedia)
+            // y redirigir a la página de éxito de inmediato.
+            if (onCompleteCulqi) {
+                onCompleteCulqi()
+            } else {
+                onComplete()
+            }
             router.push(`/checkout/success?order_id=${data.orderId}&transaction_id=${data.transactionId}`)
 
         } catch (err: any) {
