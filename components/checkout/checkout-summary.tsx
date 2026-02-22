@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Loader2 } from "lucide-react"
+import { Loader2, Tag, X, ChevronDown } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
+import { memo, useState } from "react"
 
 interface CheckoutSummaryProps {
     subtotal: number
@@ -21,12 +21,8 @@ interface CheckoutSummaryProps {
     setCouponError: (val: string) => void
 
     isSubmitting: boolean
-    customButton?: React.ReactNode // Nuevo prop para inyectar botón (Culqi)
+    customButton?: React.ReactNode
 }
-
-import { memo } from "react"
-
-// ... imports ...
 
 export const CheckoutSummary = memo(function CheckoutSummary({
     subtotal, shippingMethod, discount, total,
@@ -34,34 +30,78 @@ export const CheckoutSummary = memo(function CheckoutSummary({
     isSubmitting,
     customButton
 }: CheckoutSummaryProps) {
+    const [showCoupon, setShowCoupon] = useState(false)
+
     return (
         <div className="space-y-4 mb-4">
-            <div className="space-y-2">
-                <Label htmlFor="coupon">Cupón de descuento (Opcional)</Label>
-                <div className="flex gap-2">
-                    <Input
-                        id="coupon"
-                        placeholder="Ej: PROMO10"
-                        value={couponCode}
-                        onChange={(e) => {
-                            setCouponCode(e.target.value)
-                            setCouponApplied(false)
-                            setCouponError("")
-                        }}
-                        disabled={isSubmitting}
-                    />
-                    <Button type="button" variant="outline" onClick={applyCoupon} disabled={isSubmitting || couponApplying}>
-                        {couponApplying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Aplicar"}
-                    </Button>
-                </div>
-                {couponError && (
-                    <p className="text-xs text-destructive">{couponError}</p>
-                )}
-                {couponApplied && !couponError && (
-                    <p className="text-xs text-green-600">Cupón aplicado</p>
-                )}
-            </div>
 
+            {/* Coupon toggle button */}
+            {!showCoupon ? (
+                <button
+                    type="button"
+                    onClick={() => setShowCoupon(true)}
+                    className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors group"
+                >
+                    <Tag className="h-4 w-4" />
+                    <span>¿Tienes un cupón de descuento?</span>
+                    <ChevronDown className="h-3.5 w-3.5 transition-transform group-hover:translate-y-0.5" />
+                </button>
+            ) : (
+                <div className="space-y-2 rounded-xl border border-primary/20 bg-primary/5 p-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm font-bold flex items-center gap-1.5 text-foreground">
+                            <Tag className="h-4 w-4 text-primary" /> Cupón de descuento
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setShowCoupon(false)
+                                setCouponCode("")
+                                setCouponApplied(false)
+                                setCouponError("")
+                            }}
+                            className="text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    </div>
+                    <div className="flex gap-2">
+                        <Input
+                            id="coupon"
+                            placeholder="Ej: PROMO10"
+                            value={couponCode}
+                            onChange={(e) => {
+                                setCouponCode(e.target.value.toUpperCase())
+                                setCouponApplied(false)
+                                setCouponError("")
+                            }}
+                            disabled={isSubmitting || couponApplied}
+                            className="h-11 bg-background font-mono tracking-widest uppercase"
+                        />
+                        <Button
+                            type="button"
+                            variant={couponApplied ? "secondary" : "outline"}
+                            onClick={applyCoupon}
+                            disabled={isSubmitting || couponApplying || !couponCode.trim() || couponApplied}
+                            className="shrink-0 h-11"
+                        >
+                            {couponApplying ? <Loader2 className="h-4 w-4 animate-spin" /> : couponApplied ? "✓ Aplicado" : "Aplicar"}
+                        </Button>
+                    </div>
+                    {couponError && (
+                        <p className="text-xs text-destructive font-medium flex items-center gap-1">
+                            <X className="h-3 w-3" /> {couponError}
+                        </p>
+                    )}
+                    {couponApplied && !couponError && (
+                        <p className="text-xs text-green-600 font-medium flex items-center gap-1">
+                            ✓ Cupón aplicado — descuento de {formatCurrency(discount)}
+                        </p>
+                    )}
+                </div>
+            )}
+
+            {/* Totals */}
             <div className="text-sm font-medium space-y-1 py-2 border-y border-border/50">
                 <div className="flex justify-between items-center text-muted-foreground">
                     <span>Subtotal:</span>
@@ -69,24 +109,26 @@ export const CheckoutSummary = memo(function CheckoutSummary({
                 </div>
                 <div className="flex justify-between items-center text-muted-foreground">
                     <span>Envío:</span>
-                    <span>{shippingMethod === 'provincia' ? 'Precio a calcular' : 'Gratis'}</span>
+                    <span>{(shippingMethod === 'Provincia' || shippingMethod === 'provincia') ? 'Precio a calcular' : 'Gratis'}</span>
                 </div>
-                <div className="flex justify-between items-center text-red-500">
-                    <span>Descuento:</span>
-                    <span>-{formatCurrency(discount)}</span>
-                </div>
+                {discount > 0 && (
+                    <div className="flex justify-between items-center text-green-600 font-semibold">
+                        <span>Descuento:</span>
+                        <span>-{formatCurrency(discount)}</span>
+                    </div>
+                )}
                 <div className="flex justify-between items-center pt-2">
                     <span className="text-base">Total a Pagar:</span>
                     <span className="text-xl font-bold">{formatCurrency(total)}</span>
                 </div>
             </div>
 
-            {/* Renderizar botón personalizado (Culqi) o botón por defecto (WhatsApp) */}
+            {/* Submit button */}
             {customButton ? (
                 customButton
             ) : (
                 <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 h-14 text-lg font-bold shadow-sm" disabled={isSubmitting}>
-                    {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</> : "Confirmar Pedido en WhatsApp"}
+                    {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</> : "🛵  Confirmar Pedido"}
                 </Button>
             )}
         </div>

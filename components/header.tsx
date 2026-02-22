@@ -155,7 +155,11 @@ export function Header() {
 
 
 
-                    <CartButton />
+                    {mounted ? (
+                        <CartButton />
+                    ) : (
+                        <div className="h-10 w-24 rounded-full border border-border bg-muted/40 animate-pulse" />
+                    )}
                 </div>
             </div>
         </header>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useLoadScript } from "@react-google-maps/api"
 import usePlacesAutocomplete, {
     getGeocode,
@@ -115,6 +115,16 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
     const [couponApplying, setCouponApplying] = useState(false)
     const [couponError, setCouponError] = useState("")
     const [couponApplied, setCouponApplied] = useState(false)
+
+    // Scroll hint
+    const scrollRef = useRef<HTMLDivElement>(null)
+    const [showScrollHint, setShowScrollHint] = useState(true)
+    const handleScroll = () => {
+        const el = scrollRef.current
+        if (!el) return
+        const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 30
+        setShowScrollHint(!atBottom)
+    }
 
     // Google Maps Hook
     const {
@@ -536,45 +546,70 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                     <h3 className="font-semibold text-foreground">Datos de Envío</h3>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                    <Controller
-                        control={control}
-                        name="shippingMethod"
-                        render={({ field }) => (
-                            <CheckoutShipping value={field.value} onChange={field.onChange} disabled={isSubmitting} />
-                        )}
-                    />
+                {/* Scroll area with fade indicator */}
+                <div className="relative flex-1 min-h-0">
+                    <div
+                        ref={scrollRef}
+                        onScroll={handleScroll}
+                        className="h-full overflow-y-auto p-4 space-y-6 scroll-smooth"
+                        style={{ scrollbarWidth: 'thin', scrollbarColor: 'hsl(var(--border)) transparent' }}
+                    >
+                        <Controller
+                            control={control}
+                            name="shippingMethod"
+                            render={({ field }) => (
+                                <CheckoutShipping value={field.value} onChange={field.onChange} disabled={isSubmitting} />
+                            )}
+                        />
 
-                    <CheckoutCustomer
-                        register={register} errors={errors}
-                        disabled={isSubmitting}
-                    />
+                        <CheckoutCustomer
+                            register={register} errors={errors}
+                            disabled={isSubmitting}
+                        />
 
-                    <CheckoutAddress
-                        register={register} errors={errors}
-                        addressValue={value}
-                        onAddressChange={(val) => {
-                            setValue(val)
-                            setLocationLink("") // Clear specific link on manual edit to force fallback generation
-                        }}
-                        addressReady={ready}
-                        suggestions={data} suggestionsStatus={status} onSuggestionSelect={handleSelect}
-                        disabled={isSubmitting}
-                        apiKeyMissing={!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
-                    />
+                        <CheckoutAddress
+                            register={register} errors={errors}
+                            addressValue={value}
+                            onAddressChange={(val) => {
+                                setValue(val)
+                                setLocationLink("") // Clear specific link on manual edit to force fallback generation
+                            }}
+                            addressReady={ready}
+                            suggestions={data} suggestionsStatus={status} onSuggestionSelect={handleSelect}
+                            disabled={isSubmitting}
+                            apiKeyMissing={!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                        />
 
-                    <Controller
-                        control={control}
-                        name="paymentMethod"
-                        render={({ field }) => (
-                            <CheckoutPayment
-                                value={field.value}
-                                onChange={field.onChange}
-                                disabled={isSubmitting}
-                            />
-                        )}
-                    />
-                </div>
+                        <Controller
+                            control={control}
+                            name="paymentMethod"
+                            render={({ field }) => (
+                                <CheckoutPayment
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    disabled={isSubmitting}
+                                />
+                            )}
+                        />
+                    </div>{/* end inner scroll div */}
+
+                    {/* Scroll fade + bounce indicator */}
+                    {showScrollHint && (
+                        <div
+                            className="pointer-events-none absolute bottom-0 left-0 right-0 h-28 flex flex-col items-center justify-end pb-3 gap-1"
+                            style={{ background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.7) 40%, rgba(255,255,255,0.97) 100%)' }}
+                        >
+                            <span className="text-xs font-semibold text-muted-foreground bg-white/80 backdrop-blur-sm border border-border rounded-full px-3 py-1 shadow-sm">
+                                Desliza para ver más
+                            </span>
+                            <div className="animate-bounce text-muted-foreground mt-0.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+                    )}
+                </div>{/* end outer relative div */}
 
                 <div className="p-4 border-t mt-auto bg-popover">
                     <CheckoutSummary
