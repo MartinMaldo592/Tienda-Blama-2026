@@ -142,26 +142,42 @@ export default function SuccessPage({
     const [items, setItems] = useState<any[]>([])
     const [loading, setLoading] = useState(!!orderId)
 
+    const [accessDenied, setAccessDenied] = useState(false)
+
     useEffect(() => {
         if (!orderId) return
         async function loadOrder() {
             try {
                 const supabase = createClient()
 
-                // Fetch order header
+                // ── SECURITY: first fetch ONLY the transaction token – no personal data ──
+                const { data: secCheck } = await supabase
+                    .from("pedidos")
+                    .select("codigo_seguimiento")
+                    .eq("id", Number(orderId))
+                    .single()
+
+                // If the transaction_id in the URL doesn't match what we stored → block access
+                const storedToken = secCheck?.codigo_seguimiento || ""
+                if (storedToken && transactionId && storedToken !== transactionId) {
+                    setAccessDenied(true)
+                    setLoading(false)
+                    return
+                }
+                // ─────────────────────────────────────────────────────────────────────────
+
+                // All good — fetch the full order
                 const { data: orderData } = await supabase
                     .from("pedidos")
                     .select("id, nombre_contacto, metodo_envio, subtotal, descuento, total, status")
                     .eq("id", Number(orderId))
                     .single()
 
-                // Fetch order items with product image
                 const { data: itemsData } = await supabase
                     .from("pedido_items")
                     .select("producto_nombre, variante_nombre, cantidad, precio_unitario, producto_id")
                     .eq("pedido_id", Number(orderId))
 
-                // For each item, fetch the product image
                 let enrichedItems = itemsData || []
                 if (enrichedItems.length > 0) {
                     const productIds = [...new Set(enrichedItems.map((i: any) => i.producto_id).filter(Boolean))]
@@ -190,10 +206,32 @@ export default function SuccessPage({
             }
         }
         loadOrder()
-    }, [orderId])
+    }, [orderId, transactionId])
 
     const shippingMethod = order?.metodo_envio || ""
     const clientName = order?.nombre_contacto || ""
+
+    // ── Access denied: someone tampered with the URL ──────────────────────────
+    if (accessDenied) {
+        return (
+            <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center gap-4">
+                <div className="h-20 w-20 rounded-full bg-red-100 flex items-center justify-center">
+                    <svg className="h-10 w-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                    </svg>
+                </div>
+                <h1 className="text-2xl font-bold text-gray-800">Acceso No Autorizado</h1>
+                <p className="text-gray-500 max-w-xs text-sm">
+                    El enlace que usaste no es válido o no te pertenece. Solo el comprador puede ver el detalle de su pedido.
+                </p>
+                <Link href="/productos">
+                    <Button variant="outline" className="mt-2 gap-2 rounded-xl">
+                        <ShoppingBag className="h-4 w-4" /> Ir a la Tienda
+                    </Button>
+                </Link>
+            </div>
+        )
+    }
 
     return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center p-4 text-center space-y-5 pb-12">
