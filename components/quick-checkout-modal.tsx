@@ -124,6 +124,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
     const [province, setProvince] = useState("")
     const [district, setDistrict] = useState("")
     const [shippingMethod, setShippingMethod] = useState("Lima")
+    const [locationLink, setLocationLink] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     // Derived values
@@ -213,8 +214,22 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
             if (prop_department) setDepartment(prop_department);
             if (prop_province) setProvince(prop_province);
             if (prop_district) setDistrict(prop_district);
+
+            // Generate Google Maps GPS link from coordinates
+            try {
+                const { getLatLng } = await import("use-places-autocomplete");
+                const { lat, lng } = await getLatLng(results[0])
+                setLocationLink(`https://www.google.com/maps/?q=${lat},${lng}`)
+            } catch (geoErr) {
+                // Fallback to search URL
+                const encoded = encodeURIComponent(addr)
+                setLocationLink(`https://www.google.com/maps/search/?api=1&query=${encoded}`)
+            }
         } catch (error) {
             console.error("Error Quick Geocoding:", error)
+            // Fallback to search URL
+            const encoded = encodeURIComponent(addr)
+            setLocationLink(`https://www.google.com/maps/search/?api=1&query=${encoded}`)
         }
     }
 
@@ -247,7 +262,12 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
         }]
 
         const fullAddress = `${department}, ${province}, ${district}. ${value || address}`.trim()
-        const locationLink = "" // Can be added if we do Geocode
+
+        // Use geocoded GPS link, fallback to search URL if empty
+        const finalLocationLink = locationLink ||
+            (value || address
+                ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`
+                : "")
 
         const messageCliente = buildWhatsAppPreviewMessage({
             name,
@@ -258,7 +278,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
             province,
             district,
             reference,
-            locationLink,
+            locationLink: finalLocationLink,
             items,
             subtotal: total,
             discount: 0,
@@ -280,7 +300,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                 district: district, // District
                 street: value || address,
                 reference,
-                locationLink,
+                locationLink: finalLocationLink,
                 items,
                 shippingMethod
             })
@@ -297,7 +317,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                 province,
                 district,
                 reference,
-                locationLink,
+                locationLink: finalLocationLink,
                 items,
                 subtotal: total,
                 discount: 0,
