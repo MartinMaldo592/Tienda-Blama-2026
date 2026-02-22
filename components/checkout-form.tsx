@@ -244,7 +244,10 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
         setCouponError("")
 
         if (!value || value.length < 5) {
-            alert("Por favor ingresa una dirección de mapa válida")
+            toast.error("Dirección inválida", {
+                description: "Por favor selecciona una dirección válida del mapa antes de continuar.",
+                duration: 5000
+            })
             return false
         }
 
@@ -334,7 +337,10 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
         if (data.paymentMethod === 'culqi') return // Block submit if Culqi is selected (button handles it)
 
         if (!value || value.length < 5) {
-            alert("Por favor ingresa una dirección de mapa válida")
+            toast.error("Dirección inválida", {
+                description: "Por favor selecciona una dirección válida del mapa antes de continuar.",
+                duration: 5000
+            })
             return
         }
 
@@ -465,7 +471,10 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 setCouponApplied(false)
                 setCouponError(msg)
             } else {
-                alert("Error al procesar el pedido: " + msg)
+                toast.error("No se pudo crear el pedido", {
+                    description: msg || "Intenta nuevamente o contáctanos por WhatsApp.",
+                    duration: 8000
+                })
             }
         } finally {
             setIsSubmitting(false)
@@ -527,13 +536,15 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
 
         } catch (err: any) {
             console.error("Culqi Error:", err)
-            // Format error nicely if it's an object
-            let msg = err.message
-            if (!msg && typeof err === 'object') {
-                msg = JSON.stringify(err)
-            }
-            alert("Error procesando el pago: " + (msg || "Desconocido"))
-            // Re-throw to stop button loader if needed
+            const msg = err?.message || (typeof err === 'object' ? JSON.stringify(err) : String(err))
+            toast.error("Error al procesar el pago", {
+                description: msg || "Ocurrió un error inesperado. Por favor intenta nuevamente.",
+                duration: 8000,
+                action: {
+                    label: "WhatsApp",
+                    onClick: () => window.open(`https://api.whatsapp.com/send/?phone=${process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "982432561"}&text=Hola,%20tuve%20un%20problema%20al%20pagar%20con%20tarjeta.%20%C2%BFPueden%20ayudarme?`, "_blank")
+                }
+            })
             throw err
         }
     }
