@@ -4,40 +4,78 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ShoppingBag, MessageCircle } from "lucide-react"
 import React from "react"
-import dynamic from "next/dynamic"
-const Lottie = dynamic(() => import("lottie-react"), { ssr: false })
 
-// Lottie JSON definition (Simplified Success Check)
-const successAnimation = {
-    "v": "5.5.7", "fr": 60, "ip": 0, "op": 60, "w": 200, "h": 200, "nm": "Success", "ddd": 0,
-    "assets": [],
-    "layers": [
-        {
-            "ddd": 0, "ind": 1, "ty": 4, "nm": "Check", "sr": 1, "ks": { "o": { "a": 0, "k": 100, "ix": 11 }, "r": { "a": 0, "k": 0, "ix": 10 }, "p": { "a": 0, "k": [100, 100, 0], "ix": 2 }, "a": { "a": 0, "k": [0, 0, 0], "ix": 1 }, "s": { "a": 0, "k": [100, 100, 100], "ix": 6 } }, "ao": 0,
-            "shapes": [
-                {
-                    "ty": "gr", "it": [
-                        { "ind": 0, "ty": "sh", "ix": 1, "ks": { "a": 1, "k": [{ "i": { "x": [0.833], "y": [0.833] }, "o": { "x": [0.167], "y": [0.167] }, "t": 0, "s": [{ "i": [[0, 0], [0, 0], [0, 0]], "o": [[0, 0], [0, 0], [0, 0]], "v": [[-40, 0], [-40, 0], [-40, 0]], "c": false }] }, { "t": 30, "s": [{ "i": [[0, 0], [0, 0], [0, 0]], "o": [[0, 0], [0, 0], [0, 0]], "v": [[-40, 0], [-10, 30], [-10, 30]], "c": false }] }, { "t": 60, "s": [{ "i": [[0, 0], [0, 0], [0, 0]], "o": [[0, 0], [0, 0], [0, 0]], "v": [[-40, 0], [-10, 30], [40, -30]], "c": false }] }], "ix": 2 }, "nm": "Path 1", "hd": false },
-                        { "ty": "st", "c": { "a": 0, "k": [0.13, 0.77, 0.36, 1], "ix": 3 }, "o": { "a": 0, "k": 100, "ix": 4 }, "w": { "a": 0, "k": 15, "ix": 5 }, "lc": 2, "lj": 2, "ml": 4, "bm": 0, "nm": "Stroke 1", "hd": false },
-                        { "ty": "tr", "p": { "a": 0, "k": [0, 0], "ix": 2 }, "a": { "a": 0, "k": [0, 0], "ix": 1 }, "s": { "a": 0, "k": [100, 100], "ix": 3 }, "r": { "a": 0, "k": 0, "ix": 6 }, "o": { "a": 0, "k": 100, "ix": 7 }, "sk": { "a": 0, "k": 0, "ix": 4 }, "sa": { "a": 0, "k": 0, "ix": 5 }, "nm": "Transform" }
-                    ], "nm": "Shape 1", "np": 3, "cix": 2, "bm": 0, "hd": false
+// Pure CSS/SVG animated checkmark — works on ALL devices, no external libs needed
+function SuccessCheckmark() {
+    return (
+        <div className="flex items-center justify-center">
+            <style>{`
+                @keyframes scaleIn {
+                    0%   { transform: scale(0); opacity: 0; }
+                    60%  { transform: scale(1.15); opacity: 1; }
+                    80%  { transform: scale(0.95); }
+                    100% { transform: scale(1); }
                 }
-            ], "ip": 0, "op": 60, "st": 0, "bm": 0
-        },
-        {
-            "ddd": 0, "ind": 2, "ty": 4, "nm": "Circle", "sr": 1, "ks": { "o": { "a": 0, "k": 100, "ix": 11 }, "r": { "a": 0, "k": 0, "ix": 10 }, "p": { "a": 0, "k": [100, 100, 0], "ix": 2 }, "a": { "a": 0, "k": [0, 0, 0], "ix": 1 }, "s": { "a": 1, "k": [{ "i": { "x": [0.833], "y": [0.833] }, "o": { "x": [0.167], "y": [0.167] }, "t": 0, "s": [0, 0, 100] }, { "t": 30, "s": [100, 100, 100] }], "ix": 6 } }, "ao": 0,
-            "shapes": [
-                {
-                    "ty": "gr", "it": [
-                        { "d": 1, "ty": "el", "s": { "a": 0, "k": [180, 180], "ix": 2 }, "p": { "a": 0, "k": [0, 0], "ix": 3 }, "nm": "Ellipse Path 1", "hd": false },
-                        { "ty": "st", "c": { "a": 0, "k": [0.13, 0.77, 0.36, 1], "ix": 3 }, "o": { "a": 0, "k": 20, "ix": 4 }, "w": { "a": 0, "k": 2, "ix": 5 }, "lc": 1, "lj": 1, "ml": 4, "bm": 0, "nm": "Stroke 1", "hd": false },
-                        { "ty": "fl", "c": { "a": 0, "k": [0.13, 0.77, 0.36, 1], "ix": 4 }, "o": { "a": 0, "k": 10, "ix": 5 }, "r": 1, "bm": 0, "nm": "Fill 1", "hd": false },
-                        { "ty": "tr", "p": { "a": 0, "k": [0, 0], "ix": 2 }, "a": { "a": 0, "k": [0, 0], "ix": 1 }, "s": { "a": 0, "k": [100, 100], "ix": 3 }, "r": { "a": 0, "k": 0, "ix": 6 }, "o": { "a": 0, "k": 100, "ix": 7 }, "sk": { "a": 0, "k": 0, "ix": 4 }, "sa": { "a": 0, "k": 0, "ix": 5 }, "nm": "Transform" }
-                    ], "nm": "Shape 1", "np": 3, "cix": 2, "bm": 0, "hd": false
+                @keyframes drawCircle {
+                    0%   { stroke-dashoffset: 283; }
+                    100% { stroke-dashoffset: 0; }
                 }
-            ], "ip": 0, "op": 60, "st": 0, "bm": 0
-        }
-    ]
+                @keyframes drawCheck {
+                    0%   { stroke-dashoffset: 100; }
+                    100% { stroke-dashoffset: 0; }
+                }
+                .success-circle-wrap {
+                    animation: scaleIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+                }
+                .success-ring {
+                    stroke-dasharray: 283;
+                    stroke-dashoffset: 283;
+                    animation: drawCircle 0.6s 0.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+                }
+                .success-check {
+                    stroke-dasharray: 100;
+                    stroke-dashoffset: 100;
+                    animation: drawCheck 0.5s 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+                }
+            `}</style>
+            <div className="success-circle-wrap">
+                <svg
+                    width="140"
+                    height="140"
+                    viewBox="0 0 140 140"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    {/* Background circle (light green fill) */}
+                    <circle cx="70" cy="70" r="70" fill="#dcfce7" />
+
+                    {/* Animated border ring */}
+                    <circle
+                        className="success-ring"
+                        cx="70"
+                        cy="70"
+                        r="45"
+                        stroke="#22c55e"
+                        strokeWidth="5"
+                        strokeLinecap="round"
+                        fill="none"
+                        transform="rotate(-90 70 70)"
+                    />
+
+                    {/* Animated checkmark path */}
+                    <polyline
+                        className="success-check"
+                        points="45,72 62,90 95,52"
+                        stroke="#16a34a"
+                        strokeWidth="7"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        fill="none"
+                    />
+                </svg>
+            </div>
+        </div>
+    )
 }
 
 export default function SuccessPage({
@@ -51,13 +89,7 @@ export default function SuccessPage({
 
     return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center p-4 text-center space-y-6">
-            <div className="h-40 w-40 flex items-center justify-center pointer-events-none drop-shadow-sm">
-                <Lottie
-                    animationData={successAnimation}
-                    loop={false}
-                    className="h-48 w-48"
-                />
-            </div>
+            <SuccessCheckmark />
 
             <div className="space-y-1 max-w-md">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl text-gray-900">
