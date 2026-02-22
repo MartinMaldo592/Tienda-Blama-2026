@@ -150,15 +150,15 @@ export default function SuccessPage({
             try {
                 const supabase = createClient()
 
-                // ── SECURITY: first fetch ONLY the transaction token – no personal data ──
+                // ── SECURITY: first fetch ONLY the Culqi charge ID – no personal data ──
                 const { data: secCheck } = await supabase
                     .from("pedidos")
-                    .select("codigo_seguimiento")
+                    .select("culqi_charge_id")
                     .eq("id", Number(orderId))
                     .single()
 
                 // If the transaction_id in the URL doesn't match what we stored → block access
-                const storedToken = secCheck?.codigo_seguimiento || ""
+                const storedToken = secCheck?.culqi_charge_id || ""
                 if (storedToken && transactionId && storedToken !== transactionId) {
                     setAccessDenied(true)
                     setLoading(false)

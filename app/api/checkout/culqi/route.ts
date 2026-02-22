@@ -242,7 +242,7 @@ export async function POST(req: Request) {
         await supabase.from("pedidos").update({
             status: "Confirmado",
             pago_status: "Pagado Anticipado",
-            codigo_seguimiento: culqiData.id   // ← guardamos el ID de Culqi para validar la URL de éxito
+            culqi_charge_id: culqiData.id  // ← campo dedicado para el ID de cargo de Culqi
         }).eq("id", pedido.id)
 
         // D. Registrar el Pago en la tabla financiera

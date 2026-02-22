@@ -71,6 +71,7 @@ export interface AdminPedido extends Pedido {
   shalom_pin?: string | null
   agencia_origen?: string | null
   agencia_destino?: string | null
+  culqi_charge_id?: string | null   // ID del cargo de Culqi (chr_live_...) — usado para validar la URL de éxito
   updated_at?: string | null
 }
 
