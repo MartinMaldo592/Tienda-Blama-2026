@@ -12,7 +12,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { Search, MapPin, Phone, History } from "lucide-react"
+import { Search, MapPin, Phone, History, Mail } from "lucide-react"
 import { fetchAdminClientes } from "@/features/admin"
 
 export default function ClientesPage() {
@@ -56,6 +56,7 @@ export default function ClientesPage() {
                         <TableRow>
                             <TableHead className="w-[80px]">ID</TableHead>
                             <TableHead>Nombre</TableHead>
+                            <TableHead>Correo</TableHead>
                             <TableHead>Teléfono</TableHead>
                             <TableHead>DNI</TableHead>
                             <TableHead>Departamento</TableHead>
@@ -70,17 +71,27 @@ export default function ClientesPage() {
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={11} className="text-center py-10">Cargando...</TableCell>
+                                <TableCell colSpan={12} className="text-center py-10">Cargando...</TableCell>
                             </TableRow>
                         ) : clientes.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={11} className="text-center py-10">No hay clientes aún.</TableCell>
+                                <TableCell colSpan={12} className="text-center py-10">No hay clientes aún.</TableCell>
                             </TableRow>
                         ) : (
                             clientes.map((cliente) => (
                                 <TableRow key={cliente.id}>
                                     <TableCell className="font-mono text-xs text-gray-500 font-medium">#{cliente.id}</TableCell>
                                     <TableCell className="font-bold text-gray-800">{cliente.nombre}</TableCell>
+                                    <TableCell>
+                                        {cliente.email ? (
+                                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                <Mail className="h-3 w-3 flex-shrink-0" />
+                                                <span className="truncate max-w-[180px]" title={cliente.email}>{cliente.email}</span>
+                                            </div>
+                                        ) : (
+                                            <span className="text-xs text-gray-400">—</span>
+                                        )}
+                                    </TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-2 text-sm text-gray-600">
                                             <Phone className="h-3 w-3" /> {cliente.telefono}
