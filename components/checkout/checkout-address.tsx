@@ -1,10 +1,12 @@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { MapPin, Building2, Landmark, Navigation } from "lucide-react"
+import { MapPin, Building2, Landmark, Navigation, CheckCircle2 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface CheckoutAddressProps {
     register: any
     errors: any
+    watch: any
 
     // Autocomplete props
     addressValue: string
@@ -19,13 +21,23 @@ interface CheckoutAddressProps {
 }
 
 export function CheckoutAddress({
-    register, errors,
+    register, errors, watch,
     addressValue, onAddressChange, addressReady,
     suggestions, suggestionsStatus, onSuggestionSelect,
     disabled, apiKeyMissing
 }: CheckoutAddressProps) {
+    const departmentValue = watch("department")
+    const provinceValue = watch("province")
+    const districtValue = watch("district")
+
+    const isValid = (name: string, value: string) => {
+        return value && value.length >= 2 && !errors[name]
+    }
+
+    const isAddressValid = addressValue && addressValue.length > 5
+
     return (
-        <div className="space-y-4 bg-card rounded-xl p-4 sm:p-5 border shadow-sm">
+        <div className="space-y-4 bg-card rounded-xl p-4 sm:p-5 border shadow-sm transition-all duration-300">
             <h4 className="font-bold text-lg mb-2">Dirección de Envío</h4>
 
             {/* Google Maps Address */}
@@ -33,8 +45,11 @@ export function CheckoutAddress({
                 <Label htmlFor="address" className="text-sm font-bold text-foreground">
                     Dirección <span className="text-destructive">*</span>
                 </Label>
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-primary">
+                <div className="relative group">
+                    <div className={cn(
+                        "absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none transition-colors",
+                        isAddressValid ? "text-green-500" : "text-primary transition-colors group-focus-within:text-primary"
+                    )}>
                         <MapPin className="h-5 w-5" />
                     </div>
                     <Input
@@ -43,9 +58,17 @@ export function CheckoutAddress({
                         onChange={(e) => onAddressChange(e.target.value)}
                         disabled={!addressReady || disabled}
                         placeholder="Escribe tu dirección..."
-                        className="pl-11 h-12 bg-background border-border focus-visible:border-primary transition-colors rounded-lg font-medium text-foreground"
+                        className={cn(
+                            "pl-11 pr-10 h-12 bg-background border-border transition-all rounded-lg font-medium text-foreground",
+                            isAddressValid ? "border-green-500/50 focus-visible:ring-green-500/20" : "focus-visible:border-primary"
+                        )}
                         autoComplete="off"
                     />
+                    {isAddressValid && (
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 animate-in zoom-in duration-300">
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        </div>
+                    )}
                 </div>
                 {suggestionsStatus === "OK" && (
                     <ul className="absolute z-10 w-full bg-card border border-border rounded-xl shadow-xl mt-1 max-h-60 overflow-auto divide-y divide-border">
@@ -64,62 +87,83 @@ export function CheckoutAddress({
             </div>
 
             {/* Department / Province / District Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="space-y-4">
                 <div className="space-y-1.5">
                     <Label htmlFor="department" className="text-sm font-bold text-foreground">
                         Departamento <span className="text-destructive">*</span>
                     </Label>
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-muted-foreground">
+                    <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
                             <Building2 className="h-5 w-5" />
                         </div>
                         <Input
                             id="department"
                             placeholder="Departamento"
                             disabled={disabled}
-                            className="pl-11 h-12 bg-background border-border focus-visible:border-primary transition-colors rounded-lg font-medium text-foreground"
+                            className={cn(
+                                "pl-11 pr-10 h-12 bg-background border-border transition-all rounded-lg font-medium text-foreground",
+                                isValid("department", departmentValue) ? "border-green-500/50 focus-visible:ring-green-500/20" : "focus-visible:border-primary"
+                            )}
                             {...register("department")}
                         />
+                        {isValid("department", departmentValue) && (
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 animate-in zoom-in duration-300">
+                                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            </div>
+                        )}
                     </div>
-                    {errors.department && <p className="text-xs text-destructive font-medium">{errors.department.message}</p>}
                 </div>
 
                 <div className="space-y-1.5">
                     <Label htmlFor="province" className="text-sm font-bold text-foreground">
                         Provincia <span className="text-destructive">*</span>
                     </Label>
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-muted-foreground">
+                    <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
                             <Landmark className="h-5 w-5" />
                         </div>
                         <Input
                             id="province"
                             placeholder="Provincia"
                             disabled={disabled}
-                            className="pl-11 h-12 bg-background border-border focus-visible:border-primary transition-colors rounded-lg font-medium text-foreground"
+                            className={cn(
+                                "pl-11 pr-10 h-12 bg-background border-border transition-all rounded-lg font-medium text-foreground",
+                                isValid("province", provinceValue) ? "border-green-500/50 focus-visible:ring-green-500/20" : "focus-visible:border-primary"
+                            )}
                             {...register("province")}
                         />
+                        {isValid("province", provinceValue) && (
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 animate-in zoom-in duration-300">
+                                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            </div>
+                        )}
                     </div>
-                    {errors.province && <p className="text-xs text-destructive font-medium">{errors.province.message}</p>}
                 </div>
 
                 <div className="space-y-1.5">
                     <Label htmlFor="district" className="text-sm font-bold text-foreground">
                         Distrito <span className="text-destructive">*</span>
                     </Label>
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-muted-foreground">
+                    <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
                             <Navigation className="h-5 w-5" />
                         </div>
                         <Input
                             id="district"
                             placeholder="Distrito"
                             disabled={disabled}
-                            className="pl-11 h-12 bg-background border-border focus-visible:border-primary transition-colors rounded-lg font-medium text-foreground"
+                            className={cn(
+                                "pl-11 pr-10 h-12 bg-background border-border transition-all rounded-lg font-medium text-foreground",
+                                isValid("district", districtValue) ? "border-green-500/50 focus-visible:ring-green-500/20" : "focus-visible:border-primary"
+                            )}
                             {...register("district")}
                         />
+                        {isValid("district", districtValue) && (
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 animate-in zoom-in duration-300">
+                                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            </div>
+                        )}
                     </div>
-                    {errors.district && <p className="text-xs text-destructive font-medium">{errors.district.message}</p>}
                 </div>
             </div>
 

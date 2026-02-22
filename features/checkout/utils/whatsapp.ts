@@ -15,6 +15,9 @@ export function buildWhatsAppPreviewMessage(input: {
     dni: string
     phone: string
     address: string
+    department?: string
+    province?: string
+    district?: string
     reference?: string
     locationLink?: string
     items: CheckoutItem[]
@@ -24,7 +27,13 @@ export function buildWhatsAppPreviewMessage(input: {
     couponCode?: string | null
     shippingMethod?: string
 }) {
-    const { name, dni, phone, address, reference, locationLink, items, subtotal, discount, total, couponCode, shippingMethod } = input
+    const {
+        name, dni, phone, address,
+        department, province, district,
+        reference, locationLink, items,
+        subtotal, discount, total,
+        couponCode, shippingMethod
+    } = input
 
     let message = `¡Hola! Soy ${name || "Cliente"}. Quiero confirmar mi pedido: 🛍️\n`
     message += `*DATOS DE ENVÍO*:\n`
@@ -32,6 +41,11 @@ export function buildWhatsAppPreviewMessage(input: {
     message += `Cliente: ${name}\n`
     message += `DNI: ${dni}\n`
     message += `Teléfono: ${phone}\n`
+
+    if (department) message += `Departamento: ${department}\n`
+    if (province) message += `Provincia: ${province}\n`
+    if (district) message += `Distrito: ${district}\n`
+
     message += `Dirección: ${address || ""}\n`
     if (reference) message += `Referencia: ${reference}\n`
     if (locationLink) message += `Ubicación: ${locationLink}\n`
@@ -54,6 +68,9 @@ export function buildWhatsAppFinalMessage(input: {
     dni: string
     phone: string
     address: string
+    department?: string
+    province?: string
+    district?: string
     reference?: string
     locationLink?: string
     items: CheckoutItem[]
@@ -63,7 +80,13 @@ export function buildWhatsAppFinalMessage(input: {
     couponCode?: string | null
     shippingMethod?: string
 }) {
-    const { orderIdFormatted, name, dni, phone, address, reference, locationLink, items, subtotal, discount, total, couponCode, shippingMethod } = input
+    const {
+        orderIdFormatted, name, dni, phone, address,
+        department, province, district,
+        reference, locationLink, items,
+        subtotal, discount, total,
+        couponCode, shippingMethod
+    } = input
 
     let message = `¡Hola! Soy ${name}. Quiero confirmar mi pedido: 🛍️\n`
     message += `📋 *Pedido #${orderIdFormatted}*\n\n`
@@ -72,6 +95,11 @@ export function buildWhatsAppFinalMessage(input: {
     message += `👤 *Cliente:* ${name}\n`
     message += `🪪 *DNI:* ${dni}\n`
     message += `📱 *Teléfono:* ${phone}\n`
+
+    if (department) message += `🏢 *Departamento:* ${department}\n`
+    if (province) message += `🏙️ *Provincia:* ${province}\n`
+    if (district) message += `🏘️ *Distrito:* ${district}\n`
+
     message += `📍 *Dirección:* ${address}\n`
     if (reference) message += `🏠 *Referencia:* ${reference}\n`
     if (locationLink) message += `🗺️ *Ubicación:* ${locationLink}\n`

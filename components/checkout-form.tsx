@@ -299,12 +299,21 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             finalLocationLink = `https://www.google.com/maps/search/?api=1&query=${encoded}`
         }
 
+        // address field for API must be min(5). Use the raw Google Maps street value,
+        // falling back to the full composed address.
+        const streetForApi = (value || "").trim()
+        const addressForApi = streetForApi.length >= 5
+            ? streetForApi
+            : fullAddress.length >= 5
+                ? fullAddress
+                : `${data.district || ''} ${data.province || ''}`.trim()
+
         return {
             name: data.name,
             phone: normalizedPhone,
             dni: normalizedDni,
-            address: fullAddress, // Full Address string
-            street: value, // Google Maps clean part
+            address: addressForApi,  // Primary address for API (needed for min(5))
+            street: streetForApi,    // Raw Google Maps part
             province: data.province,
             district: data.district,
             department: data.department,
@@ -351,7 +360,10 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
             name: payload.name,
             dni: payload.dni,
             phone: payload.phone,
-            address: payload.address,
+            address: payload.street || payload.address, // Send only street/number if possible for clarity
+            department: payload.department,
+            province: payload.province,
+            district: payload.district,
             reference: payload.reference,
             locationLink: payload.locationLink,
             items: payload.items,
@@ -388,7 +400,10 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                 name: payload.name,
                 dni: payload.dni,
                 phone: payload.phone,
-                address: payload.address,
+                address: payload.street || payload.address,
+                department: payload.department,
+                province: payload.province,
+                district: payload.district,
                 reference: payload.reference,
                 locationLink: payload.locationLink,
                 items: payload.items,
@@ -563,16 +578,20 @@ function FormContent({ items, total, onBack, onComplete }: CheckoutFormProps) {
                         />
 
                         <CheckoutCustomer
-                            register={register} errors={errors}
+                            register={register}
+                            errors={errors}
+                            watch={watch}
                             disabled={isSubmitting}
                         />
 
                         <CheckoutAddress
-                            register={register} errors={errors}
+                            register={register}
+                            errors={errors}
+                            watch={watch}
                             addressValue={value}
                             onAddressChange={(val) => {
                                 setValue(val)
-                                setLocationLink("") // Clear specific link on manual edit to force fallback generation
+                                setLocationLink("")
                             }}
                             addressReady={ready}
                             suggestions={data} suggestionsStatus={status} onSuggestionSelect={handleSelect}
