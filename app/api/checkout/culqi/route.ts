@@ -242,25 +242,79 @@ export async function POST(req: Request) {
         await supabase.from("pedidos").update({
             status: "Confirmado",
             pago_status: "Pagado Anticipado",
-            culqi_charge_id: culqiData.id  // ← campo dedicado para el ID de cargo de Culqi
+            culqi_charge_id: culqiData.id
         }).eq("id", pedido.id)
 
         // D. Registrar el Pago en la tabla financiera
         await supabase.from("pedido_pagos").insert({
             pedido_id: pedido.id,
             monto: total,
-            metodo_pago: "Tarjeta", // Actualizado a 'Tarjeta' tras la ampliación en la base de datos
+            metodo_pago: "Tarjeta",
             tipo_pago: "Pago Final",
             nota: `Culqi ID: ${culqiData.id} - Tarjeta ${culqiData.source?.iin?.card_brand || 'Desconocida'}`,
             registrado_por: "Sistema (Web)",
         })
 
-        // E. Inyectar la Nota de Seguimiento Automática en el panel (Nueva Funcionalidad)
+        // E. ── DESCUENTO AUTOMÁTICO DE STOCK ────────────────────────────────
+        // Se ejecuta inmediatamente tras la confirmación del pago con tarjeta.
+        // Errores no bloquean la respuesta al cliente (el pedido ya está confirmado).
+        try {
+            const { data: itemsForStock } = await supabase
+                .from("pedido_items")
+                .select("producto_id, producto_variante_id, cantidad")
+                .eq("pedido_id", pedido.id)
+
+            const safeItems = (itemsForStock || []).filter(
+                (it): it is { producto_id: number; producto_variante_id: number | null; cantidad: number } =>
+                    Boolean(it.producto_id)
+            )
+
+            for (const it of safeItems) {
+                const productoId = Number(it.producto_id)
+                const varianteId = it.producto_variante_id != null ? Number(it.producto_variante_id) : null
+                const qty = Number(it.cantidad || 0)
+                if (!productoId || qty <= 0) continue
+
+                if (varianteId) {
+                    // Descontar stock de la variante
+                    const { data: variante } = await supabase
+                        .from("producto_variantes")
+                        .select("stock")
+                        .eq("id", varianteId)
+                        .single()
+
+                    const currentStock = Number((variante as any)?.stock ?? 0)
+                    const newStock = Math.max(0, currentStock - qty)
+                    await supabase.from("producto_variantes").update({ stock: newStock }).eq("id", varianteId)
+                } else {
+                    // Descontar stock del producto base
+                    const { data: producto } = await supabase
+                        .from("productos")
+                        .select("stock")
+                        .eq("id", productoId)
+                        .single()
+
+                    const currentStock = Number((producto as any)?.stock ?? 0)
+                    const newStock = Math.max(0, currentStock - qty)
+                    await supabase.from("productos").update({ stock: newStock }).eq("id", productoId)
+                }
+            }
+
+            // Marcar el pedido como stock descontado
+            await supabase.from("pedidos").update({ stock_descontado: true }).eq("id", pedido.id)
+            console.log(`📦 Stock descontado automáticamente para el pedido #${pedido.id}`)
+        } catch (stockError: any) {
+            // No fallamos el checkout — el pago ya fue procesado exitosamente
+            console.error(`⚠️ Error al descontar stock del pedido #${pedido.id}:`, stockError?.message || stockError)
+        }
+        // ────────────────────────────────────────────────────────────────────
+
+        // F. Nota de auditoría automática en el panel admin
         await supabase.from("pedido_notas").insert({
             pedido_id: pedido.id,
-            autor_id: "00000000-0000-0000-0000-000000000000", // UUID base o "vacio" soportado por la DB, o preferiblemente ignorado si autor_id admite nulos. Si es UUID estricto podemos usar un zero-uuid. Espera, 'autor_id' is NOT NULL UUID.
+            autor_id: "00000000-0000-0000-0000-000000000000",
             autor_nombre: "Sistema Inteligente",
-            contenido: `Pago aprobado automáticamente por Culqi. ID Transacción: ${culqiData.id}. Tarjeta: ${culqiData.source?.iin?.card_brand || 'Desconocida'}.`,
+            contenido: `Pago aprobado automáticamente por Culqi. ID Transacción: ${culqiData.id}. Tarjeta: ${culqiData.source?.iin?.card_brand || 'Desconocida'}. Stock descontado automáticamente.`,
             tipo: "info"
         })
 
