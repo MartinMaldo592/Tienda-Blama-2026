@@ -1,15 +1,15 @@
 "use client"
 
-import { IconInput } from "@/components/checkout/checkout-customer"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { MapPin } from "lucide-react"
+import { MapPin, Building2, Landmark, Navigation } from "lucide-react"
 
 interface QuickAddressProps {
     department: string
     setDepartment: (v: string) => void
-    province: string // This is Province
+    province: string
     setProvince: (v: string) => void
-    district: string // This is District
+    district: string
     setDistrict: (v: string) => void
     addressValue: string
     setAddressValue: (v: string) => void
@@ -34,50 +34,117 @@ export function QuickAddress({
     ready, suggestionsStatus, suggestionsData, onSuggestionSelect
 }: QuickAddressProps) {
     return (
-        <div className="space-y-4">
-            <div className="space-y-1 relative">
-                <Label className="text-sm font-bold">Dirección <span className="text-destructive">*</span></Label>
-                <div className="flex w-full items-center rounded-md border text-sm overflow-hidden h-10 ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                    <div className="flex h-full w-10 items-center justify-center bg-muted/50 border-r">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
+        <div className="space-y-4 bg-card rounded-xl p-4 border shadow-sm">
+            <h4 className="font-bold text-base">Dirección de Envío</h4>
+
+            {/* Google Maps address */}
+            <div className="space-y-1.5 relative">
+                <Label className="text-sm font-bold text-foreground">
+                    Dirección <span className="text-destructive">*</span>
+                </Label>
+                <div className="relative">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-primary">
+                        <MapPin className="h-5 w-5" />
                     </div>
-                    <input
+                    <Input
                         value={addressValue}
                         onChange={(e) => setAddressValue(e.target.value)}
                         disabled={disabled || !ready}
-                        placeholder="Ej: Calle Los Piroxenos 678"
-                        className="flex h-full w-full bg-background px-3 py-2 placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                        placeholder="Escribe tu dirección..."
+                        autoComplete="off"
+                        className="pl-11 h-12 bg-background border-border focus-visible:border-primary transition-colors rounded-lg font-medium text-foreground"
                     />
                 </div>
                 {suggestionsStatus === "OK" && (
-                    <ul className="absolute z-10 w-full bg-popover border rounded-md shadow-lg mt-1 max-h-40 overflow-auto">
+                    <ul className="absolute z-10 w-full bg-card border border-border rounded-xl shadow-xl mt-1 max-h-48 overflow-auto divide-y divide-border">
                         {suggestionsData.map(({ place_id, description }) => (
-                            <li key={place_id} onClick={() => onSuggestionSelect(description)} className="px-4 py-2 hover:bg-muted cursor-pointer text-xs">
-                                {description}
+                            <li
+                                key={place_id}
+                                onClick={() => onSuggestionSelect(description)}
+                                className="px-4 py-3 hover:bg-primary/5 cursor-pointer text-sm flex items-start gap-2 transition-colors"
+                            >
+                                <MapPin className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                                <span>{description}</span>
                             </li>
                         ))}
                     </ul>
                 )}
             </div>
 
-            <div className="space-y-1">
-                <Label className="text-sm font-bold">Departamento <span className="text-destructive">*</span></Label>
-                <IconInput icon={MapPin} required placeholder="Ej: Lima" value={department} onChange={(e: any) => setDepartment(e.target.value)} disabled={disabled} />
+            {/* Dept */}
+            <div className="space-y-1.5">
+                <Label className="text-sm font-bold text-foreground">
+                    Departamento <span className="text-destructive">*</span>
+                </Label>
+                <div className="relative">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-muted-foreground">
+                        <Building2 className="h-5 w-5" />
+                    </div>
+                    <Input
+                        placeholder="Departamento"
+                        value={department}
+                        onChange={(e) => setDepartment(e.target.value)}
+                        disabled={disabled}
+                        className="pl-11 h-12 bg-background border-border focus-visible:border-primary transition-colors rounded-lg font-medium text-foreground"
+                    />
+                </div>
             </div>
 
-            <div className="space-y-1">
-                <Label className="text-sm font-bold">Provincia <span className="text-destructive">*</span></Label>
-                <IconInput icon={MapPin} required placeholder="Ej: Cañete" value={province} onChange={(e: any) => setProvince(e.target.value)} disabled={disabled} />
+            {/* Province */}
+            <div className="space-y-1.5">
+                <Label className="text-sm font-bold text-foreground">
+                    Provincia <span className="text-destructive">*</span>
+                </Label>
+                <div className="relative">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-muted-foreground">
+                        <Landmark className="h-5 w-5" />
+                    </div>
+                    <Input
+                        placeholder="Provincia"
+                        value={province}
+                        onChange={(e) => setProvince(e.target.value)}
+                        disabled={disabled}
+                        className="pl-11 h-12 bg-background border-border focus-visible:border-primary transition-colors rounded-lg font-medium text-foreground"
+                    />
+                </div>
             </div>
 
-            <div className="space-y-1">
-                <Label className="text-sm font-bold">Distrito <span className="text-destructive">*</span></Label>
-                <IconInput icon={MapPin} required placeholder="Ej: Miraflores" value={district} onChange={(e: any) => setDistrict(e.target.value)} disabled={disabled} />
+            {/* District */}
+            <div className="space-y-1.5">
+                <Label className="text-sm font-bold text-foreground">
+                    Distrito <span className="text-destructive">*</span>
+                </Label>
+                <div className="relative">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-muted-foreground">
+                        <Navigation className="h-5 w-5" />
+                    </div>
+                    <Input
+                        placeholder="Distrito"
+                        value={district}
+                        onChange={(e) => setDistrict(e.target.value)}
+                        disabled={disabled}
+                        className="pl-11 h-12 bg-background border-border focus-visible:border-primary transition-colors rounded-lg font-medium text-foreground"
+                    />
+                </div>
             </div>
 
-            <div className="space-y-1">
-                <Label className="text-sm font-bold">Referencia</Label>
-                <IconInput icon={MapPin} placeholder="Ej: Al costado del grifo" value={reference} onChange={(e: any) => setReference(e.target.value)} disabled={disabled} />
+            {/* Reference */}
+            <div className="space-y-1.5">
+                <Label className="text-sm font-bold text-foreground">
+                    Referencia <span className="text-muted-foreground font-normal text-xs">(Opcional)</span>
+                </Label>
+                <div className="relative">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-muted-foreground">
+                        <MapPin className="h-5 w-5" />
+                    </div>
+                    <Input
+                        placeholder="Frente al parque, casa azul..."
+                        value={reference}
+                        onChange={(e) => setReference(e.target.value)}
+                        disabled={disabled}
+                        className="pl-11 h-12 bg-background border-border focus-visible:border-primary transition-colors rounded-lg font-medium text-foreground"
+                    />
+                </div>
             </div>
         </div>
     )
