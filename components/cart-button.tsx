@@ -188,7 +188,7 @@ export function CartButton() {
                         <span className="font-bold text-sm text-foreground mr-1">Carrito</span>
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[90%] sm:max-w-[400px] flex flex-col p-0">
+                <SheetContent side="right" className="w-full sm:max-w-[400px] flex flex-col p-0">
 
                     <SheetHeader className="sr-only">
                         <SheetTitle>Carrito</SheetTitle>
@@ -231,9 +231,9 @@ export function CartButton() {
                     {/* VIEW: CART LIST (Default) */}
                     {view === 'cart' && (
                         <>
-                            <SheetHeader className="p-4 border-b">
-                                <SheetTitle className="flex items-center gap-2">
-                                    <ShoppingCart className="h-5 w-5" />
+                            <SheetHeader className="p-6 border-b bg-muted/10">
+                                <SheetTitle className="flex items-center gap-3 text-2xl font-extrabold tracking-tight">
+                                    <ShoppingCart className="h-7 w-7 text-primary" />
                                     Mi Carrito ({totalItems})
                                 </SheetTitle>
                             </SheetHeader>
@@ -314,31 +314,40 @@ export function CartButton() {
 
                             {items.length > 0 && (
                                 <div className="p-4 border-t border-border bg-popover space-y-4">
-                                    <div className="flex justify-between items-center text-lg font-bold">
+                                    <div className="flex justify-between items-center text-xl font-bold pb-2 border-b">
                                         <span>Total:</span>
                                         <span>{formatCurrency(total)}</span>
                                     </div>
-                                    <Button
-                                        onClick={() => {
-                                            sendGTMEvent({
-                                                event: 'begin_checkout',
-                                                ecommerce: {
-                                                    currency: 'PEN',
-                                                    value: total,
-                                                    items: items.map(item => ({
-                                                        item_id: String(item.id),
-                                                        item_name: item.nombre,
-                                                        price: item.precio,
-                                                        quantity: item.quantity
-                                                    }))
-                                                }
-                                            })
-                                            setView('checkout')
-                                        }}
-                                        className="w-full h-12 text-base font-bold bg-primary text-primary-foreground hover:bg-primary/90"
-                                    >
-                                        Ir a Completar Datos
-                                    </Button>
+                                    <div className="flex flex-col gap-3">
+                                        <Button
+                                            onClick={() => {
+                                                sendGTMEvent({
+                                                    event: 'begin_checkout',
+                                                    ecommerce: {
+                                                        currency: 'PEN',
+                                                        value: total,
+                                                        items: items.map(item => ({
+                                                            item_id: String(item.id),
+                                                            item_name: item.nombre,
+                                                            price: item.precio,
+                                                            quantity: item.quantity
+                                                        }))
+                                                    }
+                                                })
+                                                setView('checkout')
+                                            }}
+                                            className="w-full h-14 text-lg font-bold shadow-md hover:scale-[1.02] transition-all"
+                                        >
+                                            Ir a Completar Datos
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            onClick={handleContinueShopping}
+                                            className="w-full h-14 text-lg font-bold border-2 shadow-sm hover:scale-[1.02] transition-all"
+                                        >
+                                            Seguir Comprando
+                                        </Button>
+                                    </div>
                                 </div>
                             )}
                         </>
