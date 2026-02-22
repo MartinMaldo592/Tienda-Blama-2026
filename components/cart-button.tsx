@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { ShoppingCart, Trash2, Plus, Minus, Image as ImageIcon, CheckCircle } from "lucide-react"
 import { useCartStore } from "@/features/cart"
 import { useEffect, useState } from "react"
-import { CheckoutForm } from "@/components/checkout-form"
+import dynamic from "next/dynamic"
 import { formatCurrency } from "@/lib/utils"
 import { sendGTMEvent } from "@/lib/gtm"
 import {
@@ -18,7 +18,10 @@ import {
     SheetClose,
 } from "@/components/ui/sheet"
 
-import Lottie from "lottie-react"
+const CheckoutForm = dynamic(() => import("@/components/checkout-form").then(mod => mod.CheckoutForm), {
+    loading: () => <div className="p-8 text-center">Cargando formulario...</div>
+})
+const Lottie = dynamic(() => import("lottie-react"), { ssr: false })
 
 // Lottie JSON definition (Simplified Success Check)
 const successAnimation = {
@@ -253,7 +256,7 @@ export function CartButton() {
                     {view === 'success' && (
                         <div className="flex flex-col items-center justify-center h-full space-y-6 text-center animate-in fade-in zoom-in duration-300 p-6">
                             <div className="h-32 w-32 flex items-center justify-center pointer-events-none drop-shadow-sm">
-                                <Lottie animationData={successAnimation} loop={false} />
+                                {isCartOpen && <Lottie animationData={successAnimation} loop={false} />}
                             </div>
                             <div className="space-y-2">
                                 <h3 className="text-2xl font-bold text-gray-900">¡Pedido Confirmado!</h3>
@@ -299,7 +302,7 @@ export function CartButton() {
                                 ) : items.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center py-12 px-6 text-center space-y-4">
                                         <div className="h-40 w-40 flex items-center justify-center pointer-events-none opacity-80">
-                                            <Lottie animationData={emptyCartAnimation} />
+                                            {isCartOpen && <Lottie animationData={emptyCartAnimation} />}
                                         </div>
                                         <div className="space-y-1">
                                             <p className="text-xl font-bold text-foreground">Tu carrito está vacío</p>

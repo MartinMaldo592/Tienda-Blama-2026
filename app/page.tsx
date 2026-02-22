@@ -5,10 +5,16 @@ import { ProductCard } from "@/components/product-card"
 import Link from "next/link"
 import { slugify } from "@/lib/utils"
 import { getHomePageData } from "@/features/products/services/products.server"
-import { ContactSection } from "@/components/contact-section"
+import dynamic from "next/dynamic"
+
+const ContactSection = dynamic(() => import("@/components/contact-section").then(mod => mod.ContactSection), {
+  loading: () => <div className="h-[400px] w-full bg-muted animate-pulse rounded-[2.5rem]" />
+})
+const NewsletterSection = dynamic(() => import("@/components/newsletter-section").then(mod => mod.NewsletterSection), {
+  loading: () => <div className="h-[300px] w-full bg-muted animate-pulse rounded-3xl" />
+})
 import { HomeScrollReveal } from "@/components/home-scroll-reveal"
 import { CategoryGrid } from "@/components/category-grid"
-import { NewsletterSection } from "@/components/newsletter-section"
 import { MinimalHero } from "@/components/minimal-hero"
 import { BenefitsBar } from "@/components/benefits-bar"
 

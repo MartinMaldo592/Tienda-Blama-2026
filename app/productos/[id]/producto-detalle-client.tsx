@@ -42,7 +42,10 @@ import {
 } from "lucide-react"
 import { ProductCard } from "@/components/product-card"
 import { ProductSocialProof } from "@/components/product-social-proof"
-import { QuickCheckoutModal } from "@/components/quick-checkout-modal"
+import dynamic from "next/dynamic"
+const QuickCheckoutModal = dynamic(() => import("@/components/quick-checkout-modal").then(mod => mod.QuickCheckoutModal), {
+    ssr: false
+})
 
 
 function parseProductIdentifier(raw: string): string | number {
