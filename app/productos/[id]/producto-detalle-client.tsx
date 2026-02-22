@@ -471,7 +471,7 @@ export default function ProductoDetalleClient() {
                                         <ProductImageCarousel
                                             images={images}
                                             alt={producto.nombre}
-                                            quality={100}
+                                            quality={90}
                                             priority={true}
                                             sizes="(max-width: 768px) 100vw, 50vw"
                                         />

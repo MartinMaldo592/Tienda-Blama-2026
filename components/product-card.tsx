@@ -79,7 +79,7 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
                             // Aumentamos significativamente el tamaño solicitado para asegurar nitidez
                             // en pantallas de alta densidad.
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 40vw"
-                            quality={100} // Máxima calidad de compresión
+                            quality={90} // Calidad Retina equilibrada (ahorro de peso sin pérdida visual)
                             imageFit="contain"
                         />
                     ) : (

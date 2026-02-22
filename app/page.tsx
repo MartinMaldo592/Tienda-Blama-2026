@@ -95,7 +95,7 @@ export default async function Home(props: HomePageProps) {
             </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {bestSellers.slice(0, 6).map((product, idx) => (
-                <ProductCard key={`bestseller-${product.id}`} product={product} imagePriority={idx < 2} />
+                <ProductCard key={`bestseller-${product.id}`} product={product} imagePriority={idx < 4} />
               ))}
             </div>
           </section>
@@ -120,7 +120,7 @@ export default async function Home(props: HomePageProps) {
             </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {offers.slice(0, 6).map((product, idx) => (
-                <ProductCard key={`offer-${product.id}`} product={product} imagePriority={idx < 1} />
+                <ProductCard key={`offer-${product.id}`} product={product} imagePriority={false} />
               ))}
             </div>
           </section>

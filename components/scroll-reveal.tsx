@@ -14,11 +14,11 @@ interface ScrollRevealProps {
 }
 
 const directionStyles: Record<Direction, string> = {
-    up: "translate-y-8",
-    down: "-translate-y-8",
-    left: "translate-x-8",
-    right: "-translate-x-8",
-    none: "",
+    up: "translateY(20px)",
+    down: "translateY(-20px)",
+    left: "translateX(20px)",
+    right: "translateX(-20px)",
+    none: "none",
 }
 
 export function ScrollReveal({
@@ -61,18 +61,12 @@ export function ScrollReveal({
             className={className}
             style={{
                 opacity: isVisible ? 1 : 0,
-                transform: isVisible ? "translate(0, 0)" : undefined,
-                transition: `opacity ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, transform ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`,
+                transform: isVisible ? "none" : directionStyles[direction],
+                transition: `all ${duration}ms cubic-bezier(0.23, 1, 0.32, 1) ${delay}ms`,
+                willChange: "transform, opacity",
             }}
         >
-            <div
-                style={{
-                    transform: isVisible ? "none" : `${directionStyles[direction]}`.replace("translate-y-8", "translateY(2rem)").replace("-translate-y-8", "translateY(-2rem)").replace("translate-x-8", "translateX(2rem)").replace("-translate-x-8", "translateX(-2rem)") || "none",
-                    transition: `transform ${duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`,
-                }}
-            >
-                {children}
-            </div>
+            {children}
         </div>
     )
 }
