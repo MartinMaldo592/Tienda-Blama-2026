@@ -1151,8 +1151,8 @@ export default function ProductoDetalleClient() {
 
             {
                 addedToastOpen && (
-                    <div className="md:hidden fixed inset-x-0 bottom-20 z-50 flex justify-center px-4">
-                        <div key={addedToastKey} className="w-full max-w-sm rounded-xl border border-border bg-card shadow-lg p-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <div className="md:hidden fixed inset-x-0 bottom-[140px] z-[60] flex justify-center px-4 pointer-events-none">
+                        <div key={addedToastKey} className="w-full max-w-sm rounded-[1.2rem] border border-border bg-card shadow-2xl p-3 animate-in fade-in slide-in-from-bottom-4 zoom-in-95 duration-300">
                             <div className="flex items-center gap-3">
                                 <div className="h-9 w-9 rounded-full bg-green-100 flex items-center justify-center text-green-700">
                                     <CheckCircle className="h-5 w-5" />
