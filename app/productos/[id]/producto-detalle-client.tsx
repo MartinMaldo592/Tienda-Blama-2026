@@ -713,7 +713,7 @@ export default function ProductoDetalleClient() {
                                                 setAddedToastKey(Date.now())
                                                 setAddedToastOpen(true)
                                             }}>
-                                                <ShoppingCart className="h-4 w-4" /> Agregar al carrito
+                                                <ShoppingCart className={`h-4 w-4 ${addedToastOpen ? 'animate-bounce text-green-500' : ''}`} /> Agregar al carrito
                                             </Button>
                                         </div>
                                     ) : (
@@ -1120,7 +1120,7 @@ export default function ProductoDetalleClient() {
                                 setAddedToastOpen(true)
                             }}
                         >
-                            <ShoppingCart className="h-[22px] w-[22px]" />
+                            <ShoppingCart className={`h-[22px] w-[22px] transition-all ${addedToastOpen ? "scale-125 text-green-500 animate-bounce" : ""}`} />
                         </Button>
                         <Button
                             className="h-12 px-6 rounded-2xl border-2 border-transparent bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-[0_4px_14px_rgba(249,115,22,0.4)] font-black text-[15px] tracking-wide transform active:scale-95 transition-all overflow-hidden relative group"
@@ -1151,7 +1151,7 @@ export default function ProductoDetalleClient() {
 
             {
                 addedToastOpen && (
-                    <div className="md:hidden fixed inset-x-0 bottom-[140px] z-[60] flex justify-center px-4 pointer-events-none">
+                    <div className="md:hidden fixed inset-x-0 bottom-[180px] z-[60] flex justify-center px-4 pointer-events-none">
                         <div key={addedToastKey} className="w-full max-w-sm rounded-[1.2rem] border border-border bg-card shadow-2xl p-3 animate-in fade-in slide-in-from-bottom-4 zoom-in-95 duration-300">
                             <div className="flex items-center gap-3">
                                 <div className="h-9 w-9 rounded-full bg-green-100 flex items-center justify-center text-green-700">
