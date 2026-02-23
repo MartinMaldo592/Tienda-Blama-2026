@@ -55,12 +55,12 @@ export function CheckoutPayment({ value, onChange, disabled }: CheckoutPaymentPr
                 >
                     <RadioGroupItem value="culqi" id="pm-culqi" className="mt-0.5 text-blue-600" />
                     <div className="flex-1">
-                        <div className="font-semibold flex items-center gap-2 text-[15px] leading-tight text-foreground">
-                            <CreditCard className="h-4 w-4 text-blue-600" />
-                            Tarjeta de Crédito / Débito
+                        <div className="font-semibold flex items-center gap-2 text-[13px] sm:text-[15px] leading-tight text-foreground">
+                            <CreditCard className="h-4 w-4 text-blue-600 shrink-0" />
+                            Tarjetas o Yape (Cód. Aprobación)
                         </div>
                         <p className="text-[12px] leading-tight text-muted-foreground mt-1">
-                            Pago al instante 100% seguro.
+                            Pago al instante 100% seguro (Crédito, Débito, Yape).
                         </p>
                         <div className="flex gap-1.5 mt-2 opacity-80 grayscale hover:grayscale-0 transition-all">
                             {/* Iconos visuales simples y micro-compactos */}
