@@ -56,6 +56,7 @@ export async function validateAndCalculateTotals(
     let subtotal = 0
 
     for (const item of items) {
+        let unitPrice: number | undefined;
         let availableStock = 0;
         let itemName = productNames.get(item.id) || "Producto desconocido";
 
