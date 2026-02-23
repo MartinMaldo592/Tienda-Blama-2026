@@ -93,6 +93,16 @@ export default function ProductoDetalleClient() {
     const [activeTab, setActiveTab] = useState<'description' | 'details' | 'specs' | 'reviews' | 'questions'>('description')
     const [showVideo, setShowVideo] = useState(false)
     const [quickBuyOpen, setQuickBuyOpen] = useState(false)
+    const [showStickyBar, setShowStickyBar] = useState(false)
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setShowStickyBar(window.scrollY > 450)
+        }
+        window.addEventListener('scroll', handleScroll, { passive: true })
+        handleScroll()
+        return () => window.removeEventListener('scroll', handleScroll)
+    }, [])
 
     const { addItem, items, updateQuantity } = useCartStore()
     const { setCustomMessage } = useWhatsAppStore()
@@ -608,12 +618,12 @@ export default function ProductoDetalleClient() {
                                             {formatCurrency(currentPrice)}
                                         </div>
                                         {hasSale && (
-                                            <div className="flex items-center gap-2">
-                                                <div className="text-base text-muted-foreground line-through">
+                                            <div className="flex items-center gap-2 mt-1 w-full flex-wrap sm:w-auto sm:mt-0">
+                                                <div className="text-base font-semibold text-muted-foreground line-through">
                                                     {formatCurrency(beforePrice)}
                                                 </div>
-                                                <span className="inline-flex items-center rounded-full bg-gradient-to-r from-rose-600 to-orange-500 px-2.5 py-1 text-xs font-extrabold text-white shadow-md ring-1 ring-white/30">
-                                                    -{discountPercent}%
+                                                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-extrabold text-emerald-800 ring-1 ring-emerald-300 shadow-sm animate-pulse-hybrid">
+                                                    ¡Ahorras {formatCurrency(beforePrice - currentPrice)}!
                                                 </span>
                                             </div>
                                         )}
@@ -1090,33 +1100,30 @@ export default function ProductoDetalleClient() {
                 )}
             </div>
 
-            <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t bg-background/95 backdrop-blur">
-                <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-                    <div>
-                        <div className="text-xs text-muted-foreground">Precio del producto</div>
-                        <div className="text-lg font-extrabold text-primary leading-none">{formatCurrency(currentPrice)}</div>
+            {/* MODERN FLOATING MOBILE BOTTOM BAR */}
+            <div className={`md:hidden fixed bottom-4 left-4 right-4 z-40 transition-all duration-300 ease-in-out ${showStickyBar ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0 pointer-events-none"}`}>
+                <div className="bg-white/95 backdrop-blur-md border border-neutral-200 shadow-[0_-8px_40px_rgb(0,0,0,0.12)] rounded-3xl p-2 flex items-center justify-between gap-3">
+                    <div className="pl-3 py-1 flex-shrink-0">
+                        <div className="text-[10px] uppercase font-bold text-muted-foreground leading-none mb-1 hidden sm:block">Total Pagar</div>
+                        <div className="text-[10px] uppercase font-bold text-muted-foreground leading-none mb-1 sm:hidden">Total</div>
+                        <div className="text-[19px] font-black text-foreground leading-none tracking-tight">{formatCurrency(currentPrice)}</div>
                     </div>
-                    <div className="flex gap-2 flex-1">
+                    <div className="flex gap-2 flex-1 justify-end">
                         <Button
                             variant="outline"
                             size="icon"
-                            className="h-11 w-11 border-primary text-primary hover:bg-primary hover:text-white transition-colors"
+                            className="h-12 w-12 rounded-2xl border-2 border-primary/20 text-primary hover:bg-primary/10 transition-colors"
                             disabled={!inStock}
                             onClick={() => {
                                 addItem(producto, selectedVariante)
-                                // Animation removed
-                                // if (imageContainerRef.current && images.length > 0) {
-                                //     const rect = imageContainerRef.current.getBoundingClientRect()
-                                //     startAnimation(images[0], rect)
-                                // }
                                 setAddedToastKey(Date.now())
                                 setAddedToastOpen(true)
                             }}
                         >
-                            <ShoppingCart className="h-5 w-5" />
+                            <ShoppingCart className="h-[22px] w-[22px]" />
                         </Button>
                         <Button
-                            className="h-11 flex-1 gap-2 border-2 border-transparent bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg font-extrabold text-base tracking-wide"
+                            className="h-12 px-6 rounded-2xl border-2 border-transparent bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-[0_4px_14px_rgba(249,115,22,0.4)] font-black text-[15px] tracking-wide transform active:scale-95 transition-all overflow-hidden relative group"
                             disabled={!inStock}
                             onClick={() => {
                                 sendGTMEvent({
@@ -1135,7 +1142,8 @@ export default function ProductoDetalleClient() {
                                 setQuickBuyOpen(true)
                             }}
                         >
-                            REALIZAR PEDIDO <ChevronRight className="h-5 w-5 animate-pulse" />
+                            <span className="absolute inset-0 w-full h-full bg-white/20 group-hover:animate-shimmer opacity-0 group-hover:opacity-100" style={{ transform: 'skewX(-20deg)' }}></span>
+                            PEDIR AHORA
                         </Button>
                     </div>
                 </div>
