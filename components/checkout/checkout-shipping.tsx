@@ -15,7 +15,7 @@ export function CheckoutShipping({ value, onChange, disabled }: CheckoutShipping
             <div className="grid grid-cols-2 gap-3">
                 <label
                     className={cn(
-                        "relative flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 p-4 text-center transition-all duration-200 hover:bg-muted/50",
+                        "relative flex cursor-pointer flex-row items-center gap-3 rounded-xl border-2 p-3 transition-all duration-200 hover:bg-muted/50",
                         (value === 'Lima' || value === 'lima') ? "border-primary bg-primary/5 shadow-sm" : "border-border",
                         disabled ? "pointer-events-none opacity-50" : ""
                     )}
@@ -29,21 +29,21 @@ export function CheckoutShipping({ value, onChange, disabled }: CheckoutShipping
                         className="sr-only"
                         disabled={disabled}
                     />
-                    <div className={cn("rounded-full p-2.5 transition-colors duration-200", (value === 'Lima' || value === 'lima') ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
-                        <MapPin className="h-6 w-6" />
+                    <div className={cn("rounded-lg p-2 transition-colors duration-200 shrink-0", (value === 'Lima' || value === 'lima') ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
+                        <MapPin className="h-5 w-5" />
                     </div>
-                    <div className="space-y-0.5 mt-1">
-                        <span className={cn("block text-sm font-bold", (value === 'Lima' || value === 'lima') ? "text-primary" : "text-foreground")}>Lima</span>
-                        <span className="block text-xs text-muted-foreground">Envío local</span>
+                    <div className="flex flex-col">
+                        <span className={cn("block text-sm font-bold leading-tight", (value === 'Lima' || value === 'lima') ? "text-primary" : "text-foreground")}>Lima</span>
+                        <span className="block text-[11px] leading-tight mt-0.5 text-muted-foreground">Envío local</span>
                     </div>
                     {(value === 'Lima' || value === 'lima') && (
-                        <div className="absolute top-3 right-3 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-primary/20" />
+                        <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary ring-4 ring-primary/20" />
                     )}
                 </label>
 
                 <label
                     className={cn(
-                        "relative flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 p-4 text-center transition-all duration-200 hover:bg-muted/50",
+                        "relative flex cursor-pointer flex-row items-center gap-3 rounded-xl border-2 p-3 transition-all duration-200 hover:bg-muted/50",
                         (value === 'Provincia' || value === 'provincia') ? "border-primary bg-primary/5 shadow-sm" : "border-border",
                         disabled ? "pointer-events-none opacity-50" : ""
                     )}
@@ -57,15 +57,15 @@ export function CheckoutShipping({ value, onChange, disabled }: CheckoutShipping
                         className="sr-only"
                         disabled={disabled}
                     />
-                    <div className={cn("rounded-full p-2.5 transition-colors duration-200", (value === 'Provincia' || value === 'provincia') ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
-                        <Truck className="h-6 w-6" />
+                    <div className={cn("rounded-lg p-2 transition-colors duration-200 shrink-0", (value === 'Provincia' || value === 'provincia') ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
+                        <Truck className="h-5 w-5" />
                     </div>
-                    <div className="space-y-0.5 mt-1">
-                        <span className={cn("block text-sm font-bold", (value === 'Provincia' || value === 'provincia') ? "text-primary" : "text-foreground")}>Provincia</span>
-                        <span className="block text-xs text-muted-foreground">Envíos a agencia</span>
+                    <div className="flex flex-col">
+                        <span className={cn("block text-sm font-bold leading-tight", (value === 'Provincia' || value === 'provincia') ? "text-primary" : "text-foreground")}>Provincia</span>
+                        <span className="block text-[11px] leading-tight mt-0.5 text-muted-foreground">Envíos a agencia</span>
                     </div>
                     {(value === 'Provincia' || value === 'provincia') && (
-                        <div className="absolute top-3 right-3 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-primary/20" />
+                        <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary ring-4 ring-primary/20" />
                     )}
                 </label>
             </div>
