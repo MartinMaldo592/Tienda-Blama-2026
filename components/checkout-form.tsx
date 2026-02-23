@@ -106,9 +106,11 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
         }
     })
 
-    const { register, handleSubmit, trigger, control, watch, setValue: setFormValue, formState: { errors } } = form
-    const formValues = watch()
-    const paymentMethod = formValues.paymentMethod
+    const { register, handleSubmit, trigger, control, watch, getValues, setValue: setFormValue, formState: { errors } } = form
+
+    // ── Selectores específicos (evita re-render total en cada keystroke) ──────
+    const paymentMethod = watch("paymentMethod")
+    const shippingMethod = watch("shippingMethod")
     const [locationLink, setLocationLink] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [waPromptOpen, setWaPromptOpen] = useState(false)
@@ -159,17 +161,17 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
         }
     }, [loaded, draft, setFormValue, setValue])
 
-    // Save draft on changes
+    // Save draft on changes — observa solo los campos relevantes, no el form entero
     useEffect(() => {
         if (!loaded) return
         const timeout = setTimeout(() => {
             saveDraft({
-                ...formValues,
+                ...getValues(),
                 address: value,
             })
         }, 500) // Debounce 500ms
         return () => clearTimeout(timeout)
-    }, [formValues, value, loaded, saveDraft])
+    }, [paymentMethod, shippingMethod, value, loaded, saveDraft, getValues])
 
     // Removed unused geoProvince, geoDistrict
 
@@ -487,7 +489,7 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
     // ── CULQI Handler ──
     const handleCulqiToken = async (token: string, email: string) => {
         try {
-            const payload = await getOrderPayload(formValues)
+            const payload = await getOrderPayload(getValues())
 
             // Asegurar que siempre haya un email válido (fallback si Culqi no lo devuelve)
             const emailToSend = email || "pedidos@blama.shop"
@@ -652,7 +654,7 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                 <div className="p-4 border-t mt-auto bg-popover">
                     <CheckoutSummary
                         subtotal={subtotalAmount}
-                        shippingMethod={formValues.shippingMethod}
+                        shippingMethod={shippingMethod}
                         discount={discountAmount}
                         total={totalToPay}
                         couponCode={couponCode} setCouponCode={setCouponCode}

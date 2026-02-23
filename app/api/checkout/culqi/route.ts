@@ -238,27 +238,15 @@ export async function POST(req: Request) {
 
         console.log("✅ Pago exitoso ID:", culqiData.id)
 
-        // 6. Actualizar Pedido a Pagado
+        // 6. Actualizar Pedido a Pagado (bloqueante — necesario antes de los pasos paralelos)
         await supabase.from("pedidos").update({
             status: "Confirmado",
             pago_status: "Pagado Anticipado",
             culqi_charge_id: culqiData.id
         }).eq("id", pedido.id)
 
-        // D. Registrar el Pago en la tabla financiera
-        await supabase.from("pedido_pagos").insert({
-            pedido_id: pedido.id,
-            monto: total,
-            metodo_pago: "Tarjeta",
-            tipo_pago: "Pago Final",
-            nota: `Culqi ID: ${culqiData.id} - Tarjeta ${culqiData.source?.iin?.card_brand || 'Desconocida'}`,
-            registrado_por: "Sistema (Web)",
-        })
-
-        // E. ── DESCUENTO AUTOMÁTICO DE STOCK ────────────────────────────────
-        // Se ejecuta inmediatamente tras la confirmación del pago con tarjeta.
-        // Errores no bloquean la respuesta al cliente (el pedido ya está confirmado).
-        try {
+        // ── Función auxiliar: descuenta stock de todos los items en PARALELO ──────
+        const deductStock = async (): Promise<void> => {
             const { data: itemsForStock } = await supabase
                 .from("pedido_items")
                 .select("producto_id, producto_variante_id, cantidad")
@@ -269,54 +257,58 @@ export async function POST(req: Request) {
                     Boolean(it.producto_id)
             )
 
-            for (const it of safeItems) {
+            // Cada producto se actualiza en paralelo (no secuencial)
+            await Promise.all(safeItems.map(async (it) => {
                 const productoId = Number(it.producto_id)
                 const varianteId = it.producto_variante_id != null ? Number(it.producto_variante_id) : null
                 const qty = Number(it.cantidad || 0)
-                if (!productoId || qty <= 0) continue
+                if (!productoId || qty <= 0) return
 
                 if (varianteId) {
-                    // Descontar stock de la variante
                     const { data: variante } = await supabase
-                        .from("producto_variantes")
-                        .select("stock")
-                        .eq("id", varianteId)
-                        .single()
-
-                    const currentStock = Number((variante as any)?.stock ?? 0)
-                    const newStock = Math.max(0, currentStock - qty)
+                        .from("producto_variantes").select("stock").eq("id", varianteId).single()
+                    const newStock = Math.max(0, Number((variante as any)?.stock ?? 0) - qty)
                     await supabase.from("producto_variantes").update({ stock: newStock }).eq("id", varianteId)
                 } else {
-                    // Descontar stock del producto base
                     const { data: producto } = await supabase
-                        .from("productos")
-                        .select("stock")
-                        .eq("id", productoId)
-                        .single()
-
-                    const currentStock = Number((producto as any)?.stock ?? 0)
-                    const newStock = Math.max(0, currentStock - qty)
+                        .from("productos").select("stock").eq("id", productoId).single()
+                    const newStock = Math.max(0, Number((producto as any)?.stock ?? 0) - qty)
                     await supabase.from("productos").update({ stock: newStock }).eq("id", productoId)
                 }
-            }
+            }))
 
-            // Marcar el pedido como stock descontado
             await supabase.from("pedidos").update({ stock_descontado: true }).eq("id", pedido.id)
             console.log(`📦 Stock descontado automáticamente para el pedido #${pedido.id}`)
-        } catch (stockError: any) {
-            // No fallamos el checkout — el pago ya fue procesado exitosamente
-            console.error(`⚠️ Error al descontar stock del pedido #${pedido.id}:`, stockError?.message || stockError)
         }
-        // ────────────────────────────────────────────────────────────────────
+        // ──────────────────────────────────────────────────────────────────────────
 
-        // F. Nota de auditoría automática en el panel admin
-        await supabase.from("pedido_notas").insert({
-            pedido_id: pedido.id,
-            autor_id: "00000000-0000-0000-0000-000000000000",
-            autor_nombre: "Sistema Inteligente",
-            contenido: `Pago aprobado automáticamente por Culqi. ID Transacción: ${culqiData.id}. Tarjeta: ${culqiData.source?.iin?.card_brand || 'Desconocida'}. Stock descontado automáticamente.`,
-            tipo: "info"
-        })
+        // D + E + F: registrar pago, descontar stock y agregar nota en PARALELO
+        // Errores en stock/nota no bloquean la respuesta — el pago ya fue procesado.
+        await Promise.allSettled([
+            // D. Registrar pago financiero
+            supabase.from("pedido_pagos").insert({
+                pedido_id: pedido.id,
+                monto: total,
+                metodo_pago: "Tarjeta",
+                tipo_pago: "Pago Final",
+                nota: `Culqi ID: ${culqiData.id} - Tarjeta ${culqiData.source?.iin?.card_brand || 'Desconocida'}`,
+                registrado_por: "Sistema (Web)",
+            }),
+
+            // E. Descuento de stock en paralelo por producto
+            deductStock().catch((err: any) =>
+                console.error(`⚠️ Error al descontar stock del pedido #${pedido.id}:`, err?.message || err)
+            ),
+
+            // F. Nota de auditoría en el panel admin
+            supabase.from("pedido_notas").insert({
+                pedido_id: pedido.id,
+                autor_id: "00000000-0000-0000-0000-000000000000",
+                autor_nombre: "Sistema Inteligente",
+                contenido: `Pago aprobado por Culqi. ID: ${culqiData.id}. Tarjeta: ${culqiData.source?.iin?.card_brand || 'Desconocida'}.`,
+                tipo: "info"
+            }),
+        ])
 
         return NextResponse.json({
             ok: true,

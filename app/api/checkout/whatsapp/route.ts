@@ -92,11 +92,7 @@ export async function POST(req: Request) {
 
     const body = validation.data
 
-    console.log("🐛 DEBUG CHECKOUT API:", {
-      receivedLocationLink: body.locationLink,
-      address: body.address,
-      reference: body.reference
-    })
+
 
     const name = body.name.trim()
     const phone = body.phone.trim() // Already validated as digits by regex in schema? No, regex allows digits but string might have spaces if not trimmed. Zod regex applies to string.
@@ -112,12 +108,7 @@ export async function POST(req: Request) {
       locationLink = `https://www.google.com/maps/search/?api=1&query=${encoded}`
     }
 
-    // Update debug log to show final link
-    console.log("🐛 DEBUG CHECKOUT API (Processed):", {
-      receivedLink: body.locationLink,
-      finalLink: locationLink,
-      address
-    })
+
     const discountAmount = body.discountAmount || 0
     const items = body.items
     const shippingMethod = body.shippingMethod?.trim() || null
