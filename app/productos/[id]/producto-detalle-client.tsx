@@ -588,29 +588,27 @@ export default function ProductoDetalleClient() {
                                 </div>
                             )}
 
-                            <div className="flex items-center justify-between gap-3">
-                                <div>
-                                    <div className="text-sm text-muted-foreground">Precio</div>
-                                    <div className="flex items-end gap-3 flex-wrap">
-                                        <div className="text-3xl font-extrabold text-primary tracking-tight">
-                                            {formatCurrency(currentPrice)}
-                                        </div>
-                                        {hasSale && (
-                                            <div className="flex items-center gap-2 mt-1 w-full flex-wrap sm:w-auto sm:mt-0">
-                                                <div className="text-base font-semibold text-muted-foreground line-through">
-                                                    {formatCurrency(beforePrice)}
-                                                </div>
-                                                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-extrabold text-emerald-800 ring-1 ring-emerald-300 shadow-sm animate-pulse-hybrid">
-                                                    ¡Ahorras {formatCurrency(beforePrice - currentPrice)}!
-                                                </span>
+                            <div className="flex items-start justify-between gap-3 bg-slate-50 dark:bg-slate-900 rounded-2xl p-5 border shadow-sm">
+                                <div className="flex flex-col">
+                                    {hasSale && (
+                                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                            <div className="text-sm font-semibold text-muted-foreground line-through">
+                                                {formatCurrency(beforePrice)}
                                             </div>
-                                        )}
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-extrabold text-emerald-800 ring-1 ring-emerald-300 shadow-sm animate-pulse-hybrid">
+                                                🔥 ¡Ahorras {formatCurrency(beforePrice - currentPrice)}!
+                                            </span>
+                                        </div>
+                                    )}
+                                    <div className="text-5xl sm:text-6xl font-black text-slate-900 dark:text-white tracking-tighter drop-shadow-sm">
+                                        {formatCurrency(currentPrice)}
                                     </div>
+                                    <div className="text-xs text-muted-foreground font-medium mt-1">Precio final incluido IGV.</div>
                                 </div>
-                                <div className="text-right">
-                                    <div className="text-sm text-muted-foreground">Stock</div>
-                                    <div className={`text-sm font-semibold ${inStock ? "text-green-700" : "text-red-700"}`}>
-                                        {inStock ? `${effectiveStock} disponibles` : "Sin stock"}
+                                <div className="text-right pt-1 flex flex-col items-end">
+                                    <div className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Estado</div>
+                                    <div className={`text-xs font-bold px-2.5 py-1 rounded-md border ${inStock ? "bg-green-50 border-green-200 text-green-700 dark:bg-green-900/30 dark:border-green-800 dark:text-green-400" : "bg-red-50 border-red-200 text-red-700 dark:bg-red-900/30 dark:border-red-800 dark:text-red-400"}`}>
+                                        {inStock ? `${effectiveStock} disp.` : "Sin stock"}
                                     </div>
                                 </div>
                             </div>
