@@ -40,7 +40,7 @@ export function CheckoutPayment({ value, onChange, disabled }: CheckoutPaymentPr
                     <div className="flex-1">
                         <div className="font-semibold flex items-center gap-2 text-[15px] leading-tight text-foreground">
                             <MessageCircle className="h-4 w-4 text-green-600" />
-                            Coordinar por WhatsApp
+                            Pago Contraentrega / Transferencia
                         </div>
                         <p className="text-[12px] leading-tight text-muted-foreground mt-1">
                             Pagas al recibir o Yape/Plin manual (Prov. y Lima).
