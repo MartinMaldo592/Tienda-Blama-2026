@@ -43,6 +43,7 @@ import {
 } from "lucide-react"
 import { ProductCard } from "@/components/product-card"
 import { ProductSocialProof } from "@/components/product-social-proof"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import dynamic from "next/dynamic"
 const QuickCheckoutModal = dynamic(() => import("@/components/quick-checkout-modal").then(mod => mod.QuickCheckoutModal), {
     ssr: false
@@ -84,14 +85,11 @@ export default function ProductoDetalleClient() {
     const [recomendados, setRecomendados] = useState<any[]>([])
     const recoRef = useRef<HTMLDivElement | null>(null)
     const imageContainerRef = useRef<HTMLDivElement | null>(null)
-    const tabsScrollRef = useRef<HTMLDivElement | null>(null)
-    const [tabsScrollInfo, setTabsScrollInfo] = useState({ hasOverflow: false, scrollPercent: 0, atStart: true, atEnd: false })
 
     const [shareOpen, setShareOpen] = useState(false)
     const [copied, setCopied] = useState(false)
     const [addedToastOpen, setAddedToastOpen] = useState(false)
     const [addedToastKey, setAddedToastKey] = useState(0)
-    const [activeTab, setActiveTab] = useState<'description' | 'details' | 'specs' | 'reviews' | 'questions'>('description')
     const [showVideo, setShowVideo] = useState(false)
     const [quickBuyOpen, setQuickBuyOpen] = useState(false)
     const [showStickyBar, setShowStickyBar] = useState(false)
@@ -127,28 +125,6 @@ export default function ProductoDetalleClient() {
         }, 1600)
         return () => window.clearTimeout(id)
     }, [addedToastOpen])
-
-    useEffect(() => {
-        const el = tabsScrollRef.current
-        if (!el) return
-
-        const update = () => {
-            const hasOverflow = el.scrollWidth > el.clientWidth + 2
-            const maxScroll = el.scrollWidth - el.clientWidth
-            const scrollPercent = maxScroll > 0 ? el.scrollLeft / maxScroll : 0
-            const atStart = el.scrollLeft <= 2
-            const atEnd = el.scrollLeft >= maxScroll - 2
-            setTabsScrollInfo({ hasOverflow, scrollPercent, atStart, atEnd })
-        }
-
-        update()
-        el.addEventListener('scroll', update, { passive: true })
-        window.addEventListener('resize', update)
-        return () => {
-            el.removeEventListener('scroll', update)
-            window.removeEventListener('resize', update)
-        }
-    }, [loading])
 
     const quantity = useMemo(() => {
         if (!producto?.id) return 0
@@ -799,238 +775,161 @@ export default function ProductoDetalleClient() {
                         </CardContent>
                     </Card>
 
-                    {/* TABS SECTION */}
-                    <div className="mt-12">
-                        {/* Tabs scroll container */}
-                        <div className="relative mb-8">
-                            {/* Fade indicators */}
-                            {tabsScrollInfo.hasOverflow && !tabsScrollInfo.atStart && (
-                                <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none rounded-l-full" />
-                            )}
-                            {tabsScrollInfo.hasOverflow && !tabsScrollInfo.atEnd && (
-                                <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none rounded-r-full" />
-                            )}
-
-                            <div
-                                ref={tabsScrollRef}
-                                className="flex items-center gap-2 select-none p-1 bg-muted/30 rounded-full mx-auto border overflow-x-auto scrollbar-hide max-w-full w-fit"
-                                style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                            >
-                                {producto?.descripcion && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setActiveTab('description')}
-                                        className={`
-                                            relative px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0
-                                            ${activeTab === 'description'
-                                                ? 'bg-primary text-primary-foreground shadow-md scale-[1.02]'
-                                                : 'text-muted-foreground hover:text-foreground hover:bg-white/80 hover:shadow-sm'
-                                            }
-                                        `}
-                                    >
-                                        <FileText className="h-4 w-4" />
-                                        <span>Descripción</span>
-                                    </button>
-                                )}
-                                {(producto?.materiales || producto?.tamano || producto?.color || producto?.cuidados || producto?.uso) && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setActiveTab('details')}
-                                        className={`
-                                            relative px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0
-                                            ${activeTab === 'details'
-                                                ? 'bg-primary text-primary-foreground shadow-md scale-[1.02]'
-                                                : 'text-muted-foreground hover:text-foreground hover:bg-white/80 hover:shadow-sm'
-                                            }
-                                        `}
-                                    >
-                                        <Sparkles className="h-4 w-4" />
-                                        <span>Detalles</span>
-                                    </button>
-                                )}
-
-                                {especificaciones.length > 0 && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setActiveTab('specs')}
-                                        className={`
-                                            relative px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0
-                                            ${activeTab === 'specs'
-                                                ? 'bg-primary text-primary-foreground shadow-md scale-[1.02]'
-                                                : 'text-muted-foreground hover:text-foreground hover:bg-white/80 hover:shadow-sm'
-                                            }
-                                        `}
-                                    >
-                                        <Ruler className="h-4 w-4" />
-                                        <span>Especificaciones</span>
-                                    </button>
-                                )}
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveTab('reviews')}
-                                    className={`
-                                        relative px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0
-                                        ${activeTab === 'reviews'
-                                            ? 'bg-primary text-primary-foreground shadow-md scale-[1.02]'
-                                            : 'text-muted-foreground hover:text-foreground hover:bg-white/80 hover:shadow-sm'
-                                        }
-                                    `}
-                                >
-                                    <Star className="h-4 w-4" />
-                                    <span>Valoraciones</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveTab('questions')}
-                                    className={`
-                                        relative px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-2 whitespace-nowrap shrink-0
-                                        ${activeTab === 'questions'
-                                            ? 'bg-primary text-primary-foreground shadow-md scale-[1.02]'
-                                            : 'text-muted-foreground hover:text-foreground hover:bg-white/80 hover:shadow-sm'
-                                        }
-                                    `}
-                                >
-                                    <MessageCircle className="h-4 w-4" />
-                                    <span>Preguntas</span>
-                                </button>
-                            </div>
-
-                            {/* Scroll progress bar */}
-                            {tabsScrollInfo.hasOverflow && (
-                                <div className="mt-3 px-4">
-                                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-primary rounded-full transition-all duration-150"
-                                            style={{ width: '30%', marginLeft: `${tabsScrollInfo.scrollPercent * 70}%` }}
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="min-h-[300px] pb-32 md:pb-0 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            {activeTab === 'description' && producto?.descripcion && (
-                                <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
-                                    <div className="bg-card border rounded-2xl p-8 shadow-sm relative overflow-hidden">
-                                        <div className="absolute top-0 right-0 p-8 opacity-5">
-                                            <Sparkles className="w-32 h-32 text-primary" />
-                                        </div>
-                                        <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-primary">
-                                            <span className="p-2 bg-primary/10 rounded-lg">
+                    {/* TABS SECTION REPLACED WITH ACCORDION */}
+                    <div className="mt-12 mb-10 text-left">
+                        <Accordion type="multiple" defaultValue={['description', 'details']} className="w-full space-y-4">
+                            {/* DESCRIPTION */}
+                            {producto?.descripcion && (
+                                <AccordionItem value="description" className="bg-card border rounded-2xl px-6 shadow-sm overflow-hidden">
+                                    <AccordionTrigger className="text-lg font-bold hover:no-underline py-5 text-primary">
+                                        <div className="flex items-center gap-3">
+                                            <span className="p-2 bg-primary/10 rounded-lg shrink-0">
                                                 <FileText className="h-5 w-5" />
                                             </span>
                                             Descripción del Producto
-                                        </h3>
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="pb-6">
                                         <div className="prose prose-sm md:prose-base text-muted-foreground whitespace-pre-line leading-relaxed max-w-none">
                                             {producto.descripcion}
                                         </div>
-                                    </div>
-                                </div>
+                                    </AccordionContent>
+                                </AccordionItem>
                             )}
 
-                            {activeTab === 'details' && (
-                                <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {producto?.materiales && (
-                                            <div className="bg-card border rounded-xl p-5 hover:shadow-md transition-shadow duration-300 flex gap-4 items-start group">
-                                                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl group-hover:scale-110 transition-transform">
-                                                    <Shield className="h-6 w-6" />
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-semibold text-foreground mb-1">Materiales</h4>
-                                                    <p className="text-sm text-muted-foreground leading-relaxed">{producto.materiales}</p>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {producto?.tamano && (
-                                            <div className="bg-card border rounded-xl p-5 hover:shadow-md transition-shadow duration-300 flex gap-4 items-start group">
-                                                <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-xl group-hover:scale-110 transition-transform">
-                                                    <Ruler className="h-6 w-6" />
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-semibold text-foreground mb-1">Medidas</h4>
-                                                    <p className="text-sm text-muted-foreground leading-relaxed">{producto.tamano}</p>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {producto?.color && (
-                                            <div className="bg-card border rounded-xl p-5 hover:shadow-md transition-shadow duration-300 flex gap-4 items-start group">
-                                                <div className="p-3 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-xl group-hover:scale-110 transition-transform">
-                                                    <Palette className="h-6 w-6" />
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-semibold text-foreground mb-1">Color</h4>
-                                                    <p className="text-sm text-muted-foreground leading-relaxed">{producto.color}</p>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {producto?.cuidados && (
-                                            <div className="bg-card border rounded-xl p-5 hover:shadow-md transition-shadow duration-300 flex gap-4 items-start group">
-                                                <div className="p-3 bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 rounded-xl group-hover:scale-110 transition-transform">
-                                                    <Droplets className="h-6 w-6" />
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-semibold text-foreground mb-1">Cuidados</h4>
-                                                    <p className="text-sm text-muted-foreground leading-relaxed">{producto.cuidados}</p>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {producto?.uso && (
-                                            <div className="md:col-span-2 bg-card border rounded-xl p-5 hover:shadow-md transition-shadow duration-300 flex gap-4 items-start group">
-                                                <div className="p-3 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-xl group-hover:scale-110 transition-transform">
-                                                    <Lightbulb className="h-6 w-6" />
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-semibold text-foreground mb-1">Uso Recomendado</h4>
-                                                    <p className="text-sm text-muted-foreground leading-relaxed">{producto.uso}</p>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === 'specs' && especificaciones.length > 0 && (
-                                <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
-                                    <div className="rounded-2xl border bg-card overflow-hidden shadow-sm">
-                                        <div className="bg-muted/50 p-4 border-b">
-                                            <h3 className="font-bold text-foreground flex items-center gap-2">
-                                                <FileText className="h-5 w-5 text-muted-foreground" />
-                                                Especificaciones Técnicas
-                                            </h3>
+                            {/* DETAILS */}
+                            {(producto?.materiales || producto?.tamano || producto?.color || producto?.cuidados || producto?.uso) && (
+                                <AccordionItem value="details" className="bg-card border rounded-2xl px-6 shadow-sm overflow-hidden">
+                                    <AccordionTrigger className="text-lg font-bold hover:no-underline py-5">
+                                        <div className="flex items-center gap-3">
+                                            <span className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg shrink-0">
+                                                <Sparkles className="h-5 w-5" />
+                                            </span>
+                                            Detalles
                                         </div>
-                                        <div className="divide-y">
-                                            {especificaciones.map((s: any, idx: number) => (
-                                                <div key={s.id} className="p-4 flex items-start justify-between gap-4 hover:bg-muted/30 transition-colors">
-                                                    <div className="text-sm font-semibold text-foreground w-1/3">{String(s.clave || "")}</div>
-                                                    <div className="text-sm text-muted-foreground text-right w-2/3 whitespace-pre-line">{String(s.valor || "")}</div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="pb-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                                            {producto?.materiales && (
+                                                <div className="border border-blue-100 dark:border-blue-900/30 rounded-xl p-4 flex gap-4 items-start group">
+                                                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl">
+                                                        <Shield className="h-5 w-5" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-semibold text-foreground mb-1 text-sm">Materiales</h4>
+                                                        <p className="text-sm text-muted-foreground leading-relaxed">{producto.materiales}</p>
+                                                    </div>
                                                 </div>
-                                            ))}
+                                            )}
+
+                                            {producto?.tamano && (
+                                                <div className="border border-emerald-100 dark:border-emerald-900/30 rounded-xl p-4 flex gap-4 items-start group">
+                                                    <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-xl">
+                                                        <Ruler className="h-5 w-5" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-semibold text-foreground mb-1 text-sm">Medidas</h4>
+                                                        <p className="text-sm text-muted-foreground leading-relaxed">{producto.tamano}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {producto?.color && (
+                                                <div className="border border-purple-100 dark:border-purple-900/30 rounded-xl p-4 flex gap-4 items-start group">
+                                                    <div className="p-3 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-xl">
+                                                        <Palette className="h-5 w-5" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-semibold text-foreground mb-1 text-sm">Color</h4>
+                                                        <p className="text-sm text-muted-foreground leading-relaxed">{producto.color}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {producto?.cuidados && (
+                                                <div className="border border-sky-100 dark:border-sky-900/30 rounded-xl p-4 flex gap-4 items-start group">
+                                                    <div className="p-3 bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 rounded-xl">
+                                                        <Droplets className="h-5 w-5" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-semibold text-foreground mb-1 text-sm">Cuidados</h4>
+                                                        <p className="text-sm text-muted-foreground leading-relaxed">{producto.cuidados}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {producto?.uso && (
+                                                <div className="md:col-span-2 border border-amber-100 dark:border-amber-900/30 rounded-xl p-4 flex gap-4 items-start group">
+                                                    <div className="p-3 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-xl">
+                                                        <Lightbulb className="h-5 w-5" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-semibold text-foreground mb-1 text-sm">Uso Recomendado</h4>
+                                                        <p className="text-sm text-muted-foreground leading-relaxed">{producto.uso}</p>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
-                                    </div>
-                                </div>
+                                    </AccordionContent>
+                                </AccordionItem>
                             )}
 
-                            {activeTab === 'reviews' && (
-                                <div className="space-y-6">
-                                    <div className="rounded-2xl border bg-card overflow-hidden shadow-sm p-6 md:p-8">
-                                        <ProductSocialProof productId={Number(producto.id)} section="reviews" />
-                                    </div>
-                                </div>
+                            {/* SPECS */}
+                            {especificaciones.length > 0 && (
+                                <AccordionItem value="specs" className="bg-card border rounded-2xl px-6 shadow-sm overflow-hidden">
+                                    <AccordionTrigger className="text-lg font-bold hover:no-underline py-5">
+                                        <div className="flex items-center gap-3">
+                                            <span className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg shrink-0">
+                                                <Ruler className="h-5 w-5" />
+                                            </span>
+                                            Especificaciones Técnicas
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="pb-6">
+                                        <div className="rounded-xl border bg-card overflow-hidden mt-2">
+                                            <div className="divide-y">
+                                                {especificaciones.map((s: any, idx: number) => (
+                                                    <div key={s.id} className="p-3 flex items-start justify-between gap-4 hover:bg-muted/30 transition-colors">
+                                                        <div className="text-sm font-semibold text-foreground w-1/3">{String(s.clave || "")}</div>
+                                                        <div className="text-sm text-muted-foreground text-right w-2/3 whitespace-pre-line">{String(s.valor || "")}</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </AccordionContent>
+                                </AccordionItem>
                             )}
 
-                            {activeTab === 'questions' && (
-                                <div className="space-y-6">
-                                    <div className="rounded-2xl border bg-card overflow-hidden shadow-sm p-6 md:p-8">
-                                        <ProductSocialProof productId={Number(producto.id)} section="questions" />
+                            {/* REVIEWS */}
+                            <AccordionItem value="reviews" className="bg-card border rounded-2xl px-6 shadow-sm overflow-hidden">
+                                <AccordionTrigger className="text-lg font-bold hover:no-underline py-5">
+                                    <div className="flex items-center gap-3">
+                                        <span className="p-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-500 rounded-lg shrink-0">
+                                            <Star className="h-5 w-5" />
+                                        </span>
+                                        Valoraciones
                                     </div>
-                                </div>
-                            )}
-                        </div>
+                                </AccordionTrigger>
+                                <AccordionContent className="pb-6 pt-2">
+                                    <ProductSocialProof productId={Number(producto.id)} section="reviews" />
+                                </AccordionContent>
+                            </AccordionItem>
+
+                            {/* QUESTIONS */}
+                            <AccordionItem value="questions" className="bg-card border rounded-2xl px-6 shadow-sm overflow-hidden">
+                                <AccordionTrigger className="text-lg font-bold hover:no-underline py-5">
+                                    <div className="flex items-center gap-3">
+                                        <span className="p-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-500 rounded-lg shrink-0">
+                                            <MessageCircle className="h-5 w-5" />
+                                        </span>
+                                        Preguntas
+                                    </div>
+                                </AccordionTrigger>
+                                <AccordionContent className="pb-6 pt-2">
+                                    <ProductSocialProof productId={Number(producto.id)} section="questions" />
+                                </AccordionContent>
+                            </AccordionItem>
+                        </Accordion>
                     </div>
                 </div>
             </div>
