@@ -5,6 +5,8 @@ import { z } from "zod"
 
 export const runtime = "nodejs" // Necesario para hacer fetch a APIs externas sin problemas de timeout en Edge
 
+import { validateAndCalculateTotals } from "@/lib/checkout-utils"
+
 // ── Tipos y Esquemas ──
 
 const CheckoutItemSchema = z.object({
@@ -86,42 +88,21 @@ export async function POST(req: Request) {
         // Crear cliente Supabase temprano para validar precios
         const supabase = createClient(url, service)
 
-        // 3. Obtener Precios Oficiales (Validación de backend crítica)
-        const productIds = data.items.map(it => it.id)
-        if (productIds.length === 0) {
-            return NextResponse.json({ error: "El carrito está vacío" }, { status: 400 })
-        }
-
-        const { data: dbProducts, error: dbError } = await supabase
-            .from("productos")
-            .select("id, precio")
-            .in("id", productIds)
-
-        if (dbError) {
-            console.error("Error obteniendo precios de la base de datos:", dbError)
-            return NextResponse.json({ error: "Error interno verificando catálogo." }, { status: 500 })
-        }
-
-        const preciosOficiales = new Map<number, number>()
-        dbProducts?.forEach((p: any) => preciosOficiales.set(p.id, Number(p.precio) || 0))
-
-        // Calcular subtotal con precios oficiales
-        let hasInvalidProducts = false
-        const subtotal = Math.max(0, Math.round(data.items.reduce((acc, it) => {
-            const unit = preciosOficiales.get(it.id)
-            if (unit === undefined) {
-                hasInvalidProducts = true;
-                return acc;
+        let subtotal, appliedDiscount, total, validCouponCode, getUnitPrice;
+        try {
+            const result = await validateAndCalculateTotals(supabase, data.items, data.couponCode);
+            subtotal = result.subtotal;
+            appliedDiscount = result.discountAmount;
+            total = result.total;
+            validCouponCode = result.validCouponCode;
+            getUnitPrice = result.getUnitPrice;
+        } catch (e: any) {
+            if (e.message.includes("catálogo de productos") || e.message.includes("variantes de productos")) {
+                console.error("Error obteniendo precios de la base de datos:", e)
+                return NextResponse.json({ error: "Error interno verificando catálogo." }, { status: 500 })
             }
-            return acc + (unit * it.quantity)
-        }, 0) * 100) / 100)
-
-        if (hasInvalidProducts) {
-            return NextResponse.json({ error: "Algunos productos en el carrito ya no están disponibles." }, { status: 400 })
+            return NextResponse.json({ error: e.message }, { status: 400 })
         }
-
-        const appliedDiscount = Math.max(0, Math.min(subtotal, data.discountAmount || 0))
-        const total = Math.max(0, Math.round((subtotal - appliedDiscount) * 100) / 100)
 
         // El monto para Culqi debe ser en CÉNTIMOS (enteros)
         const culqiAmount = Math.round(total * 100)
@@ -166,7 +147,7 @@ export async function POST(req: Request) {
             metodo_envio: data.shippingMethod,
             subtotal: subtotal,
             descuento: appliedDiscount,
-            cupon_codigo: data.couponCode || null,
+            cupon_codigo: validCouponCode || null,
             total: total,
             status: "Pendiente", // Nace como pendiente
             pago_status: "Pendiente", // Pendiente de pago
@@ -183,7 +164,7 @@ export async function POST(req: Request) {
             producto_id: it.id,
             producto_variante_id: it.producto_variante_id,
             cantidad: it.quantity,
-            precio_unitario: preciosOficiales.get(it.id) || 0,
+            precio_unitario: getUnitPrice(it.id, it.producto_variante_id),
             producto_nombre: it.nombre,
             variante_nombre: it.variante_nombre
         }))
@@ -235,6 +216,16 @@ export async function POST(req: Request) {
             }).eq("id", pedido.id)
 
             const userMsg = culqiData.user_message || culqiData.merchant_message || "No se pudo procesar el pago."
+
+            // Guardar nota de error para el administrador
+            await supabase.from("pedido_notas").insert({
+                pedido_id: pedido.id,
+                autor_id: "00000000-0000-0000-0000-000000000000",
+                autor_nombre: "Sistema Inteligente",
+                contenido: `Pago Fallido (Culqi Error ${culqiData.code || 'Desconocido'}): ${userMsg} | Detalle Interno: ${culqiData.merchant_message || 'N/A'}`,
+                tipo: "alerta"
+            })
+
             return NextResponse.json({ error: userMsg, code: culqiData.code }, { status: 400 })
         }
 
@@ -249,38 +240,13 @@ export async function POST(req: Request) {
 
         // ── Función auxiliar: descuenta stock de todos los items en PARALELO ──────
         const deductStock = async (): Promise<void> => {
-            const { data: itemsForStock } = await supabase
-                .from("pedido_items")
-                .select("producto_id, producto_variante_id, cantidad")
-                .eq("pedido_id", pedido.id)
+            const { error: rpcError } = await supabase.rpc('admin_procesar_descuento_stock', {
+                p_pedido_id: pedido.id,
+                p_revertir: false
+            })
 
-            const safeItems = (itemsForStock || []).filter(
-                (it): it is { producto_id: number; producto_variante_id: number | null; cantidad: number } =>
-                    Boolean(it.producto_id)
-            )
-
-            // Cada producto se actualiza en paralelo (no secuencial)
-            await Promise.all(safeItems.map(async (it) => {
-                const productoId = Number(it.producto_id)
-                const varianteId = it.producto_variante_id != null ? Number(it.producto_variante_id) : null
-                const qty = Number(it.cantidad || 0)
-                if (!productoId || qty <= 0) return
-
-                if (varianteId) {
-                    const { data: variante } = await supabase
-                        .from("producto_variantes").select("stock").eq("id", varianteId).single()
-                    const newStock = Math.max(0, Number((variante as any)?.stock ?? 0) - qty)
-                    await supabase.from("producto_variantes").update({ stock: newStock }).eq("id", varianteId)
-                } else {
-                    const { data: producto } = await supabase
-                        .from("productos").select("stock").eq("id", productoId).single()
-                    const newStock = Math.max(0, Number((producto as any)?.stock ?? 0) - qty)
-                    await supabase.from("productos").update({ stock: newStock }).eq("id", productoId)
-                }
-            }))
-
-            await supabase.from("pedidos").update({ stock_descontado: true }).eq("id", pedido.id)
-            console.log(`📦 Stock descontado automáticamente para el pedido #${pedido.id}`)
+            if (rpcError) throw rpcError
+            console.log(`📦 Stock descontado automáticamente (RPC) para el pedido #${pedido.id}`)
         }
         // ──────────────────────────────────────────────────────────────────────────
 

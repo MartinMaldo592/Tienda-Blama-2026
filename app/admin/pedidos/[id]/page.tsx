@@ -65,6 +65,11 @@ export default function PedidoDetallePage() {
             return true
         }
 
+        if (lower.includes('stock insuficiente')) {
+            toast.error('⚠️ No hay stock suficiente para confirmar este pedido.')
+            return true
+        }
+
         toast.error(fallbackMessage + msg)
         return false
     }

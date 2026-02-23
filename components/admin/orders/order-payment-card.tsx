@@ -115,7 +115,7 @@ export function OrderPaymentCard({ pedido, isLocked, currentUser, userRole = 'wo
     const estadoPagoCalculado = totalPagado <= 0
         ? 'Pendiente'
         : totalPagado >= (pedido.total || 0)
-            ? 'Pagado'
+            ? (['Pagado Anticipado', 'Pagado al Recibir'].includes(pedido.pago_status || '') ? pedido.pago_status : 'Pagado')
             : 'Pago Parcial'
 
     const requiresComprobante = METODOS_REQUIEREN_COMPROBANTE.includes(metodoPago)
@@ -176,7 +176,7 @@ export function OrderPaymentCard({ pedido, isLocked, currentUser, userRole = 'wo
             const newEstado = newTotalPagado <= 0
                 ? 'Pendiente'
                 : newTotalPagado >= (pedido.total || 0)
-                    ? 'Pagado'
+                    ? (['Pagado Anticipado', 'Pagado al Recibir'].includes(pedido.pago_status || '') ? pedido.pago_status : 'Pagado')
                     : 'Pago Parcial'
 
             // 3. Update pedido pago_status
@@ -234,7 +234,7 @@ export function OrderPaymentCard({ pedido, isLocked, currentUser, userRole = 'wo
                 return acc + p.monto
             }, 0)
 
-            const newEstado = newTotal <= 0 ? 'Pendiente' : newTotal >= (pedido.total || 0) ? 'Pagado' : 'Pago Parcial'
+            const newEstado = newTotal <= 0 ? 'Pendiente' : newTotal >= (pedido.total || 0) ? (['Pagado Anticipado', 'Pagado al Recibir'].includes(pedido.pago_status || '') ? pedido.pago_status : 'Pagado') : 'Pago Parcial'
             await supabase.from('pedidos').update({ pago_status: newEstado }).eq('id', pedido.id)
 
             toast.success("Pago eliminado")
