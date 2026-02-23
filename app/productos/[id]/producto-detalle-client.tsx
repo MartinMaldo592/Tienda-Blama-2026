@@ -619,22 +619,30 @@ export default function ProductoDetalleClient() {
                                 </div>
                             )}
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-lg border bg-card p-3">
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <Truck className="h-4 w-4 text-foreground" />
-                                    <span>Entrega gratuita en 24h solo Lima Metropolitana</span>
+                            <div className="grid grid-cols-2 gap-2 mt-2">
+                                <div className="flex flex-col items-start gap-1 p-3 rounded-xl bg-blue-50/70 border border-blue-100 dark:bg-blue-900/10 dark:border-blue-800/30 transition-all hover:scale-[1.02]">
+                                    <div className="p-1.5 bg-blue-100 text-blue-600 rounded-md dark:bg-blue-800/40 dark:text-blue-400">
+                                        <Truck className="h-4 w-4" />
+                                    </div>
+                                    <span className="text-[11px] font-semibold text-blue-900 dark:text-blue-300 leading-tight">Envío en 24h a Lima</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <CreditCard className="h-4 w-4 text-foreground" />
-                                    <span>Pago contraentrega / Pagas al recibir tu pedido</span>
+                                <div className="flex flex-col items-start gap-1 p-3 rounded-xl bg-emerald-50/70 border border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-800/30 transition-all hover:scale-[1.02]">
+                                    <div className="p-1.5 bg-emerald-100 text-emerald-600 rounded-md dark:bg-emerald-800/40 dark:text-emerald-400">
+                                        <CreditCard className="h-4 w-4" />
+                                    </div>
+                                    <span className="text-[11px] font-semibold text-emerald-900 dark:text-emerald-300 leading-tight">Pago Contraentrega</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <RefreshCw className="h-4 w-4 text-foreground" />
-                                    <span>Cambios y devoluciones</span>
+                                <div className="flex flex-col items-start gap-1 p-3 rounded-xl bg-amber-50/70 border border-amber-100 dark:bg-amber-900/10 dark:border-amber-800/30 transition-all hover:scale-[1.02]">
+                                    <div className="p-1.5 bg-amber-100 text-amber-600 rounded-md dark:bg-amber-800/40 dark:text-amber-400">
+                                        <RefreshCw className="h-4 w-4" />
+                                    </div>
+                                    <span className="text-[11px] font-semibold text-amber-900 dark:text-amber-300 leading-tight">Cambios / Devoluciones</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <ShieldCheck className="h-4 w-4 text-foreground" />
-                                    <span>Compra segura</span>
+                                <div className="flex flex-col items-start gap-1 p-3 rounded-xl bg-purple-50/70 border border-purple-100 dark:bg-purple-900/10 dark:border-purple-800/30 transition-all hover:scale-[1.02]">
+                                    <div className="p-1.5 bg-purple-100 text-purple-600 rounded-md dark:bg-purple-800/40 dark:text-purple-400">
+                                        <ShieldCheck className="h-4 w-4" />
+                                    </div>
+                                    <span className="text-[11px] font-semibold text-purple-900 dark:text-purple-300 leading-tight">100% Compra Segura</span>
                                 </div>
                             </div>
 
