@@ -79,11 +79,55 @@ export async function POST(req: Request) {
         if (tipoEvento === "charge.creation.succeeded") {
             console.log(`✅ Webhook Culqi: Aprobando PAGO SEGURO para Pedido #${pedidoId}`)
 
-            // 1. Confirmar el pedido general
+            // 1. Confirmar el pedido general y obtener el estado del stock
+            const { data: currentPedido } = await supabase.from("pedidos")
+                .select("stock_descontado")
+                .eq("id", pedidoId)
+                .single()
+
             await supabase.from("pedidos").update({
                 status: "Confirmado",
                 pago_status: "Pagado Anticipado"
             }).eq("id", pedidoId)
+
+            // ──────────────────────────────────────────────────────────────────────────
+            // 📦 LÓGICA DE STOCK SEGURA (Solo descontar si no se ha hecho antes)
+            // ──────────────────────────────────────────────────────────────────────────
+            if (!currentPedido?.stock_descontado) {
+                console.log(`📦 Webhook Culqi: Descontando stock faltante para el pedido #${pedidoId}...`)
+                const { data: itemsForStock } = await supabase
+                    .from("pedido_items")
+                    .select("producto_id, producto_variante_id, cantidad")
+                    .eq("pedido_id", pedidoId)
+
+                const safeItems = (itemsForStock || []).filter(
+                    (it): it is { producto_id: number; producto_variante_id: number | null; cantidad: number } =>
+                        Boolean(it.producto_id)
+                )
+
+                // Descontar en paralelo
+                await Promise.allSettled(safeItems.map(async (it) => {
+                    const productoId = Number(it.producto_id)
+                    const varianteId = it.producto_variante_id != null ? Number(it.producto_variante_id) : null
+                    const qty = Number(it.cantidad || 0)
+                    if (!productoId || qty <= 0) return
+
+                    if (varianteId) {
+                        const { data: variante } = await supabase
+                            .from("producto_variantes").select("stock").eq("id", varianteId).single()
+                        const newStock = Math.max(0, Number((variante as any)?.stock ?? 0) - qty)
+                        await supabase.from("producto_variantes").update({ stock: newStock }).eq("id", varianteId)
+                    } else {
+                        const { data: producto } = await supabase
+                            .from("productos").select("stock").eq("id", productoId).single()
+                        const newStock = Math.max(0, Number((producto as any)?.stock ?? 0) - qty)
+                        await supabase.from("productos").update({ stock: newStock }).eq("id", productoId)
+                    }
+                }))
+
+                // Marcar que el webhook ya procesó el stock
+                await supabase.from("pedidos").update({ stock_descontado: true }).eq("id", pedidoId)
+            }
 
             // 2. Verificar si el Log de Finanzas ya está registrado (Si el celular del cliente sí logró guardar en BD a tiempo)
             const { data: existingPayment } = await supabase.from("pedido_pagos")
@@ -92,26 +136,27 @@ export async function POST(req: Request) {
                 .ilike("nota", `%${cargoOficial.id}%`) // Buscamos si en la nota está apuntado este ID Transacción
                 .single()
 
-            // 3. Crear Registro de Pagos únicamente si el Front-End falló en crearlo
+            // 3. Crear Registro de Pagos e inyectar nota únicamente si el Front-End falló en crearlo
             if (!existingPayment) {
                 console.log(`💳 Webhook Culqi: Rellenando Finanzas faltantes del Pedido #${pedidoId}...`)
-                await supabase.from("pedido_pagos").insert({
-                    pedido_id: pedidoId,
-                    monto: cargoOficial.amount / 100, // Culqi responde en céntimos
-                    metodo_pago: "Tarjeta", // Actualizado de 'Otro' a 'Tarjeta'
-                    tipo_pago: "Pago Final",
-                    nota: `[Recuperado por Webhook] Culqi ID: ${cargoOficial.id} - Tarjeta ${cargoOficial.source?.iin?.card_brand || 'Desconocida'}`,
-                    registrado_por: "Sistema (Webhook Respaldo)",
-                })
 
-                // E. Inyectar la Nota de Seguimiento Automática en el panel (Webhook)
-                await supabase.from("pedido_notas").insert({
-                    pedido_id: pedidoId,
-                    autor_id: "00000000-0000-0000-0000-000000000000",
-                    autor_nombre: "Sistema Inteligente (Respaldo)",
-                    contenido: `Pago recuperado automáticamente por Webhook de Culqi. ID Transacción: ${cargoOficial.id}. Tarjeta: ${cargoOficial.source?.iin?.card_brand || 'Desconocida'}.`,
-                    tipo: "info"
-                })
+                await Promise.allSettled([
+                    supabase.from("pedido_pagos").insert({
+                        pedido_id: pedidoId,
+                        monto: cargoOficial.amount / 100, // Culqi responde en céntimos
+                        metodo_pago: "Tarjeta",
+                        tipo_pago: "Pago Final",
+                        nota: `[Recuperado por Webhook] Culqi ID: ${cargoOficial.id} - Tarjeta ${cargoOficial.source?.iin?.card_brand || 'Desconocida'}`,
+                        registrado_por: "Sistema (Webhook Respaldo)",
+                    }),
+                    supabase.from("pedido_notas").insert({
+                        pedido_id: pedidoId,
+                        autor_id: "00000000-0000-0000-0000-000000000000",
+                        autor_nombre: "Sistema Inteligente (Respaldo)",
+                        contenido: `Pago recuperado automáticamente por Webhook de Culqi. ID Transacción: ${cargoOficial.id}. Tarjeta: ${cargoOficial.source?.iin?.card_brand || 'Desconocida'}.`,
+                        tipo: "info"
+                    })
+                ])
             }
         }
         else if (tipoEvento === "charge.creation.failed") {

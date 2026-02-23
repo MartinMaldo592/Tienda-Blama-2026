@@ -50,7 +50,6 @@ export function CulqiPaymentButton({
     const handleScriptLoad = () => {
         setIsScriptLoaded(true)
         if (window.Culqi) {
-            console.log("✅ Culqi Script cargado correctamente")
             window.Culqi.publicKey = process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY
             window.Culqi.options({
                 style: {
@@ -70,16 +69,11 @@ export function CulqiPaymentButton({
 
     // Definir la función global window.culqi UNA SOLA VEZ al montar
     useEffect(() => {
-        console.log("🔧 Instalando handler global de Culqi")
-
         window.culqi = async () => {
-            console.log("📣 Callback de Culqi disparado")
-
             if (window.Culqi.token) {
                 try {
                     const token = window.Culqi.token.id
                     const tokenEmail = window.Culqi.token.email
-                    console.log('💳 Token generado:', token)
 
                     // Usar la ref para llamar a la función más reciente
                     if (onTokenRef.current) {
@@ -98,7 +92,6 @@ export function CulqiPaymentButton({
                 if (onErrorRef.current) onErrorRef.current(new Error(userMsg))
                 setIsProcessing(false)
             } else {
-                console.log("ℹ️ Cierre modal sin acción")
                 if (onErrorRef.current) onErrorRef.current(new Error("Proceso de pago cancelado por el usuario."))
                 setIsProcessing(false)
             }
@@ -154,7 +147,6 @@ export function CulqiPaymentButton({
                     setTimeout(() => {
                         setIsProcessing((prev) => {
                             if (prev) {
-                                console.log("⚠️ Detectado cierre manual de Culqi por DOM")
                                 if (onErrorRef.current) onErrorRef.current(new Error("Proceso de pago cancelado por el usuario."))
                                 return false
                             }
@@ -200,10 +192,34 @@ export function CulqiPaymentButton({
                 )}
             </Button>
 
-            <p className="text-[10px] text-center text-gray-400 mt-2 flex items-center justify-center gap-1">
-                <span className="bg-gray-100 rounded px-1 py-0.5">🔒 Pago Seguro con Culqi</span>
-                <span>Tarjetas y Yape</span>
-            </p>
+            {/* --- SELLO OFICIAL CULQI (Desktop & Mobile) --- */}
+            <div className="mt-4 pb-2 flex flex-col items-center justify-center pointer-events-none select-none">
+                <span className="text-[10px] text-gray-400 font-medium mb-1">Powered by</span>
+                <div className="flex items-center gap-1 mb-1.5">
+                    {/* Icono Q simplificado de Culqi */}
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C14.3644 22 16.5372 21.1818 18.2562 19.8055L20.8953 22.8643C21.4654 23.5252 22.4633 23.5985 23.1242 23.0284C23.7851 22.4583 23.8584 21.4604 23.2883 20.7995L20.6492 17.7408C21.4746 16.124 22 14.167 22 12C22 6.47715 17.5228 2 12 2ZM6 12C6 8.68629 8.68629 6 12 6C15.3137 6 18 8.68629 18 12C18 15.3137 15.3137 18 12 18C8.68629 18 6 15.3137 6 12Z" fill="#eb5e00" />
+                    </svg>
+                    <span className="text-[22px] font-extrabold tracking-tight text-gray-900 leading-none" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                        Culqi
+                    </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[9px] text-gray-500 uppercase font-medium">
+                    <span>Con el respaldo de</span>
+                    <span className="font-extrabold text-[#002A8D] tracking-[0.2em]">Credicorp</span>
+                </div>
+
+                {/* Badges extra de seguridad requeridas por procesadores */}
+                <div className="mt-3 flex items-center justify-center gap-3 opacity-60">
+                    <div className="flex items-center gap-1 text-[10px] font-medium text-gray-600">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                        Compra Segura
+                    </div>
+                    <span className="text-[10px] font-bold text-gray-600">PCI DSS</span>
+                </div>
+            </div>
 
             <style jsx global>{`
                 /* Culqi Mobile Fix v2026-ForceUpdate-v3 */
