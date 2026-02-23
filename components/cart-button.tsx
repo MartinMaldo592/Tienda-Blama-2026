@@ -3,7 +3,7 @@
 import Image from "next/image"
 import { useCartAnimationStore } from "@/features/cart/cart-animation"
 import { Button } from "@/components/ui/button"
-import { ShoppingCart, Trash2, Plus, Minus, Image as ImageIcon, CheckCircle } from "lucide-react"
+import { ShoppingCart, Trash2, Plus, Minus, Image as ImageIcon } from "lucide-react"
 import { useCartStore } from "@/features/cart"
 import { useEffect, useState } from "react"
 import dynamic from "next/dynamic"
@@ -80,8 +80,6 @@ export function CartButton() {
     // Use state to avoid hydration mismatch with persisted store
     const [mounted, setMounted] = useState(false)
     const [view, setView] = useState<'cart' | 'checkout' | 'success'>('cart')
-    const [successToastOpen, setSuccessToastOpen] = useState(false)
-    const [successOrderId, setSuccessOrderId] = useState<string | null>(null)
 
     const registerCartButton = useCartAnimationStore((s) => s.registerCartButton)
     const bumpTimestamp = useCartAnimationStore((s) => s.bumpTimestamp)
@@ -145,8 +143,6 @@ export function CartButton() {
                 } catch (err) {
                 }
                 setView('success')
-                setSuccessOrderId(orderId)
-                setSuccessToastOpen(true)
                 localStorage.removeItem('blama_last_order_success')
                 deleteCookie('blama_last_order_success')
             } catch (err) {
@@ -171,13 +167,7 @@ export function CartButton() {
         }
     }, [])
 
-    useEffect(() => {
-        if (!successToastOpen) return
-        const id = window.setTimeout(() => {
-            setSuccessToastOpen(false)
-        }, 6500)
-        return () => window.clearTimeout(id)
-    }, [successToastOpen])
+
 
     const totalItems = mounted ? items.reduce((sum, item) => sum + item.quantity, 0) : 0
 
@@ -199,8 +189,6 @@ export function CartButton() {
         } catch (err) {
         }
         setView('success')
-        setSuccessOrderId(null)
-        setSuccessToastOpen(true)
     }
 
     // Culqi (tarjeta): cierra el carrito directamente sin mostrar
@@ -224,26 +212,6 @@ export function CartButton() {
     return (
 
         <>
-            {successToastOpen && (
-                <div className="fixed inset-x-0 bottom-4 z-50 flex justify-center px-4">
-                    <div className="w-full max-w-md rounded-xl border border-border bg-card shadow-lg p-4">
-                        <div className="flex items-start gap-3">
-                            <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-700">
-                                <CheckCircle className="h-6 w-6" />
-                            </div>
-                            <div className="flex-1">
-                                <div className="font-semibold text-foreground">¡Pedido confirmado!</div>
-                                <div className="text-sm text-muted-foreground">
-                                    {successOrderId ? `Pedido #${successOrderId}` : 'Tu pedido se registró correctamente.'}
-                                </div>
-                            </div>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSuccessToastOpen(false)}>
-                                ✕
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             <Sheet open={isCartOpen} onOpenChange={handleOpenChange} modal={view !== 'checkout'}>
                 <SheetTrigger asChild>
