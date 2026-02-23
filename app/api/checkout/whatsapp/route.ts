@@ -22,15 +22,17 @@ const CheckoutItemSchema = z.object({
   variante_nombre: z.string().nullable().optional(),
 })
 
+import { identitySchema, checkoutBaseFields } from "@/lib/validations/checkout.schema"
+
 const CheckoutBodySchema = z.object({
-  name: z.string().min(2, "Nombre requerido"),
-  phone: z.string().min(9, "Teléfono inválido").regex(/^\d+$/, "Solo números"),
-  dni: z.string().length(8, "DNI debe tener 8 dígitos").regex(/^\d+$/, "Solo números"),
-  address: z.string().min(5, "Dirección requerida"),
-  reference: z.string().optional(),
+  name: identitySchema.name,
+  phone: identitySchema.phone,
+  dni: identitySchema.document,
+  address: checkoutBaseFields.address,
+  reference: checkoutBaseFields.reference,
   locationLink: z.string().url("Link de ubicación inválido").optional().or(z.literal("")),
-  shippingMethod: z.string().optional(),
-  couponCode: z.string().optional(),
+  shippingMethod: checkoutBaseFields.shippingMethod,
+  couponCode: checkoutBaseFields.couponCode,
   discountAmount: z.coerce.number().min(0).optional(),
   items: z.array(CheckoutItemSchema).min(1, "El carrito está vacío"),
 

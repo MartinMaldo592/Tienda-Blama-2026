@@ -38,17 +38,18 @@ import { CulqiPaymentButton } from "@/components/checkout/culqi-payment-button" 
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { identitySchema, checkoutBaseFields } from "@/lib/validations/checkout.schema"
 
 // Define libraries array outside component to prevent re-renders
 const libraries: ("places")[] = ["places"];
 
 const checkoutFormSchema = z.object({
-    name: z.string().min(2, "Obligatorio"),
-    phone: z.string().length(9, "Debe tener 9 dígitos"),
-    dni: z.string().length(8, "Debe tener 8 dígitos"),
-    department: z.string().min(2, "Requerido"),
-    province: z.string().min(2, "Requerido"),
-    district: z.string().min(2, "Requerido"),
+    name: identitySchema.name,
+    phone: identitySchema.phone,
+    dni: identitySchema.document,
+    department: checkoutBaseFields.department,
+    province: checkoutBaseFields.province,
+    district: checkoutBaseFields.district,
     reference: z.string().optional(),
     shippingMethod: z.string(),
     paymentMethod: z.string(),

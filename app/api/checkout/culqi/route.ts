@@ -16,14 +16,16 @@ const CheckoutItemSchema = z.object({
     variante_nombre: z.string().nullable().optional(),
 })
 
+import { identitySchema, checkoutBaseFields } from "@/lib/validations/checkout.schema"
+
 const CulqiCheckoutSchema = z.object({
     // Datos del Cliente
-    name: z.string().min(2, "Nombre requerido"),
-    phone: z.string().min(9, "Teléfono inválido"),
-    dni: z.string().length(8, "DNI debe tener 8 dígitos"),
-    email: z.string().email("Email inválido"), // Culqi requiere email
-    address: z.string().min(5, "Dirección requerida"),
-    reference: z.string().nullable().optional(),
+    name: identitySchema.name,
+    phone: identitySchema.phone,
+    dni: identitySchema.document,
+    email: z.string().email("Email inválido"), // Culqi requiere email obligatorio
+    address: checkoutBaseFields.address,
+    reference: checkoutBaseFields.reference,
     locationLink: z.string().nullable().optional().or(z.literal("")),
 
     // Ubicación
@@ -32,8 +34,8 @@ const CulqiCheckoutSchema = z.object({
     district: z.string().nullable().optional(),
 
     // Datos del Pedido
-    shippingMethod: z.string().nullable().optional(),
-    couponCode: z.string().nullable().optional(),
+    shippingMethod: checkoutBaseFields.shippingMethod,
+    couponCode: checkoutBaseFields.couponCode,
     discountAmount: z.coerce.number().nullable().optional(),
     items: z.array(CheckoutItemSchema).min(1, "El carrito está vacío"),
 
