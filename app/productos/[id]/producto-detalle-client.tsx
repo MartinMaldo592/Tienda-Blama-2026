@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import { ProductImageCarousel } from "@/components/product-image-carousel"
 import { useCartStore } from "@/features/cart"
+import { useCartAnimationStore } from "@/features/cart/cart-animation"
 
 import { getProductDetail, getRecommendedProducts } from "@/features/products/services/products.client"
 import { sendGTMEvent } from "@/lib/gtm"
@@ -106,6 +107,7 @@ export default function ProductoDetalleClient() {
 
     const { addItem, items, updateQuantity } = useCartStore()
     const { setCustomMessage } = useWhatsAppStore()
+    const triggerBump = useCartAnimationStore((s) => s.triggerBump)
 
     useEffect(() => {
         if (producto) {
@@ -706,10 +708,7 @@ export default function ProductoDetalleClient() {
                                                     }
                                                 })
 
-                                                // if (imageContainerRef.current && images.length > 0) {
-                                                //     const rect = imageContainerRef.current.getBoundingClientRect()
-                                                //     startAnimation(images[0], rect)
-                                                // }
+                                                triggerBump()
                                                 setAddedToastKey(Date.now())
                                                 setAddedToastOpen(true)
                                             }}>
@@ -1116,6 +1115,7 @@ export default function ProductoDetalleClient() {
                             disabled={!inStock}
                             onClick={() => {
                                 addItem(producto, selectedVariante)
+                                triggerBump()
                                 setAddedToastKey(Date.now())
                                 setAddedToastOpen(true)
                             }}
