@@ -1,4 +1,5 @@
 import { Resend } from "resend"
+import { render } from "@react-email/components"
 import { OrderConfirmationEmail } from "@/emails/order-confirmation"
 
 function getResend() {
@@ -30,11 +31,8 @@ export async function sendOrderConfirmationEmail(params: SendOrderConfirmationPa
     const pedidoFormateado = `#${params.pedidoId.toString().padStart(6, "0")}`
 
     try {
-        const { data, error } = await getResend().emails.send({
-            from: "Tienda Blama <pedidos@blama.shop>",
-            to: params.to,
-            subject: `Confirmación de Compra ${pedidoFormateado} - Tienda Blama ✓`,
-            react: OrderConfirmationEmail({
+        const emailHtml = await render(
+            OrderConfirmationEmail({
                 clienteNombre: params.clienteNombre,
                 pedidoId: params.pedidoId,
                 items: params.items,
@@ -46,7 +44,14 @@ export async function sendOrderConfirmationEmail(params: SendOrderConfirmationPa
                 direccion: params.direccion,
                 metodoEnvio: params.metodoEnvio,
                 whatsappTienda: process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "+51958279604",
-            }),
+            })
+        )
+
+        const { data, error } = await getResend().emails.send({
+            from: "Tienda Blama <pedidos@blama.shop>",
+            to: params.to,
+            subject: `Confirmación de Compra ${pedidoFormateado} - Tienda Blama ✓`,
+            html: emailHtml,
         })
 
         if (error) {
