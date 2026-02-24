@@ -18,6 +18,7 @@ import { fetchAdminClientes } from "@/features/admin"
 export default function ClientesPage() {
     const [clientes, setClientes] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
+    const [searchTerm, setSearchTerm] = useState("")
 
     useEffect(() => {
         fetchClientes()
@@ -34,6 +35,17 @@ export default function ClientesPage() {
         setLoading(false)
     }
 
+    const filteredClientes = clientes.filter(cliente => {
+        if (!searchTerm) return true
+        const st = searchTerm.toLowerCase()
+        return (
+            (cliente.nombre?.toLowerCase() || "").includes(st) ||
+            (cliente.telefono?.toLowerCase() || "").includes(st) ||
+            (cliente.dni?.toLowerCase() || "").includes(st) ||
+            (cliente.email?.toLowerCase() || "").includes(st)
+        )
+    })
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -46,7 +58,12 @@ export default function ClientesPage() {
             <div className="flex gap-2 bg-white p-4 rounded-xl shadow-sm border">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input placeholder="Buscar por nombre, teléfono o DNI..." className="pl-9 border-gray-200" />
+                    <Input
+                        placeholder="Buscar por nombre, teléfono, DNI o correo..."
+                        className="pl-9 border-gray-200"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                 </div>
             </div>
 
@@ -73,12 +90,14 @@ export default function ClientesPage() {
                             <TableRow>
                                 <TableCell colSpan={12} className="text-center py-10">Cargando...</TableCell>
                             </TableRow>
-                        ) : clientes.length === 0 ? (
+                        ) : filteredClientes.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={12} className="text-center py-10">No hay clientes aún.</TableCell>
+                                <TableCell colSpan={12} className="text-center py-10">
+                                    {searchTerm ? "No se encontraron clientes que coincidan con la búsqueda." : "No hay clientes aún."}
+                                </TableCell>
                             </TableRow>
                         ) : (
-                            clientes.map((cliente) => (
+                            filteredClientes.map((cliente) => (
                                 <TableRow key={cliente.id}>
                                     <TableCell className="font-mono text-xs text-gray-500 font-medium">#{cliente.id}</TableCell>
                                     <TableCell className="font-bold text-gray-800">{cliente.nombre}</TableCell>
