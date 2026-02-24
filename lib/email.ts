@@ -1,7 +1,9 @@
 import { Resend } from "resend"
 import { OrderConfirmationEmail } from "@/emails/order-confirmation"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() {
+    return new Resend(process.env.RESEND_API_KEY)
+}
 
 interface OrderItem {
     producto_nombre: string
@@ -28,7 +30,7 @@ export async function sendOrderConfirmationEmail(params: SendOrderConfirmationPa
     const pedidoFormateado = `#${params.pedidoId.toString().padStart(6, "0")}`
 
     try {
-        const { data, error } = await resend.emails.send({
+        const { data, error } = await getResend().emails.send({
             from: "Tienda Blama <pedidos@blama.shop>",
             to: params.to,
             subject: `Confirmación de Compra ${pedidoFormateado} - Tienda Blama ✓`,
