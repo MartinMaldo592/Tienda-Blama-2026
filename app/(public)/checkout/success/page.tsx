@@ -4,7 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { ShoppingBag, MessageCircle, Package, Truck, CheckCircle2, Clock, MapPin, User } from "lucide-react"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useRef } from "react"
 import { createClient } from "@/lib/supabase.client"
 import { formatCurrency } from "@/lib/utils"
 
@@ -144,6 +144,9 @@ export default function SuccessPage({
 
     const [accessDenied, setAccessDenied] = useState(false)
 
+    // Email: only send once per page load
+    const emailSentRef = useRef(false)
+
     useEffect(() => {
         if (!orderId) return
         async function loadOrder() {
@@ -207,6 +210,27 @@ export default function SuccessPage({
         }
         loadOrder()
     }, [orderId, transactionId])
+
+    // ── Trigger confirmation email once order loads ──
+    useEffect(() => {
+        if (!order || !orderId || emailSentRef.current) return
+        emailSentRef.current = true
+
+        fetch("/api/send-confirmation-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                orderId: Number(orderId),
+                transactionId,
+            }),
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) console.log("📧 Correo de confirmación enviado")
+                else console.warn("⚠️ No se envió el correo:", data.error)
+            })
+            .catch(err => console.error("Error enviando correo:", err))
+    }, [order, orderId, transactionId])
 
     const shippingMethod = order?.metodo_envio || ""
     const clientName = order?.nombre_contacto || ""
