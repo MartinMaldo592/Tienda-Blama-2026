@@ -22,10 +22,11 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { formatCurrency } from "@/lib/utils"
-import { Eye, Search, UserPlus, RefreshCw, User, Loader2 } from "lucide-react"
+import { Eye, Search, UserPlus, RefreshCw, User, Loader2, Calendar } from "lucide-react"
 import Link from "next/link"
-import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidosForRole } from "@/features/admin"
+import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidosForRole, updatePedidoStatusWithStock } from "@/features/admin"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
 import { PedidoRow, ProfileRow } from "@/features/admin/types"
 
 export default function PedidosPage() {
@@ -34,6 +35,18 @@ export default function PedidosPage() {
     const [filterWorker, setFilterWorker] = useState<string>('all')
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
+
+    // Date Filters
+    const [dateFilter, setDateFilter] = useState('all')
+    const [customStartDate, setCustomStartDate] = useState('')
+    const [customEndDate, setCustomEndDate] = useState('')
+
+    // Bulk selection state
+    const [selectedIds, setSelectedIds] = useState<number[]>([])
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 10
 
     const guard = useRoleGuard({ allowedRoles: ["admin", "worker"] })
     const userRole = String(guard.role || 'worker')
@@ -45,6 +58,11 @@ export default function PedidosPage() {
             if (data.session?.user?.id) setUserId(data.session.user.id)
         })
     }, [])
+
+    // Reset pagination when filters change
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [searchTerm, statusFilter, dateFilter, filterWorker, customStartDate, customEndDate])
 
     // 1. Queries
     const { data: pedidos = [], isLoading: loadingPedidos, isFetching } = useQuery({
@@ -83,8 +101,36 @@ export default function PedidosPage() {
             }
         }
 
+        // 4. Date Filter
+        if (dateFilter !== 'all') {
+            const pDate = new Date(p.created_at)
+            const today = new Date()
+
+            if (dateFilter === 'today') {
+                if (pDate.toDateString() !== today.toDateString()) return false
+            } else if (dateFilter === '7days') {
+                const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+                if (pDate < sevenDaysAgo) return false
+            } else if (dateFilter === 'thisMonth') {
+                if (pDate.getMonth() !== today.getMonth() || pDate.getFullYear() !== today.getFullYear()) return false
+            } else if (dateFilter === 'custom') {
+                if (customStartDate && new Date(p.created_at) < new Date(customStartDate)) return false
+                if (customEndDate) {
+                    const end = new Date(customEndDate)
+                    end.setHours(23, 59, 59, 999)
+                    if (new Date(p.created_at) > end) return false
+                }
+            }
+        }
+
         return true
     })
+
+    const totalPages = Math.ceil(filteredPedidos.length / itemsPerPage)
+    const paginatedPedidos = filteredPedidos.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    )
 
     // 2. Mutations
     const assignMutation = useMutation({
@@ -99,12 +145,87 @@ export default function PedidosPage() {
         onError: (error: Error) => {
             const msg = String(error?.message || '').toLowerCase()
             if (msg.includes('permission denied') || msg.includes('row level security')) {
-                alert('No tienes permisos para realizar esta acción.')
+                toast.error('No tienes permisos para realizar esta acción.')
             } else {
-                alert('Error al asignar: ' + error.message)
+                toast.error('Error al asignar: ' + error.message)
             }
         }
     })
+
+    const statusMutation = useMutation({
+        mutationFn: async ({ pedidoId, nextStatus, stockDescontado }: { pedidoId: number, nextStatus: string, stockDescontado: boolean }) => {
+            return updatePedidoStatusWithStock({ pedidoId, nextStatus, stockDescontado })
+        },
+        onSuccess: () => {
+            toast.success("Estado de pedido actualizado satisfactoriamente")
+            queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
+        },
+        onError: (error: Error) => {
+            const msg = String(error?.message || '').toLowerCase()
+            if (msg.includes('stock insuficiente')) {
+                toast.error('⚠️ No hay stock suficiente para confirmar este pedido.')
+            } else if (msg.includes('permission denied') || msg.includes('row level security')) {
+                toast.error('No tienes permisos para realizar esta acción.')
+            } else {
+                toast.error('Error al actualizar estado: ' + error.message)
+            }
+        }
+    })
+
+    const bulkStatusMutation = useMutation({
+        mutationFn: async ({ status }: { status: string }) => {
+            // Process sequentially to handle stock correctly without overwhelming the DB
+            for (const id of selectedIds) {
+                const p = filteredPedidos.find((p: PedidoRow) => p.id === id)
+                if (p) {
+                    await updatePedidoStatusWithStock({
+                        pedidoId: p.id,
+                        nextStatus: status,
+                        stockDescontado: p.stock_descontado || false
+                    })
+                }
+            }
+        },
+        onSuccess: () => {
+            toast.success(`${selectedIds.length} pedidos actualizados correctamente.`)
+            setSelectedIds([])
+            queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
+        },
+        onError: (error: Error) => {
+            toast.error('Error en actualización masiva: ' + error.message)
+        }
+    })
+
+    const bulkAssignMutation = useMutation({
+        mutationFn: async ({ workerId }: { workerId: string }) => {
+            const assignValue = workerId === 'unassigned' ? null : workerId
+            for (const id of selectedIds) {
+                await assignPedidoToWorker({ pedidoId: id, workerId: assignValue })
+            }
+        },
+        onSuccess: () => {
+            toast.success(`${selectedIds.length} pedidos reasignados correctamente.`)
+            setSelectedIds([])
+            queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
+        },
+        onError: (error: Error) => {
+            toast.error('Error en asignación masiva: ' + error.message)
+        }
+    })
+
+    function handleSelectAll() {
+        if (selectedIds.length === filteredPedidos.length) {
+            setSelectedIds([])
+        } else {
+            setSelectedIds(filteredPedidos.map((p: PedidoRow) => p.id))
+        }
+    }
+
+    function toggleSelection(id: number) {
+        setSelectedIds(prev =>
+            prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+        )
+    }
 
     async function handleExportXlsx() {
         try {
@@ -208,6 +329,53 @@ export default function PedidosPage() {
                 </div>
             </div>
 
+            {/* Bulk Actions Floating Bar */}
+            {selectedIds.length > 0 && (
+                <div className="bg-blue-50 border border-blue-200 p-3 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2">
+                    <div className="flex items-center gap-2">
+                        <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">
+                            {selectedIds.length}
+                        </span>
+                        <span className="text-blue-900 font-medium text-sm">
+                            pedidos seleccionados
+                        </span>
+                    </div>
+                    <div className="flex gap-2">
+                        <Select onValueChange={(val) => bulkStatusMutation.mutate({ status: val })}>
+                            <SelectTrigger className="w-[180px] h-9 bg-white cursor-pointer">
+                                <SelectValue placeholder="Cambiar estado..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Confirmado">Marcar como Confirmado</SelectItem>
+                                <SelectItem value="Preparando">Marcar como Preparando</SelectItem>
+                                <SelectItem value="Enviado">Marcar como Enviado</SelectItem>
+                                <SelectItem value="Entregado">Marcar como Entregado</SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        {userRole === 'admin' && (
+                            <Select onValueChange={(val) => bulkAssignMutation.mutate({ workerId: val })}>
+                                <SelectTrigger className="w-[180px] h-9 bg-white cursor-pointer">
+                                    <SelectValue placeholder="Asignar masivamente..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="unassigned">Quitar asignación</SelectItem>
+                                    {workers.map((w: ProfileRow) => (
+                                        <SelectItem key={w.id} value={w.id}>
+                                            Asignar a {w.nombre?.split(' ')[0] || (w.email ? w.email.split('@')[0] : 'Usuario')}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+
+                        <Button variant="outline" size="sm" onClick={() => setSelectedIds([])} className="h-9">
+                            Cancelar
+                        </Button>
+                    </div>
+                </div>
+            )}
+
             {/* Admin Filters Bar */}
             <div className="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-xl shadow-sm border">
                 <div className="relative flex-1">
@@ -246,12 +414,49 @@ export default function PedidosPage() {
                             <SelectItem value="unassigned">Sin asignar</SelectItem>
                             {workers.map((w: ProfileRow) => (
                                 <SelectItem key={w.id} value={w.id}>
-                                    {w.nombre || w.email}
+                                    {w.nombre || (w.email ? w.email.split('@')[0] : 'Usuario')}
                                 </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
                 )}
+
+                {/* Date Filter */}
+                <div className="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto min-w-0">
+                    <Select value={dateFilter} onValueChange={setDateFilter}>
+                        <SelectTrigger className="w-full md:w-[150px]">
+                            <div className="flex items-center">
+                                <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                                <SelectValue placeholder="Fecha" />
+                            </div>
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Todas las fechas</SelectItem>
+                            <SelectItem value="today">Hoy</SelectItem>
+                            <SelectItem value="7days">Últimos 7 días</SelectItem>
+                            <SelectItem value="thisMonth">Este mes</SelectItem>
+                            <SelectItem value="custom">Rango...</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    {dateFilter === 'custom' && (
+                        <div className="flex items-center gap-1 w-full md:w-auto animate-in fade-in zoom-in-95">
+                            <Input
+                                type="date"
+                                className="w-full md:w-[125px] h-9 text-xs px-2"
+                                value={customStartDate}
+                                onChange={(e) => setCustomStartDate(e.target.value)}
+                            />
+                            <span className="text-gray-400 text-xs">-</span>
+                            <Input
+                                type="date"
+                                className="w-full md:w-[125px] h-9 text-xs px-2"
+                                value={customEndDate}
+                                onChange={(e) => setCustomEndDate(e.target.value)}
+                            />
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Empty State for Workers */}
@@ -273,6 +478,15 @@ export default function PedidosPage() {
                     <Table>
                         <TableHeader className="bg-gray-50">
                             <TableRow>
+                                <TableHead className="w-[40px] pl-4">
+                                    <input
+                                        type="checkbox"
+                                        className="h-4 w-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+                                        checked={filteredPedidos.length > 0 && selectedIds.length === filteredPedidos.length}
+                                        onChange={handleSelectAll}
+                                        title="Seleccionar todos"
+                                    />
+                                </TableHead>
                                 <TableHead className="w-[100px]">ID</TableHead>
                                 <TableHead>Cliente</TableHead>
                                 <TableHead>Fecha</TableHead>
@@ -286,7 +500,7 @@ export default function PedidosPage() {
                         <TableBody>
                             {loadingPedidos ? (
                                 <TableRow>
-                                    <TableCell colSpan={userRole === 'admin' ? 8 : 7} className="text-center py-10">
+                                    <TableCell colSpan={userRole === 'admin' ? 9 : 8} className="text-center py-10">
                                         <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
                                             <Loader2 className="h-8 w-8 animate-spin" />
                                             Cargando pedidos...
@@ -295,13 +509,21 @@ export default function PedidosPage() {
                                 </TableRow>
                             ) : filteredPedidos.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={userRole === 'admin' ? 8 : 7} className="text-center py-10">
+                                    <TableCell colSpan={userRole === 'admin' ? 9 : 8} className="text-center py-10">
                                         No hay pedidos {filterWorker !== 'all' ? 'con este filtro' : ''}.
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                filteredPedidos.map((pedido: PedidoRow) => (
-                                    <TableRow key={pedido.id}>
+                                paginatedPedidos.map((pedido: PedidoRow) => (
+                                    <TableRow key={pedido.id} className={selectedIds.includes(pedido.id) ? "bg-blue-50/50" : ""}>
+                                        <TableCell className="pl-4">
+                                            <input
+                                                type="checkbox"
+                                                className="h-4 w-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+                                                checked={selectedIds.includes(pedido.id)}
+                                                onChange={() => toggleSelection(pedido.id)}
+                                            />
+                                        </TableCell>
                                         <TableCell className="font-mono font-medium">#{pedido.id.toString().padStart(6, '0')}</TableCell>
                                         <TableCell>
                                             <div className="font-medium">{pedido.nombre_contacto || pedido.clientes?.nombre || 'Anónimo'}</div>
@@ -314,7 +536,37 @@ export default function PedidosPage() {
                                             <PaymentStatusBadge status={pedido.pago_status} />
                                         </TableCell>
                                         <TableCell>
-                                            <StatusBadge status={pedido.status} />
+                                            <Select
+                                                value={pedido.status}
+                                                onValueChange={(val) => statusMutation.mutate({
+                                                    pedidoId: pedido.id,
+                                                    nextStatus: val,
+                                                    stockDescontado: pedido.stock_descontado || false
+                                                })}
+                                                disabled={statusMutation.isPending}
+                                            >
+                                                <SelectTrigger
+                                                    className={`w-[135px] h-7 px-3 py-1 text-xs font-medium border shadow-none focus:ring-0 focus:ring-offset-0 transition-colors rounded-full ${pedido.status === 'Pendiente' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                                                        pedido.status === 'Confirmado' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                                                            pedido.status === 'Preparando' ? 'bg-orange-100 text-orange-800 border-orange-200' :
+                                                                pedido.status === 'Enviado' ? 'bg-indigo-100 text-indigo-800 border-indigo-200' :
+                                                                    pedido.status === 'Entregado' ? 'bg-green-100 text-green-800 border-green-200' :
+                                                                        pedido.status === 'Fallido' || pedido.status === 'Devuelto' ? 'bg-red-100 text-red-800 border-red-200' :
+                                                                            'bg-gray-100 text-gray-800 border-gray-200'
+                                                        }`}
+                                                >
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="Pendiente">Pendiente</SelectItem>
+                                                    <SelectItem value="Confirmado">Confirmado</SelectItem>
+                                                    <SelectItem value="Preparando">Preparando</SelectItem>
+                                                    <SelectItem value="Enviado">Enviado</SelectItem>
+                                                    <SelectItem value="Entregado">Entregado</SelectItem>
+                                                    <SelectItem value="Devuelto">Devuelto</SelectItem>
+                                                    <SelectItem value="Fallido">Fallido / Cancelado</SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </TableCell>
                                         {userRole === 'admin' && (
                                             <TableCell>
@@ -338,7 +590,7 @@ export default function PedidosPage() {
                                                         </SelectItem>
                                                         {workers.map((w: ProfileRow) => (
                                                             <SelectItem key={w.id} value={w.id}>
-                                                                {w.nombre || w.email}
+                                                                {w.nombre || (w.email ? w.email.split('@')[0] : 'Usuario')}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -357,6 +609,55 @@ export default function PedidosPage() {
                             )}
                         </TableBody>
                     </Table>
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-between px-6 py-4 border-t bg-gray-50/50">
+                            <div className="flex flex-1 justify-between sm:hidden">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1}
+                                >
+                                    Anterior
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                    disabled={currentPage === totalPages}
+                                >
+                                    Siguiente
+                                </Button>
+                            </div>
+                            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                                <div>
+                                    <p className="text-sm text-gray-700">
+                                        Mostrando <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> a <span className="font-medium">{Math.min(currentPage * itemsPerPage, filteredPedidos.length)}</span> de <span className="font-medium">{filteredPedidos.length}</span> pedidos
+                                    </p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                        disabled={currentPage === 1}
+                                    >
+                                        Anterior
+                                    </Button>
+                                    <div className="flex items-center justify-center px-4 text-sm font-medium text-gray-700">
+                                        Página {currentPage} de {totalPages}
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                        disabled={currentPage === totalPages}
+                                    >
+                                        Siguiente
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
         </div>
