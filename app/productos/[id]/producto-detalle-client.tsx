@@ -122,7 +122,7 @@ export default function ProductoDetalleClient() {
         if (!addedToastOpen) return
         const id = window.setTimeout(() => {
             setAddedToastOpen(false)
-        }, 1600)
+        }, 1500) // Shorter, snappier duration
         return () => window.clearTimeout(id)
     }, [addedToastOpen])
 
@@ -1057,15 +1057,18 @@ export default function ProductoDetalleClient() {
 
             {
                 addedToastOpen && (
-                    <div className="md:hidden fixed inset-x-0 bottom-[180px] z-[60] flex justify-center px-4 pointer-events-none">
-                        <div key={addedToastKey} className="w-full max-w-sm rounded-[1.2rem] border border-border bg-card shadow-2xl p-3 animate-in fade-in slide-in-from-bottom-4 zoom-in-95 duration-300">
-                            <div className="flex items-center gap-3">
-                                <div className="h-9 w-9 rounded-full bg-green-100 flex items-center justify-center text-green-700">
-                                    <CheckCircle className="h-5 w-5" />
-                                </div>
-                                <div className="flex-1">
-                                    <div className="font-semibold text-foreground leading-snug">Producto añadido al carrito</div>
-                                </div>
+                    <div className="md:hidden fixed inset-x-0 top-4 z-[70] flex justify-center px-4 pointer-events-none">
+                        <div
+                            key={addedToastKey}
+                            className="w-full max-w-[320px] rounded-2xl border border-green-500/20 bg-white/95 backdrop-blur-md shadow-[0_10px_40px_rgba(0,0,0,0.15)] p-3 animate-in fade-in slide-in-from-top-6 zoom-in-95 duration-300 ease-out flex items-center gap-3"
+                            style={{ transform: 'translateZ(0)' }}
+                        >
+                            <div className="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center text-white shrink-0">
+                                <CheckCircle className="h-5 w-5" />
+                            </div>
+                            <div className="flex-1">
+                                <div className="font-bold text-foreground text-sm leading-tight">¡Añadido con éxito!</div>
+                                <div className="text-[11px] text-muted-foreground">Ya puedes ver tu carrito</div>
                             </div>
                         </div>
                     </div>
