@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { useLoadScript } from "@react-google-maps/api"
+import { useJsApiLoader } from "@react-google-maps/api"
 import usePlacesAutocomplete, {
     getGeocode,
     getLatLng,
@@ -68,19 +68,13 @@ interface CheckoutFormProps {
 }
 
 export function CheckoutForm({ items, total, onBack, onComplete, onCompleteCulqi }: CheckoutFormProps) {
-    const { isLoaded } = useLoadScript({
+    // Usamos el hook de forma no bloqueante. 
+    // Como ya existe un cargador global en Providers, esto solo se asegura de que este componente tenga acceso si es necesario.
+    useJsApiLoader({
+        id: 'google-map-script',
         googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
         libraries: libraries,
     })
-
-    if (!isLoaded) {
-        return (
-            <div className="flex flex-col items-center justify-center h-48 space-y-4">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-sm text-muted-foreground">Cargando mapa...</p>
-            </div>
-        )
-    }
 
     return <FormContent items={items} total={total} onBack={onBack} onComplete={onComplete} onCompleteCulqi={onCompleteCulqi} />
 }
