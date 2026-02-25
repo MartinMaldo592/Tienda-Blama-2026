@@ -520,8 +520,10 @@ export default function ProductoDetalleClient() {
                         >
                             {showVideo ? (
                                 <>
+                                    <span className="animate-bounce">👉</span>
                                     <ImageIcon className="h-5 w-5" />
-                                    Ver Galería de Fotos
+                                    <span>Ver imágenes del Producto</span>
+                                    <span className="animate-bounce">👈</span>
                                 </>
                             ) : (
                                 <>
