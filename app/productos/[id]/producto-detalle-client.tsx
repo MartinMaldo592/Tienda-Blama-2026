@@ -1005,8 +1005,8 @@ export default function ProductoDetalleClient() {
                 )}
             </div>
 
-            {/* MODERN FLOATING MOBILE BOTTOM BAR */}
-            <div className={`md:hidden fixed bottom-4 left-4 right-4 z-40 transition-[transform,opacity] duration-300 ease-in-out ${showStickyBar ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0 pointer-events-none"}`}>
+            {/* MODERN FLOATING MOBILE BOTTOM BAR - STATIC VERSION */}
+            <div className={`md:hidden fixed bottom-4 left-4 right-4 z-40 ${showStickyBar ? "block" : "hidden"}`}>
                 <div className="bg-white/95 backdrop-blur-md border border-neutral-200 shadow-[0_-8px_40px_rgb(0,0,0,0.12)] rounded-3xl p-2 flex items-center justify-between gap-3">
                     <div className="pl-3 py-1 flex-shrink-0">
                         <div className="text-[10px] uppercase font-bold text-muted-foreground leading-none mb-1 hidden sm:block">Total Pagar</div>
