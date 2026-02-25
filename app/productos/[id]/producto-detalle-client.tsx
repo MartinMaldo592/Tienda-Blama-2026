@@ -816,7 +816,7 @@ export default function ProductoDetalleClient() {
                                         </div>
                                     </AccordionTrigger>
                                     <AccordionContent className="pb-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 items-start">
                                             {producto?.materiales && (
                                                 <div className="border border-blue-100 dark:border-blue-900/30 rounded-xl p-4 flex gap-4 items-start group">
                                                     <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl">
