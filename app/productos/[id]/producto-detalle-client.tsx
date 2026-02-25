@@ -531,8 +531,8 @@ export default function ProductoDetalleClient() {
                     )}
                 </div>
 
-                <div className="space-y-4">
-                    <Card className="shadow-sm border" ref={visibilityAnchorRef}>
+                <div className="space-y-4" ref={visibilityAnchorRef}>
+                    <Card className="shadow-sm border">
                         <CardContent className="p-6 space-y-3">
                             <div className="space-y-1">
                                 <h1 className="text-2xl md:text-3xl font-bold text-foreground">{producto.nombre}</h1>
