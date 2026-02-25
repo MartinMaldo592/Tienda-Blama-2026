@@ -26,12 +26,19 @@ export async function POST(req: Request) {
         // 1. Fetch order data
         const { data: pedido, error: pedidoError } = await supabase
             .from("pedidos")
-            .select("id, nombre_contacto, telefono_contacto, total, subtotal, descuento, metodo_envio, direccion_calle, pago_status, culqi_charge_id, cliente_id")
+            .select("id, nombre_contacto, telefono_contacto, total, subtotal, descuento, metodo_envio, direccion_calle, pago_status, culqi_charge_id, cliente_id, email_confirmacion_enviado")
             .eq("id", Number(orderId))
             .single()
 
         if (pedidoError || !pedido) {
             return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 })
+        }
+
+        // ── IDEMPOTENCY CHECK ──
+        // If the email was already sent, we return success but don't call Resend again
+        if (pedido.email_confirmacion_enviado) {
+            console.log(`ℹ️ Email para pedido #${orderId} ya fue enviado anteriormente. Ignorando duplicado.`)
+            return NextResponse.json({ ok: true, status: "already_sent" })
         }
 
         // 2. Security: Validate transaction ID matches (prevent unauthorized email triggers)
@@ -87,6 +94,12 @@ export async function POST(req: Request) {
             console.error("❌ Error enviando email:", result.error)
             return NextResponse.json({ error: result.error }, { status: 500 })
         }
+
+        // 7. Update database to mark email as SENT
+        await supabase
+            .from("pedidos")
+            .update({ email_confirmacion_enviado: true })
+            .eq("id", pedido.id)
 
         return NextResponse.json({ ok: true, emailId: result.emailId })
 
