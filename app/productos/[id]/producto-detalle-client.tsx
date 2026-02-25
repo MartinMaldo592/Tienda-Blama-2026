@@ -784,7 +784,7 @@ export default function ProductoDetalleClient() {
 
                     {/* TABS SECTION REPLACED WITH ACCORDION */}
                     <div className="mt-12 mb-10 text-left">
-                        <Accordion type="multiple" defaultValue={['description']} className="w-full space-y-4">
+                        <Accordion type="single" collapsible defaultValue="description" className="w-full space-y-4">
                             {/* DESCRIPTION */}
                             {producto?.descripcion && (
                                 <AccordionItem value="description" className="bg-card border rounded-2xl px-6 shadow-sm overflow-hidden">
