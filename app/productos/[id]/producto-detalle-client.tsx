@@ -98,8 +98,10 @@ export default function ProductoDetalleClient() {
     useEffect(() => {
         const observer = new IntersectionObserver(
             ([entry]) => {
-                // Solo activamos la barra cuando el botón principal de compra NO es visible
-                setShowStickyBar(!entry.isIntersecting)
+                // Solo activamos la barra cuando el sensor NO es visible 
+                // Y además el sensor ha quedado por ENCIMA de la pantalla (top < 0)
+                const isAbove = entry.boundingClientRect.top < 0
+                setShowStickyBar(!entry.isIntersecting && isAbove)
             },
             {
                 threshold: 0,
