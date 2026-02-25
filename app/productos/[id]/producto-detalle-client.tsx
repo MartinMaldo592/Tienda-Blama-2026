@@ -99,13 +99,13 @@ export default function ProductoDetalleClient() {
         const observer = new IntersectionObserver(
             ([entry]) => {
                 // Solo activamos la barra cuando el sensor NO es visible 
-                // Y además el sensor ha quedado por ENCIMA de la pantalla (top < 0)
-                const isAbove = entry.boundingClientRect.top < 0
+                // Y además el sensor ha quedado por ENCIMA de la zona de detección (top < 200)
+                const isAbove = entry.boundingClientRect.top < 200
                 setShowStickyBar(!entry.isIntersecting && isAbove)
             },
             {
                 threshold: 0,
-                rootMargin: '0px'
+                rootMargin: '-200px 0px 0px 0px' // Se activa mucho antes (200px antes de llegar arriba)
             }
         )
 
