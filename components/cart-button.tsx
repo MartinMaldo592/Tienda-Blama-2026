@@ -18,10 +18,7 @@ import {
     SheetClose,
 } from "@/components/ui/sheet"
 
-const CheckoutForm = dynamic(() => import("@/components/checkout-form").then(mod => mod.CheckoutForm), {
-    ssr: false,
-    loading: () => null
-})
+import { CheckoutForm } from "@/components/checkout-form"
 import { SuccessCheckmark } from "@/components/ui/success-checkmark"
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false })
 
@@ -145,10 +142,6 @@ export function CartButton() {
 
     const handleOpenChange = (open: boolean) => {
         setCartOpen(open)
-        if (open && items.length > 0) {
-            // Precarga silenciosa del formulario cuando se abre el carrito
-            import("@/components/checkout-form")
-        }
         if (!open) {
             // Reset view when closing
             setTimeout(() => setView('cart'), 200)
