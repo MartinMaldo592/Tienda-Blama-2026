@@ -525,8 +525,10 @@ export default function ProductoDetalleClient() {
                                 </>
                             ) : (
                                 <>
+                                    <span className="animate-bounce">👉</span>
                                     <PlayCircle className="h-5 w-5 animate-pulse" />
-                                    Ver Videos del Producto
+                                    <span>Ver Videos del Producto</span>
+                                    <span className="animate-bounce">👈</span>
                                 </>
                             )}
                         </Button>
