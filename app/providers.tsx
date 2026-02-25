@@ -2,14 +2,15 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { useState } from "react"
+import { LoadScript, Libraries } from "@react-google-maps/api"
+
+const libraries: Libraries = ["places"]
 
 export function Providers({ children }: { children: React.ReactNode }) {
     const [queryClient] = useState(() => new QueryClient({
         defaultOptions: {
             queries: {
-                // Cache data for 5 minutes by default
                 staleTime: 5 * 60 * 1000,
-                // Refetch on window focus is great for UX
                 refetchOnWindowFocus: true,
             },
         },
@@ -17,7 +18,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
     return (
         <QueryClientProvider client={queryClient}>
-            {children}
+            <LoadScript
+                googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}
+                libraries={libraries}
+            >
+                {children}
+            </LoadScript>
         </QueryClientProvider>
     )
 }

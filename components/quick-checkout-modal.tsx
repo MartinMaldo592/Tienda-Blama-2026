@@ -2,9 +2,7 @@
 
 import Image from "next/image"
 import { toast } from "sonner"
-
 import { useState, useEffect } from "react"
-import { useLoadScript } from "@react-google-maps/api"
 import usePlacesAutocomplete from "use-places-autocomplete"
 import {
     Dialog,
@@ -30,8 +28,8 @@ import { sendGTMEvent } from "@/lib/gtm"
 import { QuickCustomer } from "@/components/checkout/quick-checkout/quick-customer"
 import { QuickAddress } from "@/components/checkout/quick-checkout/quick-address"
 import { QuickSummary } from "@/components/checkout/quick-checkout/quick-summary"
+import { useGoogleMap } from "@react-google-maps/api"
 
-const libraries: ("places")[] = ["places"]
 
 interface QuickCheckoutModalProps {
     isOpen: boolean
@@ -41,17 +39,10 @@ interface QuickCheckoutModalProps {
 }
 
 export function QuickCheckoutModal({ isOpen, onClose, product, variant }: QuickCheckoutModalProps) {
-    const { isLoaded } = useLoadScript({
-        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-        libraries: libraries,
-    })
-
-    if (!isOpen) return null
-
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent
-                className="max-w-md w-full p-0 gap-0 overflow-hidden rounded-xl max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-300 slide-in-from-bottom-5"
+                className="max-w-md w-full p-0 gap-0 overflow-hidden rounded-xl max-h-[90vh] flex flex-col"
                 onOpenAutoFocus={(e) => e.preventDefault()}
             >
                 <div className="overflow-y-auto flex-1 p-6">
@@ -97,17 +88,11 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant }: QuickC
                         </div>
                     </div>
 
-                    {isLoaded ? (
-                        <QuickForm
-                            product={product}
-                            variant={variant}
-                            onClose={onClose}
-                        />
-                    ) : (
-                        <div className="flex justify-center py-8">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                        </div>
-                    )}
+                    <QuickForm
+                        product={product}
+                        variant={variant}
+                        onClose={onClose}
+                    />
                 </div>
             </DialogContent>
         </Dialog>
@@ -144,6 +129,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
         requestOptions: {
             componentRestrictions: { country: "pe" },
         },
+        debounce: 300,
     })
 
     // Load draft when ready

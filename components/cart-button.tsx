@@ -19,7 +19,8 @@ import {
 } from "@/components/ui/sheet"
 
 const CheckoutForm = dynamic(() => import("@/components/checkout-form").then(mod => mod.CheckoutForm), {
-    loading: () => <div className="p-8 text-center">Cargando formulario...</div>
+    ssr: false,
+    loading: () => null
 })
 import { SuccessCheckmark } from "@/components/ui/success-checkmark"
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false })
@@ -144,9 +145,13 @@ export function CartButton() {
 
     const handleOpenChange = (open: boolean) => {
         setCartOpen(open)
+        if (open && items.length > 0) {
+            // Precarga silenciosa del formulario cuando se abre el carrito
+            import("@/components/checkout-form")
+        }
         if (!open) {
-            // Reset view when closing, unless we are in success (optional)
-            setTimeout(() => setView('cart'), 300)
+            // Reset view when closing
+            setTimeout(() => setView('cart'), 200)
         }
     }
 
@@ -169,7 +174,7 @@ export function CartButton() {
         } catch (err) {
         }
         setCartOpen(false)
-        setTimeout(() => setView('cart'), 300)
+        setTimeout(() => setView('cart'), 200)
     }
 
     const handleContinueShopping = () => {
