@@ -516,7 +516,12 @@ export default function ProductoDetalleClient() {
                                 ? "bg-white text-gray-900 border-2 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
                                 : "bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-700 hover:to-red-600 hover:shadow-lg hover:scale-[1.01] border-0"
                                 }`}
-                            onClick={() => setShowVideo(!showVideo)}
+                            onClick={() => {
+                                setShowVideo(!showVideo)
+                                setTimeout(() => {
+                                    imageContainerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+                                }, 50)
+                            }}
                         >
                             {showVideo ? (
                                 <>
