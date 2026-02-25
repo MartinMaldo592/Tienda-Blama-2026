@@ -114,8 +114,6 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
     const shippingMethod = watch("shippingMethod")
     const [locationLink, setLocationLink] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [waPromptOpen, setWaPromptOpen] = useState(false)
-    const [waUrl, setWaUrl] = useState<string | null>(null)
     const [couponCode, setCouponCode] = useState("")
     const [couponDiscount, setCouponDiscount] = useState(0)
     const [couponApplying, setCouponApplying] = useState(false)
@@ -340,7 +338,7 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
 
 
     const onSubmit = async (data: CheckoutFormValues) => {
-        if (data.paymentMethod === 'culqi') return // Block submit if Culqi is selected (button handles it)
+        if (data.paymentMethod === 'culqi') return
 
         if (!value || value.length < 5) {
             toast.error("Dirección inválida", {
@@ -355,7 +353,6 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
 
         if (couponCode.trim()) {
             try {
-                // Re-validar cupón
                 await validateCoupon(couponCode, subtotalAmount)
             } catch (err: any) {
                 setCouponError(err?.message || 'Cupón inválido')
@@ -364,49 +361,15 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
             }
         }
 
-        // 2. Build Payload
-        const payload = await getOrderPayload(data)
-
-        // 3. WhatsApp Logic
-        const messageClientePreview = buildWhatsAppPreviewMessage({
-            name: payload.name,
-            dni: payload.dni,
-            phone: payload.phone,
-            address: payload.street || payload.address, // Send only street/number if possible for clarity
-            department: payload.department,
-            province: payload.province,
-            district: payload.district,
-            reference: payload.reference,
-            locationLink: payload.locationLink,
-            items: payload.items,
-            subtotal: payload.subtotal,
-            discount: Number(payload.discountAmount),
-            total: payload.total,
-            couponCode: payload.couponCode,
-            shippingMethod: payload.shippingMethod,
-        })
-
-        const phoneNumberClienteInit = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "958279604";
-        const inApp = isInAppBrowser()
-        const isMobile = isMobileDevice()
-        let popup: Window | null = null
-        if (!inApp && isMobile) {
-            const preUrl = buildPreOpenUrl(phoneNumberClienteInit, messageClientePreview)
-            popup = window.open(preUrl, '_blank', 'noopener,noreferrer')
-            if (popup) {
-                try {
-                    ; (popup as any).opener = null
-                } catch (err) {
-                }
-            }
-        }
-
         try {
-            const { orderId: newOrderId } = await createCheckoutOrder(payload)
+            // 2. Build Payload
+            const payload = await getOrderPayload(data)
 
-            // E. WhatsApp mensaje al cliente
+            // 3. Create Order
+            const { orderId: newOrderId } = await createCheckoutOrder(payload)
             const orderIdFormatted = newOrderId.toString().padStart(6, '0')
 
+            // 4. WhatsApp Final Message
             const messageCliente = buildWhatsAppFinalMessage({
                 orderIdFormatted,
                 name: payload.name,
@@ -443,37 +406,25 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                 }
             })
 
-            // G. Preparar enlace de WhatsApp final
             const phoneNumberCliente = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "958279604"
             const urlCliente = buildWhatsAppUrl(phoneNumberCliente, messageCliente)
 
             setLastOrderSuccessMarker(orderIdFormatted)
             clearCartStorage()
-
             onComplete()
 
-            try {
-                if (inApp || !isMobile) {
-                    window.location.href = urlCliente
-                } else if (popup && !popup.closed) {
-                    popup.location.href = urlCliente
-                } else {
-                    const opened = window.open(urlCliente, '_blank')
-                    if (!opened) {
-                        setWaUrl(urlCliente)
-                        setWaPromptOpen(true)
-                    }
-                }
-            } catch (err) {
-                setWaUrl(urlCliente)
-                setWaPromptOpen(true)
+            // Redirección directa
+            if (isMobileDevice()) {
+                window.location.href = urlCliente
+            } else {
+                window.open(urlCliente, '_blank')
             }
 
         } catch (error: any) {
             console.error("Error al procesar:", error)
             const msg = String(error?.message || '')
             if (isCouponRelatedError(msg)) {
-                setCouponDiscount(0) // Reset discount if invalid
+                setCouponDiscount(0)
                 setCouponApplied(false)
                 setCouponError(msg)
             } else {
@@ -684,18 +635,6 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                     />
                 </div>
             </form>
-            {waPromptOpen && waUrl && (
-                <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4">
-                    <div className="w-full max-w-xl bg-card border border-border rounded-lg shadow-lg p-4">
-                        <h3 className="text-lg font-semibold text-foreground">Abrir WhatsApp</h3>
-                        <p className="text-sm text-muted-foreground mt-2">Pulsa el botón para abrir tu pedido en WhatsApp.</p>
-                        <div className="mt-4 flex gap-3">
-                            <a href={waUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md">Abrir WhatsApp</a>
-                            <button onClick={() => { setWaPromptOpen(false); setWaUrl(null) }} className="px-4 py-2 border border-border rounded-md">Cerrar</button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </>
     )
 }
