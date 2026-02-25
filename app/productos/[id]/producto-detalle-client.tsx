@@ -93,14 +93,25 @@ export default function ProductoDetalleClient() {
     const [showVideo, setShowVideo] = useState(false)
     const [quickBuyOpen, setQuickBuyOpen] = useState(false)
     const [showStickyBar, setShowStickyBar] = useState(false)
+    const visibilityAnchorRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
-        const handleScroll = () => {
-            setShowStickyBar(window.scrollY > 450)
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                // Solo activamos la barra cuando el botón principal de compra NO es visible
+                setShowStickyBar(!entry.isIntersecting)
+            },
+            {
+                threshold: 0,
+                rootMargin: '-80px 0px 0px 0px' // Margen para que aparezca un poco antes de perder de vista el botón
+            }
+        )
+
+        if (visibilityAnchorRef.current) {
+            observer.observe(visibilityAnchorRef.current)
         }
-        window.addEventListener('scroll', handleScroll, { passive: true })
-        handleScroll()
-        return () => window.removeEventListener('scroll', handleScroll)
+
+        return () => observer.disconnect()
     }, [])
 
     const { addItem, items, updateQuantity } = useCartStore()
@@ -521,7 +532,7 @@ export default function ProductoDetalleClient() {
                 </div>
 
                 <div className="space-y-4">
-                    <Card className="shadow-sm border">
+                    <Card className="shadow-sm border" ref={visibilityAnchorRef}>
                         <CardContent className="p-6 space-y-3">
                             <div className="space-y-1">
                                 <h1 className="text-2xl md:text-3xl font-bold text-foreground">{producto.nombre}</h1>
