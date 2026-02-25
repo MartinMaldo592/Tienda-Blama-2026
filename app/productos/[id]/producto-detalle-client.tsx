@@ -103,7 +103,7 @@ export default function ProductoDetalleClient() {
             },
             {
                 threshold: 0,
-                rootMargin: '-80px 0px 0px 0px' // Margen para que aparezca un poco antes de perder de vista el botón
+                rootMargin: '0px'
             }
         )
 
@@ -112,7 +112,7 @@ export default function ProductoDetalleClient() {
         }
 
         return () => observer.disconnect()
-    }, [])
+    }, [producto, loading])
 
     const { addItem, items, updateQuantity } = useCartStore()
     const { setCustomMessage } = useWhatsAppStore()
@@ -531,7 +531,7 @@ export default function ProductoDetalleClient() {
                     )}
                 </div>
 
-                <div className="space-y-4" ref={visibilityAnchorRef}>
+                <div className="space-y-4">
                     <Card className="shadow-sm border">
                         <CardContent className="p-6 space-y-3">
                             <div className="space-y-1">
@@ -658,6 +658,7 @@ export default function ProductoDetalleClient() {
                                 </div>
                             </div>
 
+                            <div ref={visibilityAnchorRef} className="h-px w-full pointer-events-none opacity-0" aria-hidden="true" />
                             <div className="space-y-3">
                                 {inStock ? (
                                     quantity === 0 ? (
