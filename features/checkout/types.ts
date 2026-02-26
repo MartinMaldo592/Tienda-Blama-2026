@@ -16,6 +16,7 @@ export type CreateOrderPayload = {
     name: string
     phone: string
     dni: string
+    email?: string
     address: string
     reference?: string
     locationLink?: string

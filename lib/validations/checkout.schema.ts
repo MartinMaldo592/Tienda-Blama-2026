@@ -25,7 +25,13 @@ export const identitySchema = {
     phone: z.string()
         .min(9, "Mínimo 9 dígitos")
         .max(15, "Teléfono demasiado largo")
-        .regex(/^\+?[0-9\s]+$/, "Debe contener solo números o formato internacional")
+        .regex(/^\+?[0-9\s]+$/, "Debe contener solo números o formato internacional"),
+
+    // Email opcional
+    email: z.string()
+        .email("Formato de correo electrónico inválido")
+        .optional()
+        .or(z.literal(""))
 }
 
 export const addressSchema = {
@@ -48,6 +54,7 @@ export const checkoutBaseFields = {
     name: identitySchema.name,
     phone: identitySchema.phone,
     dni: identitySchema.document,
+    email: identitySchema.email,
     department: addressSchema.locationField,
     province: addressSchema.locationField,
     district: addressSchema.locationField,

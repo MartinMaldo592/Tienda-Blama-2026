@@ -58,7 +58,9 @@ export function OrderConfirmationEmail({
                 />
             </Head>
             <Preview>
-                ¡Pago confirmado! Tu pedido {pedidoFormateado} está siendo procesado - Tienda Blama
+                {metodoPago === "Contraentrega"
+                    ? `¡Pedido recibido! Tu orden ${pedidoFormateado} está en camino - Tienda Blama`
+                    : `¡Pago confirmado! Tu pedido ${pedidoFormateado} está siendo procesado - Tienda Blama`}
             </Preview>
             <Body style={bodyStyle}>
                 <Container style={containerStyle}>
@@ -73,11 +75,13 @@ export function OrderConfirmationEmail({
                     <Section style={successBadgeSection}>
                         <div style={checkCircleStyle}>✓</div>
                         <Heading as="h1" style={mainTitleStyle}>
-                            ¡Pago Confirmado!
+                            {metodoPago === "Contraentrega" ? "¡Pedido Recibido!" : "¡Pago Confirmado!"}
                         </Heading>
                         <Text style={subtitleStyle}>
-                            Hola <strong>{clienteNombre}</strong>, hemos recibido tu pago exitosamente.
-                            Tu pedido ya está siendo procesado por nuestro equipo.
+                            Hola <strong>{clienteNombre}</strong>, {metodoPago === "Contraentrega"
+                                ? "hemos registrado tu pedido correctamente. Pagas al recibir tu producto."
+                                : "hemos recibido tu pago exitosamente."}
+                            {" "}Tu pedido ya está siendo preparado por nuestro equipo.
                         </Text>
                     </Section>
 
@@ -176,7 +180,7 @@ export function OrderConfirmationEmail({
                         <Hr style={{ borderColor: "#e5e7eb", margin: "8px 0" }} />
                         <Row>
                             <Column style={{ width: "60%" }}>
-                                <Text style={grandTotalLabelStyle}>Total Pagado</Text>
+                                <Text style={grandTotalLabelStyle}>{metodoPago === "Contraentrega" ? "Total a Pagar" : "Total Pagado"}</Text>
                             </Column>
                             <Column style={{ width: "40%", textAlign: "right" as const }}>
                                 <Text style={grandTotalValueStyle}>{formatCurrency(total)}</Text>

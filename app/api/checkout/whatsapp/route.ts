@@ -36,6 +36,7 @@ const CheckoutBodySchema = z.object({
   shippingMethod: checkoutBaseFields.shippingMethod,
   couponCode: checkoutBaseFields.couponCode,
   discountAmount: z.coerce.number().min(0).optional(),
+  email: z.string().email().optional().or(z.literal("")),
   items: z.array(CheckoutItemSchema).min(1, "El carrito está vacío"),
 
   // Location fields
@@ -99,8 +100,9 @@ export async function POST(req: Request) {
 
 
     const name = body.name.trim()
-    const phone = body.phone.trim() // Already validated as digits by regex in schema? No, regex allows digits but string might have spaces if not trimmed. Zod regex applies to string.
+    const phone = body.phone.trim()
     const dni = body.dni
+    const email = body.email?.trim() || null
     const address = body.address.trim()
     const reference = body.reference?.trim() || ""
     const couponCode = body.couponCode?.trim() || null
@@ -153,7 +155,8 @@ export async function POST(req: Request) {
         link_ubicacion: locationLink,
         departamento: department,
         provincia: provincia,
-        distrito: district
+        distrito: district,
+        email: email
       })
       .select()
       .single()
@@ -180,6 +183,7 @@ export async function POST(req: Request) {
       direccion_calle: street || address, // Fallback to full address if street not separated
       referencia_direccion: reference,
       link_ubicacion: locationLink,
+      email_contacto: email,
       status: "Pendiente",
       pago_status: "Pendiente",
       metodo_envio: shippingMethod,

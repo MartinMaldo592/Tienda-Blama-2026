@@ -31,6 +31,9 @@ export async function sendOrderConfirmationEmail(params: SendOrderConfirmationPa
     const pedidoFormateado = `#${params.pedidoId.toString().padStart(6, "0")}`
 
     try {
+        const isContraentrega = params.metodoPago === "Contraentrega"
+        const subjectPrefix = isContraentrega ? "Confirmación de Pedido" : "Confirmación de Compra"
+
         const emailHtml = await render(
             OrderConfirmationEmail({
                 clienteNombre: params.clienteNombre,
@@ -48,9 +51,9 @@ export async function sendOrderConfirmationEmail(params: SendOrderConfirmationPa
         )
 
         const { data, error } = await getResend().emails.send({
-            from: "Tienda Blama <pedidos@blama.shop>",
+            from: "Tienda Blama Shop <pedidos@blama.shop>",
             to: params.to,
-            subject: `Confirmación de Compra ${pedidoFormateado} - Tienda Blama ✓`,
+            subject: `${subjectPrefix} ${pedidoFormateado} - Blama Shop ✓`,
             html: emailHtml,
         })
 

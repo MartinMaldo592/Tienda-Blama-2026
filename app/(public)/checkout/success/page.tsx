@@ -139,6 +139,7 @@ export default function SuccessPage({
     const transactionId = (searchParams.transaction_id as string | undefined) || "culqi-verified"
 
     const [order, setOrder] = useState<any>(null)
+    const isWhatsApp = transactionId === "whatsapp" || (!transactionId && !order?.culqi_charge_id)
     const [items, setItems] = useState<any[]>([])
     const [loading, setLoading] = useState(!!orderId)
 
@@ -162,7 +163,7 @@ export default function SuccessPage({
 
                 // If the transaction_id in the URL doesn't match what we stored → block access
                 const storedToken = secCheck?.culqi_charge_id || ""
-                if (storedToken && transactionId && storedToken !== transactionId) {
+                if (storedToken && transactionId && transactionId !== "whatsapp" && storedToken !== transactionId) {
                     setAccessDenied(true)
                     setLoading(false)
                     return
@@ -266,10 +267,12 @@ export default function SuccessPage({
             {/* ── Title ── */}
             <div className="space-y-1 max-w-md">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl text-gray-900">
-                    ¡Pago Exitoso!
+                    {isWhatsApp ? "¡Pedido Recibido!" : "¡Pago Exitoso!"}
                 </h1>
                 <p className="text-gray-500">
-                    Gracias por tu compra. Hemos recibido tu pedido correctamente.
+                    {isWhatsApp
+                        ? "Hemos recibido tu solicitud. Un asesor te contactará pronto para confirmar el envío."
+                        : "Gracias por tu compra. Hemos recibido tu pedido correctamente."}
                 </p>
             </div>
 
@@ -372,7 +375,7 @@ export default function SuccessPage({
                                 </>
                             )}
                             <div className="flex justify-between text-sm font-bold text-gray-900">
-                                <span>Total Pagado</span>
+                                <span>{isWhatsApp ? "Total a Pagar" : "Total Pagado"}</span>
                                 <span>{formatCurrency(order?.total ?? 0)}</span>
                             </div>
                         </div>
@@ -399,12 +402,15 @@ export default function SuccessPage({
                     </Button>
                 </Link>
                 <Link
-                    href={`https://api.whatsapp.com/send?phone=51958279604&text=Hola,%20acabo%20de%20pagar%20mi%20pedido%20%23${orderId}%20con%20tarjeta.%20%C2%BFMe%20confirman?`}
+                    href={isWhatsApp
+                        ? `https://api.whatsapp.com/send?phone=51958279604&text=Hola,%20acabo%20de%20realizar%20un%20pedido%20%23${orderId}%20contraentrega.%20Adjunto%20mis%20datos.`
+                        : `https://api.whatsapp.com/send?phone=51958279604&text=Hola,%20acabo%20de%20pagar%20mi%20pedido%20%23${orderId}%20con%20tarjeta.%20%C2%BFMe%20confirman?`
+                    }
                     target="_blank"
                     className="w-full"
                 >
                     <Button className="w-full bg-green-600 hover:bg-green-700 gap-2 h-12 rounded-xl shadow-md transition-all active:scale-95">
-                        <MessageCircle className="h-4 w-4" /> Avisar por WhatsApp
+                        <MessageCircle className="h-4 w-4" /> {isWhatsApp ? "Confirmar por WhatsApp" : "Avisar por WhatsApp"}
                     </Button>
                 </Link>
             </div>

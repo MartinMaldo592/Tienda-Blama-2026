@@ -1,4 +1,5 @@
 "use client"
+import { useRouter } from "next/navigation"
 
 import Image from "next/image"
 import { toast } from "sonner"
@@ -100,6 +101,7 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant }: QuickC
 }
 
 function QuickForm({ product, variant, onClose }: { product: any; variant: any; onClose: () => void }) {
+    const router = useRouter()
     const [name, setName] = useState("")
     const [phone, setPhone] = useState("")
     const [dni, setDni] = useState("")
@@ -109,6 +111,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
     const [province, setProvince] = useState("")
     const [district, setDistrict] = useState("")
     const [shippingMethod, setShippingMethod] = useState("Lima")
+    const [email, setEmail] = useState("")
     const [locationLink, setLocationLink] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -143,6 +146,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
             if (draft.district) setDistrict(draft.district)
             if (draft.reference) setReference(draft.reference)
             if (draft.shippingMethod) setShippingMethod(draft.shippingMethod)
+            if (draft.email) setEmail(draft.email)
             // Address value handling
             if (draft.address) {
                 setValue(draft.address, false)
@@ -164,11 +168,12 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                 district,
                 reference,
                 shippingMethod,
+                email,
                 address: value || address
             })
         }, 500) // Debounce 500ms
         return () => clearTimeout(timeout)
-    }, [name, phone, dni, department, province, district, reference, shippingMethod, value, address, loaded, saveDraft])
+    }, [name, phone, dni, department, province, district, reference, shippingMethod, email, value, address, loaded, saveDraft])
 
     const handleAddressSelect = async (addr: string) => {
         setValue(addr, false)
@@ -280,6 +285,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                 name,
                 phone: phoneClean,
                 dni: dniClean,
+                email: email.trim() || undefined,
                 address: fullAddress,
                 department, // Department
                 provinceName: province, // Province
@@ -308,7 +314,8 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                 subtotal: total,
                 discount: 0,
                 total: total,
-                shippingMethod
+                shippingMethod,
+                email: email.trim() || undefined,
             })
 
             const url = buildWhatsAppUrl(phoneNumberClienteInit, finalMessage)
@@ -333,12 +340,8 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                 }
             })
 
-            // Redirect
-            if (isMobileDevice()) {
-                window.location.href = url
-            } else {
-                window.open(url, '_blank')
-            }
+            // Redirect to success page
+            router.push(`/checkout/success?order_id=${orderId}&transaction_id=whatsapp`)
             onClose()
 
         } catch (err: any) {
@@ -359,6 +362,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                 name={name} setName={setName}
                 phone={phone} setPhone={setPhone}
                 dni={dni} setDni={setDni}
+                email={email} setEmail={setEmail}
                 disabled={isSubmitting}
             />
 

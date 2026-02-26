@@ -1,6 +1,7 @@
+import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { User, Phone, CreditCard, CheckCircle2 } from "lucide-react"
+import { User, Phone, CreditCard, CheckCircle2, Mail } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface CheckoutCustomerProps {
@@ -16,8 +17,13 @@ export function CheckoutCustomer({
     const nameValue = watch("name")
     const phoneValue = watch("phone")
     const dniValue = watch("dni")
+    const emailValue = watch("email")
+    const [showEmail, setShowEmail] = useState(!!emailValue)
 
     const isValid = (name: string, value: string) => {
+        if (name === 'email') {
+            return value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && !errors[name]
+        }
         return value && value.length >= (name === 'dni' ? 8 : name === 'phone' ? 9 : 3) && !errors[name]
     }
 
@@ -53,6 +59,7 @@ export function CheckoutCustomer({
                 </div>
                 {errors.name && <p className="text-xs text-destructive font-medium animate-in fade-in slide-in-from-top-1">{errors.name.message}</p>}
             </div>
+
 
             <div className="space-y-4">
                 <div className="space-y-1.5">
@@ -119,6 +126,46 @@ export function CheckoutCustomer({
                     </div>
                     {errors.dni && <p className="text-xs text-destructive font-medium animate-in fade-in slide-in-from-top-1">{errors.dni.message}</p>}
                 </div>
+
+                {!showEmail ? (
+                    <button
+                        type="button"
+                        onClick={() => setShowEmail(true)}
+                        className="text-xs font-bold text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5 py-1 w-fit mt-1 group"
+                    >
+                        <Mail className="h-3.5 w-3.5 group-hover:scale-110 transition-transform" />
+                        <span>+ Agregar correo electrónico (Opcional)</span>
+                    </button>
+                ) : (
+                    <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <Label htmlFor="email" className="flex items-center gap-2 text-sm font-bold text-foreground">
+                            <span>Correo Electrónico</span>
+                            <span className="text-[10px] uppercase tracking-wider text-amber-600 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-950/30 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">Opcional</span>
+                        </Label>
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                                <Mail className="h-5 w-5" />
+                            </div>
+                            <Input
+                                id="email"
+                                type="email"
+                                placeholder="ejemplo@correo.com"
+                                disabled={disabled}
+                                className={cn(
+                                    "pl-11 pr-10 h-12 bg-background border-border transition-all rounded-lg font-medium text-foreground",
+                                    isValid("email", emailValue) ? "border-green-500/50 focus-visible:ring-green-500/20" : "focus-visible:border-primary"
+                                )}
+                                {...register("email")}
+                            />
+                            {isValid("email", emailValue) && (
+                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 animate-in zoom-in duration-300">
+                                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                                </div>
+                            )}
+                        </div>
+                        {errors.email && <p className="text-xs text-destructive font-medium animate-in fade-in slide-in-from-top-1">{errors.email.message}</p>}
+                    </div>
+                )}
             </div>
         </div>
     )

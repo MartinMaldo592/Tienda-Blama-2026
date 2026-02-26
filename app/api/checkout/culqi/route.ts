@@ -144,6 +144,7 @@ export async function POST(req: Request) {
             departamento: data.department,
             provincia: data.province,
             distrito: data.district,
+            email_contacto: data.email,
             metodo_envio: data.shippingMethod,
             subtotal: subtotal,
             descuento: appliedDiscount,

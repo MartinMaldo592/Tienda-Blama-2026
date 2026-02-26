@@ -13,6 +13,7 @@ export interface CheckoutDraft {
     reference?: string
     shippingMethod?: string
     paymentMethod?: string
+    email?: string
 }
 
 const STORAGE_KEY = "checkout_draft_v1"

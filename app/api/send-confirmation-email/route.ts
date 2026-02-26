@@ -26,7 +26,7 @@ export async function POST(req: Request) {
         // 1. Fetch order data
         const { data: pedido, error: pedidoError } = await supabase
             .from("pedidos")
-            .select("id, nombre_contacto, telefono_contacto, total, subtotal, descuento, metodo_envio, direccion_calle, pago_status, culqi_charge_id, cliente_id, email_confirmacion_enviado")
+            .select("id, nombre_contacto, telefono_contacto, total, subtotal, descuento, metodo_envio, direccion_calle, pago_status, culqi_charge_id, cliente_id, email_confirmacion_enviado, email_contacto")
             .eq("id", Number(orderId))
             .single()
 
@@ -47,21 +47,20 @@ export async function POST(req: Request) {
         }
 
         // 3. Check payment is confirmed before sending email
+        // For WhatsApp/Contraentrega, we allow sending it even if 'Pendiente'
+        const isContraentrega = !pedido.culqi_charge_id
         const pagosConfirmados = ["Pagado", "Pagado Anticipado", "Pago Contraentrega", "Pagado al Recibir"]
-        if (!pagosConfirmados.includes(pedido.pago_status)) {
+
+        if (!pagosConfirmados.includes(pedido.pago_status) && !(isContraentrega && pedido.pago_status === "Pendiente")) {
             return NextResponse.json({ error: "El pago aún no está confirmado" }, { status: 400 })
         }
 
-        // 4. Get client email
-        const { data: cliente } = await supabase
-            .from("clientes")
-            .select("email")
-            .eq("id", pedido.cliente_id)
-            .single()
+        // 4. Get recipient email (ONLY from the current order)
+        const recipientEmail = pedido.email_contacto
 
-        const clientEmail = cliente?.email
-        if (!clientEmail) {
-            return NextResponse.json({ error: "El cliente no tiene email registrado" }, { status: 400 })
+        if (!recipientEmail) {
+            console.log(`ℹ️ Pedido #${orderId} no tiene correo de contacto. No se enviará confirmación.`)
+            return NextResponse.json({ ok: true, status: "no_email_provided" })
         }
 
         // 5. Get order items
@@ -70,9 +69,9 @@ export async function POST(req: Request) {
             .select("producto_nombre, variante_nombre, cantidad, precio_unitario")
             .eq("pedido_id", Number(orderId))
 
-        // 6. Send email via Resend from pedidos@blama.shop
+        // 6. Send email via Resend
         const result = await sendOrderConfirmationEmail({
-            to: clientEmail,
+            to: recipientEmail,
             clienteNombre: pedido.nombre_contacto || "Cliente",
             pedidoId: pedido.id,
             items: (items || []).map(it => ({

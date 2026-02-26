@@ -53,6 +53,7 @@ const checkoutFormSchema = z.object({
     reference: z.string().optional(),
     shippingMethod: z.string(),
     paymentMethod: z.string(),
+    email: identitySchema.email,
 })
 
 type CheckoutFormValues = z.infer<typeof checkoutFormSchema>
@@ -97,7 +98,8 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
             district: "",
             reference: "",
             shippingMethod: "Lima",
-            paymentMethod: "whatsapp"
+            paymentMethod: "whatsapp",
+            email: ""
         }
     })
 
@@ -313,6 +315,7 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
             name: data.name,
             phone: normalizedPhone,
             dni: normalizedDni,
+            email: data.email?.trim() || undefined,
             address: addressForApi,  // Primary address for API (needed for min(5))
             street: streetForApi,    // Raw Google Maps part
             province: data.province,
@@ -381,6 +384,7 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                 total: payload.total,
                 couponCode: payload.couponCode,
                 shippingMethod: payload.shippingMethod,
+                email: payload.email,
             })
 
             // GTM: Track Purchase
@@ -407,12 +411,8 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
             clearCartStorage()
             onComplete()
 
-            // Redirección directa
-            if (isMobileDevice()) {
-                window.location.href = urlCliente
-            } else {
-                window.open(urlCliente, '_blank')
-            }
+            // redirection to success page
+            router.push(`/checkout/success?order_id=${newOrderId}&transaction_id=whatsapp`)
 
         } catch (error: any) {
             console.error("Error al procesar:", error)
@@ -611,7 +611,7 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                         customButton={paymentMethod === 'culqi' ? (
                             <CulqiPaymentButton
                                 amount={totalToPay}
-                                email="pedidos@blama.shop" // Email interno por ahora
+                                email={watch("email") || "pedidos@blama.shop"}
                                 title={`Pedido Blama Shop - S/ ${totalToPay}`}
                                 onBeforeOpen={validateFieldsForCulqi}
                                 onToken={handleCulqiToken}
