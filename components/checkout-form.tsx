@@ -25,7 +25,8 @@ import {
     validateCoupon,
 } from "@/features/checkout"
 import { sendGTMEvent } from "@/lib/gtm"
-import { useRouter } from "next/navigation" // Nuevo hook
+import { useRouter } from "next/navigation"
+import { SuccessCheckmark } from "@/components/ui/success-checkmark"
 
 // New modular components
 import { CheckoutShipping } from "@/components/checkout/checkout-shipping"
@@ -86,6 +87,12 @@ import { useCheckoutDraft } from "@/features/checkout/hooks/use-checkout-draft"
 function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: CheckoutFormProps) {
     const { draft, loaded, saveDraft, clearDraft } = useCheckoutDraft()
     const router = useRouter()
+    const [isRedirecting, setIsRedirecting] = useState(false)
+
+    useEffect(() => {
+        // Prefetch success page to speed up transition
+        router.prefetch('/checkout/success')
+    }, [router])
 
     const form = useForm<CheckoutFormValues>({
         resolver: zodResolver(checkoutFormSchema),
@@ -387,32 +394,16 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                 email: payload.email,
             })
 
-            // GTM: Track Purchase
-            sendGTMEvent({
-                event: 'purchase',
-                ecommerce: {
-                    transaction_id: orderIdFormatted,
-                    value: payload.total,
-                    currency: 'PEN',
-                    coupon: payload.couponCode,
-                    items: payload.items.map(item => ({
-                        item_id: String(item.id),
-                        item_name: item.nombre,
-                        price: item.precio,
-                        quantity: item.quantity
-                    }))
-                }
-            })
-
-            const phoneNumberCliente = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "958279604"
-            const urlCliente = buildWhatsAppUrl(phoneNumberCliente, messageCliente)
-
+            // Start transition for natural feel
+            setIsRedirecting(true)
             setLastOrderSuccessMarker(orderIdFormatted)
-            clearCartStorage()
-            onComplete()
 
             // redirection to success page
             router.push(`/checkout/success?order_id=${newOrderId}&transaction_id=whatsapp`)
+
+            // Side effects in background
+            clearCartStorage()
+            onComplete()
 
         } catch (error: any) {
             console.error("Error al procesar:", error)
@@ -514,6 +505,16 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
         }
         window.scrollTo(0, 0)
     }, [])
+
+    if (isRedirecting) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] p-6 text-center animate-in fade-in duration-500">
+                <SuccessCheckmark />
+                <h2 className="mt-6 text-2xl font-bold text-foreground">¡Pedido Recibido!</h2>
+                <p className="mt-2 text-muted-foreground">Estamos redirigiéndote a la confirmación...</p>
+            </div>
+        )
+    }
 
     return (
         <>

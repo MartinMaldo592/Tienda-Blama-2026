@@ -1,5 +1,6 @@
 "use client"
 import { useRouter } from "next/navigation"
+import { SuccessCheckmark } from "@/components/ui/success-checkmark"
 
 import Image from "next/image"
 import { toast } from "sonner"
@@ -102,6 +103,12 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant }: QuickC
 
 function QuickForm({ product, variant, onClose }: { product: any; variant: any; onClose: () => void }) {
     const router = useRouter()
+    const [isRedirecting, setIsRedirecting] = useState(false)
+
+    useEffect(() => {
+        router.prefetch('/checkout/success')
+    }, [router])
+
     const [name, setName] = useState("")
     const [phone, setPhone] = useState("")
     const [dni, setDni] = useState("")
@@ -320,27 +327,10 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
 
             const url = buildWhatsAppUrl(phoneNumberClienteInit, finalMessage)
 
-            setLastOrderSuccessMarker(orderIdFormatted)
+            // Start transition for natural feel
+            setIsRedirecting(true)
 
-            // GTM: Track Purchase
-            sendGTMEvent({
-                event: 'purchase',
-                ecommerce: {
-                    transaction_id: orderIdFormatted,
-                    value: total,
-                    tax: 0,
-                    shipping: 0,
-                    currency: 'PEN',
-                    items: items.map(item => ({
-                        item_id: String(item.id),
-                        item_name: item.nombre,
-                        price: item.precio,
-                        quantity: item.quantity
-                    }))
-                }
-            })
-
-            // Redirect to success page
+            // Redirect to success page as fast as possible
             router.push(`/checkout/success?order_id=${orderId}&transaction_id=whatsapp`)
             onClose()
 
@@ -349,6 +339,16 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
         } finally {
             setIsSubmitting(false)
         }
+    }
+
+    if (isRedirecting) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[300px] p-6 text-center animate-in fade-in duration-500">
+                <SuccessCheckmark />
+                <h2 className="mt-4 text-xl font-bold text-foreground">¡Pedido Recibido!</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Confirmando tu orden...</p>
+            </div>
+        )
     }
 
     return (

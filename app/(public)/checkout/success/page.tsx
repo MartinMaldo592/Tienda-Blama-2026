@@ -154,12 +154,15 @@ export default function SuccessPage({
             try {
                 const supabase = createClient()
 
-                // ── SECURITY: first fetch ONLY the Culqi charge ID – no personal data ──
-                const { data: secCheck } = await supabase
-                    .from("pedidos")
-                    .select("culqi_charge_id")
-                    .eq("id", Number(orderId))
-                    .single()
+                const [secRes, orderRes, itemsRes] = await Promise.all([
+                    supabase.from("pedidos").select("culqi_charge_id").eq("id", Number(orderId)).single(),
+                    supabase.from("pedidos").select("id, nombre_contacto, metodo_envio, subtotal, descuento, total, status").eq("id", Number(orderId)).single(),
+                    supabase.from("pedido_items").select("producto_nombre, variante_nombre, cantidad, precio_unitario, producto_id").eq("pedido_id", Number(orderId))
+                ])
+
+                const secCheck = secRes.data
+                const orderData = orderRes.data
+                const itemsData = itemsRes.data
 
                 // If the transaction_id in the URL doesn't match what we stored → block access
                 const storedToken = secCheck?.culqi_charge_id || ""
@@ -168,19 +171,6 @@ export default function SuccessPage({
                     setLoading(false)
                     return
                 }
-                // ─────────────────────────────────────────────────────────────────────────
-
-                // All good — fetch the full order
-                const { data: orderData } = await supabase
-                    .from("pedidos")
-                    .select("id, nombre_contacto, metodo_envio, subtotal, descuento, total, status")
-                    .eq("id", Number(orderId))
-                    .single()
-
-                const { data: itemsData } = await supabase
-                    .from("pedido_items")
-                    .select("producto_nombre, variante_nombre, cantidad, precio_unitario, producto_id")
-                    .eq("pedido_id", Number(orderId))
 
                 let enrichedItems = itemsData || []
                 if (enrichedItems.length > 0) {
