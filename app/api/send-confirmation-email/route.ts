@@ -23,45 +23,71 @@ export async function POST(req: Request) {
 
         const supabase = createClient(url, service)
 
-        // 1. Fetch order data
+        console.log(`🔍 Buscando pedido #${orderId} para enviar confirmación...`)
+
+        // 1. Fetch order data with client email as fallback
         const { data: pedido, error: pedidoError } = await supabase
             .from("pedidos")
-            .select("id, nombre_contacto, telefono_contacto, total, subtotal, descuento, metodo_envio, direccion_calle, pago_status, culqi_charge_id, cliente_id, email_confirmacion_enviado, email_contacto")
+            .select(`
+                id, 
+                nombre_contacto, 
+                telefono_contacto, 
+                total, 
+                subtotal, 
+                descuento, 
+                metodo_envio, 
+                direccion_calle, 
+                pago_status, 
+                culqi_charge_id, 
+                cliente_id, 
+                email_confirmacion_enviado, 
+                email_contacto,
+                clientes ( email )
+            `)
             .eq("id", Number(orderId))
             .single()
 
         if (pedidoError || !pedido) {
+            console.error(`❌ Pedido #${orderId} no encontrado en Supabase:`, pedidoError)
             return NextResponse.json({ error: "Pedido no encontrado" }, { status: 404 })
         }
 
         // ── IDEMPOTENCY CHECK ──
-        // If the email was already sent, we return success but don't call Resend again
         if (pedido.email_confirmacion_enviado) {
-            console.log(`ℹ️ Email para pedido #${orderId} ya fue enviado anteriormente. Ignorando duplicado.`)
+            console.log(`ℹ️ Email para pedido #${orderId} ya fue enviado anteriormente. Ignorando.`)
             return NextResponse.json({ ok: true, status: "already_sent" })
         }
 
-        // 2. Security: Validate transaction ID matches (prevent unauthorized email triggers)
-        if (transactionId && pedido.culqi_charge_id && transactionId !== pedido.culqi_charge_id) {
+        // 2. Security: Validate transaction ID
+        // Note: For WhatsApp orders, transactionId from URL is "whatsapp"
+        const storedCulqiId = pedido.culqi_charge_id || ""
+        if (storedCulqiId && transactionId && transactionId !== "whatsapp" && transactionId !== storedCulqiId) {
+            console.warn(`🔒 Intento de envío no autorizado para pedido #${orderId}. mismatch: ${transactionId} vs ${storedCulqiId}`)
             return NextResponse.json({ error: "No autorizado" }, { status: 403 })
         }
 
-        // 3. Check payment is confirmed before sending email
-        // For WhatsApp/Contraentrega, we allow sending it even if 'Pendiente'
-        const isContraentrega = !pedido.culqi_charge_id
-        const pagosConfirmados = ["Pagado", "Pagado Anticipado", "Pago Contraentrega", "Pagado al Recibir"]
+        // 3. Check payment status
+        const isContraentrega = !storedCulqiId || transactionId === "whatsapp"
+        const pagosConfirmados = ["Pagado", "Pagado Anticipado", "Pago Contraentrega", "Pagado al Recibir", "Confirmado"]
 
-        if (!pagosConfirmados.includes(pedido.pago_status) && !(isContraentrega && pedido.pago_status === "Pendiente")) {
-            return NextResponse.json({ error: "El pago aún no está confirmado" }, { status: 400 })
+        const statusLower = String(pedido.pago_status || "").toLowerCase()
+        const isPending = statusLower === "pendiente"
+
+        if (!pagosConfirmados.some(s => s.toLowerCase() === statusLower) && !(isContraentrega && isPending)) {
+            console.warn(`⚠️ Pago no confirmado para pedido #${orderId}. Status: ${pedido.pago_status}`)
+            return NextResponse.json({ error: `El pago aún no está confirmado (${pedido.pago_status})` }, { status: 400 })
         }
 
-        // 4. Get recipient email (ONLY from the current order)
-        const recipientEmail = pedido.email_contacto
+        // 4. Get recipient email
+        // Priority: 1. email_contacto (from form) 2. clientes.email (from profile)
+        const recipientEmail = (pedido.email_contacto?.trim()) || (pedido.clientes as any)?.email?.trim()
 
         if (!recipientEmail) {
-            console.log(`ℹ️ Pedido #${orderId} no tiene correo de contacto. No se enviará confirmación.`)
+            console.log(`ℹ️ Pedido #${orderId} no tiene ningún correo asociado. Saltando envío.`)
             return NextResponse.json({ ok: true, status: "no_email_provided" })
         }
+
+        console.log(`📧 Preparando envío para #${orderId} a ${recipientEmail} (Método: ${isContraentrega ? 'Contraentrega' : 'Tarjeta'})`)
 
         // 5. Get order items
         const { data: items } = await supabase
