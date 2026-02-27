@@ -15,7 +15,7 @@ export async function POST(req: Request) {
         const result = await triggerOrderConfirmationEmail(Number(orderId), transactionId)
 
         if (result.success) {
-            return NextResponse.json({ ok: true, status: result.alreadySent ? "already_sent" : "sent" })
+            return NextResponse.json({ ok: true, status: result.alreadyClaimed ? "already_sent" : "sent" })
         }
 
         return NextResponse.json({ error: result.error }, { status: result.error === "Pedido no encontrado" ? 404 : 400 })
