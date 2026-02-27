@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { triggerOrderConfirmationEmail } from "@/lib/email-service"
 import { checkRateLimit, getClientIP } from "@/lib/rate-limit"
 import { z } from "zod"
 
@@ -249,6 +250,15 @@ export async function POST(req: Request) {
     const { error: itemsError } = await supabaseAdmin.from("pedido_items").insert(orderItems)
     if (itemsError) {
       return NextResponse.json({ error: itemsError.message }, { status: 400 })
+    }
+
+    // ── TRIGGER EMAIL CONFIRMATION (RELIABILITY FIX FOR MOBILE) ──
+    // We trigger it here on the server so it doesn't depend on the client's browser staying open.
+    // The success page also has a trigger as a secondary fallback.
+    if (email) {
+      triggerOrderConfirmationEmail(pedidoId, "whatsapp").catch(err => {
+        console.error("⚠️ Background email trigger failed:", err)
+      })
     }
 
     return NextResponse.json({

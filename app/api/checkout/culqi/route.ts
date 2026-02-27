@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { triggerOrderConfirmationEmail } from "@/lib/email-service"
 import { checkRateLimit, getClientIP } from "@/lib/rate-limit"
 import { z } from "zod"
 
@@ -278,6 +279,12 @@ export async function POST(req: Request) {
                 tipo: "info"
             }),
         ])
+
+        // ── TRIGGER EMAIL CONFIRMATION (RELIABILITY FIX FOR MOBILE) ──
+        // Triggered here on the server to ensure delivery even if user leaves page.
+        triggerOrderConfirmationEmail(pedido.id, culqiData.id).catch(err => {
+            console.error("⚠️ Background email trigger failed (Culqi):", err)
+        })
 
         return NextResponse.json({
             ok: true,

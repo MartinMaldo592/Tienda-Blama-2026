@@ -214,6 +214,7 @@ export default function SuccessPage({
                 orderId: Number(orderId),
                 transactionId,
             }),
+            keepalive: true, // Crucial for mobile: ensures fetch completes even if user leaves page
         })
             .then(res => res.json())
             .then(data => {
