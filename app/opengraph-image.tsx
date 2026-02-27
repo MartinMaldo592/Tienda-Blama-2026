@@ -57,13 +57,13 @@ export default async function OpengraphImage() {
             <span>blama.shop</span>
           </div>
 
-          <div style={{ fontSize: 72, fontWeight: 800, lineHeight: 1.05 }}>
+          <div style={{ display: "flex", flexDirection: "column", fontSize: 72, fontWeight: 800, lineHeight: 1.05 }}>
             Tienda Online
             <br />
             Premium
           </div>
 
-          <div style={{ fontSize: 28, maxWidth: 900, lineHeight: 1.35, color: "rgba(255,255,255,0.85)" }}>
+          <div style={{ display: "flex", flexDirection: "column", fontSize: 28, maxWidth: 900, lineHeight: 1.35, color: "rgba(255,255,255,0.85)" }}>
             Productos seleccionados, ofertas y atención rápida por WhatsApp.
             <br />
             Envíos a domicilio en Perú.
@@ -99,6 +99,7 @@ export default async function OpengraphImage() {
             bottom: 60,
             fontSize: 22,
             color: "rgba(255,255,255,0.70)",
+            display: "flex",
           }}
         >
           blama.shop
