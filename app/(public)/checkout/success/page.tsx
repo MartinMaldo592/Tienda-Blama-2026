@@ -202,27 +202,8 @@ export default function SuccessPage({
         loadOrder()
     }, [orderId, transactionId])
 
-    // ── Trigger confirmation email once order loads ──
-    useEffect(() => {
-        if (!order || !orderId || emailSentRef.current) return
-        emailSentRef.current = true
-
-        fetch("/api/send-confirmation-email", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                orderId: Number(orderId),
-                transactionId,
-            }),
-            keepalive: true, // Crucial for mobile: ensures fetch completes even if user leaves page
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.ok) console.log("📧 Correo de confirmación enviado")
-                else console.warn("⚠️ No se envió el correo:", data.error)
-            })
-            .catch(err => console.error("Error enviando correo:", err))
-    }, [order, orderId, transactionId])
+    // Confirmation email is now handled server-side in the checkout API
+    // for maximum reliability and to prevent duplicate emails.
 
     const shippingMethod = order?.metodo_envio || ""
     const clientName = order?.nombre_contacto || ""

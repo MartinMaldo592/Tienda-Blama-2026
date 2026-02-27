@@ -253,12 +253,13 @@ export async function POST(req: Request) {
     }
 
     // ── TRIGGER EMAIL CONFIRMATION (RELIABILITY FIX FOR MOBILE) ──
-    // We trigger it here on the server so it doesn't depend on the client's browser staying open.
-    // The success page also has a trigger as a secondary fallback.
+    // We await it here to ensure the function doesn't shut down before completion.
     if (email) {
-      triggerOrderConfirmationEmail(pedidoId, "whatsapp").catch(err => {
+      try {
+        await triggerOrderConfirmationEmail(pedidoId, "whatsapp")
+      } catch (err) {
         console.error("⚠️ Background email trigger failed:", err)
-      })
+      }
     }
 
     return NextResponse.json({

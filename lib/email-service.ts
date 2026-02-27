@@ -12,11 +12,13 @@ export async function triggerOrderConfirmationEmail(orderId: number, transaction
 
     const supabase = createClient(url, service)
 
-    console.log(`🔍 [EmailService] Procesando pedido #${orderId}...`)
-
-    // 1. Fetch order data with client email as fallback
-    const { data: pedido, error: pedidoError } = await supabase
+    // 1. ATOMIC UPDATE: Try to "claim" the email sending task
+    // This prevents double emails even if triggered from multiple places simultaneously.
+    const { data: updatedPedido, error: updateError } = await supabase
         .from("pedidos")
+        .update({ email_confirmacion_enviado: true })
+        .eq("id", Number(orderId))
+        .eq("email_confirmacion_enviado", false) // Only if not already claimed
         .select(`
             id, 
             nombre_contacto, 
@@ -29,38 +31,37 @@ export async function triggerOrderConfirmationEmail(orderId: number, transaction
             pago_status, 
             culqi_charge_id, 
             cliente_id, 
-            email_confirmacion_enviado, 
             email_contacto,
             clientes ( email )
         `)
-        .eq("id", Number(orderId))
         .single()
 
-    if (pedidoError || !pedido) {
-        console.error(`❌ [EmailService] Pedido #${orderId} no encontrado:`, pedidoError)
-        return { success: false, error: "Pedido no encontrado" }
+    if (updateError || !updatedPedido) {
+        // If it fails because the row wasn't found (already true), that's fine.
+        console.log(`ℹ️ [EmailService] Email para #${orderId} ya está en proceso o fue enviado.`)
+        return { success: true, alreadyClaimed: true }
     }
 
-    // ── IDEMPOTENCY CHECK ──
-    if (pedido.email_confirmacion_enviado) {
-        console.log(`ℹ️ [EmailService] Email para pedido #${orderId} ya enviado.`)
-        return { success: true, alreadySent: true }
-    }
+    const pedido = updatedPedido
 
     // 2. Security / Validation
     const storedCulqiId = pedido.culqi_charge_id || ""
     if (storedCulqiId && transactionId && transactionId !== "whatsapp" && transactionId !== storedCulqiId) {
+        // Rollback claim if unauthorized (optional, but safer)
+        await supabase.from("pedidos").update({ email_confirmacion_enviado: false }).eq("id", pedido.id)
         console.warn(`🔒 [EmailService] Unautorized trigger for #${orderId}`)
         return { success: false, error: "No autorizado" }
     }
 
     // 3. Check status
     const isContraentrega = !storedCulqiId || transactionId === "whatsapp"
-    const pagosConfirmados = ["Pagado", "Pagado Anticipado", "Pago Contraentrega", "Pagado al Recibir", "Confirmado"]
     const statusLower = String(pedido.pago_status || "").toLowerCase()
     const isPending = statusLower === "pendiente"
+    const pagosConfirmados = ["pagado", "pagado anticipado", "pago contraentrega", "pagado al recibir", "confirmado"]
 
-    if (!pagosConfirmados.some(s => s.toLowerCase() === statusLower) && !(isContraentrega && isPending)) {
+    if (!pagosConfirmados.includes(statusLower) && !(isContraentrega && isPending)) {
+        // Rollback claim if status is not ready
+        await supabase.from("pedidos").update({ email_confirmacion_enviado: false }).eq("id", pedido.id)
         console.warn(`⚠️ [EmailService] Pago no listo para #${orderId}. Status: ${pedido.pago_status}`)
         return { success: false, error: `Pago no confirmado (${pedido.pago_status})` }
     }
@@ -99,13 +100,10 @@ export async function triggerOrderConfirmationEmail(orderId: number, transaction
     })
 
     if (result.success) {
-        await supabase
-            .from("pedidos")
-            .update({ email_confirmacion_enviado: true })
-            .eq("id", pedido.id)
-
         return { success: true }
     }
 
+    // Rollback claim if sending failed so it can be retried
+    await supabase.from("pedidos").update({ email_confirmacion_enviado: false }).eq("id", pedido.id)
     return { success: false, error: result.error }
 }

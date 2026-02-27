@@ -281,10 +281,12 @@ export async function POST(req: Request) {
         ])
 
         // ── TRIGGER EMAIL CONFIRMATION (RELIABILITY FIX FOR MOBILE) ──
-        // Triggered here on the server to ensure delivery even if user leaves page.
-        triggerOrderConfirmationEmail(pedido.id, culqiData.id).catch(err => {
+        // Await here to ensure delivery on mobile/serverless.
+        try {
+            await triggerOrderConfirmationEmail(pedido.id, culqiData.id)
+        } catch (err) {
             console.error("⚠️ Background email trigger failed (Culqi):", err)
-        })
+        }
 
         return NextResponse.json({
             ok: true,
