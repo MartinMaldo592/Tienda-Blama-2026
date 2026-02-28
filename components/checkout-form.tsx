@@ -520,13 +520,7 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                         className="h-full overflow-y-auto p-4 space-y-6 scroll-smooth pb-8"
                         style={{ scrollbarWidth: 'thin', scrollbarColor: 'hsl(var(--border)) transparent' }}
                     >
-                        <Controller
-                            control={control}
-                            name="shippingMethod"
-                            render={({ field }) => (
-                                <CheckoutShipping value={field.value} onChange={field.onChange} disabled={isSubmitting} />
-                            )}
-                        />
+
 
                         <CheckoutCustomer
                             register={register}
@@ -548,6 +542,14 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                             suggestions={data} suggestionsStatus={status} onSuggestionSelect={handleSelect}
                             disabled={isSubmitting}
                             apiKeyMissing={!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                        />
+
+                        <Controller
+                            control={control}
+                            name="shippingMethod"
+                            render={({ field }) => (
+                                <CheckoutShipping value={field.value} onChange={field.onChange} disabled={isSubmitting} />
+                            )}
                         />
 
                         <Controller
