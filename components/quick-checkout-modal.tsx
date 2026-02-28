@@ -138,6 +138,8 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
     } = usePlacesAutocomplete({
         requestOptions: {
             componentRestrictions: { country: "pe" },
+            language: "es",
+            region: "pe",
         },
         debounce: 300,
     })
@@ -267,23 +269,6 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                 ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`
                 : "")
 
-        const messageCliente = buildWhatsAppPreviewMessage({
-            name,
-            dni: dniClean,
-            phone: phoneClean,
-            address: value || address,
-            department,
-            province,
-            district,
-            reference,
-            locationLink: finalLocationLink,
-            items,
-            subtotal: total,
-            discount: 0,
-            total: total,
-            shippingMethod
-        })
-
         const phoneNumberClienteInit = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "958279604"
 
         try {
@@ -306,27 +291,6 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
 
             const orderIdFormatted = String(orderId).padStart(6, '0')
 
-            const finalMessage = buildWhatsAppFinalMessage({
-                orderIdFormatted,
-                name,
-                dni: dniClean,
-                phone: phoneClean,
-                address: value || address,
-                department,
-                province,
-                district,
-                reference,
-                locationLink: finalLocationLink,
-                items,
-                subtotal: total,
-                discount: 0,
-                total: total,
-                shippingMethod,
-                email: email.trim() || undefined,
-            })
-
-            const url = buildWhatsAppUrl(phoneNumberClienteInit, finalMessage)
-
             // Start transition for natural feel
             setIsRedirecting(true)
 
@@ -336,19 +300,8 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
 
         } catch (err: any) {
             toast.error("Error al procesar: " + err.message)
-        } finally {
             setIsSubmitting(false)
         }
-    }
-
-    if (isRedirecting) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[300px] p-6 text-center animate-in fade-in duration-500">
-                <SuccessCheckmark />
-                <h2 className="mt-4 text-xl font-bold text-foreground">¡Pedido Recibido!</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Confirmando tu orden...</p>
-            </div>
-        )
     }
 
     return (

@@ -123,15 +123,8 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
     const [couponError, setCouponError] = useState("")
     const [couponApplied, setCouponApplied] = useState(false)
 
-    // Scroll hint
-    const scrollRef = useRef<HTMLDivElement>(null)
-    const [showScrollHint, setShowScrollHint] = useState(true)
-    const handleScroll = () => {
-        const el = scrollRef.current
-        if (!el) return
-        const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 30
-        setShowScrollHint(!atBottom)
-    }
+    // Scroll hint reference removed as it's no longer a sticky bottom layout
+
 
     // Google Maps Hook
     const {
@@ -143,6 +136,9 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
     } = usePlacesAutocomplete({
         requestOptions: {
             componentRestrictions: { country: "pe" },
+            // Añadir locale y region strict
+            language: "es",
+            region: "pe",
         },
     })
 
@@ -418,7 +414,6 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                     duration: 8000
                 })
             }
-        } finally {
             setIsSubmitting(false)
         }
     }
@@ -506,16 +501,6 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
         window.scrollTo(0, 0)
     }, [])
 
-    if (isRedirecting) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[400px] p-6 text-center animate-in fade-in duration-500">
-                <SuccessCheckmark />
-                <h2 className="mt-6 text-2xl font-bold text-foreground">¡Pedido Recibido!</h2>
-                <p className="mt-2 text-muted-foreground">Estamos redirigiéndote a la confirmación...</p>
-            </div>
-        )
-    }
-
     return (
         <>
             <form
@@ -529,12 +514,10 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                     <h3 className="font-semibold text-foreground">Datos de Envío</h3>
                 </div>
 
-                {/* Scroll area with fade indicator */}
+                {/* Scroll area */}
                 <div className="relative flex-1 min-h-0">
                     <div
-                        ref={scrollRef}
-                        onScroll={handleScroll}
-                        className="h-full overflow-y-auto p-4 space-y-6 scroll-smooth"
+                        className="h-full overflow-y-auto p-4 space-y-6 scroll-smooth pb-8"
                         style={{ scrollbarWidth: 'thin', scrollbarColor: 'hsl(var(--border)) transparent' }}
                     >
                         <Controller
@@ -578,57 +561,39 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                                 />
                             )}
                         />
-                    </div>{/* end inner scroll div */}
+                        <div className="pt-4 border-t mt-4">
+                            <CheckoutSummary
+                                subtotal={subtotalAmount}
+                                shippingMethod={shippingMethod}
+                                discount={discountAmount}
+                                total={totalToPay}
+                                couponCode={couponCode} setCouponCode={setCouponCode}
+                                applyCoupon={handleApplyCoupon} couponApplying={couponApplying} couponApplied={couponApplied} couponError={couponError} setCouponApplied={setCouponApplied} setCouponError={setCouponError}
+                                isSubmitting={isSubmitting}
 
-                    {/* Scroll fade + bounce indicator */}
-                    {showScrollHint && (
-                        <div
-                            className="pointer-events-none absolute bottom-0 left-0 right-0 h-28 flex flex-col items-center justify-end pb-3 gap-1"
-                            style={{ background: 'linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.7) 40%, rgba(255,255,255,0.97) 100%)' }}
-                        >
-                            <span className="text-xs font-semibold text-muted-foreground bg-white/80 backdrop-blur-sm border border-border rounded-full px-3 py-1 shadow-sm">
-                                Desliza para ver más
-                            </span>
-                            <div className="animate-bounce text-muted-foreground mt-0.5">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </div>
-                        </div>
-                    )}
-                </div>{/* end outer relative div */}
-
-                <div className="p-4 border-t mt-auto bg-popover">
-                    <CheckoutSummary
-                        subtotal={subtotalAmount}
-                        shippingMethod={shippingMethod}
-                        discount={discountAmount}
-                        total={totalToPay}
-                        couponCode={couponCode} setCouponCode={setCouponCode}
-                        applyCoupon={handleApplyCoupon} couponApplying={couponApplying} couponApplied={couponApplied} couponError={couponError} setCouponApplied={setCouponApplied} setCouponError={setCouponError}
-                        isSubmitting={isSubmitting}
-
-                        // Inyectar botón de Culqi si está seleccionado
-                        customButton={paymentMethod === 'culqi' ? (
-                            <CulqiPaymentButton
-                                amount={totalToPay}
-                                email={watch("email") || "pedidos@blama.shop"}
-                                title={`Pedido Blama Shop - S/ ${totalToPay}`}
-                                onBeforeOpen={validateFieldsForCulqi}
-                                onToken={handleCulqiToken}
-                                onError={(e: any) => {
-                                    const msg = e.message || JSON.stringify(e)
-                                    if (msg.includes("cancelado")) {
-                                        toast.info("Operación Cancelada", { description: "Has cancelado el proceso de pago. Puedes intentarlo de nuevo cuando desees." })
-                                    } else {
-                                        toast.error("Error en el pago", { description: msg })
-                                    }
-                                }}
-                                disabled={isSubmitting}
+                                // Inyectar botón de Culqi si está seleccionado
+                                customButton={paymentMethod === 'culqi' ? (
+                                    <CulqiPaymentButton
+                                        amount={totalToPay}
+                                        email={watch("email") || "pedidos@blama.shop"}
+                                        title={`Pedido Blama Shop - S/ ${totalToPay}`}
+                                        onBeforeOpen={validateFieldsForCulqi}
+                                        onToken={handleCulqiToken}
+                                        onError={(e: any) => {
+                                            const msg = e.message || JSON.stringify(e)
+                                            if (msg.includes("cancelado")) {
+                                                toast.info("Operación Cancelada", { description: "Has cancelado el proceso de pago. Puedes intentarlo de nuevo cuando desees." })
+                                            } else {
+                                                toast.error("Error en el pago", { description: msg })
+                                            }
+                                        }}
+                                        disabled={isSubmitting}
+                                    />
+                                ) : undefined}
                             />
-                        ) : undefined}
-                    />
-                </div>
+                        </div>
+                    </div>{/* end inner scroll div */}
+                </div>{/* end outer relative div */}
             </form>
         </>
     )

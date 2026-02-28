@@ -47,6 +47,7 @@ export function QuickAddress({
                         <MapPin className="h-5 w-5" />
                     </div>
                     <Input
+                        required
                         value={addressValue}
                         onChange={(e) => setAddressValue(e.target.value)}
                         disabled={disabled || !ready}
@@ -81,6 +82,7 @@ export function QuickAddress({
                         <Building2 className="h-5 w-5" />
                     </div>
                     <Input
+                        required
                         placeholder="Departamento"
                         value={department}
                         onChange={(e) => setDepartment(e.target.value)}
@@ -100,6 +102,7 @@ export function QuickAddress({
                         <Landmark className="h-5 w-5" />
                     </div>
                     <Input
+                        required
                         placeholder="Provincia"
                         value={province}
                         onChange={(e) => setProvince(e.target.value)}
@@ -119,6 +122,7 @@ export function QuickAddress({
                         <Navigation className="h-5 w-5" />
                     </div>
                     <Input
+                        required
                         placeholder="Distrito"
                         value={district}
                         onChange={(e) => setDistrict(e.target.value)}

@@ -112,6 +112,7 @@ export function CheckoutAddress({
                             </div>
                         )}
                     </div>
+                    {errors.department && <p className="text-xs text-destructive font-medium animate-in fade-in slide-in-from-top-1">{errors.department.message}</p>}
                 </div>
 
                 <div className="space-y-1.5">
@@ -138,6 +139,7 @@ export function CheckoutAddress({
                             </div>
                         )}
                     </div>
+                    {errors.province && <p className="text-xs text-destructive font-medium animate-in fade-in slide-in-from-top-1">{errors.province.message}</p>}
                 </div>
 
                 <div className="space-y-1.5">
@@ -164,6 +166,7 @@ export function CheckoutAddress({
                             </div>
                         )}
                     </div>
+                    {errors.district && <p className="text-xs text-destructive font-medium animate-in fade-in slide-in-from-top-1">{errors.district.message}</p>}
                 </div>
             </div>
 

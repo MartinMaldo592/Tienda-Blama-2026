@@ -154,7 +154,8 @@ export function CartButton() {
             localStorage.removeItem('cart-storage')
         } catch (err) {
         }
-        setView('success')
+        setCartOpen(false)
+        setTimeout(() => setView('cart'), 200)
     }
 
     // Culqi (tarjeta): cierra el carrito directamente sin mostrar

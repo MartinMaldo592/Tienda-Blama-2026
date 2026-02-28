@@ -42,6 +42,7 @@ export function QuickCustomer({ name, setName, phone, setPhone, dni, setDni, ema
                     </div>
                     <Input
                         required
+                        minLength={4}
                         placeholder="Tu nombre completo"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
@@ -75,6 +76,7 @@ export function QuickCustomer({ name, setName, phone, setPhone, dni, setDni, ema
                         <Input
                             required
                             placeholder="8 dígitos"
+                            minLength={8}
                             maxLength={8}
                             inputMode="numeric"
                             pattern="[0-9]*"
@@ -108,8 +110,10 @@ export function QuickCustomer({ name, setName, phone, setPhone, dni, setDni, ema
                         <Input
                             required
                             placeholder="9 dígitos"
-                            maxLength={11}
+                            minLength={9}
+                            maxLength={9}
                             inputMode="numeric"
+                            pattern="[0-9]*"
                             value={phone}
                             onChange={(e) => {
                                 const raw = e.target.value.replace(/\D/g, '').slice(0, 9)
