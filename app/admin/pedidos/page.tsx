@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { createClient } from "@/lib/supabase.client"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
@@ -22,9 +22,9 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { formatCurrency } from "@/lib/utils"
-import { Eye, Search, UserPlus, RefreshCw, User, Loader2, Calendar } from "lucide-react"
+import { Eye, Search, UserPlus, RefreshCw, User, Loader2, Calendar, AlertCircle, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
-import { usePathname, useSearchParams } from "next/navigation"
+import { usePathname, useSearchParams, useRouter } from "next/navigation"
 import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidosForRole, updatePedidoStatusWithStock, checkBulkStockSufficient } from "@/features/admin"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import {
@@ -42,6 +42,7 @@ export default function PedidosPage() {
     const queryClient = useQueryClient()
     const pathname = usePathname()
     const searchParams = useSearchParams()
+    const router = useRouter()
     
     const [userId, setUserId] = useState<string>('')
     const [filterWorker, setFilterWorker] = useState<string>('all')
@@ -58,6 +59,7 @@ export default function PedidosPage() {
     const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false)
     const [pendingBulkStatus, setPendingBulkStatus] = useState("")
     const [isCheckingStock, setIsCheckingStock] = useState(false)
+    const [stockError, setStockError] = useState<string | null>(null)
 
     // Pagination state
     const initialPage = Number(searchParams.get("page")) || 1
@@ -66,17 +68,22 @@ export default function PedidosPage() {
 
     // Sync page to URL
     useEffect(() => {
-        // Use window.location to avoid infinite loops with Next.js router
-        const params = new URLSearchParams(window.location.search)
-        if (currentPage > 1) {
-            params.set("page", currentPage.toString())
-        } else {
-            params.delete("page")
+        const params = new URLSearchParams(searchParams.toString())
+        const oldPage = params.get("page")
+        const newPageStr = currentPage > 1 ? currentPage.toString() : null
+        
+        // Only update if it actually changed to prevent loops
+        if (oldPage !== newPageStr && !(oldPage === null && newPageStr === null)) {
+            if (newPageStr) {
+                params.set("page", newPageStr)
+            } else {
+                params.delete("page")
+            }
+            const query = params.toString()
+            const newUrl = query ? `${pathname}?${query}` : pathname
+            router.replace(newUrl, { scroll: false })
         }
-        const query = params.toString()
-        const newUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname
-        window.history.replaceState(null, '', newUrl)
-    }, [currentPage])
+    }, [currentPage, pathname, router, searchParams])
 
     const guard = useRoleGuard({ allowedRoles: ["admin", "worker"] })
     const userRole = String(guard.role || 'worker')
@@ -89,8 +96,14 @@ export default function PedidosPage() {
         })
     }, [])
 
+    const isFirstRender = useRef(true)
+
     // Reset pagination when filters change
     useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false
+            return
+        }
         setCurrentPage(1)
     }, [searchTerm, statusFilter, dateFilter, filterWorker, customStartDate, customEndDate])
 
@@ -231,7 +244,8 @@ export default function PedidosPage() {
 
     async function handleBulkStatusRequest(status: string) {
         setPendingBulkStatus(status)
-        const deducirStatuses = ["Confirmado", "Enviado", "Entregado"]
+        setStockError(null)
+        const deducirStatuses = ["Confirmado", "Preparando", "Enviado", "Entregado"]
         
         // If we are moving to a status that deducts stock, we check upfront
         if (deducirStatuses.includes(status)) {
@@ -241,16 +255,13 @@ export default function PedidosPage() {
             try {
                 const result = await checkBulkStockSufficient(selectedIds)
                 if (!result.ok) {
-                    toast.error(result.message || 'Stock insuficiente para la operación masiva.')
-                    setBulkConfirmOpen(false)
-                    setPendingBulkStatus("")
+                    setStockError(result.message || 'Stock insuficiente para la operación masiva.')
+                    // Don't close modal so it shows the error
                     return
                 }
                 // Stock is OK, dialog remains open to confirm
             } catch (err: any) {
-                toast.error('Error al verificar stock: ' + err.message)
-                setBulkConfirmOpen(false)
-                setPendingBulkStatus("")
+                setStockError('Error al verificar stock: ' + err.message)
             } finally {
                 setIsCheckingStock(false)
             }
@@ -728,7 +739,10 @@ export default function PedidosPage() {
             <Dialog open={bulkConfirmOpen} onOpenChange={(open) => {
                 if (!isCheckingStock && !bulkStatusMutation.isPending) {
                     setBulkConfirmOpen(open)
-                    if (!open) setPendingBulkStatus("")
+                    if (!open) {
+                        setPendingBulkStatus("")
+                        setStockError(null)
+                    }
                 }
             }}>
                 <DialogContent>
@@ -741,14 +755,27 @@ export default function PedidosPage() {
                     
                     <div className="py-4">
                         {isCheckingStock ? (
-                            <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                                <span>Verificando disponibilidad de stock para todos los pedidos...</span>
+                            <div className="flex flex-col items-center justify-center gap-3 text-sm text-gray-500 py-4">
+                                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                                <span>Verificando disponibilidad de stock para {selectedIds.length} pedidos...</span>
+                            </div>
+                        ) : stockError ? (
+                            <div className="flex flex-col items-center justify-center gap-3 text-sm text-red-600 bg-red-50 p-4 rounded-lg border border-red-100">
+                                <AlertCircle className="h-8 w-8 text-red-500" />
+                                <div className="text-center">
+                                    <p className="font-semibold text-base mb-1">Stock Insuficiente</p>
+                                    <p>{stockError}</p>
+                                    <p className="mt-2 text-xs text-red-400">Por favor, reduce la cantidad de pedidos seleccionados o actualiza el inventario antes de continuar.</p>
+                                </div>
                             </div>
                         ) : (
-                            <p className="text-sm text-gray-700">
-                                Se ha verificado el stock y es suficiente para esta operación. ¿Estás seguro de que deseas aplicar este cambio a todos los pedidos seleccionados? Esta acción descontará el stock correspondiente si aplica.
-                            </p>
+                            <div className="flex gap-3 text-sm text-gray-700 bg-blue-50 p-4 rounded-lg border border-blue-100">
+                                <CheckCircle2 className="h-6 w-6 text-blue-500 shrink-0" />
+                                <div>
+                                    <p className="font-semibold text-blue-900 mb-1">¡Stock Verificado!</p>
+                                    <p>Hay stock suficiente para procesar los <strong>{selectedIds.length}</strong> pedidos. ¿Estás seguro de que deseas aplicar el estado <strong>{pendingBulkStatus}</strong> a todos los pedidos seleccionados? Esta acción descontará el inventario.</p>
+                                </div>
+                            </div>
                         )}
                     </div>
                     
@@ -758,19 +785,22 @@ export default function PedidosPage() {
                             onClick={() => {
                                 setBulkConfirmOpen(false)
                                 setPendingBulkStatus("")
+                                setStockError(null)
                             }}
                             disabled={isCheckingStock || bulkStatusMutation.isPending}
                         >
-                            Cancelar
+                            {stockError ? 'Cerrar' : 'Cancelar'}
                         </Button>
-                        <Button 
-                            onClick={() => bulkStatusMutation.mutate({ status: pendingBulkStatus })} 
-                            disabled={isCheckingStock || bulkStatusMutation.isPending}
-                            className="bg-blue-600 hover:bg-blue-700 text-white"
-                        >
-                            {bulkStatusMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-                            Confirmar Cambio
-                        </Button>
+                        {!stockError && (
+                            <Button 
+                                onClick={() => bulkStatusMutation.mutate({ status: pendingBulkStatus })} 
+                                disabled={isCheckingStock || bulkStatusMutation.isPending}
+                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                            >
+                                {bulkStatusMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                                Confirmar Cambio
+                            </Button>
+                        )}
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
