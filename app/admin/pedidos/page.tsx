@@ -60,6 +60,7 @@ export default function PedidosPage() {
     const [pendingBulkStatus, setPendingBulkStatus] = useState("")
     const [isCheckingStock, setIsCheckingStock] = useState(false)
     const [stockError, setStockError] = useState<string | null>(null)
+    const [stockErrorsList, setStockErrorsList] = useState<any[]>([])
 
     // Pagination state
     const initialPage = Number(searchParams.get("page")) || 1
@@ -256,12 +257,14 @@ export default function PedidosPage() {
                 const result = await checkBulkStockSufficient(selectedIds)
                 if (!result.ok) {
                     setStockError(result.message || 'Stock insuficiente para la operación masiva.')
+                    setStockErrorsList(result.errors || [])
                     // Don't close modal so it shows the error
                     return
                 }
                 // Stock is OK, dialog remains open to confirm
             } catch (err: any) {
                 setStockError('Error al verificar stock: ' + err.message)
+                setStockErrorsList([])
             } finally {
                 setIsCheckingStock(false)
             }
@@ -742,6 +745,7 @@ export default function PedidosPage() {
                     if (!open) {
                         setPendingBulkStatus("")
                         setStockError(null)
+                        setStockErrorsList([])
                     }
                 }
             }}>
@@ -760,13 +764,30 @@ export default function PedidosPage() {
                                 <span>Verificando disponibilidad de stock para {selectedIds.length} pedidos...</span>
                             </div>
                         ) : stockError ? (
-                            <div className="flex flex-col items-center justify-center gap-3 text-sm text-red-600 bg-red-50 p-4 rounded-lg border border-red-100">
-                                <AlertCircle className="h-8 w-8 text-red-500" />
-                                <div className="text-center">
-                                    <p className="font-semibold text-base mb-1">Stock Insuficiente</p>
-                                    <p>{stockError}</p>
-                                    <p className="mt-2 text-xs text-red-400">Por favor, reduce la cantidad de pedidos seleccionados o actualiza el inventario antes de continuar.</p>
+                            <div className="flex flex-col gap-3 text-sm text-red-600 bg-red-50 p-4 rounded-lg border border-red-100">
+                                <div className="flex items-center gap-2 font-semibold text-base text-red-700">
+                                    <AlertCircle className="h-6 w-6" />
+                                    <span>Stock Insuficiente</span>
                                 </div>
+                                <p className="text-red-600">
+                                    No tienes stock suficiente para procesar todos los pedidos seleccionados. Por favor, revisa el detalle:
+                                </p>
+                                {stockErrorsList.length > 0 && (
+                                    <ul className="mt-1 space-y-2 bg-white rounded p-3 border border-red-200">
+                                        {stockErrorsList.map((err, idx) => (
+                                            <li key={idx} className="flex justify-between items-center text-sm border-b border-gray-100 pb-2 last:border-0 last:pb-0">
+                                                <span className="font-medium text-gray-800">
+                                                    {err.productName} {err.sku ? <span className="text-xs text-gray-500 font-normal ml-1">(SKU: {err.sku})</span> : ''}
+                                                </span>
+                                                <div className="flex flex-col items-end leading-tight">
+                                                    <span className="text-red-600 font-semibold text-xs mb-0.5">Faltan {err.required - err.available}</span>
+                                                    <span className="text-xs text-gray-500">Stock: {err.available} / Pedidos: {err.required}</span>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                                <p className="mt-1 text-xs text-red-500">Reduce la cantidad de pedidos seleccionados o actualiza tu inventario en la sección de Productos.</p>
                             </div>
                         ) : (
                             <div className="flex gap-3 text-sm text-gray-700 bg-blue-50 p-4 rounded-lg border border-blue-100">

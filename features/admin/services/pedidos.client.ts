@@ -158,7 +158,14 @@ export async function updatePedidoStatusWithStock(args: { pedidoId: number; next
   if (error) throw error
 }
 
-export async function checkBulkStockSufficient(pedidoIds: number[]): Promise<{ ok: boolean; message?: string }> {
+export interface BulkStockError {
+  productName: string;
+  sku?: string;
+  required: number;
+  available: number;
+}
+
+export async function checkBulkStockSufficient(pedidoIds: number[]): Promise<{ ok: boolean; message?: string, errors?: BulkStockError[] }> {
   const supabase = createClient()
   
   if (!pedidoIds || pedidoIds.length === 0) return { ok: true }
@@ -183,6 +190,8 @@ export async function checkBulkStockSufficient(pedidoIds: number[]): Promise<{ o
     requiredStock[key].qty += item.cantidad
   }
 
+  const stockErrors: BulkStockError[] = []
+
   // 3. Check each product/variant against DB
   for (const key in requiredStock) {
     const { pId, vId, qty } = requiredStock[key]
@@ -191,13 +200,18 @@ export async function checkBulkStockSufficient(pedidoIds: number[]): Promise<{ o
       // Check variant stock
       const { data: variant, error: vErr } = await supabase
         .from("producto_variantes")
-        .select("stock, sku")
+        .select("stock, sku, productos(nombre)")
         .eq("id", vId)
         .single()
       
       if (vErr && vErr.code !== 'PGRST116') throw vErr
       if (variant && (variant.stock || 0) < qty) {
-        return { ok: false, message: `Stock insuficiente para la variante SKU ${variant.sku || 'N/A'}. Se requieren ${qty}, pero solo hay ${variant.stock || 0} disponibles.` }
+        stockErrors.push({
+            productName: (variant as any).productos?.nombre || 'Producto con Variante',
+            sku: variant.sku,
+            required: qty,
+            available: variant.stock || 0
+        })
       }
     } else {
       // Check product stock
@@ -209,9 +223,17 @@ export async function checkBulkStockSufficient(pedidoIds: number[]): Promise<{ o
       
       if (pErr && pErr.code !== 'PGRST116') throw pErr
       if (prod && (prod.stock || 0) < qty) {
-        return { ok: false, message: `Stock insuficiente para el producto "${prod.nombre}". Se requieren ${qty}, pero solo hay ${prod.stock || 0} disponibles.` }
+        stockErrors.push({
+            productName: prod.nombre || 'Producto',
+            required: qty,
+            available: prod.stock || 0
+        })
       }
     }
+  }
+
+  if (stockErrors.length > 0) {
+      return { ok: false, message: 'Stock insuficiente para algunos productos.', errors: stockErrors }
   }
 
   return { ok: true }
