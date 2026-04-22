@@ -157,3 +157,62 @@ export async function updatePedidoStatusWithStock(args: { pedidoId: number; next
   const { error } = await supabase.from("pedidos").update({ status: nextStatus as any }).eq("id", pedidoId)
   if (error) throw error
 }
+
+export async function checkBulkStockSufficient(pedidoIds: number[]): Promise<{ ok: boolean; message?: string }> {
+  const supabase = createClient()
+  
+  if (!pedidoIds || pedidoIds.length === 0) return { ok: true }
+
+  // 1. Get all items for the selected orders that are NOT yet deducted
+  const { data: items, error } = await supabase
+    .from("pedido_items")
+    .select("producto_id, variante_id, cantidad, pedidos!inner(stock_descontado)")
+    .in("pedido_id", pedidoIds)
+    .eq("pedidos.stock_descontado", false)
+    
+  if (error) throw error
+  if (!items || items.length === 0) return { ok: true }
+
+  // 2. Aggregate quantities required by product/variant
+  const requiredStock: Record<string, { pId: number; vId: number | null; qty: number }> = {}
+  for (const item of items) {
+    const key = `${item.producto_id}-${item.variante_id || 'null'}`
+    if (!requiredStock[key]) {
+      requiredStock[key] = { pId: item.producto_id, vId: item.variante_id, qty: 0 }
+    }
+    requiredStock[key].qty += item.cantidad
+  }
+
+  // 3. Check each product/variant against DB
+  for (const key in requiredStock) {
+    const { pId, vId, qty } = requiredStock[key]
+    
+    if (vId) {
+      // Check variant stock
+      const { data: variant, error: vErr } = await supabase
+        .from("producto_variantes")
+        .select("stock, sku")
+        .eq("id", vId)
+        .single()
+      
+      if (vErr && vErr.code !== 'PGRST116') throw vErr
+      if (variant && (variant.stock || 0) < qty) {
+        return { ok: false, message: `Stock insuficiente para la variante SKU ${variant.sku || 'N/A'}. Se requieren ${qty}, pero solo hay ${variant.stock || 0} disponibles.` }
+      }
+    } else {
+      // Check product stock
+      const { data: prod, error: pErr } = await supabase
+        .from("productos")
+        .select("stock, nombre")
+        .eq("id", pId)
+        .single()
+      
+      if (pErr && pErr.code !== 'PGRST116') throw pErr
+      if (prod && (prod.stock || 0) < qty) {
+        return { ok: false, message: `Stock insuficiente para el producto "${prod.nombre}". Se requieren ${qty}, pero solo hay ${prod.stock || 0} disponibles.` }
+      }
+    }
+  }
+
+  return { ok: true }
+}

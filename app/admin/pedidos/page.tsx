@@ -24,13 +24,25 @@ import {
 import { formatCurrency } from "@/lib/utils"
 import { Eye, Search, UserPlus, RefreshCw, User, Loader2, Calendar } from "lucide-react"
 import Link from "next/link"
-import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidosForRole, updatePedidoStatusWithStock } from "@/features/admin"
+import { usePathname, useSearchParams } from "next/navigation"
+import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidosForRole, updatePedidoStatusWithStock, checkBulkStockSufficient } from "@/features/admin"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
 import { toast } from "sonner"
 import { PedidoRow, ProfileRow } from "@/features/admin/types"
 
 export default function PedidosPage() {
     const queryClient = useQueryClient()
+    const pathname = usePathname()
+    const searchParams = useSearchParams()
+    
     const [userId, setUserId] = useState<string>('')
     const [filterWorker, setFilterWorker] = useState<string>('all')
     const [searchTerm, setSearchTerm] = useState('')
@@ -43,10 +55,28 @@ export default function PedidosPage() {
 
     // Bulk selection state
     const [selectedIds, setSelectedIds] = useState<number[]>([])
+    const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false)
+    const [pendingBulkStatus, setPendingBulkStatus] = useState("")
+    const [isCheckingStock, setIsCheckingStock] = useState(false)
 
     // Pagination state
-    const [currentPage, setCurrentPage] = useState(1)
+    const initialPage = Number(searchParams.get("page")) || 1
+    const [currentPage, setCurrentPage] = useState(initialPage)
     const itemsPerPage = 10
+
+    // Sync page to URL
+    useEffect(() => {
+        // Use window.location to avoid infinite loops with Next.js router
+        const params = new URLSearchParams(window.location.search)
+        if (currentPage > 1) {
+            params.set("page", currentPage.toString())
+        } else {
+            params.delete("page")
+        }
+        const query = params.toString()
+        const newUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname
+        window.history.replaceState(null, '', newUrl)
+    }, [currentPage])
 
     const guard = useRoleGuard({ allowedRoles: ["admin", "worker"] })
     const userRole = String(guard.role || 'worker')
@@ -189,12 +219,46 @@ export default function PedidosPage() {
         onSuccess: () => {
             toast.success(`${selectedIds.length} pedidos actualizados correctamente.`)
             setSelectedIds([])
+            setBulkConfirmOpen(false)
+            setPendingBulkStatus("")
             queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
         },
         onError: (error: Error) => {
             toast.error('Error en actualización masiva: ' + error.message)
+            setBulkConfirmOpen(false)
         }
     })
+
+    async function handleBulkStatusRequest(status: string) {
+        setPendingBulkStatus(status)
+        const deducirStatuses = ["Confirmado", "Enviado", "Entregado"]
+        
+        // If we are moving to a status that deducts stock, we check upfront
+        if (deducirStatuses.includes(status)) {
+            setIsCheckingStock(true)
+            setBulkConfirmOpen(true) // Open dialog showing loading
+            
+            try {
+                const result = await checkBulkStockSufficient(selectedIds)
+                if (!result.ok) {
+                    toast.error(result.message || 'Stock insuficiente para la operación masiva.')
+                    setBulkConfirmOpen(false)
+                    setPendingBulkStatus("")
+                    return
+                }
+                // Stock is OK, dialog remains open to confirm
+            } catch (err: any) {
+                toast.error('Error al verificar stock: ' + err.message)
+                setBulkConfirmOpen(false)
+                setPendingBulkStatus("")
+            } finally {
+                setIsCheckingStock(false)
+            }
+        } else {
+            // For other statuses, just open confirm
+            setBulkConfirmOpen(true)
+        }
+    }
 
     const bulkAssignMutation = useMutation({
         mutationFn: async ({ workerId }: { workerId: string }) => {
@@ -341,7 +405,7 @@ export default function PedidosPage() {
                         </span>
                     </div>
                     <div className="flex gap-2">
-                        <Select onValueChange={(val) => bulkStatusMutation.mutate({ status: val })}>
+                        <Select value={pendingBulkStatus || undefined} onValueChange={handleBulkStatusRequest}>
                             <SelectTrigger className="w-[180px] h-9 bg-white cursor-pointer">
                                 <SelectValue placeholder="Cambiar estado..." />
                             </SelectTrigger>
@@ -660,6 +724,56 @@ export default function PedidosPage() {
                     )}
                 </div>
             )}
+
+            <Dialog open={bulkConfirmOpen} onOpenChange={(open) => {
+                if (!isCheckingStock && !bulkStatusMutation.isPending) {
+                    setBulkConfirmOpen(open)
+                    if (!open) setPendingBulkStatus("")
+                }
+            }}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Confirmación de Cambio Masivo</DialogTitle>
+                        <DialogDescription>
+                            Estás a punto de cambiar el estado de <strong>{selectedIds.length}</strong> pedidos a <strong>{pendingBulkStatus}</strong>.
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="py-4">
+                        {isCheckingStock ? (
+                            <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                                <span>Verificando disponibilidad de stock para todos los pedidos...</span>
+                            </div>
+                        ) : (
+                            <p className="text-sm text-gray-700">
+                                Se ha verificado el stock y es suficiente para esta operación. ¿Estás seguro de que deseas aplicar este cambio a todos los pedidos seleccionados? Esta acción descontará el stock correspondiente si aplica.
+                            </p>
+                        )}
+                    </div>
+                    
+                    <DialogFooter>
+                        <Button 
+                            variant="outline" 
+                            onClick={() => {
+                                setBulkConfirmOpen(false)
+                                setPendingBulkStatus("")
+                            }}
+                            disabled={isCheckingStock || bulkStatusMutation.isPending}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button 
+                            onClick={() => bulkStatusMutation.mutate({ status: pendingBulkStatus })} 
+                            disabled={isCheckingStock || bulkStatusMutation.isPending}
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                            {bulkStatusMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                            Confirmar Cambio
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
