@@ -111,6 +111,38 @@ export default function PedidosPage() {
     }, [searchTerm, statusFilter, dateFilter, filterWorker, customStartDate, customEndDate])
 
     // 1. Queries
+    // Realtime Subscription
+    useEffect(() => {
+        if (!userId) return
+
+        const supabase = createClient()
+        
+        const channel = supabase
+            .channel('admin-pedidos-realtime')
+            .on(
+                'postgres_changes', 
+                { event: '*', schema: 'public', table: 'pedidos' }, 
+                (payload) => {
+                    // Invalidate query to refresh the list
+                    queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
+                    
+                    // Show specific toast for new orders
+                    if (payload.eventType === 'INSERT') {
+                        toast.success("¡Nuevo pedido recibido!", {
+                            description: `Pedido #${payload.new.id.toString().padStart(6, '0')}`,
+                            icon: <CheckCircle2 className="h-5 w-5 text-green-500" />,
+                            duration: 5000,
+                        })
+                    }
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [userId, queryClient])
+
     const { data: fetchResult, isLoading: loadingPedidos, isFetching } = useQuery({
         queryKey: ["adminPedidos", userRole, userId, currentPage, itemsPerPage, statusFilter, searchTerm, dateFilter, filterWorker, customStartDate, customEndDate],
         queryFn: () => fetchPedidosForRole({ 
