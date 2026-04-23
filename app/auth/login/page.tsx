@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Lock, Mail, Loader2 } from "lucide-react"
+import Link from "next/link"
 
 export default function LoginPage() {
     const supabase = createClient()
@@ -68,6 +69,7 @@ export default function LoginPage() {
                         </div>
                     </div>
 
+                    <div className="space-y-2">
                         <div className="flex items-center justify-between">
                             <Label htmlFor="password">Contraseña</Label>
                             <Link 
