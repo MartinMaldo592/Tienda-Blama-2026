@@ -173,7 +173,7 @@ export async function checkBulkStockSufficient(pedidoIds: number[]): Promise<{ o
   // 1. Get all items for the selected orders that are NOT yet deducted
   const { data: items, error } = await supabase
     .from("pedido_items")
-    .select("producto_id, variante_id, cantidad, pedidos!inner(stock_descontado)")
+    .select("producto_id, producto_variante_id, cantidad, pedidos!inner(stock_descontado)")
     .in("pedido_id", pedidoIds)
     .eq("pedidos.stock_descontado", false)
     
@@ -183,9 +183,10 @@ export async function checkBulkStockSufficient(pedidoIds: number[]): Promise<{ o
   // 2. Aggregate quantities required by product/variant
   const requiredStock: Record<string, { pId: number; vId: number | null; qty: number }> = {}
   for (const item of items) {
-    const key = `${item.producto_id}-${item.variante_id || 'null'}`
+    const vId = (item as any).producto_variante_id || null
+    const key = `${item.producto_id}-${vId || 'null'}`
     if (!requiredStock[key]) {
-      requiredStock[key] = { pId: item.producto_id, vId: item.variante_id, qty: 0 }
+      requiredStock[key] = { pId: item.producto_id, vId: vId, qty: 0 }
     }
     requiredStock[key].qty += item.cantidad
   }
