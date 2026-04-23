@@ -287,7 +287,7 @@ export default function PedidosPage() {
             if (mode === 'page') {
                 dataToExport = paginatedPedidos
             } else {
-                toast.info(\"Preparando exportación completa...\")
+                toast.info("Preparando exportación completa...")
                 const result = await fetchPedidosForRole({
                     role: userRole,
                     currentUserId: userId,
@@ -304,37 +304,37 @@ export default function PedidosPage() {
             }
 
             if (dataToExport.length === 0) {
-                toast.error(\"No hay datos para exportar\")
+                toast.error("No hay datos para exportar")
                 return
             }
 
             const rows = dataToExport.map((p: PedidoRow) => {
                 const cliente = p.clientes as any
                 return {
-                    \"ID\": p.id,
-                    \"Fecha\": new Date(p.created_at).toLocaleDateString(),
-                    \"Hora\": new Date(p.created_at).toLocaleTimeString('es-PE', { hour12: false }),
-                    \"Cliente\": p.clientes?.nombre || p.nombre_contacto || '',
-                    \"Teléfono\": p.clientes?.telefono || p.telefono_contacto || '',
-                    \"DNI\": p.clientes?.dni || p.dni_contacto || '',
-                    \"Dirección\": p.clientes?.direccion || p.direccion_calle || '',
-                    \"Referencia\": cliente?.referencia || p.referencia_direccion || '',
-                    \"Departamento\": p.departamento || cliente?.departamento || '',
-                    \"Provincia\": p.provincia || cliente?.provincia || '',
-                    \"Distrito\": p.distrito || cliente?.distrito || '',
-                    \"Total (S/)\": p.total,
-                    \"Estado Pedido\": p.status,
-                    \"Estado Pago\": p.pago_status,
-                    \"Cupón\": p.cupon_codigo || '',
-                    \"Descuento\": p.descuento ?? '',
-                    \"Subtotal\": p.subtotal ?? '',
-                    \"Asignado A\": p.asignado_perfil?.nombre || p.asignado_perfil?.email || p.asignado_a || '',
+                    "ID": p.id,
+                    "Fecha": new Date(p.created_at).toLocaleDateString(),
+                    "Hora": new Date(p.created_at).toLocaleTimeString('es-PE', { hour12: false }),
+                    "Cliente": p.clientes?.nombre || p.nombre_contacto || '',
+                    "Teléfono": p.clientes?.telefono || p.telefono_contacto || '',
+                    "DNI": p.clientes?.dni || p.dni_contacto || '',
+                    "Dirección": p.clientes?.direccion || p.direccion_calle || '',
+                    "Referencia": cliente?.referencia || p.referencia_direccion || '',
+                    "Departamento": p.departamento || cliente?.departamento || '',
+                    "Provincia": p.provincia || cliente?.provincia || '',
+                    "Distrito": p.distrito || cliente?.distrito || '',
+                    "Total (S/)": p.total,
+                    "Estado Pedido": p.status,
+                    "Estado Pago": p.pago_status,
+                    "Cupón": p.cupon_codigo || '',
+                    "Descuento": p.descuento ?? '',
+                    "Subtotal": p.subtotal ?? '',
+                    "Asignado A": p.asignado_perfil?.nombre || p.asignado_perfil?.email || p.asignado_a || '',
                 }
             })
 
             const worksheet = XLSX.utils.json_to_sheet(rows)
             const workbook = XLSX.utils.book_new()
-            XLSX.utils.book_append_sheet(workbook, worksheet, \"Pedidos\")
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Pedidos")
 
             const wscols = [
                 { wch: 10 }, // ID
@@ -362,10 +362,10 @@ export default function PedidosPage() {
             const suffix = mode === 'all' ? '_Completo' : '_Pagina'
             XLSX.writeFile(workbook, `Pedidos_Blama_${today}${suffix}.xlsx`)
             setExportDialogOpen(false)
-            toast.success(\"Exportación completada\")
+            toast.success("Exportación completada")
         } catch (error) {
-            console.error(\"Error exporting excel:\", error)
-            toast.error(\"Error al exportar a Excel\")
+            console.error("Error exporting excel:", error)
+            toast.error("Error al exportar a Excel")
         } finally {
             setIsExporting(false)
         }
@@ -394,7 +394,7 @@ export default function PedidosPage() {
                 </div>
                 <div className="flex gap-2">
                     {userRole === 'admin' && (
-                        <Button variant=\"outline\" className=\"gap-2\" onClick={() => setExportDialogOpen(true)} disabled={totalItems === 0}>
+                        <Button variant="outline" className="gap-2" onClick={() => setExportDialogOpen(true)} disabled={totalItems === 0}>
                             <RefreshCw className={`h-4 w-4 ${isExporting ? 'animate-spin' : ''}`} />
                             Exportar Excel
                         </Button>
@@ -832,47 +832,47 @@ export default function PedidosPage() {
 
             {/* Export Selection Dialog */}
             <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
-                <DialogContent className=\"sm:max-w-[400px]\">
+                <DialogContent className="sm:max-w-[400px]">
                     <DialogHeader>
                         <DialogTitle>Opciones de Exportación</DialogTitle>
                         <DialogDescription>
                             ¿Qué datos deseas exportar a Excel? Se respetarán los filtros actuales (búsqueda, fechas, estados).
                         </DialogDescription>
                     </DialogHeader>
-                    <div className=\"grid gap-4 py-4\">
+                    <div className="grid gap-4 py-4">
                         <Button 
-                            variant=\"outline\" 
-                            className=\"flex justify-start gap-3 h-14\" 
+                            variant="outline" 
+                            className="flex justify-start gap-3 h-14" 
                             onClick={() => handleExportXlsx('page')}
                             disabled={isExporting}
                         >
-                            <div className=\"h-8 w-8 rounded bg-blue-100 text-blue-600 flex items-center justify-center shrink-0\">
-                                <Eye className=\"h-4 w-4\" />
+                            <div className="h-8 w-8 rounded bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                                <Eye className="h-4 w-4" />
                             </div>
-                            <div className=\"text-left\">
-                                <div className=\"font-semibold\">Solo página actual</div>
-                                <div className=\"text-xs text-muted-foreground\">Exporta los {paginatedPedidos.length} pedidos mostrados ahora.</div>
+                            <div className="text-left">
+                                <div className="font-semibold">Solo página actual</div>
+                                <div className="text-xs text-muted-foreground">Exporta los {paginatedPedidos.length} pedidos mostrados ahora.</div>
                             </div>
                         </Button>
 
                         <Button 
-                            variant=\"outline\" 
-                            className=\"flex justify-start gap-3 h-14\" 
+                            variant="outline" 
+                            className="flex justify-start gap-3 h-14" 
                             onClick={() => handleExportXlsx('all')}
                             disabled={isExporting}
                         >
-                            <div className=\"h-8 w-8 rounded bg-green-100 text-green-600 flex items-center justify-center shrink-0\">
-                                <RefreshCw className=\"h-4 w-4\" />
+                            <div className="h-8 w-8 rounded bg-green-100 text-green-600 flex items-center justify-center shrink-0">
+                                <RefreshCw className="h-4 w-4" />
                             </div>
-                            <div className=\"text-left\">
-                                <div className=\"font-semibold\">Todos los pedidos</div>
-                                <div className=\"text-xs text-muted-foreground\">Exporta el total de {totalItems} pedidos filtrados.</div>
+                            <div className="text-left">
+                                <div className="font-semibold">Todos los pedidos</div>
+                                <div className="text-xs text-muted-foreground">Exporta el total de {totalItems} pedidos filtrados.</div>
                             </div>
                         </Button>
                     </div>
                     {isExporting && (
-                        <div className=\"flex items-center justify-center gap-2 text-sm text-blue-600 animate-pulse\">
-                            <Loader2 className=\"h-4 w-4 animate-spin\" />
+                        <div className="flex items-center justify-center gap-2 text-sm text-blue-600 animate-pulse">
+                            <Loader2 className="h-4 w-4 animate-spin" />
                             Generando archivo Excel...
                         </div>
                     )}
