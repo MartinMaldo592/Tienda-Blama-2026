@@ -178,16 +178,23 @@ export default function PedidosPage() {
 
     const bulkStatusMutation = useMutation({
         mutationFn: async ({ status }: { status: string }) => {
-            // Process sequentially to handle stock correctly without overwhelming the DB
-            for (const id of selectedIds) {
-                const p = filteredPedidos.find((p: PedidoRow) => p.id === id)
-                if (p) {
-                    await updatePedidoStatusWithStock({
-                        pedidoId: p.id,
-                        nextStatus: status,
-                        stockDescontado: p.stock_descontado || false
-                    })
-                }
+            const supabase = createClient()
+            
+            // 1. Fetch current state of selected orders (specifically stock_descontado)
+            const { data: pedidosToUpdate, error } = await supabase
+                .from('pedidos')
+                .select('id, stock_descontado')
+                .in('id', selectedIds)
+
+            if (error) throw error
+
+            // 2. Process sequentially to handle stock correctly without overwhelming the DB
+            for (const p of pedidosToUpdate || []) {
+                await updatePedidoStatusWithStock({
+                    pedidoId: p.id,
+                    nextStatus: status,
+                    stockDescontado: p.stock_descontado || false
+                })
             }
         },
         onSuccess: () => {
