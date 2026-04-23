@@ -259,10 +259,10 @@ export default function PedidosPage() {
     })
 
     function handleSelectAll() {
-        if (selectedIds.length === filteredPedidos.length) {
+        if (selectedIds.length === paginatedPedidos.length) {
             setSelectedIds([])
         } else {
-            setSelectedIds(filteredPedidos.map((p: PedidoRow) => p.id))
+            setSelectedIds(paginatedPedidos.map((p: PedidoRow) => p.id))
         }
     }
 
@@ -278,7 +278,7 @@ export default function PedidosPage() {
             // or just use standard import if you prefer. Here standard import is simpler to write.
             const XLSX = await import("xlsx")
 
-            const rows = filteredPedidos.map((p: PedidoRow) => {
+            const rows = paginatedPedidos.map((p: PedidoRow) => {
                 const cliente = p.clientes as any
                 return {
                     "ID": p.id,
