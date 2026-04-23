@@ -362,7 +362,7 @@ export default function PedidosPage() {
                 </div>
                 <div className="flex gap-2">
                     {userRole === 'admin' && (
-                        <Button variant="outline" className="gap-2" onClick={handleExportXlsx} disabled={pedidos.length === 0}>
+                        <Button variant="outline" className="gap-2" onClick={handleExportXlsx} disabled={totalItems === 0}>
                             Exportar Excel
                         </Button>
                     )}
@@ -509,7 +509,7 @@ export default function PedidosPage() {
             </div>
 
             {/* Empty State for Workers */}
-            {userRole === 'worker' && pedidos.length === 0 && !loadingPedidos && (
+            {userRole === 'worker' && totalItems === 0 && !loadingPedidos && (
                 <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
                     <div className="h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <User className="h-8 w-8 text-gray-400" />
