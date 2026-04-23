@@ -136,6 +136,10 @@ export default function PedidosPage() {
     const totalItems = fetchResult?.count || 0
     const totalPages = Math.ceil(totalItems / itemsPerPage) || 1
 
+    const firstPageItems = totalItems % itemsPerPage || itemsPerPage
+    const startIndexDisplay = totalItems === 0 ? 0 : (currentPage === 1 ? 1 : firstPageItems + (currentPage - 2) * itemsPerPage + 1)
+    const endIndexDisplay = totalItems === 0 ? 0 : (currentPage === 1 ? firstPageItems : firstPageItems + (currentPage - 1) * itemsPerPage)
+
     // 2. Mutations
     const assignMutation = useMutation({
         mutationFn: async ({ pedidoId, workerId }: { pedidoId: number, workerId: string }) => {
@@ -518,7 +522,7 @@ export default function PedidosPage() {
             )}
 
             {/* Table */}
-            {(userRole === 'admin' || pedidos.length > 0) && (
+            {(userRole === 'admin' || totalItems > 0) && (
                 <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
                     <Table>
                         <TableHeader className="bg-gray-50">
@@ -527,7 +531,7 @@ export default function PedidosPage() {
                                     <input
                                         type="checkbox"
                                         className="h-4 w-4 rounded border-gray-300 text-blue-600 cursor-pointer"
-                                        checked={filteredPedidos.length > 0 && selectedIds.length === filteredPedidos.length}
+                                        checked={paginatedPedidos.length > 0 && selectedIds.length === paginatedPedidos.length}
                                         onChange={handleSelectAll}
                                         title="Seleccionar todos"
                                     />
@@ -552,7 +556,7 @@ export default function PedidosPage() {
                                         </div>
                                     </TableCell>
                                 </TableRow>
-                            ) : filteredPedidos.length === 0 ? (
+                            ) : totalItems === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={userRole === 'admin' ? 9 : 8} className="text-center py-10">
                                         No hay pedidos {filterWorker !== 'all' ? 'con este filtro' : ''}.
@@ -676,7 +680,7 @@ export default function PedidosPage() {
                             <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                                 <div>
                                     <p className="text-sm text-gray-700">
-                                        Mostrando <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> a <span className="font-medium">{Math.min(currentPage * itemsPerPage, filteredPedidos.length)}</span> de <span className="font-medium">{filteredPedidos.length}</span> pedidos
+                                        Mostrando <span className="font-medium">{startIndexDisplay}</span> a <span className="font-medium">{endIndexDisplay}</span> de <span className="font-medium">{totalItems}</span> pedidos
                                     </p>
                                 </div>
                                 <div className="flex gap-2">
