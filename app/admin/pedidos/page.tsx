@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select"
 import { formatCurrency } from "@/lib/utils"
 import { Eye, Search, UserPlus, RefreshCw, User, Loader2, Calendar, AlertCircle, CheckCircle2 } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 import Link from "next/link"
 import { usePathname, useSearchParams, useRouter } from "next/navigation"
 import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidosForRole, updatePedidoStatusWithStock, checkBulkStockSufficient } from "@/features/admin"
@@ -619,14 +620,19 @@ export default function PedidosPage() {
                         </TableHeader>
                         <TableBody>
                             {loadingPedidos ? (
-                                <TableRow>
-                                    <TableCell colSpan={userRole === 'admin' ? 9 : 8} className="text-center py-10">
-                                        <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
-                                            <Loader2 className="h-8 w-8 animate-spin" />
-                                            Cargando pedidos...
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
+                                Array.from({ length: itemsPerPage }).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell className="pl-4"><Skeleton className="h-4 w-4" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                        {userRole === 'admin' && <TableCell><Skeleton className="h-4 w-24" /></TableCell>}
+                                        <TableCell className="text-right pr-4"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                                    </TableRow>
+                                ))
                             ) : totalItems === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={userRole === 'admin' ? 9 : 8} className="text-center py-10">
