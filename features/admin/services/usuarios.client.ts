@@ -52,3 +52,23 @@ export async function updateUserRoleViaApi(args: { accessToken: string; userId: 
 
   return json
 }
+export async function updateUserProfileViaApi(args: { accessToken: string; userId: string; nombre: string }) {
+  const res = await fetch("/api/admin/users/update-profile", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${args.accessToken}`,
+    },
+    body: JSON.stringify({
+      userId: args.userId,
+      nombre: args.nombre,
+    }),
+  })
+
+  const json = await res.json()
+  if (!res.ok) {
+    throw new Error(String(json?.error || "Error al actualizar perfil"))
+  }
+
+  return json
+}

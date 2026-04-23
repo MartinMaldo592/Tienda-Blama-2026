@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
-import { createWorkerViaApi, fetchAdminProfiles, updateUserRoleViaApi } from "@/features/admin"
+import { createWorkerViaApi, fetchAdminProfiles, updateUserRoleViaApi, updateUserProfileViaApi } from "@/features/admin"
 import {
   Select,
   SelectContent,
@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ShieldCheck, UserCheck, Loader2, Search, UserPlus, Mail, User, Shield, AlertTriangle, Lock, RefreshCw } from "lucide-react"
+import { ShieldCheck, UserCheck, Loader2, Search, UserPlus, Mail, User, Shield, AlertTriangle, Lock, RefreshCw, Edit2 } from "lucide-react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
@@ -53,6 +53,7 @@ export default function UsuariosPage() {
   
   // Dialog State
   const [confirmRoleDialog, setConfirmRoleDialog] = useState<{ open: boolean; userId: string; newRole: string; userName: string } | null>(null)
+  const [editProfileDialog, setEditProfileDialog] = useState<{ open: boolean; userId: string; nombre: string } | null>(null)
 
   // 1. Data Fetching with React Query
   const { data: profiles = [], isLoading, isError } = useQuery({
@@ -136,6 +137,27 @@ export default function UsuariosPage() {
     onSuccess: () => {
       toast.success("Rol actualizado correctamente")
       setConfirmRoleDialog(null)
+    }
+  })
+
+  const updateProfileMutation = useMutation({
+    mutationFn: async ({ userId, nombre }: { userId: string, nombre: string }) => {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) throw new Error("No hay sesión activa")
+      return updateUserProfileViaApi({
+        accessToken: session.access_token,
+        userId,
+        nombre
+      })
+    },
+    onSuccess: () => {
+      toast.success("Perfil actualizado correctamente")
+      setEditProfileDialog(null)
+      queryClient.invalidateQueries({ queryKey: ["adminProfiles"] })
+    },
+    onError: (err: any) => {
+      toast.error("Error al actualizar perfil: " + err.message)
     }
   })
 
@@ -324,7 +346,15 @@ export default function UsuariosPage() {
                             <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-xs uppercase">
                                 {p.nombre?.charAt(0) || "U"}
                             </div>
-                            <span>{p.nombre || "Sin nombre"}</span>
+                            <span className="flex-1">{p.nombre || "Sin nombre"}</span>
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => setEditProfileDialog({ open: true, userId: p.id, nombre: p.nombre || "" })}
+                            >
+                                <Edit2 className="h-3.5 w-3.5 text-muted-foreground" />
+                            </Button>
                         </div>
                     </td>
                     <td className="p-4">
@@ -391,6 +421,43 @@ export default function UsuariosPage() {
                 disabled={updateRoleMutation.isPending}
             >
               {updateRoleMutation.isPending ? <Loader2 className="animate-spin h-4 w-4" /> : "Confirmar Cambio"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Profile Dialog */}
+      <Dialog 
+        open={editProfileDialog?.open} 
+        onOpenChange={(open) => !open && setEditProfileDialog(null)}
+      >
+        <DialogContent className="max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Editar Nombre de Usuario</DialogTitle>
+            <DialogDescription>
+                Modifica el nombre público de este usuario.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+                <Label htmlFor="edit-nombre">Nombre</Label>
+                <Input 
+                    id="edit-nombre"
+                    value={editProfileDialog?.nombre || ""}
+                    onChange={(e) => setEditProfileDialog(prev => prev ? { ...prev, nombre: e.target.value } : null)}
+                    placeholder="Nuevo nombre"
+                />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditProfileDialog(null)} disabled={updateProfileMutation.isPending}>
+              Cancelar
+            </Button>
+            <Button 
+                onClick={() => editProfileDialog && updateProfileMutation.mutate({ userId: editProfileDialog.userId, nombre: editProfileDialog.nombre })}
+                disabled={updateProfileMutation.isPending || !editProfileDialog?.nombre.trim()}
+            >
+              {updateProfileMutation.isPending ? <Loader2 className="animate-spin h-4 w-4" /> : "Guardar Cambios"}
             </Button>
           </DialogFooter>
         </DialogContent>
