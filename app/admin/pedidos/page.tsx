@@ -22,7 +22,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { formatCurrency } from "@/lib/utils"
-import { Eye, Search, UserPlus, RefreshCw, User, Loader2, Calendar, AlertCircle, CheckCircle2 } from "lucide-react"
+import { Eye, Search, UserPlus, RefreshCw, User, Loader2, Calendar, AlertCircle, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import Link from "next/link"
 import { usePathname, useSearchParams, useRouter } from "next/navigation"
@@ -176,6 +176,34 @@ export default function PedidosPage() {
     const paginatedPedidos = fetchResult?.data || []
     const totalItems = fetchResult?.count || 0
     const totalPages = Math.ceil(totalItems / itemsPerPage) || 1
+
+    const getPageNumbers = () => {
+        const pages = []
+        const showEllipsis = totalPages > 7
+        
+        if (!showEllipsis) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i)
+        } else {
+            if (currentPage <= 4) {
+                for (let i = 1; i <= 5; i++) pages.push(i)
+                pages.push('...')
+                pages.push(totalPages)
+            } else if (currentPage >= totalPages - 3) {
+                pages.push(1)
+                pages.push('...')
+                for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i)
+            } else {
+                pages.push(1)
+                pages.push('...')
+                pages.push(currentPage - 1)
+                pages.push(currentPage)
+                pages.push(currentPage + 1)
+                pages.push('...')
+                pages.push(totalPages)
+            }
+        }
+        return pages
+    }
 
     const firstPageItems = totalItems % itemsPerPage || itemsPerPage
     const startIndexDisplay = totalItems === 0 ? 0 : (currentPage === 1 ? 1 : firstPageItems + (currentPage - 2) * itemsPerPage + 1)
@@ -760,25 +788,43 @@ export default function PedidosPage() {
                                         Mostrando <span className="font-medium">{startIndexDisplay}</span> a <span className="font-medium">{endIndexDisplay}</span> de <span className="font-medium">{totalItems}</span> pedidos
                                     </p>
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex gap-1">
                                     <Button
                                         variant="outline"
                                         size="sm"
+                                        className="w-9 h-9 p-0"
                                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                         disabled={currentPage === 1}
                                     >
-                                        Anterior
+                                        <ChevronLeft className="h-4 w-4" />
                                     </Button>
-                                    <div className="flex items-center justify-center px-4 text-sm font-medium text-gray-700">
-                                        Página {currentPage} de {totalPages}
-                                    </div>
+
+                                    {getPageNumbers().map((page, idx) => (
+                                        typeof page === 'number' ? (
+                                            <Button
+                                                key={idx}
+                                                variant={currentPage === page ? "default" : "outline"}
+                                                size="sm"
+                                                className="w-9 h-9 p-0"
+                                                onClick={() => setCurrentPage(page)}
+                                            >
+                                                {page}
+                                            </Button>
+                                        ) : (
+                                            <div key={idx} className="flex items-center justify-center w-9 h-9 text-gray-400">
+                                                {page}
+                                            </div>
+                                        )
+                                    ))}
+
                                     <Button
                                         variant="outline"
                                         size="sm"
+                                        className="w-9 h-9 p-0"
                                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                                         disabled={currentPage === totalPages}
                                     >
-                                        Siguiente
+                                        <ChevronRight className="h-4 w-4" />
                                     </Button>
                                 </div>
                             </div>
