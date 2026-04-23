@@ -247,9 +247,9 @@ function StatsCard({ title, value, change, icon, wrapperClass, loading, href }: 
 
             <div className="relative flex items-start justify-between">
                 <div className="flex-1">
-                    <p className="text-sm font-medium text-muted-foreground/80 mb-1 transition-colors group-hover:text-gray-700">
+                    <div className="text-sm font-medium text-muted-foreground/80 mb-1 transition-colors group-hover:text-gray-700">
                         {loading ? <Skeleton className="h-4 w-24" /> : title}
-                    </p>
+                    </div>
                     {loading ? (
                         <div className="space-y-2 mt-2">
                             <Skeleton className="h-9 w-32" />
