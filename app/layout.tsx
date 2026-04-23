@@ -123,7 +123,7 @@ export default async function RootLayout({
           <LayoutShell announcementData={announcementData}>{children}</LayoutShell>
         </Providers>
         <SpeedInsights />
-        <Toaster />
+        <Toaster position="top-center" />
       </body>
     </html>
   );
