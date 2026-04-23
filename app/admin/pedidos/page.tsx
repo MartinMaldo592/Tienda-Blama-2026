@@ -179,28 +179,36 @@ export default function PedidosPage() {
 
     const getPageNumbers = () => {
         const pages = []
-        const showEllipsis = totalPages > 7
+        const maxVisible = 5
         
-        if (!showEllipsis) {
+        if (totalPages <= maxVisible) {
             for (let i = 1; i <= totalPages; i++) pages.push(i)
         } else {
-            if (currentPage <= 4) {
-                for (let i = 1; i <= 5; i++) pages.push(i)
-                pages.push('...')
-                pages.push(totalPages)
-            } else if (currentPage >= totalPages - 3) {
-                pages.push(1)
-                pages.push('...')
-                for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i)
-            } else {
-                pages.push(1)
-                pages.push('...')
-                pages.push(currentPage - 1)
-                pages.push(currentPage)
-                pages.push(currentPage + 1)
-                pages.push('...')
-                pages.push(totalPages)
+            // Always show 1
+            pages.push(1)
+            
+            let start = Math.max(2, currentPage - 1)
+            let end = Math.min(totalPages - 1, currentPage + 1)
+            
+            // Adjust to always show at least a few numbers if possible
+            if (currentPage <= 3) {
+                start = 2
+                end = 4
+            } else if (currentPage >= totalPages - 2) {
+                start = totalPages - 3
+                end = totalPages - 1
             }
+
+            if (start > 2) pages.push('...')
+            
+            for (let i = start; i <= end; i++) {
+                pages.push(i)
+            }
+            
+            if (end < totalPages - 1) pages.push('...')
+            
+            // Always show last
+            pages.push(totalPages)
         }
         return pages
     }
@@ -788,44 +796,66 @@ export default function PedidosPage() {
                                         Mostrando <span className="font-medium">{startIndexDisplay}</span> a <span className="font-medium">{endIndexDisplay}</span> de <span className="font-medium">{totalItems}</span> pedidos
                                     </p>
                                 </div>
-                                <div className="flex gap-1">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="w-9 h-9 p-0"
-                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                        disabled={currentPage === 1}
-                                    >
-                                        <ChevronLeft className="h-4 w-4" />
-                                    </Button>
+                                <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-1">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-9 h-9 p-0"
+                                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                            disabled={currentPage === 1}
+                                        >
+                                            <ChevronLeft className="h-4 w-4" />
+                                        </Button>
 
-                                    {getPageNumbers().map((page, idx) => (
-                                        typeof page === 'number' ? (
-                                            <Button
-                                                key={idx}
-                                                variant={currentPage === page ? "default" : "outline"}
-                                                size="sm"
-                                                className="w-9 h-9 p-0"
-                                                onClick={() => setCurrentPage(page)}
-                                            >
-                                                {page}
-                                            </Button>
-                                        ) : (
-                                            <div key={idx} className="flex items-center justify-center w-9 h-9 text-gray-400">
-                                                {page}
+                                        {getPageNumbers().map((page, idx) => (
+                                            typeof page === 'number' ? (
+                                                <Button
+                                                    key={idx}
+                                                    variant={currentPage === page ? "default" : "outline"}
+                                                    size="sm"
+                                                    className="w-9 h-9 p-0 text-xs font-semibold"
+                                                    onClick={() => setCurrentPage(page)}
+                                                >
+                                                    {page}
+                                                </Button>
+                                            ) : (
+                                                <div key={idx} className="flex items-center justify-center w-8 h-8 text-gray-400">
+                                                    <span className="text-[10px] tracking-tighter">•••</span>
+                                                </div>
+                                            )
+                                        ))}
+
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-9 h-9 p-0"
+                                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                            disabled={currentPage === totalPages}
+                                        >
+                                            <ChevronRight className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+
+                                    {totalPages > 5 && (
+                                        <div className="hidden lg:flex items-center gap-2 border-l pl-4 border-gray-200">
+                                            <span className="text-xs text-gray-500 whitespace-nowrap">Ir a:</span>
+                                            <div className="relative">
+                                                <Input
+                                                    type="number"
+                                                    min={1}
+                                                    max={totalPages}
+                                                    className="w-14 h-8 px-2 text-xs focus-visible:ring-1"
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            const val = parseInt((e.target as HTMLInputElement).value)
+                                                            if (val >= 1 && val <= totalPages) setCurrentPage(val)
+                                                        }
+                                                    }}
+                                                />
                                             </div>
-                                        )
-                                    ))}
-
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="w-9 h-9 p-0"
-                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                        disabled={currentPage === totalPages}
-                                    >
-                                        <ChevronRight className="h-4 w-4" />
-                                    </Button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
