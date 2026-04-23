@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase.client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Lock, Loader2 } from "lucide-react"
 
 export default function UpdatePasswordPage() {
     const supabase = createClient()
@@ -46,34 +46,39 @@ export default function UpdatePasswordPage() {
     if (!session) return <div className="p-10 text-center">Verificando sesión...</div>
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-            <Card className="w-full max-w-md">
-                <CardHeader>
-                    <CardTitle>Establecer Contraseña</CardTitle>
-                    <CardDescription>
-                        Bienvenido. Por favor establece tu contraseña segura para continuar.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <form onSubmit={handleUpdate} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="pass">Nueva Contraseña</Label>
+        <div className="flex items-center justify-center min-h-screen bg-background px-4">
+            <div className="w-full max-w-sm bg-card p-8 rounded-xl shadow-lg border border-border">
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-primary text-primary-foreground mb-4">
+                        <Lock className="h-6 w-6" />
+                    </div>
+                    <h1 className="text-2xl font-bold text-foreground">Nueva Contraseña</h1>
+                    <p className="text-muted-foreground text-sm">Establece una contraseña segura para tu cuenta</p>
+                </div>
+
+                <form onSubmit={handleUpdate} className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="pass">Contraseña Nueva</Label>
+                        <div className="relative">
+                            <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                             <Input
                                 id="pass"
                                 type="password"
-                                value={password}
-                                onChange={e => setPassword(e.target.value)}
-                                placeholder="********"
+                                placeholder="••••••••"
+                                className="pl-9"
                                 required
                                 minLength={6}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                             />
                         </div>
-                        <Button type="submit" className="w-full" disabled={loading}>
-                            {loading ? "Actualizando..." : "Guardar y Entrar"}
-                        </Button>
-                    </form>
-                </CardContent>
-            </Card>
+                    </div>
+
+                    <Button type="submit" className="w-full" disabled={loading}>
+                        {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...</> : "Actualizar y Entrar"}
+                    </Button>
+                </form>
+            </div>
         </div>
     )
 }
