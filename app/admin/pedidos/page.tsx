@@ -170,11 +170,25 @@ export default function PedidosPage() {
         return true
     })
 
-    const totalPages = Math.ceil(filteredPedidos.length / itemsPerPage)
-    const paginatedPedidos = filteredPedidos.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    )
+    const totalItems = filteredPedidos.length
+    const totalPages = Math.ceil(totalItems / itemsPerPage)
+    
+    // Reverse pagination logic: the oldest pages are completely full (10 items),
+    // and the newest page (Page 1) takes the remainder and grows as new orders arrive.
+    const firstPageItems = totalItems % itemsPerPage || itemsPerPage
+    
+    let startIndex = 0
+    let endIndex = 0
+    
+    if (currentPage === 1) {
+        startIndex = 0
+        endIndex = firstPageItems
+    } else {
+        startIndex = firstPageItems + (currentPage - 2) * itemsPerPage
+        endIndex = startIndex + itemsPerPage
+    }
+    
+    const paginatedPedidos = filteredPedidos.slice(startIndex, endIndex)
 
     // 2. Mutations
     const assignMutation = useMutation({
