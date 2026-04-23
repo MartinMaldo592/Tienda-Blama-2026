@@ -17,8 +17,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ShieldCheck, UserCheck, Loader2 } from "lucide-react"
+import { ShieldCheck, UserCheck, Loader2, Search, UserPlus, Mail, User, Shield, AlertTriangle, Lock, RefreshCw } from "lucide-react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
+} from "@/components/ui/table"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
 
 export default function UsuariosPage() {
   const router = useRouter()
@@ -30,6 +49,10 @@ export default function UsuariosPage() {
   const [nombre, setNombre] = useState("")
   const [password, setPassword] = useState("")
   const [roleToAssign, setRoleToAssign] = useState("worker")
+  const [searchTerm, setSearchTerm] = useState("")
+  
+  // Dialog State
+  const [confirmRoleDialog, setConfirmRoleDialog] = useState<{ open: boolean; userId: string; newRole: string; userName: string } | null>(null)
 
   // 1. Data Fetching with React Query
   const { data: profiles = [], isLoading, isError } = useQuery({
@@ -112,8 +135,26 @@ export default function UsuariosPage() {
     },
     onSuccess: () => {
       toast.success("Rol actualizado correctamente")
+      setConfirmRoleDialog(null)
     }
   })
+
+  // 3. Logic
+  const filteredProfiles = profiles.filter((p: any) => 
+    p.email?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    p.nombre?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return <Badge variant="destructive" className="gap-1"><Shield className="h-3 w-3" /> Admin</Badge>
+      case 'worker':
+        return <Badge variant="default" className="bg-blue-600 hover:bg-blue-700 gap-1"><User className="h-3 w-3" /> Worker</Badge>
+      default:
+        return <Badge variant="secondary" className="gap-1">Cliente</Badge>
+    }
+  }
 
 
   // Render Logic
@@ -126,123 +167,234 @@ export default function UsuariosPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Usuarios</h1>
-          <p className="text-muted-foreground">Crea trabajadores y revisa perfiles.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Gestión de Usuarios</h1>
+          <p className="text-muted-foreground">Administra los accesos y roles de tu equipo de trabajo.</p>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => queryClient.invalidateQueries({ queryKey: ["adminProfiles"] })}
-          disabled={isLoading}
-        >
-          Actualizar Lista
-        </Button>
-      </div>
-
-      <div className="bg-card border border-border rounded-xl p-6 space-y-4">
-        <h2 className="text-lg font-semibold">Crear usuario</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@tienda.com" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="nombre">Nombre</Label>
-            <Input id="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre" />
-          </div>
-          <div className="space-y-2">
-            <Label>Rol a Asignar</Label>
-            <Select value={roleToAssign} onValueChange={setRoleToAssign}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="worker">Worker</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Contraseña (opcional)</Label>
-            <Input id="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Dejar vacío para invitar" />
-          </div>
-        </div>
-
-        <div className="flex justify-end">
-          <Button
-            onClick={() => createWorkerMutation.mutate()}
-            disabled={createWorkerMutation.isPending || !email.trim()}
-          >
-            {createWorkerMutation.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creando...</> : "Crear"}
-          </Button>
+        <div className="flex items-center gap-2">
+            <div className="relative w-full md:w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                    placeholder="Buscar usuario..."
+                    className="pl-9 h-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+            <Button
+                variant="outline"
+                size="icon"
+                className="h-10 w-10"
+                onClick={() => queryClient.invalidateQueries({ queryKey: ["adminProfiles"] })}
+                disabled={isLoading}
+            >
+                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            </Button>
         </div>
       </div>
 
-      <div className="bg-card border border-border rounded-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-border">
-          <h2 className="text-lg font-semibold">Perfiles</h2>
+      <Card className="border-none shadow-md overflow-hidden bg-gradient-to-br from-white to-gray-50/50">
+        <CardHeader className="pb-4">
+            <div className="flex items-center gap-2 text-blue-600 mb-1">
+                <UserPlus className="h-5 w-5" />
+                <CardTitle className="text-lg">Registrar Nuevo Miembro</CardTitle>
+            </div>
+            <CardDescription>Completa los datos para invitar o crear un nuevo acceso directo.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="space-y-2">
+                    <Label htmlFor="email" className="text-xs font-bold uppercase text-gray-500 tracking-wider">Email Corporativo</Label>
+                    <div className="relative">
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input 
+                            id="email" 
+                            type="email"
+                            className="pl-9 bg-white"
+                            value={email} 
+                            onChange={(e) => setEmail(e.target.value)} 
+                            placeholder="ejemplo@blama.shop" 
+                        />
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="nombre" className="text-xs font-bold uppercase text-gray-500 tracking-wider">Nombre Completo</Label>
+                    <div className="relative">
+                        <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input 
+                            id="nombre" 
+                            className="pl-9 bg-white"
+                            value={nombre} 
+                            onChange={(e) => setNombre(e.target.value)} 
+                            placeholder="Juan Pérez" 
+                        />
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider">Rol de Sistema</Label>
+                    <Select value={roleToAssign} onValueChange={setRoleToAssign}>
+                        <SelectTrigger className="bg-white">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="worker">Worker (Logística/Ventas)</SelectItem>
+                            <SelectItem value="admin">Administrador (Total)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="password" className="text-xs font-bold uppercase text-gray-500 tracking-wider">Contraseña de Acceso</Label>
+                    <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                        <Input 
+                            id="password" 
+                            type="password"
+                            className="pl-9 bg-white"
+                            value={password} 
+                            onChange={(e) => setPassword(e.target.value)} 
+                            placeholder="Vacio para invitar via email" 
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex justify-end mt-6 pt-4 border-t">
+                <Button
+                    onClick={() => createWorkerMutation.mutate()}
+                    disabled={createWorkerMutation.isPending || !email.trim() || !nombre.trim()}
+                    className="min-w-[140px] shadow-sm"
+                >
+                    {createWorkerMutation.isPending ? (
+                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</>
+                    ) : (
+                        <><UserPlus className="mr-2 h-4 w-4" /> Crear Usuario</>
+                    )}
+                </Button>
+            </div>
+        </CardContent>
+      </Card>
+
+      <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-border bg-gray-50/50 flex items-center justify-between">
+            <h2 className="font-semibold flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-green-600" />
+                Listado de Perfiles Registrados
+            </h2>
+            <Badge variant="outline" className="font-normal">{filteredProfiles.length} usuarios encontrados</Badge>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-popover">
-              <tr>
-                <th className="text-left p-3">Email</th>
-                <th className="text-left p-3">Nombre</th>
-                <th className="text-left p-3">Rol</th>
-                <th className="text-left p-3">Creado</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-transparent hover:bg-transparent">
+                <TableHead className="w-[30%]">Usuario</TableHead>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Nivel de Acceso</TableHead>
+                <TableHead className="text-right">Fecha de Registro</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {isLoading ? (
-                <tr>
-                  <td colSpan={4} className="p-10 text-center"><Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" /></td>
-                </tr>
-              ) : profiles.length === 0 ? (
-                <tr>
-                  <td className="p-6 text-muted-foreground" colSpan={4}>No hay perfiles registrados.</td>
-                </tr>
+                Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                        <TableCell><Skeleton className="h-4 w-48" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                        <TableCell><Skeleton className="h-8 w-24" /></TableCell>
+                        <TableCell className="text-right"><Skeleton className="h-4 w-20 ml-auto" /></TableCell>
+                    </TableRow>
+                ))
+              ) : filteredProfiles.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-32 text-center text-muted-foreground">
+                    No se encontraron usuarios con esos criterios.
+                  </TableCell>
+                </TableRow>
               ) : (
-                profiles.map((p: any) => (
-                  <tr key={p.id} className="border-t border-border hover:bg-muted/30 transition-colors">
-                    <td className="p-3">{p.email || ""}</td>
-                    <td className="p-3">{p.nombre || ""}</td>
-                    <td className="p-3">
+                filteredProfiles.map((p: any) => (
+                  <tr key={p.id} className="border-t border-border hover:bg-muted/30 transition-colors group">
+                    <td className="p-4">
+                        <div className="flex flex-col">
+                            <span className="font-medium text-gray-900">{p.email || "Sin email"}</span>
+                            <span className="text-[10px] text-gray-400 font-mono tracking-tighter uppercase">{p.id.substring(0, 8)}...</span>
+                        </div>
+                    </td>
+                    <td className="p-4">
+                        <div className="flex items-center gap-2">
+                            <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-xs uppercase">
+                                {p.nombre?.charAt(0) || "U"}
+                            </div>
+                            <span>{p.nombre || "Sin nombre"}</span>
+                        </div>
+                    </td>
+                    <td className="p-4">
                       <Select
                         defaultValue={p.role || "user"}
-                        onValueChange={(val) => updateRoleMutation.mutate({ userId: p.id, newRole: val })}
+                        onValueChange={(val) => setConfirmRoleDialog({ open: true, userId: p.id, newRole: val, userName: p.nombre || p.email })}
                         disabled={updateRoleMutation.isPending}
                       >
-                        <SelectTrigger className="w-[140px] h-8">
+                        <SelectTrigger className="w-[160px] h-9 border-gray-200 focus:ring-1">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="admin">
+                          <SelectItem value="admin" className="text-red-600">
                             <div className="flex items-center gap-2">
-                              <ShieldCheck className="h-3 w-3" /> Admin
+                              <ShieldCheck className="h-4 w-4" /> Administrador
                             </div>
                           </SelectItem>
                           <SelectItem value="worker">
                             <div className="flex items-center gap-2">
-                              <UserCheck className="h-3 w-3" /> Worker
+                              <UserCheck className="h-4 w-4 text-blue-600" /> Trabajador
                             </div>
                           </SelectItem>
                           <SelectItem value="user">
-                            User (Cliente)
+                            <div className="flex items-center gap-2 opacity-60">
+                                <User className="h-4 w-4" /> Cliente (User)
+                            </div>
                           </SelectItem>
                         </SelectContent>
                       </Select>
                     </td>
-                    <td className="p-3 text-muted-foreground">{p.created_at ? new Date(p.created_at).toLocaleDateString() : "-"}</td>
+                    <td className="p-4 text-right text-muted-foreground text-xs font-medium">
+                        {p.created_at ? new Date(p.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : "-"}
+                    </td>
                   </tr>
                 ))
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      <Dialog 
+        open={confirmRoleDialog?.open} 
+        onOpenChange={(open) => !open && setConfirmRoleDialog(null)}
+      >
+        <DialogContent className="max-w-[400px]">
+          <DialogHeader>
+            <div className="h-12 w-12 rounded-full bg-yellow-50 flex items-center justify-center mb-2">
+                <AlertTriangle className="h-6 w-6 text-yellow-600" />
+            </div>
+            <DialogTitle>Confirmar Cambio de Rol</DialogTitle>
+            <DialogDescription>
+                ¿Estás seguro de que deseas cambiar el nivel de acceso de <strong>{confirmRoleDialog?.userName}</strong> a <strong>{confirmRoleDialog?.newRole === 'admin' ? 'Administrador' : confirmRoleDialog?.newRole === 'worker' ? 'Trabajador' : 'Cliente'}</strong>?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0 mt-4">
+            <Button variant="outline" onClick={() => setConfirmRoleDialog(null)} disabled={updateRoleMutation.isPending}>
+              Cancelar
+            </Button>
+            <Button 
+                variant={confirmRoleDialog?.newRole === 'admin' ? "destructive" : "default"}
+                onClick={() => confirmRoleDialog && updateRoleMutation.mutate({ userId: confirmRoleDialog.userId, newRole: confirmRoleDialog.newRole })}
+                disabled={updateRoleMutation.isPending}
+            >
+              {updateRoleMutation.isPending ? <Loader2 className="animate-spin h-4 w-4" /> : "Confirmar Cambio"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
