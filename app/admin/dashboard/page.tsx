@@ -4,7 +4,8 @@ import { useState } from "react"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { DollarSign, ShoppingBag, Users, Package, ClipboardList, AlertTriangle } from "lucide-react"
+import { DollarSign, ShoppingBag, Users, Package, ClipboardList, AlertTriangle, RefreshCw } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrency } from "@/lib/utils"
 import Link from "next/link"
 import { useDashboardStats } from "@/features/admin/hooks/use-admin-dashboard"
@@ -136,6 +137,10 @@ export default function AdminDashboard() {
                             loading={isLoading}
                             href="/admin/pedidos"
                         />
+                        {/* Fill with skeletons if loading and worker */}
+                        {isLoading && Array.from({ length: 3 }).map((_, i) => (
+                            <StatsCard key={i} loading={true} />
+                        ))}
                     </>
                 )}
             </div>
@@ -241,12 +246,14 @@ function StatsCard({ title, value, change, icon, wrapperClass, loading, href }: 
             <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/40 blur-2xl transition-all duration-500 group-hover:scale-150 group-hover:bg-white/50"></div>
 
             <div className="relative flex items-start justify-between">
-                <div>
-                    <p className="text-sm font-medium text-muted-foreground/80 mb-1 transition-colors group-hover:text-gray-700">{title}</p>
+                <div className="flex-1">
+                    <p className="text-sm font-medium text-muted-foreground/80 mb-1 transition-colors group-hover:text-gray-700">
+                        {loading ? <Skeleton className="h-4 w-24" /> : title}
+                    </p>
                     {loading ? (
                         <div className="space-y-2 mt-2">
-                            <div className="h-8 w-24 bg-black/5 animate-pulse rounded-md"></div>
-                            <div className="h-3 w-16 bg-black/5 animate-pulse rounded-md"></div>
+                            <Skeleton className="h-9 w-32" />
+                            <Skeleton className="h-4 w-20" />
                         </div>
                     ) : (
                         <div className="mt-1">
@@ -266,7 +273,7 @@ function StatsCard({ title, value, change, icon, wrapperClass, loading, href }: 
 
                 {/* Icon Container with Animated Glass Effect */}
                 <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-white/60 backdrop-blur-sm shadow-sm ring-1 ring-black/5 ${iconStyles} ${animationClass}`}>
-                    {icon}
+                    {loading ? <Skeleton className="h-6 w-6 rounded-full" /> : icon}
                 </div>
             </div>
         </div>

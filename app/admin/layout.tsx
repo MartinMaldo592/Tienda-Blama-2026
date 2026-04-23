@@ -7,7 +7,13 @@ import { AdminSidebar } from "@/components/admin/sidebar"
 import { Loader2, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { createClient } from "@/lib/supabase.client"
+import { toast } from "sonner"
+import { Bell, ArrowRight, Menu, Loader2, WifiOff, Wifi } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { CommandPalette } from "@/components/admin/command-palette"
 
 // Force redeploy
 export default function AdminLayout({
@@ -19,6 +25,47 @@ export default function AdminLayout({
     const guard = useRoleGuard({ allowedRoles: ["admin", "worker"] })
     const isTicketRoute = pathname?.includes('/admin/pedidos/') && pathname?.endsWith('/ticket')
     const [isSheetOpen, setIsSheetOpen] = useState(false)
+    const supabase = createClient()
+    const router = useRouter()
+
+    useEffect(() => {
+        const handleOnline = () => toast.success("Conexión restablecida", { icon: <Wifi className="h-4 w-4" /> })
+        const handleOffline = () => toast.error("Sin conexión a internet", { icon: <WifiOff className="h-4 w-4" />, duration: Infinity })
+
+        window.addEventListener('online', handleOnline)
+        window.addEventListener('offline', handleOffline)
+
+        return () => {
+            window.removeEventListener('online', handleOnline)
+            window.removeEventListener('offline', handleOffline)
+        }
+    }, [])
+
+    useEffect(() => {
+        const channel = supabase
+            .channel('global_orders')
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'pedidos' },
+                (payload) => {
+                    const newOrder = payload.new
+                    toast.success("¡Nuevo Pedido Recibido!", {
+                        description: `Orden #${newOrder.id} - ${newOrder.nombre_contacto || 'Cliente'}`,
+                        icon: <Bell className="h-4 w-4 text-green-600" />,
+                        action: {
+                            label: "Ver Detalles",
+                            onClick: () => router.push(`/admin/pedidos`)
+                        },
+                        duration: 8000,
+                    })
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [supabase, router])
 
     if (guard.loading) {
         return (
@@ -78,6 +125,9 @@ export default function AdminLayout({
                     {children}
                 </div>
             </main>
+            
+            {/* Command Palette */}
+            <CommandPalette />
         </div>
     )
 }

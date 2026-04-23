@@ -132,13 +132,8 @@ export default function PedidosPage() {
                         queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
                     }, 500)
                     
-                    // Show specific toast for new orders
                     if (payload.eventType === 'INSERT') {
-                        toast.success("¡Nuevo pedido recibido!", {
-                            description: `Pedido #${payload.new.id.toString().padStart(6, '0')}`,
-                            icon: <CheckCircle2 className="h-5 w-5 text-green-500" />,
-                            duration: 5000,
-                        })
+                        // The notification is now handled globally in AdminLayout
                     }
                 }
             )
@@ -241,11 +236,28 @@ export default function PedidosPage() {
         mutationFn: async ({ pedidoId, nextStatus, stockDescontado }: { pedidoId: number, nextStatus: string, stockDescontado: boolean }) => {
             return updatePedidoStatusWithStock({ pedidoId, nextStatus, stockDescontado })
         },
+        onMutate: async ({ pedidoId, nextStatus }) => {
+            // Optimistic Update
+            await queryClient.cancelQueries({ queryKey: ["adminPedidos"] })
+            const previousData = queryClient.getQueryData(["adminPedidos"])
+            
+            queryClient.setQueryData(["adminPedidos"], (old: any) => {
+                if (!old) return old
+                return {
+                    ...old,
+                    data: old.data.map((p: any) => p.id === pedidoId ? { ...p, status: nextStatus } : p)
+                }
+            })
+            
+            return { previousData }
+        },
         onSuccess: () => {
             toast.success("Estado de pedido actualizado satisfactoriamente")
-            queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
         },
-        onError: (error: Error) => {
+        onError: (error: Error, variables, context) => {
+            if (context?.previousData) {
+                queryClient.setQueryData(["adminPedidos"], context.previousData)
+            }
             const msg = String(error?.message || '').toLowerCase()
             if (msg.includes('stock insuficiente')) {
                 toast.error('⚠️ No hay stock suficiente para confirmar este pedido.')
@@ -254,6 +266,9 @@ export default function PedidosPage() {
             } else {
                 toast.error('Error al actualizar estado: ' + error.message)
             }
+        },
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
         }
     })
 
@@ -455,7 +470,7 @@ export default function PedidosPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-8 animate-in fade-in duration-500">
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">
