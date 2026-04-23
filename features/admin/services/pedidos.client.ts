@@ -9,35 +9,217 @@ export async function fetchAdminWorkers(): Promise<ProfileRow[]> {
   return (data as ProfileRow[]) || []
 }
 
-export async function fetchPedidosForRole(args: { role: AdminRole | string; currentUserId: string }): Promise<PedidoRow[]> {
+export interface FetchPedidosArgs {
+  role: string;
+  currentUserId: string;
+  page: number;
+  itemsPerPage: number;
+  statusFilter: string;
+  searchTerm: string;
+  dateFilter: string;
+  filterWorker: string;
+  customStartDate?: string;
+  customEndDate?: string;
+}
+
+export async function fetchPedidosForRole(args: FetchPedidosArgs): Promise<{ data: PedidoRow[], count: number }> {
   const supabase = createClient()
   const role = String(args.role || "worker")
   const currentUserId = String(args.currentUserId || "")
 
-  let query = supabase
-    .from("pedidos")
-    .select(
-      `
-        *,
-        clientes (nombre, telefono, dni)
-      `
-    )
-    .order("created_at", { ascending: false })
+  // We need to build the filter query first to get the total count, then we can apply the range
+  let query = supabase.from("pedidos").select("id", { count: 'exact' })
 
+  // Apply Role Filters
   if (role === "worker") {
     query = query.eq("asignado_a", currentUserId)
   }
 
-  const { data, error } = await query
+  // Apply Worker Filter
+  if (args.filterWorker && args.filterWorker !== 'all') {
+    if (args.filterWorker === 'unassigned') {
+      query = query.is("asignado_a", null)
+    } else {
+      query = query.eq("asignado_a", args.filterWorker)
+    }
+  }
+
+  // Apply Status Filter
+  if (args.statusFilter && args.statusFilter !== 'all') {
+    query = query.eq("status", args.statusFilter)
+  }
+
+  // Apply Date Filter
+  if (args.dateFilter && args.dateFilter !== 'all') {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    if (args.dateFilter === 'today') {
+      const tomorrow = new Date(today)
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      query = query.gte("created_at", today.toISOString()).lt("created_at", tomorrow.toISOString())
+    } else if (args.dateFilter === '7days') {
+      const sevenDaysAgo = new Date(today)
+      sevenDaysAgo.setDate(today.getDate() - 7)
+      query = query.gte("created_at", sevenDaysAgo.toISOString())
+    } else if (args.dateFilter === 'thisMonth') {
+      const firstDay = new Date(today.getFullYear(), today.getMonth(), 1)
+      query = query.gte("created_at", firstDay.toISOString())
+    } else if (args.dateFilter === 'custom') {
+      if (args.customStartDate) {
+        query = query.gte("created_at", new Date(args.customStartDate).toISOString())
+      }
+      if (args.customEndDate) {
+        const end = new Date(args.customEndDate)
+        end.setHours(23, 59, 59, 999)
+        query = query.lte("created_at", end.toISOString())
+      }
+    }
+  }
+
+  // Apply Search Term Filter
+  if (args.searchTerm) {
+    const term = `%${args.searchTerm.trim()}%`
+    const isNum = !isNaN(Number(args.searchTerm.trim()))
+    
+    // Attempt to search in Clientes table first to get matching IDs
+    const { data: cData } = await supabase.from('clientes')
+      .select('id')
+      .or(`nombre.ilike.${term},telefono.ilike.${term},dni.ilike.${term}`)
+      
+    let matchingClientIds: number[] = []
+    if (cData && cData.length > 0) {
+      matchingClientIds = cData.map((c: any) => c.id)
+    }
+
+    let orParts = []
+    if (isNum) orParts.push(`id.eq.${args.searchTerm.trim()}`)
+    orParts.push(`nombre_contacto.ilike.${term}`)
+    orParts.push(`telefono_contacto.ilike.${term}`)
+    orParts.push(`dni_contacto.ilike.${term}`)
+    
+    // We cannot easily do an IN clause inside an OR string in SupabaseJS. 
+    // So we will do a filter after getting data, or rely mostly on contact fields.
+    // If there are client IDs, we will just use them in an 'in' filter combined with 'or' using 'or' method chaining?
+    // Supabase allows .or().in() which acts as AND. 
+    
+    if (matchingClientIds.length > 0) {
+      // Workaround: if it matches a client, we will fetch orders for those clients OR the orders that match the ID/Contact fields
+      query = query.or(`cliente_id.in.(${matchingClientIds.join(',')}),${orParts.join(',')}`)
+    } else {
+      query = query.or(orParts.join(','))
+    }
+  }
+
+  // First, get the COUNT
+  const { count, error: countError } = await query
+  if (countError) throw countError
+  
+  const totalItems = count || 0
+
+  if (totalItems === 0) {
+    return { data: [], count: 0 }
+  }
+
+  // Calculate Reverse Pagination Range
+  const firstPageItems = totalItems % args.itemsPerPage || args.itemsPerPage
+  
+  let startIndex = 0
+  let endIndex = 0
+  
+  if (args.page === 1) {
+      startIndex = 0
+      endIndex = firstPageItems - 1
+  } else {
+      startIndex = firstPageItems + (args.page - 2) * args.itemsPerPage
+      endIndex = startIndex + args.itemsPerPage - 1
+  }
+
+  // Now, fetch the actual Data using the exact same filters, but applying the range
+  // We recreate the query to fetch full rows
+  let dataQuery = supabase.from("pedidos").select(`*, clientes (nombre, telefono, dni)`)
+  
+  // Re-apply Role Filters
+  if (role === "worker") {
+    dataQuery = dataQuery.eq("asignado_a", currentUserId)
+  }
+
+  // Re-apply Worker Filter
+  if (args.filterWorker && args.filterWorker !== 'all') {
+    if (args.filterWorker === 'unassigned') {
+      dataQuery = dataQuery.is("asignado_a", null)
+    } else {
+      dataQuery = dataQuery.eq("asignado_a", args.filterWorker)
+    }
+  }
+
+  // Re-apply Status Filter
+  if (args.statusFilter && args.statusFilter !== 'all') {
+    dataQuery = dataQuery.eq("status", args.statusFilter)
+  }
+
+  // Re-apply Date Filter
+  if (args.dateFilter && args.dateFilter !== 'all') {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    if (args.dateFilter === 'today') {
+      const tomorrow = new Date(today)
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      dataQuery = dataQuery.gte("created_at", today.toISOString()).lt("created_at", tomorrow.toISOString())
+    } else if (args.dateFilter === '7days') {
+      const sevenDaysAgo = new Date(today)
+      sevenDaysAgo.setDate(today.getDate() - 7)
+      dataQuery = dataQuery.gte("created_at", sevenDaysAgo.toISOString())
+    } else if (args.dateFilter === 'thisMonth') {
+      const firstDay = new Date(today.getFullYear(), today.getMonth(), 1)
+      dataQuery = dataQuery.gte("created_at", firstDay.toISOString())
+    } else if (args.dateFilter === 'custom') {
+      if (args.customStartDate) {
+        dataQuery = dataQuery.gte("created_at", new Date(args.customStartDate).toISOString())
+      }
+      if (args.customEndDate) {
+        const end = new Date(args.customEndDate)
+        end.setHours(23, 59, 59, 999)
+        dataQuery = dataQuery.lte("created_at", end.toISOString())
+      }
+    }
+  }
+
+  // Re-apply Search Term Filter
+  if (args.searchTerm) {
+    const term = `%${args.searchTerm.trim()}%`
+    const isNum = !isNaN(Number(args.searchTerm.trim()))
+    
+    // Attempt to search in Clientes table first to get matching IDs
+    const { data: cData } = await supabase.from('clientes')
+      .select('id')
+      .or(`nombre.ilike.${term},telefono.ilike.${term},dni.ilike.${term}`)
+      
+    let matchingClientIds: number[] = []
+    if (cData && cData.length > 0) {
+      matchingClientIds = cData.map((c: any) => c.id)
+    }
+
+    let orParts = []
+    if (isNum) orParts.push(`id.eq.${args.searchTerm.trim()}`)
+    orParts.push(`nombre_contacto.ilike.${term}`)
+    orParts.push(`telefono_contacto.ilike.${term}`)
+    orParts.push(`dni_contacto.ilike.${term}`)
+    
+    if (matchingClientIds.length > 0) {
+      dataQuery = dataQuery.or(`cliente_id.in.(${matchingClientIds.join(',')}),${orParts.join(',')}`)
+    } else {
+      dataQuery = dataQuery.or(orParts.join(','))
+    }
+  }
+
+  // Apply Sort and Range
+  const { data, error } = await dataQuery
+    .order("created_at", { ascending: false })
+    .range(startIndex, endIndex)
 
   if (error) {
-    if (String(error.message || "").includes("asignado_a")) {
-      const { data: fallbackData } = await supabase
-        .from("pedidos")
-        .select(`*, clientes (nombre, telefono, dni)`)
-        .order("created_at", { ascending: false })
-      return (fallbackData as PedidoRow[]) || []
-    }
     throw error
   }
 
@@ -57,8 +239,7 @@ export async function fetchPedidosForRole(args: { role: AdminRole | string; curr
       return { ...pedido, asignado_perfil: null }
     })
   )
-
-  return withWorkers as PedidoRow[]
+  return { data: withWorkers as PedidoRow[], count: totalItems }
 }
 
 export async function assignPedidoToWorker(args: { pedidoId: number; workerId: string | null }) {

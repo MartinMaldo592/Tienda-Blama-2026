@@ -109,9 +109,20 @@ export default function PedidosPage() {
     }, [searchTerm, statusFilter, dateFilter, filterWorker, customStartDate, customEndDate])
 
     // 1. Queries
-    const { data: pedidos = [], isLoading: loadingPedidos, isFetching } = useQuery({
-        queryKey: ["adminPedidos", userRole, userId], // Re-fetch if role or userId changes
-        queryFn: () => fetchPedidosForRole({ role: userRole, currentUserId: userId }),
+    const { data: fetchResult, isLoading: loadingPedidos, isFetching } = useQuery({
+        queryKey: ["adminPedidos", userRole, userId, currentPage, itemsPerPage, statusFilter, searchTerm, dateFilter, filterWorker, customStartDate, customEndDate],
+        queryFn: () => fetchPedidosForRole({ 
+            role: userRole, 
+            currentUserId: userId,
+            page: currentPage,
+            itemsPerPage,
+            statusFilter,
+            searchTerm,
+            dateFilter,
+            filterWorker,
+            customStartDate,
+            customEndDate
+        }),
         enabled: !!userId && !guard.loading && !guard.accessDenied,
     })
 
@@ -121,74 +132,9 @@ export default function PedidosPage() {
         enabled: userRole === 'admin' && !guard.loading,
     })
 
-    // Filter pedidos
-    const filteredPedidos = pedidos.filter((p: PedidoRow) => {
-        // 1. Worker Filter
-        if (userRole === 'admin' && filterWorker !== 'all') {
-            if (filterWorker === 'unassigned' && p.asignado_a) return false
-            if (filterWorker !== 'unassigned' && p.asignado_a !== filterWorker) return false
-        }
-
-        // 2. Status Filter
-        if (statusFilter !== 'all' && p.status !== statusFilter) return false
-
-        // 3. Search Term (ID, Client Name, Phone, DNI)
-        if (searchTerm) {
-            const term = searchTerm.toLowerCase()
-            const id = p.id.toString()
-            const clientName = (p.nombre_contacto || p.clientes?.nombre || '').toLowerCase()
-            const phone = (p.telefono_contacto || p.clientes?.telefono || '')
-            const dni = (p.dni_contacto || p.clientes?.dni || '')
-
-            if (!id.includes(term) && !clientName.includes(term) && !phone.includes(term) && !dni.includes(term)) {
-                return false
-            }
-        }
-
-        // 4. Date Filter
-        if (dateFilter !== 'all') {
-            const pDate = new Date(p.created_at)
-            const today = new Date()
-
-            if (dateFilter === 'today') {
-                if (pDate.toDateString() !== today.toDateString()) return false
-            } else if (dateFilter === '7days') {
-                const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
-                if (pDate < sevenDaysAgo) return false
-            } else if (dateFilter === 'thisMonth') {
-                if (pDate.getMonth() !== today.getMonth() || pDate.getFullYear() !== today.getFullYear()) return false
-            } else if (dateFilter === 'custom') {
-                if (customStartDate && new Date(p.created_at) < new Date(customStartDate)) return false
-                if (customEndDate) {
-                    const end = new Date(customEndDate)
-                    end.setHours(23, 59, 59, 999)
-                    if (new Date(p.created_at) > end) return false
-                }
-            }
-        }
-
-        return true
-    })
-
-    const totalItems = filteredPedidos.length
-    const totalPages = Math.ceil(totalItems / itemsPerPage)
-    
-    // Reverse pagination logic: the oldest pages are completely full (10 items),
-    // and the newest page (Page 1) takes the remainder and grows as new orders arrive.
-    const firstPageItems = totalItems % itemsPerPage || itemsPerPage
-    
-    let startIndex = 0
-    let endIndex = 0
-    
-    if (currentPage === 1) {
-        startIndex = 0
-        endIndex = firstPageItems
-    } else {
-        startIndex = firstPageItems + (currentPage - 2) * itemsPerPage
-        endIndex = startIndex + itemsPerPage
-    }
-    
-    const paginatedPedidos = filteredPedidos.slice(startIndex, endIndex)
+    const paginatedPedidos = fetchResult?.data || []
+    const totalItems = fetchResult?.count || 0
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1
 
     // 2. Mutations
     const assignMutation = useMutation({
