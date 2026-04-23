@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase.client"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -54,9 +55,9 @@ export default function UsuariosPage() {
     onSuccess: (json: any) => {
       const roleName = roleToAssign === "admin" ? "Administrador" : "Trabajador"
       if (json?.isInvite) {
-        alert(`Invitación enviada para rol ${roleName}.`)
+        toast.success(`Invitación enviada para rol ${roleName}.`)
       } else {
-        alert(`Usuario creado como ${roleName}.`)
+        toast.success(`Usuario creado como ${roleName}.`)
       }
       // Reset Form
       setEmail("")
@@ -66,10 +67,11 @@ export default function UsuariosPage() {
 
       // Refresh List automatically
       queryClient.invalidateQueries({ queryKey: ["adminProfiles"] })
+      queryClient.invalidateQueries({ queryKey: ["adminWorkers"] })
     },
     onError: (err: any) => {
       if (err.message.includes("session")) router.push("/auth/login")
-      alert(err.message || "Error al crear usuario")
+      toast.error(err.message || "Error al crear usuario")
     }
   })
 
@@ -84,13 +86,32 @@ export default function UsuariosPage() {
         role: newRole
       })
     },
-    onSuccess: () => {
-      // We could invalidate, but optimistic updates are nicer. 
-      // For simplicity, we invalidate to ensure consistency.
-      queryClient.invalidateQueries({ queryKey: ["adminProfiles"] })
+    onMutate: async ({ userId, newRole }) => {
+      // Optimistic UI update
+      await queryClient.cancelQueries({ queryKey: ["adminProfiles"] })
+      const previousProfiles = queryClient.getQueryData(["adminProfiles"])
+      
+      queryClient.setQueryData(["adminProfiles"], (old: any) => {
+        if (!old) return old
+        return old.map((p: any) => p.id === userId ? { ...p, role: newRole } : p)
+      })
+      
+      return { previousProfiles }
     },
-    onError: (err: any) => {
-      alert("Error al actualizar rol: " + err.message)
+    onError: (err: any, variables, context) => {
+      // Rollback on error
+      if (context?.previousProfiles) {
+        queryClient.setQueryData(["adminProfiles"], context.previousProfiles)
+      }
+      toast.error("Error al actualizar rol: " + err.message)
+    },
+    onSettled: () => {
+      // Sync with server state and invalidate workers for the orders table
+      queryClient.invalidateQueries({ queryKey: ["adminProfiles"] })
+      queryClient.invalidateQueries({ queryKey: ["adminWorkers"] })
+    },
+    onSuccess: () => {
+      toast.success("Rol actualizado correctamente")
     }
   })
 
