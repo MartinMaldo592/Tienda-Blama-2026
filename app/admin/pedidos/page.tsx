@@ -287,6 +287,7 @@ export default function PedidosPage() {
                 return {
                     "ID": p.id,
                     "Fecha": new Date(p.created_at).toLocaleDateString(),
+                    "Hora": new Date(p.created_at).toLocaleTimeString('es-PE', { hour12: false }),
                     "Cliente": p.clientes?.nombre || p.nombre_contacto || '',
                     "Teléfono": p.clientes?.telefono || p.telefono_contacto || '',
                     "DNI": p.clientes?.dni || p.dni_contacto || '',
@@ -313,6 +314,7 @@ export default function PedidosPage() {
             const wscols = [
                 { wch: 10 }, // ID
                 { wch: 15 }, // Fecha
+                { wch: 12 }, // Hora
                 { wch: 30 }, // Cliente
                 { wch: 15 }, // Telefono
                 { wch: 12 }, // DNI
