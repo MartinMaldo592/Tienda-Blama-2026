@@ -117,14 +117,19 @@ export default function PedidosPage() {
 
         const supabase = createClient()
         
+        let refreshTimeout: NodeJS.Timeout
+
         const channel = supabase
             .channel('admin-pedidos-realtime')
             .on(
                 'postgres_changes', 
                 { event: '*', schema: 'public', table: 'pedidos' }, 
                 (payload) => {
-                    // Invalidate query to refresh the list
-                    queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
+                    // Debounce refresh to avoid multiple requests in burst
+                    clearTimeout(refreshTimeout)
+                    refreshTimeout = setTimeout(() => {
+                        queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
+                    }, 500)
                     
                     // Show specific toast for new orders
                     if (payload.eventType === 'INSERT') {
@@ -139,6 +144,7 @@ export default function PedidosPage() {
             .subscribe()
 
         return () => {
+            clearTimeout(refreshTimeout)
             supabase.removeChannel(channel)
         }
     }, [userId, queryClient])
