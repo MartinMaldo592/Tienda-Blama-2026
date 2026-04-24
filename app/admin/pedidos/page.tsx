@@ -64,6 +64,7 @@ export default function PedidosPage() {
     const [stockErrorsList, setStockErrorsList] = useState<any[]>([])
     const [exportDialogOpen, setExportDialogOpen] = useState(false)
     const [isExporting, setIsExporting] = useState(false)
+    const [recentOrderIds, setRecentOrderIds] = useState<Set<number>>(new Set())
 
     // Pagination state
     const initialPage = Number(searchParams.get("page")) || 1
@@ -132,7 +133,20 @@ export default function PedidosPage() {
                         queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
                     }, 500)
                     
+                    // Show specific toast for new orders
                     if (payload.eventType === 'INSERT') {
+                        const newId = payload.new.id
+                        setRecentOrderIds(prev => new Set(prev).add(newId))
+                        
+                        // Clear highlight after 5 seconds
+                        setTimeout(() => {
+                            setRecentOrderIds(prev => {
+                                const next = new Set(prev)
+                                next.delete(newId)
+                                return next
+                            })
+                        }, 5000)
+
                         // The notification is now handled globally in AdminLayout
                     }
                 }
@@ -692,7 +706,16 @@ export default function PedidosPage() {
                                 </TableRow>
                             ) : (
                                 paginatedPedidos.map((pedido: PedidoRow) => (
-                                    <TableRow key={pedido.id} className={selectedIds.includes(pedido.id) ? "bg-blue-50/50" : ""}>
+                                    <TableRow 
+                                        key={pedido.id} 
+                                        className={`transition-all duration-700 ${
+                                            recentOrderIds.has(pedido.id) 
+                                            ? 'bg-green-50 animate-in fade-in slide-in-from-top-4 duration-1000' 
+                                            : selectedIds.includes(pedido.id) 
+                                                ? "bg-blue-50/50" 
+                                                : "group hover:bg-muted/30"
+                                        }`}
+                                    >
                                         <TableCell className="pl-4">
                                             <input
                                                 type="checkbox"
