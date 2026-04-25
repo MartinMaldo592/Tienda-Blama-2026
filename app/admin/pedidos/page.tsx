@@ -18,7 +18,7 @@ import {
     User, UserPlus, ChevronLeft, ChevronRight, 
     AlertCircle, CheckCircle2, Box, ArrowRight, Download, LayoutDashboard
 } from "lucide-react"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query"
 import { 
     fetchPedidosForRole, 
     updatePedidoStatusWithStock, 
@@ -172,7 +172,31 @@ function PedidosPageContent() {
             customEndDate
         }),
         enabled: !!userId && !guard.loading && !guard.accessDenied,
+        placeholderData: keepPreviousData,
+        staleTime: 1000 * 60 * 5, // 5 minutes
     })
+
+    // --- PREFETCHING NEXT PAGE FOR SMOOTH TRANSITION ---
+    useEffect(() => {
+        if (currentPage < totalPages) {
+            const nextPage = currentPage + 1
+            queryClient.prefetchQuery({
+                queryKey: ["adminPedidos", userRole, userId, nextPage, itemsPerPage, statusFilter, searchTerm, dateFilter, filterWorker, customStartDate, customEndDate],
+                queryFn: () => fetchPedidosForRole({ 
+                    role: userRole, 
+                    currentUserId: userId,
+                    page: nextPage,
+                    itemsPerPage,
+                    statusFilter,
+                    searchTerm,
+                    dateFilter,
+                    filterWorker,
+                    customStartDate,
+                    customEndDate
+                }),
+            })
+        }
+    }, [currentPage, totalPages, queryClient, userRole, userId, itemsPerPage, statusFilter, searchTerm, dateFilter, filterWorker, customStartDate, customEndDate])
 
     const { data: workers = [] } = useQuery({
         queryKey: ["adminWorkers"],
@@ -366,9 +390,20 @@ function PedidosPageContent() {
                             <Box size={28} strokeWidth={1.5} />
                         </div>
                         <div>
-                            <h1 className="text-5xl font-black text-slate-900 tracking-tight">
-                                {userRole === 'admin' ? 'Pedidos' : 'Mis Entregas'}
-                            </h1>
+                            <div className="flex items-center gap-3">
+                                <h1 className="text-5xl font-black text-slate-900 tracking-tight">
+                                    {userRole === 'admin' ? 'Pedidos' : 'Mis Entregas'}
+                                </h1>
+                                {isFetching && !loadingPedidos && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, scale: 0.5 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="bg-blue-50 text-blue-600 p-2 rounded-xl"
+                                    >
+                                        <RefreshCw className="h-4 w-4 animate-spin" />
+                                    </motion.div>
+                                )}
+                            </div>
                             <div className="flex items-center gap-2 mt-1">
                                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                                 <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">
