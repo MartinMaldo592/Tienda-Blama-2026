@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import { createClient } from "@/lib/supabase.client"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
@@ -12,6 +13,19 @@ import {
     TableHeader,
     TableRow
 } from "@/components/ui/table"
+import { 
+    RefreshCw, Search, Eye, Filter, Loader2, Calendar, 
+    User, UserPlus, ChevronLeft, ChevronRight, 
+    AlertCircle, CheckCircle2 
+} from "lucide-react"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { 
+    fetchPedidosForRole, 
+    updatePedidoStatusWithStock, 
+    assignPedidoToWorker, 
+    checkBulkStockSufficient,
+    fetchAdminWorkers
+} from "@/features/admin/services/pedidos.client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -22,12 +36,12 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { formatCurrency } from "@/lib/utils"
-import { Eye, Search, UserPlus, RefreshCw, User, Loader2, Calendar, AlertCircle, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react"
-import { Skeleton } from "@/components/ui/skeleton"
+import { toast } from "sonner"
+import { PaymentStatusBadge } from "@/components/admin/orders/status-badges"
+import { OrderRowSkeleton } from "@/components/admin/skeleton-previews"
 import Link from "next/link"
+import { Skeleton } from "@/components/ui/skeleton"
 import { usePathname, useSearchParams, useRouter } from "next/navigation"
-import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidosForRole, updatePedidoStatusWithStock, checkBulkStockSufficient } from "@/features/admin"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import {
     Dialog,
     DialogContent,
@@ -36,7 +50,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { toast } from "sonner"
 import { PedidoRow, ProfileRow } from "@/features/admin/types"
 
 export default function PedidosPage() {
@@ -119,7 +132,6 @@ export default function PedidosPage() {
 
         const supabase = createClient()
         
-        let refreshTimeout: NodeJS.Timeout
 
         const channel = supabase
             .channel('admin-pedidos-realtime')
@@ -127,34 +139,28 @@ export default function PedidosPage() {
                 'postgres_changes', 
                 { event: '*', schema: 'public', table: 'pedidos' }, 
                 (payload) => {
-                    // Debounce refresh to avoid multiple requests in burst
-                    clearTimeout(refreshTimeout)
-                    refreshTimeout = setTimeout(() => {
-                        queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
-                    }, 500)
+                    // Invalidate both the list and the dashboard stats
+                    queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
+                    queryClient.invalidateQueries({ queryKey: ["admin-dashboard-stats"] })
                     
-                    // Show specific toast for new orders
                     if (payload.eventType === 'INSERT') {
                         const newId = payload.new.id
                         setRecentOrderIds(prev => new Set(prev).add(newId))
                         
-                        // Clear highlight after 5 seconds
+                        // Clear highlight after 15 seconds (longer for better visibility)
                         setTimeout(() => {
                             setRecentOrderIds(prev => {
                                 const next = new Set(prev)
                                 next.delete(newId)
                                 return next
                             })
-                        }, 5000)
-
-                        // The notification is now handled globally in AdminLayout
+                        }, 15000)
                     }
                 }
             )
             .subscribe()
 
         return () => {
-            clearTimeout(refreshTimeout)
             supabase.removeChannel(channel)
         }
     }, [userId, queryClient])
@@ -498,14 +504,14 @@ export default function PedidosPage() {
                 </div>
                 <div className="flex gap-2">
                     {userRole === 'admin' && (
-                        <Button variant="outline" className="gap-2" onClick={() => setExportDialogOpen(true)} disabled={totalItems === 0}>
+                        <Button variant="outline" className="gap-2 haptic-scale shadow-sm" onClick={() => setExportDialogOpen(true)} disabled={totalItems === 0}>
                             <RefreshCw className={`h-4 w-4 ${isExporting ? 'animate-spin' : ''}`} />
                             Exportar Excel
                         </Button>
                     )}
                     <Button
                         variant="outline"
-                        className="gap-2"
+                        className="gap-2 haptic-scale shadow-sm"
                         onClick={() => queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })}
                         disabled={isFetching}
                     >
@@ -568,7 +574,7 @@ export default function PedidosPage() {
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
                         placeholder="Buscar por cliente, ID, DNI o teléfono..."
-                        className="pl-9 border-gray-200"
+                        className="pl-9 border-gray-200 focus-ring-premium"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -685,19 +691,7 @@ export default function PedidosPage() {
                         </TableHeader>
                         <TableBody>
                             {loadingPedidos ? (
-                                Array.from({ length: itemsPerPage }).map((_, i) => (
-                                    <TableRow key={i}>
-                                        <TableCell className="pl-4"><Skeleton className="h-4 w-4" /></TableCell>
-                                        <TableCell><Skeleton className="h-4 w-12" /></TableCell>
-                                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                                        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                                        <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                                        {userRole === 'admin' && <TableCell><Skeleton className="h-4 w-24" /></TableCell>}
-                                        <TableCell className="text-right pr-4"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
-                                    </TableRow>
-                                ))
+                                <OrderRowSkeleton />
                             ) : totalItems === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={userRole === 'admin' ? 9 : 8} className="text-center py-10">
@@ -705,107 +699,142 @@ export default function PedidosPage() {
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                paginatedPedidos.map((pedido: PedidoRow) => (
-                                    <TableRow 
-                                        key={pedido.id} 
-                                        className={`transition-all duration-700 ${
-                                            recentOrderIds.has(pedido.id) 
-                                            ? 'bg-green-50 animate-in fade-in slide-in-from-top-4 duration-1000' 
-                                            : selectedIds.includes(pedido.id) 
-                                                ? "bg-blue-50/50" 
-                                                : "group hover:bg-muted/30"
-                                        }`}
-                                    >
-                                        <TableCell className="pl-4">
-                                            <input
-                                                type="checkbox"
-                                                className="h-4 w-4 rounded border-gray-300 text-blue-600 cursor-pointer"
-                                                checked={selectedIds.includes(pedido.id)}
-                                                onChange={() => toggleSelection(pedido.id)}
-                                            />
-                                        </TableCell>
-                                        <TableCell className="font-mono font-medium">#{pedido.id.toString().padStart(6, '0')}</TableCell>
-                                        <TableCell>
-                                            <div className="font-medium">{pedido.nombre_contacto || pedido.clientes?.nombre || 'Anónimo'}</div>
-                                            <div className="text-xs text-gray-500">{pedido.telefono_contacto || pedido.clientes?.telefono}</div>
-                                            <div className="text-xs text-gray-500">DNI: {pedido.dni_contacto || pedido.clientes?.dni || '—'}</div>
-                                        </TableCell>
-                                        <TableCell>{new Date(pedido.created_at).toLocaleDateString()}</TableCell>
-                                        <TableCell className="font-bold">{formatCurrency(pedido.total)}</TableCell>
-                                        <TableCell>
-                                            <PaymentStatusBadge status={pedido.pago_status} />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Select
-                                                value={pedido.status}
-                                                onValueChange={(val) => statusMutation.mutate({
-                                                    pedidoId: pedido.id,
-                                                    nextStatus: val,
-                                                    stockDescontado: pedido.stock_descontado || false
-                                                })}
-                                                disabled={statusMutation.isPending}
+                                <AnimatePresence mode="popLayout" initial={false}>
+                                    {paginatedPedidos.map((pedido: PedidoRow) => {
+                                        const isNew = recentOrderIds.has(pedido.id)
+                                        return (
+                                            <motion.tr
+                                                key={pedido.id}
+                                                layout
+                                                initial={isNew ? { opacity: 0, x: -20, backgroundColor: "rgba(34, 197, 94, 0.1)" } : false}
+                                                animate={{ 
+                                                    opacity: 1, 
+                                                    x: 0, 
+                                                    backgroundColor: isNew ? "rgba(34, 197, 94, 0.05)" : (selectedIds.includes(pedido.id) ? "rgba(59, 130, 246, 0.05)" : "rgba(255, 255, 255, 0)") 
+                                                }}
+                                                exit={{ opacity: 0, scale: 0.95 }}
+                                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                                className={`border-b transition-colors ${
+                                                    selectedIds.includes(pedido.id) 
+                                                        ? "bg-blue-50/50" 
+                                                        : "group hover:bg-muted/30"
+                                                } ${isNew ? 'ring-2 ring-green-500/20 ring-inset' : ''}`}
                                             >
-                                                <SelectTrigger
-                                                    className={`w-[135px] h-7 px-3 py-1 text-xs font-medium border shadow-none focus:ring-0 focus:ring-offset-0 transition-colors rounded-full ${pedido.status === 'Pendiente' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
-                                                        pedido.status === 'Confirmado' ? 'bg-blue-100 text-blue-800 border-blue-200' :
-                                                            pedido.status === 'Preparando' ? 'bg-orange-100 text-orange-800 border-orange-200' :
-                                                                pedido.status === 'Enviado' ? 'bg-indigo-100 text-indigo-800 border-indigo-200' :
-                                                                    pedido.status === 'Entregado' ? 'bg-green-100 text-green-800 border-green-200' :
-                                                                        pedido.status === 'Fallido' || pedido.status === 'Devuelto' ? 'bg-red-100 text-red-800 border-red-200' :
-                                                                            'bg-gray-100 text-gray-800 border-gray-200'
-                                                        }`}
-                                                >
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="Pendiente">Pendiente</SelectItem>
-                                                    <SelectItem value="Confirmado">Confirmado</SelectItem>
-                                                    <SelectItem value="Preparando">Preparando</SelectItem>
-                                                    <SelectItem value="Enviado">Enviado</SelectItem>
-                                                    <SelectItem value="Entregado">Entregado</SelectItem>
-                                                    <SelectItem value="Devuelto">Devuelto</SelectItem>
-                                                    <SelectItem value="Fallido">Fallido / Cancelado</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </TableCell>
-                                        {userRole === 'admin' && (
-                                            <TableCell>
-                                                <Select
-                                                    value={pedido.asignado_a || 'unassigned'}
-                                                    onValueChange={(val) => assignMutation.mutate({ pedidoId: pedido.id, workerId: val })}
-                                                    disabled={assignMutation.isPending}
-                                                >
-                                                    <SelectTrigger className="w-[160px] h-8 text-xs">
-                                                        <SelectValue>
-                                                            {pedido.asignado_perfil?.nombre || pedido.asignado_perfil?.email || (
-                                                                <span className="text-orange-600 flex items-center gap-1">
-                                                                    <UserPlus className="h-3 w-3" /> Sin asignar
-                                                                </span>
-                                                            )}
-                                                        </SelectValue>
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="unassigned">
-                                                            <span className="text-gray-500">Sin asignar</span>
-                                                        </SelectItem>
-                                                        {workers.map((w: ProfileRow) => (
-                                                            <SelectItem key={w.id} value={w.id}>
-                                                                {w.nombre || (w.email ? w.email.split('@')[0] : 'Usuario')}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </TableCell>
-                                        )}
-                                        <TableCell className="text-right">
-                                            <Link href={`/admin/pedidos/${pedido.id}`}>
-                                                <Button variant="ghost" size="icon">
-                                                    <Eye className="h-4 w-4 text-gray-500" />
-                                                </Button>
-                                            </Link>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
+                                                <TableCell className="pl-4">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="h-4 w-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+                                                        checked={selectedIds.includes(pedido.id)}
+                                                        onChange={() => toggleSelection(pedido.id)}
+                                                    />
+                                                </TableCell>
+                                                <TableCell className="font-mono font-medium relative">
+                                                    #{pedido.id.toString().padStart(6, '0')}
+                                                    {isNew && (
+                                                        <motion.span 
+                                                            initial={{ scale: 0.5, opacity: 0 }}
+                                                            animate={{ scale: 1, opacity: 1 }}
+                                                            className="absolute -top-1 -left-1 flex h-4 w-4"
+                                                        >
+                                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                                            <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500 text-[8px] items-center justify-center text-white font-bold">N</span>
+                                                        </motion.span>
+                                                    )}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="font-medium flex items-center gap-2">
+                                                        {pedido.nombre_contacto || pedido.clientes?.nombre || 'Anónimo'}
+                                                        {isNew && (
+                                                            <motion.span 
+                                                                animate={{ opacity: [0.4, 1, 0.4] }}
+                                                                transition={{ duration: 2, repeat: Infinity }}
+                                                                className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider"
+                                                            >
+                                                                Nuevo
+                                                            </motion.span>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500">{pedido.telefono_contacto || pedido.clientes?.telefono}</div>
+                                                    <div className="text-xs text-gray-500">DNI: {pedido.dni_contacto || pedido.clientes?.dni || '—'}</div>
+                                                </TableCell>
+                                                <TableCell>{new Date(pedido.created_at).toLocaleDateString()}</TableCell>
+                                                <TableCell className="font-bold">{formatCurrency(pedido.total)}</TableCell>
+                                                <TableCell>
+                                                    <PaymentStatusBadge status={pedido.pago_status} />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Select
+                                                        value={pedido.status}
+                                                        onValueChange={(val) => statusMutation.mutate({
+                                                            pedidoId: pedido.id,
+                                                            nextStatus: val,
+                                                            stockDescontado: pedido.stock_descontado || false
+                                                        })}
+                                                        disabled={statusMutation.isPending}
+                                                    >
+                                                        <SelectTrigger
+                                                            className={`w-[135px] h-7 px-3 py-1 text-xs font-medium border shadow-none focus:ring-0 focus:ring-offset-0 transition-colors rounded-full ${pedido.status === 'Pendiente' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                                                                pedido.status === 'Confirmado' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                                                                    pedido.status === 'Preparando' ? 'bg-orange-100 text-orange-800 border-orange-200' :
+                                                                        pedido.status === 'Enviado' ? 'bg-indigo-100 text-indigo-800 border-indigo-200' :
+                                                                            pedido.status === 'Entregado' ? 'bg-green-100 text-green-800 border-green-200' :
+                                                                                pedido.status === 'Fallido' || pedido.status === 'Devuelto' ? 'bg-red-100 text-red-800 border-red-200' :
+                                                                                    'bg-gray-100 text-gray-800 border-gray-200'
+                                                                }`}
+                                                        >
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="Pendiente">Pendiente</SelectItem>
+                                                            <SelectItem value="Confirmado">Confirmado</SelectItem>
+                                                            <SelectItem value="Preparando">Preparando</SelectItem>
+                                                            <SelectItem value="Enviado">Enviado</SelectItem>
+                                                            <SelectItem value="Entregado">Entregado</SelectItem>
+                                                            <SelectItem value="Devuelto">Devuelto</SelectItem>
+                                                            <SelectItem value="Fallido">Fallido / Cancelado</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </TableCell>
+                                                {userRole === 'admin' && (
+                                                    <TableCell>
+                                                        <Select
+                                                            value={pedido.asignado_a || 'unassigned'}
+                                                            onValueChange={(val) => assignMutation.mutate({ pedidoId: pedido.id, workerId: val })}
+                                                            disabled={assignMutation.isPending}
+                                                        >
+                                                            <SelectTrigger className="w-[160px] h-8 text-xs">
+                                                                <SelectValue>
+                                                                    {pedido.asignado_perfil?.nombre || pedido.asignado_perfil?.email || (
+                                                                        <span className="text-orange-600 flex items-center gap-1">
+                                                                            <UserPlus className="h-3 w-3" /> Sin asignar
+                                                                        </span>
+                                                                    )}
+                                                                </SelectValue>
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="unassigned">
+                                                                    <span className="text-gray-500">Sin asignar</span>
+                                                                </SelectItem>
+                                                                {workers.map((w: ProfileRow) => (
+                                                                    <SelectItem key={w.id} value={w.id}>
+                                                                        {w.nombre || (w.email ? w.email.split('@')[0] : 'Usuario')}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </TableCell>
+                                                )}
+                                                <TableCell className="text-right">
+                                                    <Link href={`/admin/pedidos/${pedido.id}`}>
+                                                        <Button variant="ghost" size="icon">
+                                                            <Eye className="h-4 w-4 text-gray-500" />
+                                                        </Button>
+                                                    </Link>
+                                                </TableCell>
+                                            </motion.tr>
+                                        )
+                                    })}
+                                </AnimatePresence>
                             )}
                         </TableBody>
                     </Table>
@@ -1037,52 +1066,5 @@ export default function PedidosPage() {
                 </DialogContent>
             </Dialog>
         </div>
-    )
-}
-
-
-
-function StatusBadge({ status }: { status: string }) {
-    const styles: Record<string, string> = {
-        'Pendiente': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-        'Confirmado': 'bg-blue-100 text-blue-800 border-blue-200',
-        'Enviado': 'bg-indigo-100 text-indigo-800 border-indigo-200',
-        'Entregado': 'bg-green-100 text-green-800 border-green-200',
-        'Fallido': 'bg-red-100 text-red-800 border-red-200',
-    }
-    return (
-        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${styles[status] || 'bg-gray-100'}`}>
-            {status}
-        </span>
-    )
-}
-
-function PaymentStatusBadge({ status }: { status: string | null }) {
-    const styles: Record<string, string> = {
-        'pending': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-        'pendiente': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-        'pago contraentrega': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-        'paid': 'bg-green-100 text-green-800 border-green-200',
-        'pagado': 'bg-green-100 text-green-800 border-green-200',
-        'failed': 'bg-red-100 text-red-800 border-red-200',
-        'fallido': 'bg-red-100 text-red-800 border-red-200',
-    }
-    const labels: Record<string, string> = {
-        'pending': 'Pendiente',
-        'pendiente': 'Pendiente',
-        'pago contraentrega': 'Contraentrega',
-        'paid': 'Pagado',
-        'pagado': 'Pagado',
-        'failed': 'Fallido',
-        'fallido': 'Fallido',
-    }
-
-    // Normalize status just in case
-    const normalized = (status || 'pending').toLowerCase()
-
-    return (
-        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${styles[normalized] || 'bg-gray-100'}`}>
-            {labels[normalized] || status || 'Pendiente'}
-        </span>
     )
 }

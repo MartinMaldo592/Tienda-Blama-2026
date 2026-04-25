@@ -20,11 +20,12 @@ import {
 
 import { formatCurrency } from "@/lib/utils"
 
-import { Plus, Search, Edit, Trash2, Image as ImageIcon, Loader2 } from "lucide-react"
+import { Loader2, Package, Search, Plus, ImageIcon, Trash2, Edit, RefreshCw } from "lucide-react"
 import { deleteAdminProductoViaApi, fetchAdminProductos, deleteFromR2 } from "@/features/admin"
 import { deleteProductAction } from "@/features/admin/actions/products"
 import { Producto } from "@/features/admin/types"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { ProductRowSkeleton } from "@/components/admin/skeleton-previews"
 
 export default function ProductosPage() {
     const router = useRouter()
@@ -92,19 +93,30 @@ export default function ProductosPage() {
                     <p className="text-gray-500">Administra el inventario de tu tienda.</p>
                 </div>
 
-                <Button asChild className="bg-black text-white gap-2 hover:bg-gray-800">
-                    <Link href="/admin/productos/nuevo">
-                        <Plus className="h-4 w-4" /> Nuevo Producto
-                    </Link>
-                </Button>
+                <div className="flex gap-2">
+                    <Button
+                        variant="outline"
+                        className="gap-2 haptic-scale shadow-sm"
+                        onClick={() => queryClient.invalidateQueries({ queryKey: ["adminProductos"] })}
+                        disabled={isLoading}
+                    >
+                        <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+                        Actualizar
+                    </Button>
+                    <Button asChild className="bg-black text-white gap-2 hover:bg-gray-800 haptic-scale shadow-md">
+                        <Link href="/admin/productos/nuevo">
+                            <Plus className="h-4 w-4" /> Nuevo Producto
+                        </Link>
+                    </Button>
+                </div>
             </div>
 
             <div className="flex gap-2 bg-white p-4 rounded-xl shadow-sm border">
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
-                        placeholder="Buscar producto..."
-                        className="pl-9 border-gray-200"
+                        placeholder="Buscar por nombre de producto..."
+                        className="pl-9 border-gray-200 focus-ring-premium"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -124,14 +136,7 @@ export default function ProductosPage() {
                     </TableHeader>
                     <TableBody>
                         {isLoading ? (
-                            <TableRow>
-                                <TableCell colSpan={5} className="text-center py-10">
-                                    <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
-                                        <Loader2 className="h-8 w-8 animate-spin" />
-                                        Cargando inventario...
-                                    </div>
-                                </TableCell>
-                            </TableRow>
+                            <ProductRowSkeleton />
                         ) : filteredProductos.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={5} className="text-center py-10">
@@ -165,7 +170,7 @@ export default function ProductosPage() {
                                         </span>
                                     </TableCell>
                                     <TableCell className="text-right space-x-2">
-                                        <Button asChild variant="ghost" size="icon" className="h-8 w-8 hover:bg-gray-100">
+                                        <Button asChild variant="ghost" size="icon" className="h-8 w-8 hover:bg-gray-100 haptic-scale">
                                             <Link href={`/admin/productos/${producto.id}/editar`} aria-label="Editar">
                                                 <Edit className="h-4 w-4 text-gray-600" />
                                             </Link>
@@ -173,7 +178,7 @@ export default function ProductosPage() {
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="h-8 w-8 hover:bg-red-50"
+                                            className="h-8 w-8 hover:bg-red-50 haptic-scale"
                                             onClick={() => handleDelete(producto)}
                                             disabled={deleteMutation.isPending}
                                         >

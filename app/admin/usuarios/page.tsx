@@ -30,6 +30,7 @@ import {
     TableHeader,
     TableRow
 } from "@/components/ui/table"
+import { TableRowsSkeleton } from "@/components/admin/skeleton-previews"
 import {
     Dialog,
     DialogContent,
@@ -304,14 +305,7 @@ export default function UsuariosPage() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                    <TableRow key={i}>
-                        <TableCell><Skeleton className="h-4 w-48" /></TableCell>
-                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                        <TableCell><Skeleton className="h-8 w-24" /></TableCell>
-                        <TableCell className="text-right"><Skeleton className="h-4 w-20 ml-auto" /></TableCell>
-                    </TableRow>
-                ))
+                <TableRowsSkeleton columns={4} rows={6} hasCheckbox={false} />
               ) : filteredProfiles.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="h-32 text-center text-muted-foreground">

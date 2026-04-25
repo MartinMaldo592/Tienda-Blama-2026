@@ -9,7 +9,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrency } from "@/lib/utils"
 import Link from "next/link"
 import { useDashboardStats } from "@/features/admin/hooks/use-admin-dashboard"
+import { useQueryClient } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase.client"
+import { DashboardStatsSkeleton } from "@/components/admin/skeleton-previews"
 
 // Helper hook to get current user ID
 import { useEffect } from "react"
@@ -30,6 +32,29 @@ export default function AdminDashboard() {
 
     // React Query Hook
     const { data: stats, isLoading, isError, error } = useDashboardStats(userRole, userId)
+    const queryClient = useQueryClient()
+
+    // Realtime Sync for Dashboard Stats
+    useEffect(() => {
+        if (!userId) return
+
+        const supabase = createClient()
+        const channel = supabase
+            .channel('admin-dashboard-realtime')
+            .on(
+                'postgres_changes', 
+                { event: '*', schema: 'public', table: 'pedidos' }, 
+                () => {
+                    // Refresh stats when any order changes
+                    queryClient.invalidateQueries({ queryKey: ["admin-dashboard-stats"] })
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [userId, queryClient])
 
     // Default empty stats to avoid crashes while loading
     const safeStats = stats || {
@@ -86,64 +111,64 @@ export default function AdminDashboard() {
             </div>
 
             {/* Stats Grid - Different for Admin vs Worker */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {userRole === 'admin' ? (
-                    <>
-                        <StatsCard
-                            title="Ventas (Entregado)"
-                            value={formatCurrency(safeStats.totalVentasReales)}
-                            change={`Hoy: ${formatCurrency(safeStats.ventasHoy)}`}
-                            icon={<DollarSign className="h-6 w-6" />}
-                            wrapperClass="bg-green-50 border-green-100 green"
-                            loading={isLoading}
-                            href="/admin/dashboard/ventas"
-                        />
-                        <StatsCard
-                            title="Pedidos Pendientes"
-                            value={safeStats.pedidosPendientes.toString()}
-                            change="Por atender"
-                            icon={<ShoppingBag className="h-6 w-6" />}
-                            wrapperClass="bg-orange-50 border-orange-100 orange"
-                            loading={isLoading}
-                            href="/admin/dashboard/pedidos-pendientes"
-                        />
-                        <StatsCard
-                            title="En Proceso"
-                            value={safeStats.pedidosEnProceso.toString()}
-                            change="Confirmado / Enviado"
-                            icon={<ClipboardList className="h-6 w-6" />}
-                            wrapperClass="bg-blue-50 border-blue-100 blue"
-                            loading={isLoading}
-                            href="/admin/dashboard/pedidos-en-proceso"
-                        />
-                        <StatsCard
-                            title="Stock Bajo"
-                            value={safeStats.productosLowStock.toString()}
-                            change="Productos < 5 un."
-                            icon={<Package className="h-6 w-6" />}
-                            wrapperClass="bg-red-50 border-red-100 red"
-                            loading={isLoading}
-                            href="/admin/dashboard/stock-bajo"
-                        />
-                    </>
-                ) : (
-                    <>
-                        <StatsCard
-                            title="Pedidos Asignados"
-                            value={safeStats.pedidosAsignados.toString()}
-                            change="Pendientes de gestionar"
-                            icon={<ClipboardList className="h-6 w-6" />}
-                            wrapperClass="bg-blue-50 border-blue-100 blue"
-                            loading={isLoading}
-                            href="/admin/pedidos"
-                        />
-                        {/* Fill with skeletons if loading and worker */}
-                        {isLoading && Array.from({ length: 3 }).map((_, i) => (
-                            <StatsCard key={i} loading={true} />
-                        ))}
-                    </>
-                )}
-            </div>
+            {isLoading ? (
+                <DashboardStatsSkeleton />
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {userRole === 'admin' ? (
+                        <>
+                            <StatsCard
+                                title="Ventas (Entregado)"
+                                value={formatCurrency(safeStats.totalVentasReales)}
+                                change={`Hoy: ${formatCurrency(safeStats.ventasHoy)}`}
+                                icon={<DollarSign className="h-6 w-6" />}
+                                wrapperClass="bg-green-50 border-green-100 green"
+                                loading={isLoading}
+                                href="/admin/dashboard/ventas"
+                            />
+                            <StatsCard
+                                title="Pedidos Pendientes"
+                                value={safeStats.pedidosPendientes.toString()}
+                                change="Por atender"
+                                icon={<ShoppingBag className="h-6 w-6" />}
+                                wrapperClass="bg-orange-50 border-orange-100 orange"
+                                loading={isLoading}
+                                href="/admin/dashboard/pedidos-pendientes"
+                            />
+                            <StatsCard
+                                title="En Proceso"
+                                value={safeStats.pedidosEnProceso.toString()}
+                                change="Confirmado / Enviado"
+                                icon={<ClipboardList className="h-6 w-6" />}
+                                wrapperClass="bg-blue-50 border-blue-100 blue"
+                                loading={isLoading}
+                                href="/admin/dashboard/pedidos-en-proceso"
+                            />
+                            <StatsCard
+                                title="Stock Bajo"
+                                value={safeStats.productosLowStock.toString()}
+                                change="Productos < 5 un."
+                                icon={<Package className="h-6 w-6" />}
+                                wrapperClass="bg-red-50 border-red-100 red"
+                                loading={isLoading}
+                                href="/admin/dashboard/stock-bajo"
+                            />
+                        </>
+                    ) : (
+                        <>
+                            <StatsCard
+                                title="Pedidos Asignados"
+                                value={safeStats.pedidosAsignados.toString()}
+                                change="Pendientes de gestionar"
+                                icon={<ClipboardList className="h-6 w-6" />}
+                                wrapperClass="bg-blue-50 border-blue-100 blue"
+                                loading={isLoading}
+                                href="/admin/pedidos"
+                            />
+                        </>
+                    )}
+                </div>
+            )}
 
             {/* Sales Chart Section (Admin Only) */}
             {

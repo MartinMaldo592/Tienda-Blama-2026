@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase.client"
-import { LayoutDashboard, ShoppingBag, Package, Users, AlertCircle, LogOut, Percent, Image as ImageIcon, Star, MessageSquare, Megaphone, Share2 } from "lucide-react"
+import { LayoutDashboard, ShoppingBag, Package, Users, AlertCircle, LogOut, Percent, Image as ImageIcon, Star, MessageSquare, Megaphone, Share2, ShieldAlert } from "lucide-react"
 
 interface AdminSidebarProps {
     role: string
@@ -31,7 +31,7 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
         { href: "/admin/usuarios", icon: Users, label: "Usuarios Sistema", roles: ["admin"] },
         { href: "/admin/redes-sociales", icon: Share2, label: "Redes Sociales", roles: ["admin"] },
         { href: "/admin/incidencias", icon: AlertCircle, label: "Incidencias", roles: ["admin", "worker"] },
-        { href: "/admin/auditoria", icon: AlertCircle, label: "Auditoría", roles: ["admin"] },
+        { href: "/admin/auditoria", icon: ShieldAlert, label: "Auditoría", roles: ["admin"] },
     ]
 
     // Filter menu items based on user role

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useJsApiLoader } from "@react-google-maps/api"
+import { motion, AnimatePresence } from "framer-motion"
 import usePlacesAutocomplete, {
     getGeocode,
     getLatLng,
@@ -449,6 +450,7 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
             const orderIdFormatted = String(data.orderId || '0').padStart(6, '0')
             setLastOrderSuccessMarker(orderIdFormatted)
             clearCartStorage()
+            setIsRedirecting(true)
 
             // GTM: Track Purchase
             sendGTMEvent({
@@ -597,6 +599,34 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                     </div>{/* end inner scroll div */}
                 </div>{/* end outer relative div */}
             </form>
+
+            <AnimatePresence>
+                {isRedirecting && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/90 backdrop-blur-xl"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="flex flex-col items-center gap-4 text-center"
+                        >
+                            <div className="relative">
+                                <div className="h-16 w-16 rounded-full border-4 border-blue-100 border-t-blue-600 animate-spin" />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="h-2 w-2 bg-blue-600 rounded-full" />
+                                </div>
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-900">Procesando tu pedido...</h2>
+                                <p className="text-gray-500 text-sm">Estamos finalizando tu compra de forma segura.</p>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </>
     )
 }

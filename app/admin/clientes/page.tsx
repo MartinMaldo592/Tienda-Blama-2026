@@ -12,6 +12,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import { TableRowsSkeleton } from "@/components/admin/skeleton-previews"
 import { Search, MapPin, Phone, History, Mail } from "lucide-react"
 import { fetchAdminClientes } from "@/features/admin"
 
@@ -87,9 +88,7 @@ export default function ClientesPage() {
                     </TableHeader>
                     <TableBody>
                         {loading ? (
-                            <TableRow>
-                                <TableCell colSpan={12} className="text-center py-10">Cargando...</TableCell>
-                            </TableRow>
+                            <TableRowsSkeleton columns={12} rows={8} hasCheckbox={false} />
                         ) : filteredClientes.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={12} className="text-center py-10">
