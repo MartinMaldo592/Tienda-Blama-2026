@@ -176,6 +176,10 @@ function PedidosPageContent() {
         staleTime: 1000 * 60 * 5, // 5 minutes
     })
 
+    const paginatedPedidos = fetchResult?.data || []
+    const totalItems = fetchResult?.count || 0
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1
+
     // --- PREFETCHING NEXT PAGE FOR SMOOTH TRANSITION ---
     useEffect(() => {
         if (currentPage < totalPages) {
@@ -203,10 +207,6 @@ function PedidosPageContent() {
         queryFn: fetchAdminWorkers,
         enabled: userRole === 'admin' && !guard.loading,
     })
-
-    const paginatedPedidos = fetchResult?.data || []
-    const totalItems = fetchResult?.count || 0
-    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1
 
     const getPageNumbers = () => {
         const pages = []
