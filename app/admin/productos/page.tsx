@@ -22,6 +22,7 @@ import { formatCurrency } from "@/lib/utils"
 
 import { Plus, Search, Edit, Trash2, Image as ImageIcon, Loader2 } from "lucide-react"
 import { deleteAdminProductoViaApi, fetchAdminProductos, deleteFromR2 } from "@/features/admin"
+import { deleteProductAction } from "@/features/admin/actions/products"
 import { Producto } from "@/features/admin/types"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 
@@ -42,24 +43,20 @@ export default function ProductosPage() {
     // 2. Deletion Mutation
     const deleteMutation = useMutation({
         mutationFn: async (producto: Producto) => {
-            const supabase = createClient()
-            const sessionRes = await supabase.auth.getSession()
-            const accessToken = sessionRes?.data?.session?.access_token
-            if (!accessToken) throw new Error("Tu sesión expiró. Vuelve a iniciar sesión.")
-
             // 1. Delete images and videos from R2 (Cloudflare)
-            // Collect all URLs to delete
             const urlsToDelete = [
                 producto.imagen_url,
                 ...(Array.isArray(producto.imagenes) ? producto.imagenes : []),
                 ...(Array.isArray(producto.videos) ? (producto.videos as string[]) : [])
             ].filter((u): u is string => Boolean(u))
 
-            // Execute deletions in parallel
-            await Promise.all(urlsToDelete.map(url => deleteFromR2(url)))
+            if (urlsToDelete.length > 0) {
+                await Promise.all(urlsToDelete.map(url => deleteFromR2(url)))
+            }
 
-            // 2. Delete from Database
-            await deleteAdminProductoViaApi({ accessToken, id: producto.id })
+            // 2. Delete from Database using Server Action
+            const result = await deleteProductAction(producto.id)
+            if (result.error) throw new Error(result.error)
 
             return producto.id
         },

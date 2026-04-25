@@ -5,8 +5,8 @@ import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase.client"
 import {
     fetchProductoSpecsAndVariants,
-    saveAdminProductoViaApi,
 } from "@/features/admin"
+import { upsertProductAction } from "@/features/admin/actions/products"
 import { Button } from "@/components/ui/button"
 import { Loader2, Save } from "lucide-react"
 
@@ -179,13 +179,7 @@ export function ProductForm({ productToEdit, categories = DEFAULT_CATEGORIES, on
     const onSubmit = async (data: ProductFormValues) => {
         setLoading(true)
         try {
-            const supabase = createClient()
-            const sessionRes = await supabase.auth.getSession()
-            const accessToken = sessionRes?.data?.session?.access_token
-            if (!accessToken) {
-                alert('Tu sesión expiró. Vuelve a iniciar sesión.')
-                return
-            }
+            // Determine final category ID
 
             // Determine final category ID
             let finalCategoryIdToSave: number | null = data.categoria_id || null
@@ -212,15 +206,26 @@ export function ProductForm({ productToEdit, categories = DEFAULT_CATEGORIES, on
                 finalCategoryIdToSave = catId
             }
 
-            const method = productToEdit ? 'PUT' : 'POST'
-
             const { especificaciones, variantes, ...productFields } = data
 
-            const apiBody: any = {
+            const result = await upsertProductAction({
+                id: productToEdit ? Number(productToEdit.id) : undefined,
                 product: {
-                    ...productFields,
+                    nombre: productFields.nombre,
+                    precio: productFields.precio,
+                    precio_antes: productFields.precio_antes || null,
+                    stock: productFields.stock,
+                    imagen_url: productFields.imagen_url || null,
+                    imagenes: productFields.imagenes || [],
+                    videos: productFields.videos || [],
+                    descripcion: productFields.descripcion || null,
+                    materiales: productFields.materiales || null,
+                    tamano: productFields.tamano || null,
+                    color: productFields.color || null,
+                    cuidados: productFields.cuidados || null,
+                    uso: productFields.uso || null,
                     categoria_id: finalCategoryIdToSave,
-                    precio_antes: productFields.precio_antes || null
+                    calificacion: productFields.calificacion || 5,
                 },
                 specs: especificaciones.map((s, idx) => ({ ...s, orden: idx })),
                 variants: variantes.map(v => ({
@@ -230,15 +235,12 @@ export function ProductForm({ productToEdit, categories = DEFAULT_CATEGORIES, on
                     stock: Number(v.stock || 0),
                     activo: v.activo
                 }))
-            }
-
-            if (productToEdit) apiBody.id = Number(productToEdit.id)
-
-            await saveAdminProductoViaApi({
-                accessToken,
-                method: method as "POST" | "PUT",
-                body: apiBody,
             })
+
+            if (result.error) {
+                alert("Error al guardar: " + result.error)
+                return
+            }
 
             onSuccess()
         } catch (error: any) {

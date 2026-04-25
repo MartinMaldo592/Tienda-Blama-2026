@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 import type { Database } from "@/types/database.types"
-import type { Category, Product } from "@/features/products/types"
+import type { Category, Product, SortValue } from "@/features/products/types"
 
 function createAnonServerClient() {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -12,27 +12,30 @@ function createAnonServerClient() {
 }
 
 
-export async function fetchProductForMeta(identifier: string | number) {
-    const supabase = createAnonServerClient()
-    if (!supabase) return null
+import { unstable_cache } from "next/cache"
 
-    let query = supabase
-        .from("productos")
-        .select("id, nombre, descripcion, imagen_url, imagenes, slug, precio, precio_antes, stock, categorias(nombre)")
+export const fetchProductForMeta = unstable_cache(
+    async (identifier: string | number) => {
+        const supabase = createAnonServerClient()
+        if (!supabase) return null
 
-    // Si es un número, buscamos por ID
-    if (typeof identifier === "number") {
-        query = query.eq("id", identifier)
-    } else {
-        // Si es string, buscamos por slug
-        // Nota: Asegúrate de correr la migración SQL para agregar la columna 'slug' primero.
-        query = query.eq("slug", identifier)
-    }
+        let query = supabase
+            .from("productos")
+            .select("id, nombre, descripcion, imagen_url, imagenes, slug, precio, precio_antes, stock, categorias(nombre)")
 
-    const { data, error } = await query.maybeSingle()
-    if (error) return null
-    return data
-}
+        if (typeof identifier === "number") {
+            query = query.eq("id", identifier)
+        } else {
+            query = query.eq("slug", identifier)
+        }
+
+        const { data, error } = await query.maybeSingle()
+        if (error) return null
+        return data
+    },
+    ['product-meta'],
+    { tags: ['products'] }
+)
 
 // ... (keep helper functions)
 
@@ -158,5 +161,126 @@ export async function getHomePageData(opts: {
         bestSellers,
         offers,
         productsError,
+    }
+}
+
+export const listCategories = unstable_cache(
+    async (): Promise<Category[]> => {
+        const supabase = createAnonServerClient()
+        if (!supabase) return []
+        const { data, error } = await supabase.from("categorias").select("*").order("nombre", { ascending: true })
+        if (error) return []
+        return (data as Category[]) || []
+    },
+    ['categories-list'],
+    { tags: ['products'] }
+)
+
+export type ListProductsParams = {
+    cat: string
+    subcat?: string
+    q: string
+    sort: SortValue
+    min: string
+    max: string
+    stock: boolean
+    page: number
+    pageSize: number
+}
+
+export type ListProductsResult = {
+    productos: Product[]
+    totalCount: number
+}
+
+export async function listProducts(params: ListProductsParams): Promise<ListProductsResult> {
+    const supabase = createAnonServerClient()
+    if (!supabase) return { productos: [], totalCount: 0 }
+
+    const q = (params.q || "").trim()
+    const min = params.min ? Number(params.min) : null
+    const max = params.max ? Number(params.max) : null
+
+    let productsQuery = supabase.from("productos").select("*", { count: "exact" })
+
+    const hasSubcat = params.subcat && params.subcat !== "all"
+    const hasCat = params.cat && params.cat !== "all"
+
+    if (hasSubcat) {
+        const subcatId = Number(params.subcat)
+        if (Number.isFinite(subcatId) && subcatId > 0) {
+            productsQuery = productsQuery.eq("categoria_id", subcatId)
+        } else {
+            const { data: catRow } = await supabase
+                .from("categorias")
+                .select("id")
+                .eq("slug", params.subcat!)
+                .maybeSingle()
+            if ((catRow as any)?.id) {
+                productsQuery = productsQuery.eq("categoria_id", (catRow as any).id)
+            }
+        }
+    } else if (hasCat) {
+        let parentId = Number(params.cat)
+        if (!Number.isFinite(parentId) || parentId <= 0) {
+            const { data: catRow } = await supabase
+                .from("categorias")
+                .select("id")
+                .eq("slug", params.cat)
+                .maybeSingle()
+            if ((catRow as any)?.id) {
+                parentId = (catRow as any).id
+            } else {
+                parentId = 0
+            }
+        }
+
+        if (parentId > 0) {
+            const { data: children } = await supabase
+                .from("categorias")
+                .select("id")
+                .eq("parent_id", parentId)
+
+            const ids = [parentId, ...((children as any[])?.map(c => c.id) || [])]
+            productsQuery = productsQuery.in("categoria_id", ids)
+        }
+    }
+
+    if (q) {
+        productsQuery = productsQuery.textSearch('fts', q, {
+            config: 'spanish',
+            type: 'websearch'
+        })
+    }
+
+    if (min !== null && Number.isFinite(min)) {
+        productsQuery = productsQuery.gte("precio", min)
+    }
+
+    if (max !== null && Number.isFinite(max)) {
+        productsQuery = productsQuery.lte("precio", max)
+    }
+
+    if (params.stock) {
+        productsQuery = productsQuery.gt("stock", 0)
+    }
+
+    if (params.sort === "price-asc") productsQuery = productsQuery.order("precio", { ascending: true })
+    if (params.sort === "price-desc") productsQuery = productsQuery.order("precio", { ascending: false })
+    if (params.sort === "name-asc") productsQuery = productsQuery.order("nombre", { ascending: true })
+    if (params.sort === "name-desc") productsQuery = productsQuery.order("nombre", { ascending: false })
+    if (params.sort === "newest") productsQuery = productsQuery.order("created_at", { ascending: false })
+
+    const from = Math.max(0, (params.page - 1) * params.pageSize)
+    const to = Math.max(from, from + params.pageSize - 1)
+    productsQuery = productsQuery.range(from, to)
+
+    const { data, error, count } = await productsQuery
+
+    if (error) return { productos: [], totalCount: 0 }
+
+    return {
+        productos: (data as Product[]) || [],
+        totalCount: Number(count || 0),
     }
 }

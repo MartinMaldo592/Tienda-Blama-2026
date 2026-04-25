@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
-import { createWorkerViaApi, fetchAdminProfiles, updateUserRoleViaApi, updateUserProfileViaApi } from "@/features/admin"
+import { createWorkerViaApi, fetchAdminProfiles, updateUserRole, updateUserProfile } from "@/features/admin"
 import {
   Select,
   SelectContent,
@@ -101,14 +101,7 @@ export default function UsuariosPage() {
 
   const updateRoleMutation = useMutation({
     mutationFn: async ({ userId, newRole }: { userId: string, newRole: string }) => {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) throw new Error("No hay sesión activa")
-      return updateUserRoleViaApi({
-        accessToken: session.access_token,
-        userId,
-        role: newRole
-      })
+      return updateUserRole(userId, newRole)
     },
     onMutate: async ({ userId, newRole }) => {
       // Optimistic UI update
@@ -142,14 +135,7 @@ export default function UsuariosPage() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async ({ userId, nombre }: { userId: string, nombre: string }) => {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) throw new Error("No hay sesión activa")
-      return updateUserProfileViaApi({
-        accessToken: session.access_token,
-        userId,
-        nombre
-      })
+      return updateUserProfile(userId, nombre)
     },
     onSuccess: () => {
       toast.success("Perfil actualizado correctamente")

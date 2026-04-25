@@ -1,8 +1,13 @@
-import { NextResponse } from "next/server"
-import { requireAdmin } from "@/features/admin/services/admin.server"
-import { revalidateTag } from "next/cache"
+"use server"
 
-export const runtime = "nodejs"
+import { createClient as createAdminClient } from "@supabase/supabase-js"
+import { createClient as createServerClient } from "@/lib/supabase.server"
+import { getSupabaseEnv } from "@/features/admin/services/admin.server"
+import { revalidateTag, revalidatePath } from "next/cache"
+
+/**
+ * Types & Utils
+ */
 
 type ProductPayload = {
   nombre: string
@@ -80,7 +85,34 @@ function normalizeVideos(input: unknown) {
   return unique
 }
 
-async function upsertProduct(args: {
+/**
+ * Private helpers
+ */
+
+async function validateAdmin() {
+    const supabase = await createServerClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) throw new Error("No autenticado")
+
+    const { url, service } = getSupabaseEnv()
+    if (!url || !service) throw new Error("Error de configuración del servidor")
+
+    const supabaseAdmin = createAdminClient(url, service)
+    const { data: profile } = await supabaseAdmin
+        .from("usuarios")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle()
+
+    if (String(profile?.role || "").toLowerCase() !== "admin") {
+        throw new Error("No tienes permisos de administrador")
+    }
+
+    return { supabaseAdmin, user }
+}
+
+async function internalUpsertProduct(args: {
   supabaseAdmin: any
   id?: number
   product: ProductPayload
@@ -137,8 +169,7 @@ async function upsertProduct(args: {
 }
 
 async function replaceSpecs(supabaseAdmin: any, productId: number, specs: SpecInput[]) {
-  const { error: delErr } = await supabaseAdmin.from("producto_especificaciones").delete().eq("producto_id", productId)
-  if (delErr) return delErr
+  await supabaseAdmin.from("producto_especificaciones").delete().eq("producto_id", productId)
 
   const clean = specs
     .map((s) => ({
@@ -163,8 +194,7 @@ async function replaceSpecs(supabaseAdmin: any, productId: number, specs: SpecIn
 }
 
 async function replaceVariants(supabaseAdmin: any, productId: number, variants: VariantInput[]) {
-  const { error: delErr } = await supabaseAdmin.from("producto_variantes").delete().eq("producto_id", productId)
-  if (delErr) return delErr
+  await supabaseAdmin.from("producto_variantes").delete().eq("producto_id", productId)
 
   const clean = variants
     .map((v) => ({
@@ -192,101 +222,53 @@ async function replaceVariants(supabaseAdmin: any, productId: number, variants: 
   return insErr || null
 }
 
-export async function POST(req: Request) {
-  const auth = await requireAdmin(req)
-  if (!auth.ok) return auth.res
+/**
+ * Public Server Actions
+ */
 
+export async function upsertProductAction(args: {
+  id?: number
+  product: ProductPayload
+  specs?: SpecInput[]
+  variants?: VariantInput[]
+}) {
   try {
-    const body = await req.json()
+    const { supabaseAdmin } = await validateAdmin()
+    const { id, product, specs = [], variants = [] } = args
 
-    const product = body?.product as ProductPayload
-    const specs = Array.isArray(body?.specs) ? (body.specs as SpecInput[]) : []
-    const variants = Array.isArray(body?.variants) ? (body.variants as VariantInput[]) : []
-
-    const saved = await upsertProduct({ supabaseAdmin: auth.supabaseAdmin, product })
+    const saved = await internalUpsertProduct({ supabaseAdmin, id, product })
     if (!saved.ok) {
-      return NextResponse.json({ error: (saved.error as any)?.message || "Failed to save product" }, { status: 400 })
+      return { error: (saved.error as any)?.message || "Error al guardar producto" }
     }
 
     const productId = Number(saved.id)
 
-    const specsErr = await replaceSpecs(auth.supabaseAdmin, productId, specs)
-    if (specsErr) {
-      return NextResponse.json({ error: (specsErr as any)?.message || "Failed to save specs" }, { status: 400 })
-    }
-
-    const variantsErr = await replaceVariants(auth.supabaseAdmin, productId, variants)
-    if (variantsErr) {
-      return NextResponse.json({ error: (variantsErr as any)?.message || "Failed to save variants" }, { status: 400 })
-    }
+    await replaceSpecs(supabaseAdmin, productId, specs)
+    await replaceVariants(supabaseAdmin, productId, variants)
 
     revalidateTag('products', { expire: 0 })
-    return NextResponse.json({ ok: true, id: productId })
+    revalidatePath('/admin/productos')
+    
+    return { ok: true, id: productId }
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Unknown error" }, { status: 500 })
+    return { error: e.message || "Error desconocido" }
   }
 }
 
-export async function PUT(req: Request) {
-  const auth = await requireAdmin(req)
-  if (!auth.ok) return auth.res
-
+export async function deleteProductAction(id: number) {
   try {
-    const body = await req.json()
-    console.log("[API PUT Product] Body received:", JSON.stringify(body, null, 2)) // Debug log
-    const id = Number(body?.id ?? 0)
-    if (!Number.isFinite(id) || id <= 0) {
-      return NextResponse.json({ error: "Invalid product id" }, { status: 400 })
-    }
+    const { supabaseAdmin } = await validateAdmin()
+    
+    if (!id || id <= 0) return { error: "ID de producto inválido" }
 
-    const product = body?.product as ProductPayload
-    console.log("[API PUT Product] categoria_id payload:", product.categoria_id) // Debug log
-    const specs = Array.isArray(body?.specs) ? (body.specs as SpecInput[]) : []
-    const variants = Array.isArray(body?.variants) ? (body.variants as VariantInput[]) : []
-
-    const saved = await upsertProduct({ supabaseAdmin: auth.supabaseAdmin, id, product })
-    if (!saved.ok) {
-      return NextResponse.json({ error: (saved.error as any)?.message || "Failed to update product" }, { status: 400 })
-    }
-
-    const productId = Number(saved.id)
-
-    const specsErr = await replaceSpecs(auth.supabaseAdmin, productId, specs)
-    if (specsErr) {
-      return NextResponse.json({ error: (specsErr as any)?.message || "Failed to save specs" }, { status: 400 })
-    }
-
-    const variantsErr = await replaceVariants(auth.supabaseAdmin, productId, variants)
-    if (variantsErr) {
-      return NextResponse.json({ error: (variantsErr as any)?.message || "Failed to save variants" }, { status: 400 })
-    }
+    const { error } = await supabaseAdmin.from("productos").delete().eq("id", id)
+    if (error) return { error: error.message }
 
     revalidateTag('products', { expire: 0 })
-    return NextResponse.json({ ok: true, id: productId })
+    revalidatePath('/admin/productos')
+    
+    return { ok: true }
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Unknown error" }, { status: 500 })
-  }
-}
-
-export async function DELETE(req: Request) {
-  const auth = await requireAdmin(req)
-  if (!auth.ok) return auth.res
-
-  try {
-    const body = await req.json().catch(() => ({}))
-    const id = Number(body?.id ?? 0)
-    if (!Number.isFinite(id) || id <= 0) {
-      return NextResponse.json({ error: "Invalid product id" }, { status: 400 })
-    }
-
-    const { error } = await auth.supabaseAdmin.from("productos").delete().eq("id", id)
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
-    }
-
-    revalidateTag('products', { expire: 0 })
-    return NextResponse.json({ ok: true })
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Unknown error" }, { status: 500 })
+    return { error: e.message || "Error desconocido" }
   }
 }
