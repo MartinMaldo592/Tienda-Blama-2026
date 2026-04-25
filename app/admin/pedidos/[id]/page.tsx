@@ -55,6 +55,7 @@ export default function PedidoDetallePage() {
     const [status, setStatus] = useState("")
     const [assignedTo, setAssignedTo] = useState<string>("unassigned")
     const [userRole, setUserRole] = useState<string>('worker')
+    const [totalPagado, setTotalPagado] = useState(0)
 
     function showPermissionAlertIfNeeded(error: any, fallbackMessage: string) {
         const code = String((error as any)?.code || '')
@@ -96,6 +97,20 @@ export default function PedidoDetallePage() {
             setStatus(detail.pedido.status || '')
             setAssignedTo(detail.pedido.asignado_a || 'unassigned')
             setItems(detail.items)
+            
+            const supabase = createClient()
+            const { data: pagosData } = await supabase
+                .from('pedido_pagos')
+                .select('monto, tipo_pago')
+                .eq('pedido_id', pedidoId)
+            
+            if (pagosData) {
+                const total = pagosData.reduce((acc, p) => {
+                    if (p.tipo_pago === 'Reembolso') return acc - Number(p.monto)
+                    return acc + Number(p.monto)
+                }, 0)
+                setTotalPagado(total)
+            }
         } catch (error) {
             console.error("Error fetching pedido:", error)
             setPedido(null)
@@ -507,6 +522,7 @@ export default function PedidoDetallePage() {
                     {[
                         { id: 'resumen', label: 'GENERAL', icon: Box },
                         { id: 'logistica', label: 'LOGÍSTICA', icon: MapPin },
+                        { id: 'finanzas', label: 'FINANZAS', icon: CreditCard },
                         { id: 'documentos', label: 'REPORTES', icon: FileText },
                         { id: 'historial', label: 'AUDITORÍA', icon: History }
                     ].map(tab => (
@@ -554,34 +570,6 @@ export default function PedidoDetallePage() {
                 <TabsContent value="logistica" className="space-y-8 outline-none">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div className="space-y-8">
-                            <OrderPaymentCard
-                                pedido={pedido}
-                                isLocked={pedido.status === 'Entregado' || pedido.status === 'Cancelado'}
-                                currentUser={currentUser}
-                                userRole={userRole}
-                                onLogAction={logAction}
-                                onRefresh={fetchPedido}
-                            />
-                            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3 mb-6">
-                                    <Camera className="text-blue-500" /> Confirmación Visual
-                                </h3>
-                                <OrderFileCard
-                                    title="Evidencia de Entrega"
-                                    icon={<Camera size={20} />}
-                                    fileUrl={pedido.evidencia_entrega_url || null}
-                                    isLocked={isLocked}
-                                    isUploading={deliveryUpload.isUploading}
-                                    onUpload={(file) => deliveryUpload.upload(file, `entrega_${id}_${Date.now()}.${file.name.split('.').pop()}`)}
-                                    onDelete={deliveryUpload.remove}
-                                    uploadLabel={deliveryUpload.isUploading ? 'Procesando...' : 'Subir Evidencia'}
-                                    uploadSubLabel="Requerido para cierre de entrega"
-                                    accept="image/*"
-                                    accentColor="green"
-                                />
-                            </div>
-                        </div>
-                        <div className="space-y-8">
                             <OrderShippingCard
                                 pedido={pedido}
                                 isLocked={isLocked}
@@ -605,6 +593,84 @@ export default function PedidoDetallePage() {
                                     accept="image/*,.pdf"
                                     accentColor="blue"
                                 />
+                            </div>
+                        </div>
+                        <div className="space-y-8">
+                            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3 mb-6">
+                                    <Camera className="text-blue-500" /> Confirmación Visual
+                                </h3>
+                                <OrderFileCard
+                                    title="Evidencia de Entrega"
+                                    icon={<Camera size={20} />}
+                                    fileUrl={pedido.evidencia_entrega_url || null}
+                                    isLocked={isLocked}
+                                    isUploading={deliveryUpload.isUploading}
+                                    onUpload={(file) => deliveryUpload.upload(file, `entrega_${id}_${Date.now()}.${file.name.split('.').pop()}`)}
+                                    onDelete={deliveryUpload.remove}
+                                    uploadLabel={deliveryUpload.isUploading ? 'Procesando...' : 'Subir Evidencia'}
+                                    uploadSubLabel="Requerido para cierre de entrega"
+                                    accept="image/*"
+                                    accentColor="green"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="finanzas" className="space-y-8 outline-none">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-2">
+                            <OrderPaymentCard
+                                pedido={pedido}
+                                isLocked={pedido.status === 'Entregado' || pedido.status === 'Cancelado'}
+                                currentUser={currentUser}
+                                userRole={userRole}
+                                onLogAction={logAction}
+                                onRefresh={fetchPedido}
+                            />
+                        </div>
+                        <div className="lg:col-span-1 space-y-8">
+                            <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 rounded-[2.5rem] text-white shadow-2xl shadow-slate-200 border border-slate-700/50">
+                                <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-8 text-emerald-400">Balance Contable</h3>
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-end border-b border-white/5 pb-5">
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Objetivo Total</p>
+                                            <p className="text-2xl font-black tracking-tighter">{formatCurrency(pedido.total || 0)}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-end border-b border-white/5 pb-5">
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Total Recaudado</p>
+                                            <p className="text-2xl font-black tracking-tighter text-emerald-400">{formatCurrency(totalPagado)}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between items-end pt-2">
+                                        <div className="space-y-1">
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Saldo por Cobrar</p>
+                                            <p className={`text-3xl font-black tracking-tighter ${((pedido.total || 0) - (totalPagado || 0)) > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                                                {formatCurrency(Math.max(0, (pedido.total || 0) - (totalPagado || 0)))}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-10 p-5 bg-white/5 rounded-2xl border border-white/5 backdrop-blur-sm">
+                                    <p className="text-[9px] font-bold leading-relaxed text-slate-400 uppercase tracking-widest italic">
+                                        * Los pagos registrados afectan la liquidación final y el estado de entrega.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="bg-emerald-50/50 p-8 rounded-[2.5rem] border border-emerald-100/50 flex flex-col items-center text-center gap-4">
+                                <div className="h-16 w-16 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-emerald-100">
+                                    <CheckCircle2 className="text-emerald-500 h-8 w-8" />
+                                </div>
+                                <div>
+                                    <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest">Control Seguro</h4>
+                                    <p className="text-[10px] text-slate-500 font-medium mt-1">Todas las transacciones son auditadas y vinculadas al usuario activo.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
