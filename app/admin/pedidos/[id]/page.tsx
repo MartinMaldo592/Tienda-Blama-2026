@@ -23,18 +23,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowLeft, User, Calendar, FileUp, Check, Save, AlertCircle, Camera } from "lucide-react"
+import { 
+    ArrowLeft, User, Calendar, FileUp, Check, Save, 
+    AlertCircle, Camera, Box, ChevronLeft, MapPin, 
+    CreditCard, History, FileText, Settings2, Loader2
+} from "lucide-react"
 import { toast } from "sonner"
 import { formatCurrency } from "@/lib/utils"
 import { OrderShippingCard } from "@/components/admin/orders/order-shipping-card"
 import { OrderFileCard } from "@/components/admin/orders/order-file-card"
 import { OrderPaymentCard } from "@/components/admin/orders/order-payment-card"
-// import types
 import { PedidoRow, PedidoItemRow, ProfileRow, PedidoLog } from "@/features/admin/types"
 import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidoDetail, updatePedidoStatusWithStock } from "@/features/admin"
 import { createClient } from "@/lib/supabase.client"
 import { OrderNotesCard } from "@/components/admin/orders/order-notes-card"
 import { OrderLabelGenerator } from "@/components/admin/orders/order-label-generator"
+import { motion, AnimatePresence } from "framer-motion"
 
 export default function PedidoDetallePage() {
     const params = useParams()
@@ -78,7 +82,6 @@ export default function PedidoDetallePage() {
 
     const fetchPedido = useCallback(async () => {
         setLoading(true)
-
         try {
             const pedidoId = Number(id)
             if (!pedidoId) {
@@ -98,7 +101,6 @@ export default function PedidoDetallePage() {
             setPedido(null)
             setItems([])
         }
-
         setLoading(false)
     }, [id])
 
@@ -120,14 +122,12 @@ export default function PedidoDetallePage() {
                 } else {
                     setWorkers([])
                 }
-
                 await fetchPedido()
             })()
     }, [id, guard.loading, guard.accessDenied, guard.role, fetchPedido])
 
     async function handleAssignWorker(workerId: string) {
         const assignValue = workerId === 'unassigned' ? null : workerId
-
         try {
             await assignPedidoToWorker({ pedidoId: Number(id), workerId: assignValue })
             setAssignedTo(workerId)
@@ -178,27 +178,15 @@ export default function PedidoDetallePage() {
         fetchLogs()
     }
 
-    // --- State for Confirmation Dialogs ---
-    // --- State for Confirmation Dialogs ---
-    // Moved dialogs to sub-components, kept here only if needed for global issues
-    // const [confirmDeleteGuideOpen, setConfirmDeleteGuideOpen] = useState(false)
-    // const [confirmDeleteDeliveryOpen, setConfirmDeleteDeliveryOpen] = useState(false)
-    // const [confirmDeletePaymentIndex, setConfirmDeletePaymentIndex] = useState<number | null>(null)
-
-    // Partial Return State
     const [returnModalState, setReturnModalState] = useState<{
         isOpen: boolean;
         itemId: number | null;
         maxReturn: number;
         productName: string;
-        currentQty: number; // to validate input logic
+        currentQty: number;
     }>({ isOpen: false, itemId: null, maxReturn: 0, productName: '', currentQty: 0 })
     const [returnQtyInput, setReturnQtyInput] = useState<string>('')
 
-
-    // --- Tracking Logic Moved to Component ---
-
-    // --- Client Edit Logic ---
     const [isEditClientOpen, setIsEditClientOpen] = useState(false)
     const [clientForm, setClientForm] = useState({
         nombre: '',
@@ -242,12 +230,10 @@ export default function PedidoDetallePage() {
                     provincia: clientForm.provincia,
                     departamento: clientForm.departamento,
                     referencia_direccion: clientForm.referencia,
-                    metodo_envio: clientForm.metodo_envio // Save field
+                    metodo_envio: clientForm.metodo_envio
                 })
                 .eq('id', id)
-
             if (error) throw error
-
             await logAction('Datos Cliente Editados', `Se actualizaron datos de entrega/contacto`)
             toast.success("Datos actualizados correctamente")
             setIsEditClientOpen(false)
@@ -257,50 +243,34 @@ export default function PedidoDetallePage() {
         }
     }
 
-    // --- Locking Logic (Security) ---
     const isLocked = (() => {
         if (!pedido || userRole === 'admin') return false
-
         const terminalStates = ['Entregado', 'Enviado', 'Fallido']
         if (!terminalStates.includes(pedido.status)) return false
-
-        // Check time: 3 days = 72 hours * 60 * 60 * 1000
         const updateTime = new Date(pedido.updated_at || pedido.created_at).getTime()
         const now = Date.now()
         const threeDaysMs = 3 * 24 * 60 * 60 * 1000
-
         return (now - updateTime) > threeDaysMs
     })()
 
-    // --- Partial Return Logic (Refactored for Dialog) ---
     function openReturnDialog(itemId: number, currentQty: number, alreadyReturned: number, productName: string) {
         if (isLocked) return
-
         const maxReturn = currentQty - alreadyReturned
         if (maxReturn <= 0) {
             toast.error("Este producto ya fue devuelto en su totalidad.")
             return
         }
-
-        setReturnModalState({
-            isOpen: true,
-            itemId,
-            maxReturn,
-            productName,
-            currentQty: 1 // default
-        })
+        setReturnModalState({ isOpen: true, itemId, maxReturn, productName, currentQty: 1 })
         setReturnQtyInput('1')
     }
 
     async function processPartialReturn() {
         const { itemId, maxReturn } = returnModalState
         const qty = parseInt(returnQtyInput)
-
         if (!itemId || isNaN(qty) || qty <= 0 || qty > maxReturn) {
             toast.error("Cantidad inválida.")
             return
         }
-
         setLoading(true)
         try {
             const supabase = createClient()
@@ -310,9 +280,7 @@ export default function PedidoDetallePage() {
                 p_usuario_nombre: currentUser,
                 p_pedido_id: Number(id)
             })
-
             if (error) throw error
-
             toast.success("Devolución procesada correctamente")
             setReturnModalState(prev => ({ ...prev, isOpen: false }))
             fetchPedido()
@@ -324,7 +292,6 @@ export default function PedidoDetallePage() {
         }
     }
 
-
     async function handleUpdateStatus() {
         if (!pedido) return
         setUpdating(true)
@@ -335,7 +302,6 @@ export default function PedidoDetallePage() {
                 nextStatus: status,
                 stockDescontado: Boolean(pedido?.stock_descontado),
             })
-
             await logAction('Cambio de Estado', `De ${oldStatus} a ${status}`)
             toast.success(`Estado actualizado a ${status}`)
             fetchPedido()
@@ -346,48 +312,33 @@ export default function PedidoDetallePage() {
         setUpdating(false)
     }
 
-
-    // --- File Upload Hooks ---
-
     const guideUpload = useFileUpload({
         bucketName: 'guias',
         onUploadComplete: async (url) => {
             const supabase = createClient()
-            const { error } = await supabase
-                .from('pedidos')
-                .update({ guia_archivo_url: url })
-                .eq('id', id)
+            const { error } = await supabase.from('pedidos').update({ guia_archivo_url: url }).eq('id', id)
             if (error) throw error
             fetchPedido()
         },
         onDeleteComplete: async () => {
             const supabase = createClient()
-            const { error } = await supabase
-                .from('pedidos')
-                .update({ guia_archivo_url: null })
-                .eq('id', id)
+            const { error } = await supabase.from('pedidos').update({ guia_archivo_url: null }).eq('id', id)
             if (error) throw error
             fetchPedido()
         }
     })
 
     const deliveryUpload = useFileUpload({
-        bucketName: 'guias', // Reusing guias bucket as per original code
+        bucketName: 'guias',
         onUploadComplete: async (url) => {
             const supabase = createClient()
-            const { error } = await supabase
-                .from('pedidos')
-                .update({ evidencia_entrega_url: url })
-                .eq('id', id)
+            const { error } = await supabase.from('pedidos').update({ evidencia_entrega_url: url }).eq('id', id)
             if (error) throw error
             fetchPedido()
         },
         onDeleteComplete: async () => {
             const supabase = createClient()
-            const { error } = await supabase
-                .from('pedidos')
-                .update({ evidencia_entrega_url: null })
-                .eq('id', id)
+            const { error } = await supabase.from('pedidos').update({ evidencia_entrega_url: null }).eq('id', id)
             if (error) throw error
             fetchPedido()
         }
@@ -397,182 +348,182 @@ export default function PedidoDetallePage() {
 
     if (guard.loading || loading) {
         return (
-            <div className="space-y-6 max-w-5xl mx-auto p-6">
-                <div className="flex items-center gap-4">
-                    <Skeleton className="h-10 w-10 rounded-full" />
-                    <Skeleton className="h-10 w-64" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Skeleton className="h-32 w-full" />
-                    <Skeleton className="h-32 w-full" />
-                    <Skeleton className="h-32 w-full" />
-                </div>
-                <Card className="p-6">
-                    <Skeleton className="h-6 w-48 mb-4" />
+            <div className="space-y-10 max-w-6xl mx-auto p-6 pt-10">
+                <div className="flex items-center gap-6">
+                    <Skeleton className="h-14 w-14 rounded-2xl" />
                     <div className="space-y-2">
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-64 rounded-xl" />
+                        <Skeleton className="h-4 w-40 rounded-lg" />
                     </div>
-                </Card>
+                </div>
+                <Skeleton className="h-24 w-full rounded-[2rem]" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <Skeleton className="h-[400px] w-full rounded-[2.5rem]" />
+                    <Skeleton className="h-[400px] md:col-span-2 w-full rounded-[2.5rem]" />
+                </div>
             </div>
         )
     }
-    if (!pedido) return <div className="p-10 text-center">Pedido no encontrado</div>
+
+    if (!pedido) return (
+        <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+            <Box size={64} className="text-slate-200" />
+            <h2 className="text-2xl font-black text-slate-400 uppercase tracking-widest">Pedido no encontrado</h2>
+            <Button variant="outline" onClick={() => router.back()} className="rounded-xl font-bold">VOLVER ATRÁS</Button>
+        </div>
+    )
 
     return (
-        <div className="space-y-6 max-w-5xl mx-auto">
-            {/* Header */}
-            <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                    <ArrowLeft className="h-5 w-5" />
-                </Button>
-                <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                        Pedido #{pedido.id.toString().padStart(6, '0')}
-                        <StatusBadge status={pedido.status} />
-                    </h1>
-                    <p className="text-gray-500 text-sm">
-                        Realizado el {new Date(pedido.created_at).toLocaleString()}
-                    </p>
+        <div className="space-y-10 pb-20 max-w-6xl mx-auto animate-in fade-in duration-700">
+            {/* --- TOP NAVIGATION & ACTIONS --- */}
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 pt-4">
+                <div className="flex items-center gap-6">
+                    <button 
+                        onClick={() => router.back()}
+                        className="h-14 w-14 bg-white rounded-2xl flex items-center justify-center text-slate-400 hover:text-slate-900 border border-slate-100 shadow-sm hover:shadow-md transition-all haptic-scale"
+                    >
+                        <ChevronLeft size={24} />
+                    </button>
+                    <div>
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+                                Orden <span className="text-blue-600">#{pedido.id.toString().padStart(6, '0')}</span>
+                            </h1>
+                            <StatusBadge status={pedido.status} />
+                        </div>
+                        <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">
+                            Registrado el {new Date(pedido.created_at).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                    </div>
                 </div>
-                <div className="ml-auto flex gap-2 items-center">
-                    {/* Asignación (Admin Only) */}
+
+                <div className="flex flex-wrap gap-3 w-full lg:w-auto">
                     {userRole === 'admin' && (
-                        <div className="flex gap-2 items-center bg-white p-2 rounded-lg border shadow-sm">
-                            <span className="text-sm font-medium">Asignar:</span>
+                        <div className="flex items-center gap-2 bg-white px-4 h-14 rounded-2xl border border-slate-100 shadow-sm">
+                            <User size={16} className="text-slate-400" />
                             <Select value={assignedTo} onValueChange={handleAssignWorker} disabled={isLocked}>
-                                <SelectTrigger className="w-[180px]">
-                                    <SelectValue placeholder="Sin asignar" />
+                                <SelectTrigger className="w-[160px] border-none shadow-none focus:ring-0 font-bold text-xs text-slate-600">
+                                    <SelectValue placeholder="Libre" />
                                 </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="unassigned">
-                                        <span className="text-gray-500">Sin asignar</span>
-                                    </SelectItem>
+                                <SelectContent className="rounded-2xl shadow-2xl border-slate-100">
+                                    <SelectItem value="unassigned" className="font-bold py-3">Libre</SelectItem>
                                     {workers.map((w) => (
-                                        <SelectItem key={w.id} value={w.id}>
-                                            {w.nombre || w.email}
-                                        </SelectItem>
+                                        <SelectItem key={w.id} value={w.id} className="font-bold py-3">{w.nombre || 'Trabajador'}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
                     )}
 
-                    <div className="flex gap-2 items-center bg-white p-2 rounded-lg border shadow-sm">
-                        <span className="text-sm font-medium">Estado del pedido:</span>
+                    <div className="flex items-center gap-3 bg-slate-900 p-2 pl-4 rounded-2xl shadow-xl shadow-slate-200">
                         <Select value={status} onValueChange={setStatus} disabled={isLocked || updating}>
-                            <SelectTrigger className="w-[180px]">
+                            <SelectTrigger className={`w-[160px] h-10 border-none shadow-none focus:ring-0 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all ${
+                                status === 'Pendiente' ? 'bg-amber-400 text-amber-950' :
+                                status === 'Confirmado' ? 'bg-sky-400 text-sky-950' :
+                                status === 'Enviado' ? 'bg-indigo-400 text-indigo-950' :
+                                status === 'Entregado' ? 'bg-emerald-400 text-emerald-950' :
+                                'bg-rose-400 text-rose-950'
+                            }`}>
                                 <SelectValue />
                             </SelectTrigger>
-                            <SelectContent>
-                                {(() => {
-                                    const ALLOWED_TRANSITIONS: Record<string, string[]> = {
-                                        'Pendiente': ['Pendiente', 'Confirmado', 'Cancelado', 'Fallido'],
-                                        'Confirmado': ['Confirmado', 'Enviado', 'Cancelado', 'Fallido', 'Pendiente'],
-                                        'Enviado': ['Enviado', 'Entregado', 'Fallido', 'Confirmado', 'Cancelado'],
-                                        'Entregado': ['Entregado', 'Enviado', 'Fallido'],
-                                        'Cancelado': ['Cancelado', 'Pendiente'],
-                                        'Fallido': ['Fallido', 'Pendiente']
-                                    }
-                                    const available = ALLOWED_TRANSITIONS[pedido.status] || ['Pendiente', 'Confirmado', 'Enviado', 'Entregado', 'Fallido', 'Cancelado']
-
-                                    return (
-                                        <>
-                                            {available.includes('Pendiente') && <SelectItem value="Pendiente">Pendiente</SelectItem>}
-                                            {available.includes('Confirmado') && <SelectItem value="Confirmado">Confirmado</SelectItem>}
-                                            {available.includes('Enviado') && <SelectItem value="Enviado">Enviado</SelectItem>}
-                                            {available.includes('Entregado') && <SelectItem value="Entregado">Entregado</SelectItem>}
-                                            {available.includes('Fallido') && <SelectItem value="Fallido">Fallido</SelectItem>}
-                                            {available.includes('Cancelado') && <SelectItem value="Cancelado">Cancelado</SelectItem>}
-                                        </>
-                                    )
-                                })()}
+                            <SelectContent className="rounded-2xl shadow-2xl border-slate-100">
+                                {['Pendiente', 'Confirmado', 'Enviado', 'Entregado', 'Fallido', 'Cancelado'].map(s => (
+                                    <SelectItem key={s} value={s} className="font-bold text-xs py-3">{s}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
-                        <Button size="sm" onClick={handleUpdateStatus} disabled={isLocked || updating || status === pedido.status}>
-                            <Save className="h-4 w-4 mr-2" />
-                            Guardar
+                        <Button 
+                            size="sm" 
+                            onClick={handleUpdateStatus} 
+                            disabled={isLocked || updating || status === pedido.status}
+                            className="h-10 px-6 rounded-xl bg-blue-600 text-white font-black text-xs tracking-tighter hover:bg-blue-700 transition-all haptic-scale"
+                        >
+                            {updating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                            ACTUALIZAR
                         </Button>
                     </div>
                 </div>
             </div>
 
-            {/* Stepper Visual */}
-            <div className="w-full bg-white border rounded-lg p-6 overflow-hidden">
-                <div className="relative flex items-center justify-between w-full max-w-2xl mx-auto">
-                    {/* Line Background */}
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-100 -z-0"></div>
-
-                    {/* Steps */}
+            {/* --- STEPPER PROGRESS --- */}
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="w-full bg-white border border-slate-100 rounded-[2.5rem] p-10 shadow-[0_8px_30px_rgb(0,0,0,0.03)]"
+            >
+                <div className="relative flex items-center justify-between w-full max-w-4xl mx-auto">
+                    <div className="absolute left-0 top-[22px] w-full h-[2px] bg-slate-100 -z-0"></div>
                     {['Pendiente', 'Confirmado', 'Enviado', 'Entregado'].map((stepStatus, index) => {
                         const allStatuses = ['Pendiente', 'Confirmado', 'Enviado', 'Entregado']
                         const currentIndex = allStatuses.indexOf(pedido.status)
                         const stepIndex = allStatuses.indexOf(stepStatus)
-
                         const isCompleted = stepIndex <= currentIndex
-                        const isCurrent = stepIndex === currentIndex
                         const isCancelled = pedido.status === 'Fallido' || pedido.status === 'Cancelado'
 
-                        let circleClass = "bg-white border-2 border-gray-200 text-gray-400"
-                        let textClass = "text-gray-400"
-
-                        if (isCancelled) {
-                            circleClass = "bg-red-50 border-2 border-red-200 text-red-400"
-                            textClass = "text-red-400"
-                        } else if (isCompleted) {
-                            circleClass = "bg-green-600 border-green-600 text-white"
-                            textClass = "text-green-600 font-medium"
-                        }
-
                         return (
-                            <div key={stepStatus} className="relative z-10 flex flex-col items-center gap-2 bg-white px-2">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500 ${circleClass}`}>
-                                    {isCompleted && !isCancelled ? <Check className="w-5 h-5" /> : <span>{index + 1}</span>}
+                            <div key={stepStatus} className="relative z-10 flex flex-col items-center gap-4 bg-white px-4">
+                                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-700 shadow-sm ${
+                                    isCancelled ? "bg-rose-50 text-rose-400 border border-rose-100" :
+                                    isCompleted ? "bg-slate-900 text-white shadow-xl shadow-slate-200" : 
+                                    "bg-white border-2 border-slate-100 text-slate-300"
+                                }`}>
+                                    {isCompleted && !isCancelled ? <Check className="w-5 h-5" strokeWidth={3} /> : <span className="font-black text-sm">{index + 1}</span>}
                                 </div>
-                                <span className={`text-xs ${textClass}`}>{stepStatus}</span>
+                                <span className={`text-[10px] font-black uppercase tracking-widest ${isCompleted && !isCancelled ? 'text-slate-900' : 'text-slate-300'}`}>
+                                    {stepStatus}
+                                </span>
                             </div>
                         )
                     })}
                 </div>
-                {/* Cancelled Alert in Stepper */}
                 {(pedido.status === 'Fallido' || pedido.status === 'Cancelado') && (
-                    <div className="mt-4 text-center text-red-600 bg-red-50 p-2 rounded text-sm font-medium">
-                        ⛔ Pedido Cancelado / Fallido
-                    </div>
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="mt-8 flex items-center justify-center gap-3 py-4 bg-rose-50 rounded-2xl border border-rose-100 text-rose-600 font-bold"
+                    >
+                        <AlertCircle size={20} />
+                        ORDEN CANCELADA O FALLIDA
+                    </motion.div>
                 )}
-            </div>
+            </motion.div>
 
-            {/* Locked Notice */}
+            {/* --- LOCKED NOTICE --- */}
             {isLocked && (
-                <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-4 rounded-r shadow-sm">
-                    <div className="flex">
-                        <div className="flex-shrink-0">
-                            <AlertCircle className="h-5 w-5 text-amber-400" />
-                        </div>
-                        <div className="ml-3">
-                            <p className="text-sm text-amber-700">
-                                <strong>Edición Bloqueada:</strong> Este pedido fue finalizado hace más de 3 días. Solo un administrador puede modificarlo.
-                            </p>
-                        </div>
+                <div className="bg-amber-50 p-6 rounded-[2rem] border border-amber-100 flex items-center gap-4">
+                    <div className="h-12 w-12 bg-amber-200 rounded-2xl flex items-center justify-center text-amber-700 shadow-inner">
+                        <AlertCircle size={24} />
+                    </div>
+                    <div>
+                        <p className="text-sm font-black text-amber-900 uppercase tracking-tight">Archivo Histórico (Bloqueado)</p>
+                        <p className="text-xs text-amber-700 font-medium">Esta orden fue finalizada hace más de 72 horas. Solo Administración puede revertir cambios.</p>
                     </div>
                 </div>
             )}
 
-            {/* Tabs Layout */}
+            {/* --- MAIN CONTENT TABS --- */}
             <Tabs defaultValue="resumen" className="w-full">
-                <TabsList className="grid w-full grid-cols-4 mb-8">
-                    <TabsTrigger value="resumen">Resumen General</TabsTrigger>
-                    <TabsTrigger value="logistica">Logística y Pagos</TabsTrigger>
-                    <TabsTrigger value="documentos">Documentos</TabsTrigger>
-                    <TabsTrigger value="historial">Historial y Auditoría</TabsTrigger>
+                <TabsList className="flex gap-2 p-1 bg-slate-100/50 border border-slate-100 rounded-[2rem] mb-10 w-fit mx-auto lg:mx-0">
+                    {[
+                        { id: 'resumen', label: 'GENERAL', icon: Box },
+                        { id: 'logistica', label: 'LOGÍSTICA', icon: MapPin },
+                        { id: 'documentos', label: 'REPORTES', icon: FileText },
+                        { id: 'historial', label: 'AUDITORÍA', icon: History }
+                    ].map(tab => (
+                        <TabsTrigger 
+                            key={tab.id} 
+                            value={tab.id}
+                            className="flex items-center gap-3 px-8 py-4 rounded-[1.75rem] font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-lg data-[state=active]:shadow-slate-200 transition-all"
+                        >
+                            <tab.icon size={16} />
+                            {tab.label}
+                        </TabsTrigger>
+                    ))}
                 </TabsList>
 
-                {/* TAB 1: RESUMEN (Atención al Cliente) */}
-                <TabsContent value="resumen" className="space-y-6 animate-in fade-in-50 duration-300">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Columna Izquierda: Cliente y Notas */}
-                        <div className="space-y-6">
+                <TabsContent value="resumen" className="space-y-8 outline-none">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="space-y-8">
                             <OrderCustomerCard
                                 pedido={pedido}
                                 isLocked={isLocked}
@@ -587,11 +538,8 @@ export default function PedidoDetallePage() {
                                 isLocked={isLocked}
                                 onLogAction={logAction}
                             />
-
                         </div>
-
-                        {/* Columna Derecha: Productos (Más ancho) */}
-                        <div className="md:col-span-2 space-y-6">
+                        <div className="lg:col-span-2">
                             <OrderItemsCard
                                 items={items}
                                 pedido={pedido}
@@ -603,11 +551,9 @@ export default function PedidoDetallePage() {
                     </div>
                 </TabsContent>
 
-                {/* TAB 2: LOGÍSTICA (Operaciones) */}
-                <TabsContent value="logistica" className="space-y-6 animate-in fade-in-50 duration-300">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Columna Izquierda: Pagos y Evidencia */}
-                        <div className="space-y-6">
+                <TabsContent value="logistica" className="space-y-8 outline-none">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div className="space-y-8">
                             <OrderPaymentCard
                                 pedido={pedido}
                                 isLocked={pedido.status === 'Entregado' || pedido.status === 'Cancelado'}
@@ -616,126 +562,114 @@ export default function PedidoDetallePage() {
                                 onLogAction={logAction}
                                 onRefresh={fetchPedido}
                             />
-
-                            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 pt-4">
-                                <Camera className="h-5 w-5" /> Confirmación de Recepción
-                            </h3>
-                            <OrderFileCard
-                                title="Evidencia de Entrega"
-                                icon={<Camera className="h-5 w-5" />}
-                                fileUrl={pedido.evidencia_entrega_url || null}
-                                isLocked={isLocked}
-                                isUploading={deliveryUpload.isUploading}
-                                onUpload={(file) => deliveryUpload.upload(file, `entrega_${id}_${Date.now()}.${file.name.split('.').pop()}`)}
-                                onDelete={deliveryUpload.remove}
-                                uploadLabel={deliveryUpload.isUploading ? 'Subiendo...' : 'Subir Foto de Entrega'}
-                                uploadSubLabel="Imagen (Motorizado)"
-                                accept="image/*"
-                                accentColor="green"
-                            />
+                            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3 mb-6">
+                                    <Camera className="text-blue-500" /> Confirmación Visual
+                                </h3>
+                                <OrderFileCard
+                                    title="Evidencia de Entrega"
+                                    icon={<Camera size={20} />}
+                                    fileUrl={pedido.evidencia_entrega_url || null}
+                                    isLocked={isLocked}
+                                    isUploading={deliveryUpload.isUploading}
+                                    onUpload={(file) => deliveryUpload.upload(file, `entrega_${id}_${Date.now()}.${file.name.split('.').pop()}`)}
+                                    onDelete={deliveryUpload.remove}
+                                    uploadLabel={deliveryUpload.isUploading ? 'Procesando...' : 'Subir Evidencia'}
+                                    uploadSubLabel="Requerido para cierre de entrega"
+                                    accept="image/*"
+                                    accentColor="green"
+                                />
+                            </div>
                         </div>
-
-                        {/* Columna Derecha: Envío y Guías */}
-                        <div className="space-y-6">
+                        <div className="space-y-8">
                             <OrderShippingCard
                                 pedido={pedido}
                                 isLocked={isLocked}
                                 onLogAction={logAction}
                                 onRefresh={fetchPedido}
                             />
-
-                            <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2 pt-4">
-                                <FileUp className="h-5 w-5" /> Guías de Remisión
-                            </h3>
-                            <OrderFileCard
-                                title="Guía de Remisión"
-                                icon={<FileUp className="h-5 w-5" />}
-                                fileUrl={pedido.guia_archivo_url || null}
-                                isLocked={isLocked}
-                                isUploading={guideUpload.isUploading}
-                                onUpload={(file) => guideUpload.upload(file, `pedido_${id}_${Date.now()}.${file.name.split('.').pop()}`)}
-                                onDelete={guideUpload.remove}
-                                uploadLabel={guideUpload.isUploading ? 'Subiendo...' : 'Subir Foto de Guía'}
-                                uploadSubLabel="PDF o Imagen (Shalom/Olva)"
-                                accept="image/*,.pdf"
-                                accentColor="blue"
-                            />
+                            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3 mb-6">
+                                    <FileUp className="text-indigo-500" /> Guías Oficiales
+                                </h3>
+                                <OrderFileCard
+                                    title="Guía de Remisión"
+                                    icon={<FileUp size={20} />}
+                                    fileUrl={pedido.guia_archivo_url || null}
+                                    isLocked={isLocked}
+                                    isUploading={guideUpload.isUploading}
+                                    onUpload={(file) => guideUpload.upload(file, `pedido_${id}_${Date.now()}.${file.name.split('.').pop()}`)}
+                                    onDelete={guideUpload.remove}
+                                    uploadLabel={guideUpload.isUploading ? 'Procesando...' : 'Vincular Guía'}
+                                    uploadSubLabel="PDF o Imagen (Shalom/Olva)"
+                                    accept="image/*,.pdf"
+                                    accentColor="blue"
+                                />
+                            </div>
                         </div>
                     </div>
                 </TabsContent>
 
-                {/* TAB 3: DOCUMENTOS (Nuevo) */}
-                <TabsContent value="documentos" className="animate-in fade-in-50 duration-300">
+                <TabsContent value="documentos" className="outline-none">
                     <OrderLabelGenerator pedido={pedido} isLocked={isLocked} />
                 </TabsContent>
 
-                {/* TAB 4: HISTORIAL (Auditoría) */}
-                <TabsContent value="historial" className="animate-in fade-in-50 duration-300">
+                <TabsContent value="historial" className="outline-none">
                     <OrderHistoryCard logs={logs} />
                 </TabsContent>
             </Tabs>
 
-            {/* --- Dialogs --- */}
-
-            {/* 1. Delete Guide Confirmation - Deprecated, moved to component */}
-            {/* 1.5. Delete Delivery Evidence Confirmation - Deprecated, moved to component */}
-            {/* 2. Delete Payment Confirmation - Deprecated, moved to component */}
-
-            {/* 3. Partial Return Dialog */}
+            {/* --- PARTIAL RETURN DIALOG --- */}
             <Dialog open={returnModalState.isOpen} onOpenChange={(open) => setReturnModalState(prev => ({ ...prev, isOpen: open }))}>
-                <DialogContent>
+                <DialogContent className="rounded-[2.5rem] p-8 border-none shadow-2xl">
                     <DialogHeader>
-                        <DialogTitle>Devolución Parcial</DialogTitle>
+                        <DialogTitle className="text-3xl font-black tracking-tight">Devolución Parcial</DialogTitle>
                     </DialogHeader>
-
-                    <div className="py-4 space-y-4">
-                        <div className="bg-blue-50 p-3 rounded text-sm text-blue-700">
-                            Producto: <strong>{returnModalState.productName}</strong><br />
-                            Máximo disponible para devolver: <strong>{returnModalState.maxReturn}</strong>
+                    <div className="py-6 space-y-6">
+                        <div className="bg-blue-50 p-6 rounded-3xl border border-blue-100">
+                            <p className="text-[10px] font-black text-blue-900 uppercase tracking-widest mb-2">Producto Seleccionado</p>
+                            <p className="text-lg font-bold text-slate-900">{returnModalState.productName}</p>
+                            <p className="text-xs text-blue-600 mt-1 font-medium">Disponible para devolución: <span className="font-black">{returnModalState.maxReturn} und.</span></p>
                         </div>
-
-                        <div className="space-y-2">
-                            <Label>Cantidad a devolver</Label>
+                        <div className="space-y-3">
+                            <Label className="font-black text-[10px] uppercase tracking-widest text-slate-400">Cantidad a Retornar al Inventario</Label>
                             <Input
                                 type="number"
                                 min="1"
                                 max={returnModalState.maxReturn}
                                 value={returnQtyInput}
                                 onChange={(e) => setReturnQtyInput(e.target.value)}
+                                className="h-14 bg-slate-50 border-none rounded-2xl text-lg font-bold"
                             />
-                            <p className="text-xs text-gray-400">
-                                Esta acción sumará el stock al inventario automáticamente.
+                            <p className="text-[10px] text-slate-400 font-medium">
+                                * Esta acción sumará automáticamente las unidades al stock global.
                             </p>
                         </div>
                     </div>
-
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setReturnModalState(prev => ({ ...prev, isOpen: false }))}>Cancelar</Button>
-                        <Button onClick={processPartialReturn}>
-                            Confirmar Devolución
+                    <DialogFooter className="gap-3">
+                        <Button variant="ghost" onClick={() => setReturnModalState(prev => ({ ...prev, isOpen: false }))} className="h-14 px-8 rounded-2xl font-bold">CANCELAR</Button>
+                        <Button onClick={processPartialReturn} className="h-14 px-10 rounded-2xl bg-slate-900 text-white font-black shadow-xl shadow-slate-200 haptic-scale">
+                            CONFIRMAR RETORNO
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-
-        </div >
+        </div>
     )
 }
 
 function StatusBadge({ status }: { status: string }) {
     const styles: Record<string, string> = {
-        'Pendiente': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-        'Confirmado': 'bg-blue-100 text-blue-800 border-blue-200',
-        'Enviado': 'bg-purple-100 text-purple-800 border-purple-200',
-        'Entregado': 'bg-green-100 text-green-800 border-green-200',
-        'Cancelado': 'bg-red-100 text-red-800 border-red-200',
-        'Fallido': 'bg-red-100 text-red-800 border-red-200',
+        'Pendiente': 'bg-amber-50 text-amber-700 border-amber-100 shadow-[0_2px_10px_-3px_rgba(251,191,36,0.2)]',
+        'Confirmado': 'bg-sky-50 text-sky-700 border-sky-100 shadow-[0_2px_10px_-3px_rgba(14,165,233,0.2)]',
+        'Enviado': 'bg-indigo-50 text-indigo-700 border-indigo-100 shadow-[0_2px_10px_-3px_rgba(79,70,229,0.2)]',
+        'Entregado': 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-[0_2px_10px_-3px_rgba(16,185,129,0.2)]',
+        'Cancelado': 'bg-rose-50 text-rose-700 border-rose-100 shadow-[0_2px_10px_-3px_rgba(244,63,94,0.2)]',
+        'Fallido': 'bg-rose-50 text-rose-700 border-rose-100 shadow-[0_2px_10px_-3px_rgba(244,63,94,0.2)]',
     }
 
-    const defaultStyle = 'bg-gray-100 text-gray-800 border-gray-200'
-
     return (
-        <Badge variant="outline" className={`${styles[status] || defaultStyle} border`}>
+        <Badge variant="outline" className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all duration-300 ${styles[status] || 'bg-slate-50 text-slate-600 border-slate-100'}`}>
             {status}
         </Badge>
     )

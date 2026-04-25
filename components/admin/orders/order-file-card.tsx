@@ -1,7 +1,7 @@
 import Image from "next/image"
-import { Trash2, ExternalLink, FileUp, Check, Image as ImageIcon, Eye, EyeOff } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Trash2, ExternalLink, FileUp, Eye, EyeOff, CheckCircle2, Loader2 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 import { useState } from "react"
 
 interface OrderFileCardProps {
@@ -18,6 +18,16 @@ interface OrderFileCardProps {
     accentColor?: "blue" | "green" | "purple" | "orange"
 }
 
+const ACCENT_MAP = {
+    blue:   { zone: 'border-blue-100 bg-blue-50/50 hover:bg-blue-50',   icon: 'bg-blue-100 text-blue-600',   text: 'text-blue-600', dot: 'bg-blue-500'   },
+    green:  { zone: 'border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50', icon: 'bg-emerald-100 text-emerald-600', text: 'text-emerald-600', dot: 'bg-emerald-500' },
+    purple: { zone: 'border-purple-100 bg-purple-50/50 hover:bg-purple-50', icon: 'bg-purple-100 text-purple-600', text: 'text-purple-600', dot: 'bg-purple-500' },
+    orange: { zone: 'border-orange-100 bg-orange-50/50 hover:bg-orange-50', icon: 'bg-orange-100 text-orange-600', text: 'text-orange-600', dot: 'bg-orange-500' },
+}
+
+const inputId = (title: string) => `upload-${title.replace(/\s+/g, '-').toLowerCase()}`
+const isImage = (url: string) => /\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i.test(url)
+
 export function OrderFileCard({
     title,
     icon,
@@ -26,37 +36,15 @@ export function OrderFileCard({
     isUploading,
     onUpload,
     onDelete,
-    uploadLabel = "Subir Archivo",
+    uploadLabel = "Vincular Archivo",
     uploadSubLabel = "Imagen o PDF",
     accept = "image/*,.pdf",
     accentColor = "blue"
 }: OrderFileCardProps) {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-    const [showPreview, setShowPreview] = useState(false)
+    const [showPreview, setShowPreview] = useState(true)
 
-    // Color maps
-    const bgColors = {
-        blue: "bg-blue-50 text-blue-600",
-        green: "bg-green-50 text-green-600",
-        purple: "bg-purple-50 text-purple-600",
-        orange: "bg-orange-50 text-orange-600",
-    }
-    const borderColors = {
-        blue: "hover:bg-blue-50",
-        green: "hover:bg-green-50",
-        purple: "hover:bg-purple-50",
-        orange: "hover:bg-orange-50",
-    }
-    const textColors = {
-        blue: "text-blue-600",
-        green: "text-green-600",
-        purple: "text-purple-600",
-        orange: "text-orange-600",
-    }
-
-    const currentBg = bgColors[accentColor] || bgColors.blue
-    const currentHover = borderColors[accentColor] || borderColors.blue
-    const currentText = textColors[accentColor] || textColors.blue
+    const a = ACCENT_MAP[accentColor] || ACCENT_MAP.blue
 
     const handleDelete = () => {
         onDelete()
@@ -64,107 +52,127 @@ export function OrderFileCard({
     }
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">
-            <h2 className="font-semibold text-lg mb-2 flex items-center gap-2">
-                {icon} {title}
-            </h2>
+        <div className="space-y-4">
             {fileUrl ? (
-                <div className="space-y-3">
-                    {/* Header with Buttons */}
-                    <div className="flex items-center gap-2 p-3 border rounded-lg bg-gray-50">
-                        <div className={`p-2 rounded ${currentBg}`}>
-                            {icon || <FileUp className="h-5 w-5" />}
+                <div className="space-y-4">
+                    {/* File Row */}
+                    <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 group">
+                        {/* Status Icon */}
+                        <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${a.icon}`}>
+                            <CheckCircle2 size={20} strokeWidth={2.5} />
                         </div>
+
+                        {/* Info */}
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{title}</p>
-                            <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline break-all">
+                            <p className="text-xs font-black text-slate-900 uppercase tracking-widest">{title}</p>
+                            <a
+                                href={fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[10px] font-medium text-slate-400 hover:text-blue-600 transition-colors truncate block max-w-[180px]"
+                            >
                                 {fileUrl.split('/').pop()}
                             </a>
                         </div>
-                        <div className="flex items-center gap-1">
-                            {fileUrl.match(/\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i) && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-1 shrink-0">
+                            {isImage(fileUrl) && (
+                                <button
                                     onClick={() => setShowPreview(!showPreview)}
-                                    className="h-8 gap-1 text-xs"
+                                    className="h-9 w-9 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:border-blue-100 transition-all shadow-sm"
+                                    title={showPreview ? 'Ocultar' : 'Ver'}
                                 >
-                                    {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                    {showPreview ? 'Ocultar' : 'Ver'}
-                                </Button>
+                                    {showPreview ? <EyeOff size={15} /> : <Eye size={15} />}
+                                </button>
                             )}
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
+                            <button
                                 onClick={() => window.open(fileUrl || '', '_blank')}
-                                title="Abrir en pestaña nueva"
+                                className="h-9 w-9 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-sm"
+                                title="Abrir en nueva pestaña"
                             >
-                                <ExternalLink className="h-4 w-4" />
-                            </Button>
+                                <ExternalLink size={15} />
+                            </button>
                             {!isLocked && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                <button
                                     onClick={() => setIsDeleteDialogOpen(true)}
+                                    className="h-9 w-9 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-300 hover:text-rose-500 hover:border-rose-100 transition-all shadow-sm"
+                                    title="Eliminar archivo"
                                 >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
+                                    <Trash2 size={15} />
+                                </button>
                             )}
                         </div>
                     </div>
 
-                    {/* Image Preview (Conditional) */}
-                    {showPreview && fileUrl.match(/\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i) && (
-                        <div className="mt-2 animate-in fade-in zoom-in-95 duration-200">
+                    {/* Image Preview */}
+                    {showPreview && isImage(fileUrl) && (
+                        <div className="animate-in fade-in zoom-in-95 duration-300">
                             <img
                                 src={fileUrl}
                                 alt={title}
-                                className="w-full h-auto rounded-lg border shadow-sm"
+                                className="w-full h-auto rounded-2xl border border-slate-100 shadow-sm object-cover max-h-[280px]"
                                 loading="lazy"
                             />
                         </div>
                     )}
                 </div>
             ) : (
-                <div className={`text-center p-6 border-2 border-dashed rounded-xl ${currentHover} transition-colors`}>
+                /* Upload Zone */
+                <div className={`relative border-2 border-dashed rounded-2xl transition-all duration-300 ${a.zone} ${isUploading ? 'pointer-events-none' : 'cursor-pointer'}`}>
                     <input
                         type="file"
-                        id={`upload-${title.replace(/\s+/g, '-').toLowerCase()}`}
-                        className="hidden"
+                        id={inputId(title)}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                         accept={accept}
                         onChange={(e) => {
-                            if (e.target.files?.[0]) {
-                                onUpload(e.target.files[0])
-                            }
+                            if (e.target.files?.[0]) onUpload(e.target.files[0])
                             e.target.value = ''
                         }}
                         disabled={isUploading || isLocked}
                     />
-                    <label htmlFor={`upload-${title.replace(/\s+/g, '-').toLowerCase()}`} className="cursor-pointer flex flex-col items-center gap-2 w-full">
-                        <div className={`p-3 rounded-full ${currentBg}`}>
-                            {icon || <FileUp className="h-6 w-6" />}
+                    <label htmlFor={inputId(title)} className="flex flex-col items-center gap-4 py-8 px-6 cursor-pointer w-full">
+                        <div className={`h-14 w-14 rounded-2xl flex items-center justify-center ${a.icon} shadow-sm`}>
+                            {isUploading
+                                ? <Loader2 size={24} className="animate-spin" />
+                                : (icon || <FileUp size={24} />)
+                            }
                         </div>
-                        <span className={`text-sm font-medium ${currentText}`}>
-                            {isUploading ? 'Subiendo...' : uploadLabel}
-                        </span>
-                        <span className="text-xs text-gray-400">{uploadSubLabel}</span>
+                        <div className="text-center">
+                            <p className={`text-sm font-black uppercase tracking-widest ${a.text}`}>
+                                {isUploading ? 'Procesando...' : uploadLabel}
+                            </p>
+                            <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
+                                {uploadSubLabel}
+                            </p>
+                        </div>
                     </label>
                 </div>
             )}
 
             {/* Delete Confirmation Dialog */}
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                <DialogContent>
+                <DialogContent className="rounded-[2.5rem] border-none shadow-2xl p-10">
                     <DialogHeader>
-                        <DialogTitle>Eliminar {title}</DialogTitle>
+                        <DialogTitle className="text-3xl font-black tracking-tight">Eliminar Archivo</DialogTitle>
                     </DialogHeader>
-                    <p className="py-4 text-gray-500">¿Estás seguro que deseas eliminar este archivo? Esta acción no se puede deshacer.</p>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isUploading}>Cancelar</Button>
-                        <Button variant="destructive" onClick={handleDelete} disabled={isUploading}>
-                            {isUploading ? 'Eliminando...' : 'Eliminar'}
+                    <div className="py-6">
+                        <div className="p-6 bg-rose-50 rounded-3xl border border-rose-100">
+                            <p className="text-sm font-medium text-rose-800 leading-relaxed">
+                                ¿Estás seguro? El archivo <span className="font-black">{title}</span> será eliminado permanentemente del sistema.
+                            </p>
+                        </div>
+                    </div>
+                    <DialogFooter className="gap-3">
+                        <Button variant="ghost" onClick={() => setIsDeleteDialogOpen(false)} className="h-14 px-8 rounded-2xl font-bold">
+                            CANCELAR
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleDelete}
+                            className="h-14 px-10 rounded-2xl font-black bg-rose-600 hover:bg-rose-700 shadow-xl shadow-rose-200 haptic-scale"
+                        >
+                            ELIMINAR
                         </Button>
                     </DialogFooter>
                 </DialogContent>

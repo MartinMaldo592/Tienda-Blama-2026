@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { CreditCard, ExternalLink, Trash2, Plus, Upload, X, Banknote, Smartphone, Building2, HelpCircle, Eye, EyeOff } from "lucide-react"
+import { CreditCard, ExternalLink, Trash2, Plus, Upload, X, Banknote, Smartphone, Building2, HelpCircle, Eye, EyeOff, CheckCircle2, Lock, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -15,6 +15,7 @@ import { createClient } from "@/lib/supabase.client"
 import { PedidoRow, PedidoPago } from "@/features/admin/types"
 import { formatCurrency } from "@/lib/utils"
 import { useFileUpload } from "@/hooks/use-file-upload"
+import { motion, AnimatePresence } from "framer-motion"
 
 interface OrderPaymentCardProps {
     pedido: PedidoRow
@@ -26,25 +27,25 @@ interface OrderPaymentCardProps {
 }
 
 const METODO_ICONS: Record<string, React.ReactNode> = {
-    'Efectivo': <Banknote className="h-4 w-4" />,
-    'Yape': <Smartphone className="h-4 w-4" />,
-    'Plin': <Smartphone className="h-4 w-4" />,
-    'Transferencia BCP': <Building2 className="h-4 w-4" />,
-    'Transferencia Interbank': <Building2 className="h-4 w-4" />,
-    'Tarjeta': <CreditCard className="h-4 w-4" />,
-    'Pasarela Culqi': <CreditCard className="h-4 w-4" />,
-    'Otro': <HelpCircle className="h-4 w-4" />,
+    'Efectivo': <Banknote className="h-5 w-5" />,
+    'Yape': <Smartphone className="h-5 w-5" />,
+    'Plin': <Smartphone className="h-5 w-5" />,
+    'Transferencia BCP': <Building2 className="h-5 w-5" />,
+    'Transferencia Interbank': <Building2 className="h-5 w-5" />,
+    'Tarjeta': <CreditCard className="h-5 w-5" />,
+    'Pasarela Culqi': <CreditCard className="h-5 w-5" />,
+    'Otro': <HelpCircle className="h-5 w-5" />,
 }
 
 const METODOS_REQUIEREN_COMPROBANTE = ['Yape', 'Plin', 'Transferencia BCP', 'Transferencia Interbank']
 
-const PAGO_STATUS_STYLES: Record<string, string> = {
-    'Pendiente': 'bg-red-100 text-red-800 border-red-200',
-    'Pago Parcial': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    'Pagado': 'bg-green-100 text-green-800 border-green-200',
-    'Pago Contraentrega': 'bg-blue-100 text-blue-800 border-blue-200',
-    'Pagado Anticipado': 'bg-green-100 text-green-800 border-green-200',
-    'Pagado al Recibir': 'bg-green-100 text-green-800 border-green-200',
+const PAGO_STATUS_STYLES: Record<string, { bg: string, text: string, border: string }> = {
+    'Pendiente': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-100' },
+    'Pago Parcial': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-100' },
+    'Pagado': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-100' },
+    'Pago Contraentrega': { bg: 'bg-sky-50', text: 'text-sky-700', border: 'border-sky-100' },
+    'Pagado Anticipado': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-100' },
+    'Pagado al Recibir': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-100' },
 }
 
 export function OrderPaymentCard({ pedido, isLocked, currentUser, userRole = 'worker', onLogAction, onRefresh }: OrderPaymentCardProps) {
@@ -248,376 +249,478 @@ export function OrderPaymentCard({ pedido, isLocked, currentUser, userRole = 'wo
         }
     }
 
+    const currentStatusStyle = PAGO_STATUS_STYLES[estadoPagoCalculado] || PAGO_STATUS_STYLES['Pendiente']
+
     return (
-        <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">
-            <h2 className="font-semibold text-lg flex items-center gap-2">
-                <CreditCard className="h-5 w-5" /> Control de Pagos
-            </h2>
-
-            {/* Summary Bar */}
-            <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Total del Pedido</span>
-                    <span className="font-bold">{formatCurrency(pedido.total || 0)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Total Pagado</span>
-                    <span className="font-bold text-green-700">{formatCurrency(totalPagado)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Saldo Pendiente</span>
-                    <span className={`font-bold ${saldoPendiente > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                        {formatCurrency(saldoPendiente)}
-                    </span>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="space-y-1">
-                    <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                        <div
-                            className={`h-full rounded-full transition-all duration-500 ${porcentajePagado >= 100
-                                ? 'bg-green-500'
-                                : porcentajePagado > 0
-                                    ? 'bg-yellow-500'
-                                    : 'bg-gray-200'
-                                }`}
-                            style={{ width: `${porcentajePagado}%` }}
-                        />
+        <div className="bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden">
+            {/* Header Section */}
+            <div className="p-8 pb-6 border-b border-slate-50">
+                <div className="flex justify-between items-start mb-6">
+                    <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 bg-emerald-500 rounded-[1rem] flex items-center justify-center text-white shadow-lg shadow-emerald-100">
+                            <Banknote size={22} strokeWidth={1.5} />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">Finanzas</h2>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                Control de Pagos y Abonos
+                            </p>
+                        </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-400">{porcentajePagado}%</span>
-                        <Badge variant="outline" className={`text-xs ${PAGO_STATUS_STYLES[estadoPagoCalculado] || 'bg-gray-100 text-gray-800'}`}>
+                    <div className={`px-4 py-2 rounded-xl border ${currentStatusStyle.bg} ${currentStatusStyle.border}`}>
+                        <span className={`text-xs font-black uppercase tracking-widest ${currentStatusStyle.text}`}>
                             {estadoPagoCalculado}
-                        </Badge>
+                        </span>
+                    </div>
+                </div>
+
+                {/* Main Progress & Stats */}
+                <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 space-y-6">
+                    <div className="grid grid-cols-3 gap-4 text-center divide-x divide-slate-200">
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Monto Total</p>
+                            <p className="text-lg font-black text-slate-900 tracking-tighter">{formatCurrency(pedido.total || 0)}</p>
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Recaudado</p>
+                            <p className="text-lg font-black text-emerald-600 tracking-tighter">{formatCurrency(totalPagado)}</p>
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Pendiente</p>
+                            <p className={`text-lg font-black tracking-tighter ${saldoPendiente > 0 ? 'text-rose-600' : 'text-slate-900'}`}>
+                                {formatCurrency(saldoPendiente)}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
+                            <span>Progreso de Pago</span>
+                            <span className={porcentajePagado >= 100 ? 'text-emerald-600' : ''}>{porcentajePagado}%</span>
+                        </div>
+                        <div className="h-3 w-full bg-slate-200 rounded-full overflow-hidden">
+                            <motion.div 
+                                className={`h-full rounded-full ${porcentajePagado >= 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                                initial={{ width: 0 }}
+                                animate={{ width: `${porcentajePagado}%` }}
+                                transition={{ duration: 1, ease: "easeOut" }}
+                            />
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Additional Info Row */}
+                <div className="flex justify-between items-center mt-4 px-2">
+                    {pedido.cupon_codigo ? (
+                        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+                            <span className="text-slate-400">Cupón:</span>
+                            <span className="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded border border-indigo-100">{pedido.cupon_codigo}</span>
+                        </div>
+                    ) : <div />}
+                    
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+                        <span className="text-slate-400">Inventario:</span>
+                        {pedido.stock_descontado ? (
+                            <span className="text-emerald-600 flex items-center gap-1"><CheckCircle2 size={12} /> Descontado</span>
+                        ) : (
+                            <span className="text-amber-600 flex items-center gap-1"><Lock size={12} /> Reservado</span>
+                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Coupon Info */}
-            {pedido.cupon_codigo && (
-                <div className="pt-2 border-t">
-                    <p className="text-sm text-gray-500">Cupón aplicado</p>
-                    <p className="font-mono text-sm font-bold text-green-700">{pedido.cupon_codigo}</p>
+            {/* Payments List */}
+            <div className="p-8 space-y-6">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Historial de Transacciones</h3>
+                    <Badge variant="outline" className="bg-slate-50 text-slate-500 border-slate-200">
+                        {pagos.length}
+                    </Badge>
                 </div>
-            )}
-
-            {/* Stock Info */}
-            <div className="pt-2 border-t">
-                <p className="text-sm text-gray-500">Stock</p>
-                <p className="text-sm">
-                    {pedido.stock_descontado ?
-                        <span className="text-green-600 flex items-center gap-1">✔ Descontado</span> :
-                        <span className="text-amber-600">⚠ No descontado</span>
-                    }
-                </p>
-            </div>
-
-            {/* Payment History */}
-            <div className="pt-3 border-t">
-                <p className="text-sm font-medium text-gray-700 mb-3">Historial de Pagos</p>
 
                 {loadingPagos ? (
-                    <p className="text-xs text-gray-400 text-center py-4">Cargando pagos...</p>
+                    <div className="flex justify-center py-8">
+                        <Loader2 className="h-8 w-8 text-slate-300 animate-spin" />
+                    </div>
                 ) : pagos.length === 0 ? (
-                    <div className="text-center py-4 bg-gray-50 rounded-lg border border-dashed">
-                        <p className="text-sm text-gray-400">No hay pagos registrados</p>
+                    <div className="flex flex-col items-center justify-center py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                        <Banknote size={40} className="text-slate-300 mb-3" strokeWidth={1} />
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Sin pagos registrados</p>
                     </div>
                 ) : (
-                    <div className="space-y-3">
-                        {pagos.map((pago) => (
-                            <div key={pago.id} className={`p-3 rounded-lg border ${pago.tipo_pago === 'Reembolso' ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-100'}`}>
-                                <div className="flex items-start justify-between gap-2">
-                                    <div className="flex items-start gap-2 flex-1 min-w-0">
-                                        <div className={`mt-0.5 p-1.5 rounded ${pago.tipo_pago === 'Reembolso' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
-                                            {METODO_ICONS[pago.metodo_pago] || <CreditCard className="h-4 w-4" />}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                                <span className={`font-bold text-sm ${pago.tipo_pago === 'Reembolso' ? 'text-red-700' : 'text-gray-900'}`}>
-                                                    {pago.tipo_pago === 'Reembolso' ? '-' : ''}{formatCurrency(pago.monto)}
-                                                </span>
-                                                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                                                    {pago.metodo_pago}
-                                                </Badge>
-                                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                                                    {pago.tipo_pago}
-                                                </Badge>
-                                            </div>
-                                            <p className="text-[11px] text-gray-400 mt-0.5">
-                                                {new Date(pago.created_at).toLocaleString('es-PE', {
-                                                    day: '2-digit', month: '2-digit', year: 'numeric',
-                                                    hour: '2-digit', minute: '2-digit'
-                                                })} — {pago.registrado_por}
-                                            </p>
-                                            {pago.nota && (
-                                                <p className="text-xs text-gray-500 mt-1 italic">📝 {pago.nota}</p>
-                                            )}
-                                        </div>
-                                    </div>
+                    <div className="space-y-4">
+                        <AnimatePresence>
+                            {pagos.map((pago) => {
+                                const isRefund = pago.tipo_pago === 'Reembolso';
+                                const bgClass = isRefund ? 'bg-rose-50 border-rose-100' : 'bg-white border-slate-100 hover:border-slate-200';
+                                const iconClass = isRefund ? 'bg-rose-100 text-rose-600' : 'bg-slate-50 text-slate-600';
+                                const amountClass = isRefund ? 'text-rose-600' : 'text-slate-900';
+                                
+                                return (
+                                    <motion.div 
+                                        key={pago.id}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        className={`p-5 rounded-2xl border transition-all ${bgClass} shadow-sm`}
+                                    >
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="flex items-start gap-4 flex-1">
+                                                <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${iconClass}`}>
+                                                    {METODO_ICONS[pago.metodo_pago] || <CreditCard size={20} />}
+                                                </div>
+                                                <div className="space-y-1.5 flex-1">
+                                                    <div className="flex items-center gap-3 flex-wrap">
+                                                        <span className={`text-lg font-black tracking-tighter ${amountClass}`}>
+                                                            {isRefund ? '-' : ''}{formatCurrency(pago.monto)}
+                                                        </span>
+                                                        <div className="flex gap-2">
+                                                            <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-600 shadow-sm">
+                                                                {pago.metodo_pago}
+                                                            </span>
+                                                            <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border shadow-sm ${isRefund ? 'bg-rose-100 text-rose-700 border-rose-200' : 'bg-sky-50 text-sky-700 border-sky-100'}`}>
+                                                                {pago.tipo_pago}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                                                        <span>
+                                                            {new Date(pago.created_at).toLocaleString('es-PE', {
+                                                                day: '2-digit', month: 'short', year: 'numeric',
+                                                                hour: '2-digit', minute: '2-digit'
+                                                            })}
+                                                        </span>
+                                                        <span>•</span>
+                                                        <span className="text-slate-500">{pago.registrado_por}</span>
+                                                    </div>
 
-                                    <div className="flex items-center gap-1 shrink-0">
-                                        {pago.comprobante_url && (
-                                            <>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-7 px-2 text-xs gap-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                                                    onClick={() => togglePaymentVisibility(pago.id)}
-                                                    title={visiblePayments[pago.id] ? "Ocultar foto" : "Ver foto completa"}
-                                                >
-                                                    {visiblePayments[pago.id] ? (
-                                                        <><EyeOff className="h-3.5 w-3.5" /> Ocultar</>
-                                                    ) : (
-                                                        <><Eye className="h-3.5 w-3.5" /> Ver Foto</>
+                                                    {pago.nota && (
+                                                        <p className="text-xs font-medium text-slate-600 bg-white/50 p-2 rounded-lg border border-slate-100 mt-2 inline-block">
+                                                            📝 {pago.nota}
+                                                        </p>
                                                     )}
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-7 w-7 p-0 text-gray-400 hover:text-blue-600"
-                                                    onClick={() => window.open(pago.comprobante_url!, '_blank')}
-                                                    title="Abrir original"
-                                                >
-                                                    <ExternalLink className="h-3.5 w-3.5" />
-                                                </Button>
-                                            </>
-                                        )}
-                                        {(!isLocked && (!pago.registrado_por?.toLowerCase().includes("sistema") || userRole === 'admin')) && (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-7 w-7 p-0 text-red-400 hover:text-red-600"
-                                                onClick={() => setConfirmDeleteId(pago.id)}
-                                                title="Eliminar pago"
-                                            >
-                                                <Trash2 className="h-3.5 w-3.5" />
-                                            </Button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Full Image Preview (Hidden by default) */}
-                                {pago.comprobante_url && visiblePayments[pago.id] && (
-                                    <div className="mt-3 animate-in fade-in zoom-in-95 duration-200">
-                                        {pago.comprobante_url.match(/\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i) ? (
-                                            <img
-                                                src={pago.comprobante_url}
-                                                alt="Comprobante completo"
-                                                className="w-full h-auto rounded-lg border shadow-sm"
-                                                loading="lazy"
-                                            />
-                                        ) : (
-                                            <div className="p-4 bg-gray-100 rounded text-center text-sm">
-                                                Archivo no es imagen. <a href={pago.comprobante_url} target="_blank" className="underline text-blue-600">Descargar</a>
+                                                </div>
                                             </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        ))}
+
+                                            {/* Actions */}
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                {pago.comprobante_url && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => togglePaymentVisibility(pago.id)}
+                                                            className={`h-9 px-3 rounded-xl border flex items-center gap-2 transition-all ${visiblePayments[pago.id] ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-white text-slate-500 border-slate-200 hover:text-indigo-600 hover:border-indigo-200'} text-[10px] font-black uppercase tracking-widest shadow-sm`}
+                                                        >
+                                                            {visiblePayments[pago.id] ? <EyeOff size={14} /> : <Eye size={14} />}
+                                                            {visiblePayments[pago.id] ? 'OCULTAR' : 'EVIDENCIA'}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => window.open(pago.comprobante_url!, '_blank')}
+                                                            className="h-9 w-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm"
+                                                            title="Abrir original"
+                                                        >
+                                                            <ExternalLink size={14} />
+                                                        </button>
+                                                    </>
+                                                )}
+                                                {(!isLocked && (!pago.registrado_por?.toLowerCase().includes("sistema") || userRole === 'admin')) && (
+                                                    <button
+                                                        onClick={() => setConfirmDeleteId(pago.id)}
+                                                        className="h-9 w-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 transition-all shadow-sm"
+                                                        title="Eliminar pago"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Image Preview */}
+                                        <AnimatePresence>
+                                            {pago.comprobante_url && visiblePayments[pago.id] && (
+                                                <motion.div 
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: 'auto', opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    className="mt-4 overflow-hidden"
+                                                >
+                                                    {pago.comprobante_url.match(/\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i) ? (
+                                                        <img
+                                                            src={pago.comprobante_url}
+                                                            alt="Comprobante completo"
+                                                            className="w-full h-auto rounded-xl border border-slate-200 shadow-md max-h-[400px] object-contain bg-slate-50"
+                                                            loading="lazy"
+                                                        />
+                                                    ) : (
+                                                        <div className="p-4 bg-slate-100 rounded-xl text-center">
+                                                            <a href={pago.comprobante_url} target="_blank" className="text-xs font-bold text-blue-600 uppercase tracking-widest hover:underline flex items-center justify-center gap-2">
+                                                                <ExternalLink size={14} /> Descargar Archivo
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </motion.div>
+                                )
+                            })}
+                        </AnimatePresence>
                     </div>
                 )}
             </div>
 
-            {/* Register Payment Form */}
+            {/* Register New Payment Block */}
             {!isLocked && (
-                <div className="pt-3 border-t">
-                    {!showForm ? (
-                        <Button
-                            variant="outline"
-                            className="w-full gap-2 border-dashed"
-                            onClick={() => setShowForm(true)}
-                        >
-                            <Plus className="h-4 w-4" /> Registrar Nuevo Pago
-                        </Button>
-                    ) : (
-                        <div className="space-y-4 bg-blue-50/50 p-4 rounded-lg border border-blue-100">
-                            <div className="flex items-center justify-between">
-                                <p className="text-sm font-semibold text-blue-900">Nuevo Pago</p>
-                                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={resetForm}>
-                                    <X className="h-4 w-4" />
+                <div className="p-8 pt-0">
+                    <AnimatePresence mode="wait">
+                        {!showForm ? (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                            >
+                                <Button
+                                    onClick={() => setShowForm(true)}
+                                    className="w-full h-14 rounded-2xl bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border-2 border-dashed border-slate-200 hover:border-emerald-200 font-black text-xs uppercase tracking-widest transition-all"
+                                >
+                                    <Plus size={18} className="mr-2" /> AGREGAR TRANSACCIÓN
                                 </Button>
-                            </div>
-
-                            {/* Monto */}
-                            <div className="space-y-1.5">
-                                <Label className="text-xs font-medium">Monto <span className="text-destructive">*</span></Label>
-                                <div className="flex gap-2">
-                                    <Input
-                                        type="number"
-                                        step="0.01"
-                                        min="0.01"
-                                        placeholder="0.00"
-                                        value={monto}
-                                        onChange={(e) => setMonto(e.target.value)}
-                                        className="bg-white"
-                                        disabled={saving}
-                                    />
-                                    {saldoPendiente > 0 && (
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                            size="sm"
-                                            className="shrink-0 text-xs"
-                                            onClick={handleFillSaldo}
-                                            disabled={saving}
-                                        >
-                                            Saldo: {formatCurrency(saldoPendiente)}
-                                        </Button>
-                                    )}
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="bg-slate-50 rounded-[2rem] p-8 border border-slate-100 shadow-inner"
+                            >
+                                <div className="flex items-center justify-between mb-8">
+                                    <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                                        <Plus className="text-emerald-500" /> Nuevo Registro
+                                    </h3>
+                                    <button 
+                                        onClick={resetForm}
+                                        className="h-8 w-8 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center hover:bg-rose-100 hover:text-rose-600 transition-colors"
+                                    >
+                                        <X size={14} />
+                                    </button>
                                 </div>
-                            </div>
 
-                            {/* Método de Pago */}
-                            <div className="space-y-1.5">
-                                <Label className="text-xs font-medium">Método de Pago <span className="text-destructive">*</span></Label>
-                                <Select value={metodoPago} onValueChange={setMetodoPago} disabled={saving}>
-                                    <SelectTrigger className="bg-white">
-                                        <SelectValue placeholder="Seleccionar método" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Efectivo">💵 Efectivo</SelectItem>
-                                        <SelectItem value="Yape">📱 Yape</SelectItem>
-                                        <SelectItem value="Plin">📱 Plin</SelectItem>
-                                        <SelectItem value="Transferencia BCP">🏦 Transferencia BCP</SelectItem>
-                                        <SelectItem value="Transferencia Interbank">🏦 Transferencia Interbank</SelectItem>
-                                        <SelectItem value="Tarjeta">💳 Tarjeta</SelectItem>
-                                        <SelectItem value="Pasarela Culqi">💳 Pasarela Culqi</SelectItem>
-                                        <SelectItem value="Otro">📝 Otro</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                                <div className="space-y-6">
+                                    {/* Monto & Saldos */}
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                            Monto <span className="text-rose-500">*</span>
+                                        </Label>
+                                        <div className="flex gap-3">
+                                            <div className="relative flex-1">
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-lg">S/</span>
+                                                <Input
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0.01"
+                                                    placeholder="0.00"
+                                                    value={monto}
+                                                    onChange={(e) => setMonto(e.target.value)}
+                                                    className="pl-10 h-14 bg-white border-none rounded-2xl text-xl font-black focus:ring-4 focus:ring-emerald-500/10 shadow-sm"
+                                                    disabled={saving}
+                                                />
+                                            </div>
+                                            {saldoPendiente > 0 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleFillSaldo}
+                                                    disabled={saving}
+                                                    className="px-6 h-14 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-colors shadow-sm"
+                                                >
+                                                    LIQUIDAR SALDO
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
 
-                            {/* Tipo de Pago */}
-                            <div className="space-y-1.5">
-                                <Label className="text-xs font-medium">Tipo <span className="text-destructive">*</span></Label>
-                                <Select value={tipoPago} onValueChange={setTipoPago} disabled={saving}>
-                                    <SelectTrigger className="bg-white">
-                                        <SelectValue placeholder="Seleccionar tipo" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Adelanto">Adelanto</SelectItem>
-                                        <SelectItem value="Abono">Abono</SelectItem>
-                                        <SelectItem value="Pago Final">Pago Final</SelectItem>
-                                        <SelectItem value="Reembolso">Reembolso (resta)</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Comprobante Upload */}
-                            {metodoPago && (
-                                <div className="space-y-1.5">
-                                    <Label className="text-xs font-medium">
-                                        Comprobante {requiresComprobante && <span className="text-destructive">* Obligatorio</span>}
-                                        {!requiresComprobante && <span className="text-gray-400">(opcional)</span>}
-                                    </Label>
-
-                                    {comprobanteUrl ? (
+                                    {/* Selectores */}
+                                    <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            {comprobanteUrl.match(/\.(jpeg|jpg|gif|png|webp)$/i) && (
-                                                <div className="relative w-full h-28 bg-gray-100 rounded-lg overflow-hidden border">
-                                                    <Image src={comprobanteUrl} alt="Comprobante" fill className="object-cover" sizes="300px" />
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                                Vía de Pago <span className="text-rose-500">*</span>
+                                            </Label>
+                                            <Select value={metodoPago} onValueChange={setMetodoPago} disabled={saving}>
+                                                <SelectTrigger className="h-14 bg-white border-none rounded-2xl font-bold shadow-sm focus:ring-4 focus:ring-emerald-500/10">
+                                                    <SelectValue placeholder="Seleccionar" />
+                                                </SelectTrigger>
+                                                <SelectContent className="rounded-2xl shadow-2xl border-slate-100">
+                                                    <SelectItem value="Efectivo" className="font-bold py-3">💵 Efectivo</SelectItem>
+                                                    <SelectItem value="Yape" className="font-bold py-3">📱 Yape</SelectItem>
+                                                    <SelectItem value="Plin" className="font-bold py-3">📱 Plin</SelectItem>
+                                                    <SelectItem value="Transferencia BCP" className="font-bold py-3">🏦 Transfer. BCP</SelectItem>
+                                                    <SelectItem value="Transferencia Interbank" className="font-bold py-3">🏦 Transfer. Interbank</SelectItem>
+                                                    <SelectItem value="Tarjeta" className="font-bold py-3">💳 Tarjeta</SelectItem>
+                                                    <SelectItem value="Pasarela Culqi" className="font-bold py-3">💳 Culqi Web</SelectItem>
+                                                    <SelectItem value="Otro" className="font-bold py-3">📝 Otro</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                                Clasificación <span className="text-rose-500">*</span>
+                                            </Label>
+                                            <Select value={tipoPago} onValueChange={setTipoPago} disabled={saving}>
+                                                <SelectTrigger className="h-14 bg-white border-none rounded-2xl font-bold shadow-sm focus:ring-4 focus:ring-emerald-500/10">
+                                                    <SelectValue placeholder="Seleccionar" />
+                                                </SelectTrigger>
+                                                <SelectContent className="rounded-2xl shadow-2xl border-slate-100">
+                                                    <SelectItem value="Adelanto" className="font-bold py-3">Adelanto</SelectItem>
+                                                    <SelectItem value="Abono" className="font-bold py-3">Abono parcial</SelectItem>
+                                                    <SelectItem value="Pago Final" className="font-bold py-3">Pago Final</SelectItem>
+                                                    <SelectItem value="Reembolso" className="font-bold py-3 text-rose-600">Reembolso (Resta)</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+
+                                    {/* Comprobante */}
+                                    {metodoPago && (
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                                    Evidencia Visual
+                                                </Label>
+                                                {requiresComprobante ? (
+                                                    <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-rose-100 text-rose-600">Requerido</span>
+                                                ) : (
+                                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Opcional</span>
+                                                )}
+                                            </div>
+
+                                            {comprobanteUrl ? (
+                                                <div className="p-4 bg-white rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                                                    {comprobanteUrl.match(/\.(jpeg|jpg|gif|png|webp)$/i) && (
+                                                        <div className="relative w-full h-32 rounded-xl overflow-hidden bg-slate-50 border border-slate-100">
+                                                            <Image src={comprobanteUrl} alt="Comprobante" fill className="object-contain" sizes="300px" />
+                                                        </div>
+                                                    )}
+                                                    <div className="flex gap-3">
+                                                        <Button variant="outline" className="flex-1 h-10 rounded-xl text-xs font-bold" onClick={() => window.open(comprobanteUrl!, '_blank')}>
+                                                            VER ORIGINAL
+                                                        </Button>
+                                                        <Button variant="outline" className="h-10 px-4 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 hover:border-rose-200" onClick={() => setComprobanteUrl(null)}>
+                                                            <X className="h-4 w-4 mr-1" /> QUITAR
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="relative">
+                                                    <input
+                                                        type="file"
+                                                        id="comprobante-pago-upload"
+                                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                                        accept="image/*"
+                                                        onChange={(e) => {
+                                                            if (e.target.files?.[0]) {
+                                                                comprobanteUpload.upload(
+                                                                    e.target.files[0],
+                                                                    `pago_${pedido.id}_${Date.now()}.${e.target.files[0].name.split('.').pop()}`
+                                                                )
+                                                            }
+                                                            e.target.value = ''
+                                                        }}
+                                                        disabled={comprobanteUpload.isUploading || saving}
+                                                    />
+                                                    <label
+                                                        htmlFor="comprobante-pago-upload"
+                                                        className={`flex flex-col items-center justify-center gap-2 h-32 w-full rounded-2xl border-2 border-dashed transition-all cursor-pointer ${
+                                                            requiresComprobante ? 'border-amber-200 bg-amber-50/50 hover:bg-amber-50 text-amber-700' : 'border-slate-200 bg-white hover:bg-slate-50 text-slate-500'
+                                                        }`}
+                                                    >
+                                                        {comprobanteUpload.isUploading ? (
+                                                            <Loader2 size={24} className="animate-spin" />
+                                                        ) : (
+                                                            <Upload size={24} className="opacity-50" />
+                                                        )}
+                                                        <span className="text-xs font-black uppercase tracking-widest mt-1">
+                                                            {comprobanteUpload.isUploading ? 'CARGANDO...' : 'SELECCIONAR CAPTURA'}
+                                                        </span>
+                                                    </label>
                                                 </div>
                                             )}
-                                            <div className="flex gap-2">
-                                                <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => window.open(comprobanteUrl!, '_blank')}>
-                                                    Ver Comprobante
-                                                </Button>
-                                                <Button variant="outline" size="sm" className="text-xs text-red-600 hover:bg-red-50" onClick={() => setComprobanteUrl(null)}>
-                                                    <X className="h-3 w-3 mr-1" /> Quitar
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="relative">
-                                            <input
-                                                type="file"
-                                                id="comprobante-pago-upload"
-                                                className="hidden"
-                                                accept="image/*"
-                                                onChange={(e) => {
-                                                    if (e.target.files?.[0]) {
-                                                        comprobanteUpload.upload(
-                                                            e.target.files[0],
-                                                            `pago_${pedido.id}_${Date.now()}.${e.target.files[0].name.split('.').pop()}`
-                                                        )
-                                                    }
-                                                    e.target.value = ''
-                                                }}
-                                                disabled={comprobanteUpload.isUploading || saving}
-                                            />
-                                            <label
-                                                htmlFor="comprobante-pago-upload"
-                                                className={`cursor-pointer block w-full text-center border border-dashed rounded-lg p-3 transition-colors ${requiresComprobante
-                                                    ? 'border-red-300 bg-red-50/50 hover:bg-red-50'
-                                                    : 'hover:bg-gray-50'
-                                                    }`}
-                                            >
-                                                <Upload className="h-4 w-4 mx-auto mb-1 text-gray-400" />
-                                                <span className="text-xs font-medium text-blue-600">
-                                                    {comprobanteUpload.isUploading ? 'Subiendo...' : '📷 Subir captura / voucher'}
-                                                </span>
-                                            </label>
                                         </div>
                                     )}
+
+                                    {/* Nota */}
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                                Observaciones
+                                            </Label>
+                                            {requiresNota && <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-rose-100 text-rose-600">Requerido</span>}
+                                        </div>
+                                        <Textarea
+                                            placeholder="Detalles adicionales del pago..."
+                                            value={nota}
+                                            onChange={(e) => setNota(e.target.value)}
+                                            className="h-24 bg-white border-none rounded-2xl resize-none font-medium text-sm p-4 focus:ring-4 focus:ring-emerald-500/10 shadow-sm"
+                                            disabled={saving}
+                                        />
+                                    </div>
+
+                                    {/* Submit Action */}
+                                    <Button
+                                        className="w-full h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm uppercase tracking-wider shadow-xl shadow-emerald-200 transition-all haptic-scale mt-4"
+                                        onClick={handleSubmitPago}
+                                        disabled={saving || !canSubmit() || comprobanteUpload.isUploading}
+                                    >
+                                        {saving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <CheckCircle2 className="mr-2 h-5 w-5" />}
+                                        {saving ? 'PROCESANDO...' : `CONFIRMAR INGRESO DE ${monto ? formatCurrency(parseFloat(monto) || 0) : 'S/0.00'}`}
+                                    </Button>
                                 </div>
-                            )}
-
-                            {/* Nota */}
-                            <div className="space-y-1.5">
-                                <Label className="text-xs font-medium">
-                                    Nota {requiresNota && <span className="text-destructive">* Obligatoria</span>}
-                                    {!requiresNota && <span className="text-gray-400">(opcional)</span>}
-                                </Label>
-                                <Textarea
-                                    placeholder="Ej: Cliente yapeó desde otro número..."
-                                    value={nota}
-                                    onChange={(e) => setNota(e.target.value)}
-                                    className="bg-white min-h-[60px] text-sm"
-                                    disabled={saving}
-                                />
-                            </div>
-
-                            {/* Submit */}
-                            <Button
-                                className="w-full gap-2"
-                                onClick={handleSubmitPago}
-                                disabled={saving || !canSubmit() || comprobanteUpload.isUploading}
-                            >
-                                {saving ? 'Registrando...' : `✅ Registrar Pago${monto ? ` — ${formatCurrency(parseFloat(monto) || 0)}` : ''}`}
-                            </Button>
-                        </div>
-                    )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             )}
 
-            {/* Legacy payment vouchers (backward compat) */}
+            {/* Legacy Vouchers (if any) */}
             {pedido.comprobante_pago_url && Array.isArray(pedido.comprobante_pago_url) && pedido.comprobante_pago_url.length > 0 && (
-                <div className="pt-3 border-t">
-                    <p className="text-xs text-gray-400 mb-2">Comprobantes anteriores (legacy)</p>
-                    {pedido.comprobante_pago_url.map((url: string, index: number) => (
-                        <div key={index} className="p-2 border rounded bg-gray-50 flex items-center gap-2 mb-2">
-                            <ExternalLink className="h-4 w-4 text-green-600" />
-                            <span className="text-xs flex-1">Voucher {index + 1}</span>
-                            <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => window.open(url, '_blank')}>
-                                Ver
-                            </Button>
-                        </div>
-                    ))}
+                <div className="px-8 pb-8 pt-4 border-t border-slate-50 bg-slate-50">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Histórico de Vouchers (Legacy)</p>
+                    <div className="flex flex-wrap gap-2">
+                        {pedido.comprobante_pago_url.map((url: string, index: number) => (
+                            <button
+                                key={index}
+                                onClick={() => window.open(url, '_blank')}
+                                className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-slate-200 hover:border-blue-200 hover:text-blue-600 transition-colors shadow-sm text-xs font-bold text-slate-600"
+                            >
+                                <ExternalLink size={14} /> Voucher {index + 1}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             )}
 
-            {/* Delete Payment Confirmation */}
+            {/* Delete Confirmation Dialog */}
             <Dialog open={confirmDeleteId !== null} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
-                <DialogContent>
+                <DialogContent className="rounded-[2.5rem] border-none shadow-2xl p-10">
                     <DialogHeader>
-                        <DialogTitle>Eliminar Pago</DialogTitle>
+                        <DialogTitle className="text-3xl font-black tracking-tight text-slate-900">Anular Transacción</DialogTitle>
                     </DialogHeader>
-                    <p className="py-4 text-gray-500">¿Estás seguro que deseas eliminar este registro de pago? Esta acción no se puede deshacer.</p>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setConfirmDeleteId(null)} disabled={deletingId !== null}>Cancelar</Button>
-                        <Button variant="destructive" onClick={() => confirmDeleteId && handleDeletePago(confirmDeleteId)} disabled={deletingId !== null}>
-                            {deletingId !== null ? 'Eliminando...' : 'Eliminar'}
+                    <div className="py-6">
+                        <div className="p-6 bg-rose-50 rounded-3xl border border-rose-100">
+                            <p className="text-sm font-medium text-rose-800 leading-relaxed">
+                                ¿Estás seguro que deseas eliminar permanentemente este registro de pago? Los saldos y el estado del pedido se recalcularán automáticamente.
+                            </p>
+                        </div>
+                    </div>
+                    <DialogFooter className="gap-3">
+                        <Button variant="ghost" onClick={() => setConfirmDeleteId(null)} disabled={deletingId !== null} className="h-14 px-8 rounded-2xl font-bold">
+                            CANCELAR
+                        </Button>
+                        <Button 
+                            variant="destructive" 
+                            onClick={() => confirmDeleteId && handleDeletePago(confirmDeleteId)} 
+                            disabled={deletingId !== null}
+                            className="h-14 px-10 rounded-2xl font-black bg-rose-600 hover:bg-rose-700 shadow-xl shadow-rose-200 haptic-scale"
+                        >
+                            {deletingId !== null ? 'ANULANDO...' : 'CONFIRMAR ANULACIÓN'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

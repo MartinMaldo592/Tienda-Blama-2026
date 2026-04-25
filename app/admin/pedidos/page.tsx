@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { createClient } from "@/lib/supabase.client"
 import { useRoleGuard } from "@/lib/use-role-guard"
@@ -16,7 +16,7 @@ import {
 import { 
     RefreshCw, Search, Eye, Filter, Loader2, Calendar, 
     User, UserPlus, ChevronLeft, ChevronRight, 
-    AlertCircle, CheckCircle2 
+    AlertCircle, CheckCircle2, Box, ArrowRight, Download, LayoutDashboard
 } from "lucide-react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { 
@@ -52,7 +52,7 @@ import {
 } from "@/components/ui/dialog"
 import { PedidoRow, ProfileRow } from "@/features/admin/types"
 
-export default function PedidosPage() {
+function PedidosPageContent() {
     const queryClient = useQueryClient()
     const pathname = usePathname()
     const searchParams = useSearchParams()
@@ -79,34 +79,24 @@ export default function PedidosPage() {
     const [isExporting, setIsExporting] = useState(false)
     const [recentOrderIds, setRecentOrderIds] = useState<Set<number>>(new Set())
 
-    // Pagination state
-    const initialPage = Number(searchParams.get("page")) || 1
-    const [currentPage, setCurrentPage] = useState(initialPage)
+    // Pagination state (Derived from URL to guarantee consistency)
+    const currentPage = Number(searchParams.get("page")) || 1
     const itemsPerPage = 10
 
-    // Sync page to URL
-    useEffect(() => {
+    const handlePageChange = (newPage: number) => {
         const params = new URLSearchParams(searchParams.toString())
-        const oldPage = params.get("page")
-        const newPageStr = currentPage > 1 ? currentPage.toString() : null
-        
-        // Only update if it actually changed to prevent loops
-        if (oldPage !== newPageStr && !(oldPage === null && newPageStr === null)) {
-            if (newPageStr) {
-                params.set("page", newPageStr)
-            } else {
-                params.delete("page")
-            }
-            const query = params.toString()
-            const newUrl = query ? `${pathname}?${query}` : pathname
-            router.replace(newUrl, { scroll: false })
+        if (newPage > 1) {
+            params.set("page", newPage.toString())
+        } else {
+            params.delete("page")
         }
-    }, [currentPage, pathname, router, searchParams])
+        const query = params.toString()
+        router.push(query ? `${pathname}?${query}` : pathname, { scroll: false })
+    }
 
     const guard = useRoleGuard({ allowedRoles: ["admin", "worker"] })
     const userRole = String(guard.role || 'worker')
 
-    // Fetch Session User ID once
     useEffect(() => {
         const supabase = createClient()
         supabase.auth.getSession().then(({ data }) => {
@@ -114,40 +104,42 @@ export default function PedidosPage() {
         })
     }, [])
 
-    const isFirstRender = useRef(true)
+    // Track filter changes to reset page ONLY when user changes a filter,
+    // not on component mount/remount (safe with React Strict Mode)
+    const prevFiltersRef = useRef({ searchTerm, statusFilter, dateFilter, filterWorker, customStartDate, customEndDate })
 
-    // Reset pagination when filters change
     useEffect(() => {
-        if (isFirstRender.current) {
-            isFirstRender.current = false
-            return
-        }
-        setCurrentPage(1)
+        const prev = prevFiltersRef.current
+        const changed =
+            prev.searchTerm !== searchTerm ||
+            prev.statusFilter !== statusFilter ||
+            prev.dateFilter !== dateFilter ||
+            prev.filterWorker !== filterWorker ||
+            prev.customStartDate !== customStartDate ||
+            prev.customEndDate !== customEndDate
+
+        prevFiltersRef.current = { searchTerm, statusFilter, dateFilter, filterWorker, customStartDate, customEndDate }
+
+        if (changed) handlePageChange(1)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchTerm, statusFilter, dateFilter, filterWorker, customStartDate, customEndDate])
 
-    // 1. Queries
-    // Realtime Subscription
     useEffect(() => {
         if (!userId) return
 
         const supabase = createClient()
-        
-
         const channel = supabase
             .channel('admin-pedidos-realtime')
             .on(
                 'postgres_changes', 
                 { event: '*', schema: 'public', table: 'pedidos' }, 
                 (payload) => {
-                    // Invalidate both the list and the dashboard stats
                     queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
                     queryClient.invalidateQueries({ queryKey: ["admin-dashboard-stats"] })
                     
                     if (payload.eventType === 'INSERT') {
                         const newId = payload.new.id
                         setRecentOrderIds(prev => new Set(prev).add(newId))
-                        
-                        // Clear highlight after 15 seconds (longer for better visibility)
                         setTimeout(() => {
                             setRecentOrderIds(prev => {
                                 const next = new Set(prev)
@@ -195,34 +187,17 @@ export default function PedidosPage() {
     const getPageNumbers = () => {
         const pages = []
         const maxVisible = 5
-        
         if (totalPages <= maxVisible) {
             for (let i = 1; i <= totalPages; i++) pages.push(i)
         } else {
-            // Always show 1
             pages.push(1)
-            
             let start = Math.max(2, currentPage - 1)
             let end = Math.min(totalPages - 1, currentPage + 1)
-            
-            // Adjust to always show at least a few numbers if possible
-            if (currentPage <= 3) {
-                start = 2
-                end = 4
-            } else if (currentPage >= totalPages - 2) {
-                start = totalPages - 3
-                end = totalPages - 1
-            }
-
+            if (currentPage <= 3) { start = 2; end = 4 }
+            else if (currentPage >= totalPages - 2) { start = totalPages - 3; end = totalPages - 1 }
             if (start > 2) pages.push('...')
-            
-            for (let i = start; i <= end; i++) {
-                pages.push(i)
-            }
-            
+            for (let i = start; i <= end; i++) pages.push(i)
             if (end < totalPages - 1) pages.push('...')
-            
-            // Always show last
             pages.push(totalPages)
         }
         return pages
@@ -232,85 +207,30 @@ export default function PedidosPage() {
     const startIndexDisplay = totalItems === 0 ? 0 : (currentPage === 1 ? 1 : firstPageItems + (currentPage - 2) * itemsPerPage + 1)
     const endIndexDisplay = totalItems === 0 ? 0 : (currentPage === 1 ? firstPageItems : firstPageItems + (currentPage - 1) * itemsPerPage)
 
-    // 2. Mutations
     const assignMutation = useMutation({
         mutationFn: async ({ pedidoId, workerId }: { pedidoId: number, workerId: string }) => {
             const assignValue = workerId === 'unassigned' ? null : workerId
             return assignPedidoToWorker({ pedidoId, workerId: assignValue })
         },
-        onSuccess: () => {
-            // Invalidate to refresh list
-            queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
-        },
-        onError: (error: Error) => {
-            const msg = String(error?.message || '').toLowerCase()
-            if (msg.includes('permission denied') || msg.includes('row level security')) {
-                toast.error('No tienes permisos para realizar esta acción.')
-            } else {
-                toast.error('Error al asignar: ' + error.message)
-            }
-        }
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["adminPedidos"] }),
+        onError: (error: Error) => toast.error('Error al asignar: ' + error.message)
     })
 
     const statusMutation = useMutation({
         mutationFn: async ({ pedidoId, nextStatus, stockDescontado }: { pedidoId: number, nextStatus: string, stockDescontado: boolean }) => {
             return updatePedidoStatusWithStock({ pedidoId, nextStatus, stockDescontado })
         },
-        onMutate: async ({ pedidoId, nextStatus }) => {
-            // Optimistic Update
-            await queryClient.cancelQueries({ queryKey: ["adminPedidos"] })
-            const previousData = queryClient.getQueryData(["adminPedidos"])
-            
-            queryClient.setQueryData(["adminPedidos"], (old: any) => {
-                if (!old) return old
-                return {
-                    ...old,
-                    data: old.data.map((p: any) => p.id === pedidoId ? { ...p, status: nextStatus } : p)
-                }
-            })
-            
-            return { previousData }
-        },
-        onSuccess: () => {
-            toast.success("Estado de pedido actualizado satisfactoriamente")
-        },
-        onError: (error: Error, variables, context) => {
-            if (context?.previousData) {
-                queryClient.setQueryData(["adminPedidos"], context.previousData)
-            }
-            const msg = String(error?.message || '').toLowerCase()
-            if (msg.includes('stock insuficiente')) {
-                toast.error('⚠️ No hay stock suficiente para confirmar este pedido.')
-            } else if (msg.includes('permission denied') || msg.includes('row level security')) {
-                toast.error('No tienes permisos para realizar esta acción.')
-            } else {
-                toast.error('Error al actualizar estado: ' + error.message)
-            }
-        },
-        onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
-        }
+        onSuccess: () => toast.success("Estado de pedido actualizado satisfactoriamente"),
+        onError: (error: Error) => toast.error('Error al actualizar estado: ' + error.message),
+        onSettled: () => queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
     })
 
     const bulkStatusMutation = useMutation({
         mutationFn: async ({ status }: { status: string }) => {
             const supabase = createClient()
-            
-            // 1. Fetch current state of selected orders (specifically stock_descontado)
-            const { data: pedidosToUpdate, error } = await supabase
-                .from('pedidos')
-                .select('id, stock_descontado')
-                .in('id', selectedIds)
-
-            if (error) throw error
-
-            // 2. Process sequentially to handle stock correctly without overwhelming the DB
+            const { data: pedidosToUpdate } = await supabase.from('pedidos').select('id, stock_descontado').in('id', selectedIds)
             for (const p of pedidosToUpdate || []) {
-                await updatePedidoStatusWithStock({
-                    pedidoId: p.id,
-                    nextStatus: status,
-                    stockDescontado: p.stock_descontado || false
-                })
+                await updatePedidoStatusWithStock({ pedidoId: p.id, nextStatus: status, stockDescontado: p.stock_descontado || false })
             }
         },
         onSuccess: () => {
@@ -320,72 +240,47 @@ export default function PedidosPage() {
             setPendingBulkStatus("")
             queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
         },
-        onError: (error: Error) => {
-            toast.error('Error en actualización masiva: ' + error.message)
-            setBulkConfirmOpen(false)
-        }
+        onError: (error: Error) => toast.error('Error en actualización masiva: ' + error.message)
     })
 
     async function handleBulkStatusRequest(status: string) {
         setPendingBulkStatus(status)
         setStockError(null)
         const deducirStatuses = ["Confirmado", "Preparando", "Enviado", "Entregado"]
-        
-        // If we are moving to a status that deducts stock, we check upfront
         if (deducirStatuses.includes(status)) {
             setIsCheckingStock(true)
-            setBulkConfirmOpen(true) // Open dialog showing loading
-            
+            setBulkConfirmOpen(true)
             try {
                 const result = await checkBulkStockSufficient(selectedIds)
                 if (!result.ok) {
-                    setStockError(result.message || 'Stock insuficiente para la operación masiva.')
+                    setStockError(result.message || 'Stock insuficiente.')
                     setStockErrorsList(result.errors || [])
-                    // Don't close modal so it shows the error
                     return
                 }
-                // Stock is OK, dialog remains open to confirm
-            } catch (err: any) {
-                setStockError('Error al verificar stock: ' + err.message)
-                setStockErrorsList([])
-            } finally {
-                setIsCheckingStock(false)
-            }
-        } else {
-            // For other statuses, just open confirm
-            setBulkConfirmOpen(true)
-        }
+            } catch (err: any) { setStockError('Error: ' + err.message) } finally { setIsCheckingStock(false) }
+        } else { setBulkConfirmOpen(true) }
     }
 
     const bulkAssignMutation = useMutation({
         mutationFn: async ({ workerId }: { workerId: string }) => {
             const assignValue = workerId === 'unassigned' ? null : workerId
-            for (const id of selectedIds) {
-                await assignPedidoToWorker({ pedidoId: id, workerId: assignValue })
-            }
+            for (const id of selectedIds) { await assignPedidoToWorker({ pedidoId: id, workerId: assignValue }) }
         },
         onSuccess: () => {
-            toast.success(`${selectedIds.length} pedidos reasignados correctamente.`)
+            toast.success(`${selectedIds.length} pedidos reasignados.`)
             setSelectedIds([])
             queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
         },
-        onError: (error: Error) => {
-            toast.error('Error en asignación masiva: ' + error.message)
-        }
+        onError: (error: Error) => toast.error('Error: ' + error.message)
     })
 
     function handleSelectAll() {
-        if (selectedIds.length === paginatedPedidos.length) {
-            setSelectedIds([])
-        } else {
-            setSelectedIds(paginatedPedidos.map((p: PedidoRow) => p.id))
-        }
+        if (selectedIds.length === paginatedPedidos.length) { setSelectedIds([]) } 
+        else { setSelectedIds(paginatedPedidos.map((p: PedidoRow) => p.id)) }
     }
 
     function toggleSelection(id: number) {
-        setSelectedIds(prev =>
-            prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-        )
+        setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
     }
 
     async function handleExportXlsx(mode: 'page' | 'all') {
@@ -393,130 +288,57 @@ export default function PedidosPage() {
         try {
             const XLSX = await import("xlsx")
             let dataToExport: PedidoRow[] = []
-
-            if (mode === 'page') {
-                dataToExport = paginatedPedidos
-            } else {
-                toast.info("Preparando exportación completa...")
+            if (mode === 'page') { dataToExport = paginatedPedidos } 
+            else {
                 const result = await fetchPedidosForRole({
-                    role: userRole,
-                    currentUserId: userId,
-                    page: 1,
-                    itemsPerPage: totalItems, // Fetch everything
-                    statusFilter,
-                    searchTerm,
-                    dateFilter,
-                    filterWorker,
-                    customStartDate,
-                    customEndDate
+                    role: userRole, currentUserId: userId, page: 1, itemsPerPage: totalItems, 
+                    statusFilter, searchTerm, dateFilter, filterWorker, customStartDate, customEndDate
                 })
                 dataToExport = result.data
             }
-
-            if (dataToExport.length === 0) {
-                toast.error("No hay datos para exportar")
-                return
-            }
-
-            const rows = dataToExport.map((p: PedidoRow) => {
-                const cliente = p.clientes as any
-                return {
-                    "ID": p.id,
-                    "Fecha": new Date(p.created_at).toLocaleDateString(),
-                    "Hora": new Date(p.created_at).toLocaleTimeString('es-PE', { hour12: false }),
-                    "Cliente": p.clientes?.nombre || p.nombre_contacto || '',
-                    "Teléfono": p.clientes?.telefono || p.telefono_contacto || '',
-                    "DNI": p.clientes?.dni || p.dni_contacto || '',
-                    "Dirección": p.clientes?.direccion || p.direccion_calle || '',
-                    "Referencia": cliente?.referencia || p.referencia_direccion || '',
-                    "Departamento": p.departamento || cliente?.departamento || '',
-                    "Provincia": p.provincia || cliente?.provincia || '',
-                    "Distrito": p.distrito || cliente?.distrito || '',
-                    "Total (S/)": p.total,
-                    "Estado Pedido": p.status,
-                    "Estado Pago": p.pago_status,
-                    "Cupón": p.cupon_codigo || '',
-                    "Descuento": p.descuento ?? '',
-                    "Subtotal": p.subtotal ?? '',
-                    "Asignado A": p.asignado_perfil?.nombre || p.asignado_perfil?.email || p.asignado_a || '',
-                }
-            })
-
+            if (dataToExport.length === 0) { toast.error("Sin datos"); return }
+            const rows = dataToExport.map((p: PedidoRow) => ({
+                "ID": p.id,
+                "Fecha": new Date(p.created_at).toLocaleDateString(),
+                "Cliente": p.clientes?.nombre || p.nombre_contacto || '',
+                "Total (S/)": p.total,
+                "Estado": p.status,
+                "Pago": p.pago_status,
+                "Asignado": p.asignado_perfil?.nombre || p.asignado_a || '',
+            }))
             const worksheet = XLSX.utils.json_to_sheet(rows)
             const workbook = XLSX.utils.book_new()
             XLSX.utils.book_append_sheet(workbook, worksheet, "Pedidos")
-
-            const wscols = [
-                { wch: 10 }, // ID
-                { wch: 15 }, // Fecha
-                { wch: 12 }, // Hora
-                { wch: 30 }, // Cliente
-                { wch: 15 }, // Telefono
-                { wch: 12 }, // DNI
-                { wch: 40 }, // Dirección
-                { wch: 20 }, // Ref
-                { wch: 15 }, // Dep.
-                { wch: 15 }, // Prov.
-                { wch: 15 }, // Dist.
-                { wch: 10 }, // Total
-                { wch: 15 }, // Est Pedido
-                { wch: 15 }, // Est Pago
-                { wch: 10 }, // Cupon
-                { wch: 10 }, // Desc
-                { wch: 10 }, // Subtotal
-                { wch: 20 }, // Asignado
-            ]
-            worksheet['!cols'] = wscols
-
-            const today = new Date().toISOString().slice(0, 10)
-            const suffix = mode === 'all' ? '_Completo' : '_Pagina'
-            XLSX.writeFile(workbook, `Pedidos_Blama_${today}${suffix}.xlsx`)
+            XLSX.writeFile(workbook, `Pedidos_Blama_${new Date().toISOString().slice(0, 10)}.xlsx`)
             setExportDialogOpen(false)
-            toast.success("Exportación completada")
-        } catch (error) {
-            console.error("Error exporting excel:", error)
-            toast.error("Error al exportar a Excel")
-        } finally {
-            setIsExporting(false)
-        }
+            toast.success("Exportado correctamente")
+        } catch (error) { toast.error("Error al exportar") } finally { setIsExporting(false) }
     }
 
     if (guard.loading) {
         return (
-            <div className="space-y-8 animate-in fade-in duration-500">
-                <div className="flex justify-between items-center">
-                    <div className="space-y-2">
-                        <div className="h-9 w-64 bg-gray-200 animate-pulse rounded-lg" />
-                        <div className="h-4 w-80 bg-gray-100 animate-pulse rounded-lg" />
+            <div className="space-y-10 animate-in fade-in duration-500 max-w-[1600px] mx-auto pt-4">
+                <div className="flex justify-between items-end gap-6">
+                    <div className="space-y-3">
+                        <Skeleton className="h-14 w-64 rounded-2xl" />
+                        <Skeleton className="h-4 w-80 rounded-lg" />
                     </div>
-                    <div className="flex gap-2">
-                        <div className="h-10 w-32 bg-gray-100 animate-pulse rounded-lg" />
-                        <div className="h-10 w-24 bg-gray-100 animate-pulse rounded-lg" />
+                    <div className="flex gap-3">
+                        <Skeleton className="h-14 w-40 rounded-2xl" />
+                        <Skeleton className="h-14 w-40 rounded-2xl" />
                     </div>
                 </div>
-
-                <div className="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-xl shadow-sm border">
-                    <div className="h-10 flex-1 bg-gray-50 animate-pulse rounded-lg" />
-                    <div className="h-10 w-full md:w-[180px] bg-gray-50 animate-pulse rounded-lg" />
-                    <div className="h-10 w-full md:w-[200px] bg-gray-50 animate-pulse rounded-lg" />
-                    <div className="h-10 w-full md:w-[150px] bg-gray-50 animate-pulse rounded-lg" />
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                <div className="h-16 bg-slate-50 rounded-[2rem] border border-slate-100 animate-pulse" />
+                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
                     <Table>
-                        <TableHeader className="bg-gray-50">
-                            <TableRow>
-                                <TableHead className="w-[40px] pl-4">
-                                    <div className="h-4 w-4 bg-gray-200 rounded" />
-                                </TableHead>
-                                <TableHead className="w-[100px]">ID</TableHead>
-                                <TableHead>Cliente</TableHead>
-                                <TableHead>Fecha</TableHead>
-                                <TableHead>Total</TableHead>
-                                <TableHead>Estado del Pago</TableHead>
-                                <TableHead>Estado de Pedido</TableHead>
-                                {userRole === 'admin' && <TableHead>Asignado a</TableHead>}
-                                <TableHead className="text-right">Acciones</TableHead>
+                        <TableHeader className="bg-slate-50/50">
+                            <TableRow className="h-16">
+                                <TableHead className="w-[60px] pl-8"></TableHead>
+                                <TableHead></TableHead>
+                                <TableHead></TableHead>
+                                <TableHead></TableHead>
+                                <TableHead></TableHead>
+                                <TableHead className="pr-8"></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -528,104 +350,136 @@ export default function PedidosPage() {
         )
     }
 
-    if (guard.accessDenied) {
-        return <AccessDenied />
-    }
+    if (guard.accessDenied) return <AccessDenied />
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">
-                        {userRole === 'admin' ? 'Gestión de Pedidos' : 'Mis Pedidos Asignados'}
-                    </h1>
-                    <p className="text-gray-500">
-                        {userRole === 'admin'
-                            ? 'Administra y delega órdenes a tu equipo.'
-                            : 'Pedidos que te han sido delegados.'}
-                    </p>
-                </div>
-                <div className="flex gap-2">
+        <div className="space-y-10 pb-20 max-w-[1600px] mx-auto animate-in fade-in duration-700">
+            {/* --- HEADER --- */}
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 pt-4">
+                <motion.div 
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="space-y-4"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="h-14 w-14 bg-slate-900 rounded-[1.25rem] flex items-center justify-center text-white shadow-2xl shadow-slate-200">
+                            <Box size={28} strokeWidth={1.5} />
+                        </div>
+                        <div>
+                            <h1 className="text-5xl font-black text-slate-900 tracking-tight">
+                                {userRole === 'admin' ? 'Pedidos' : 'Mis Entregas'}
+                            </h1>
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">
+                                    {totalItems} Órdenes registradas
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+
+                <motion.div 
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex flex-wrap gap-3 w-full lg:w-auto"
+                >
                     {userRole === 'admin' && (
-                        <Button variant="outline" className="gap-2 haptic-scale shadow-sm" onClick={() => setExportDialogOpen(true)} disabled={totalItems === 0}>
-                            <RefreshCw className={`h-4 w-4 ${isExporting ? 'animate-spin' : ''}`} />
-                            Exportar Excel
+                        <Button 
+                            variant="outline" 
+                            className="flex-1 md:flex-none gap-2 h-14 px-8 rounded-2xl border-slate-200 hover:bg-slate-50 text-slate-900 font-black tracking-tight shadow-sm transition-all haptic-scale" 
+                            onClick={() => setExportDialogOpen(true)} 
+                            disabled={totalItems === 0}
+                        >
+                            <Download className={`h-4 w-4 ${isExporting ? 'animate-spin' : ''}`} />
+                            EXPORTAR DATA
                         </Button>
                     )}
                     <Button
-                        variant="outline"
-                        className="gap-2 haptic-scale shadow-sm"
+                        className="flex-1 md:flex-none gap-2 h-14 px-8 rounded-2xl bg-slate-900 text-white hover:bg-blue-600 font-black tracking-tight shadow-xl shadow-slate-200 hover:shadow-blue-200 transition-all haptic-scale"
                         onClick={() => queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })}
                         disabled={isFetching}
                     >
-                        {isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                        Actualizar
+                        {isFetching ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />}
+                        SINCRONIZAR
                     </Button>
-                </div>
+                </motion.div>
             </div>
 
-            {/* Bulk Actions Floating Bar */}
-            {selectedIds.length > 0 && (
-                <div className="bg-blue-50 border border-blue-200 p-3 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2">
-                    <div className="flex items-center gap-2">
-                        <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">
-                            {selectedIds.length}
-                        </span>
-                        <span className="text-blue-900 font-medium text-sm">
-                            pedidos seleccionados
-                        </span>
-                    </div>
-                    <div className="flex gap-2">
-                        <Select value={pendingBulkStatus || undefined} onValueChange={handleBulkStatusRequest}>
-                            <SelectTrigger className="w-[180px] h-9 bg-white cursor-pointer">
-                                <SelectValue placeholder="Cambiar estado..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Confirmado">Marcar como Confirmado</SelectItem>
-                                <SelectItem value="Preparando">Marcar como Preparando</SelectItem>
-                                <SelectItem value="Enviado">Marcar como Enviado</SelectItem>
-                                <SelectItem value="Entregado">Marcar como Entregado</SelectItem>
-                            </SelectContent>
-                        </Select>
-
-                        {userRole === 'admin' && (
-                            <Select onValueChange={(val) => bulkAssignMutation.mutate({ workerId: val })}>
-                                <SelectTrigger className="w-[180px] h-9 bg-white cursor-pointer">
-                                    <SelectValue placeholder="Asignar masivamente..." />
+            {/* --- BULK ACTIONS --- */}
+            <AnimatePresence>
+                {selectedIds.length > 0 && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                        className="bg-slate-900 text-white p-4 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl shadow-slate-300 ring-4 ring-white"
+                    >
+                        <div className="flex items-center gap-4 pl-4">
+                            <div className="h-10 w-10 bg-blue-500 rounded-xl flex items-center justify-center font-black">
+                                {selectedIds.length}
+                            </div>
+                            <div>
+                                <p className="font-black text-sm uppercase tracking-widest">Acciones Masivas</p>
+                                <p className="text-xs text-slate-400">Editando {selectedIds.length} pedidos simultáneamente</p>
+                            </div>
+                        </div>
+                        <div className="flex flex-wrap justify-center gap-3 pr-2">
+                            <Select value={pendingBulkStatus || undefined} onValueChange={handleBulkStatusRequest}>
+                                <SelectTrigger className="w-[200px] h-12 bg-white/10 border-white/10 text-white rounded-xl font-bold cursor-pointer hover:bg-white/20 transition-all">
+                                    <SelectValue placeholder="Cambiar estado..." />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="unassigned">Quitar asignación</SelectItem>
-                                    {workers.map((w: ProfileRow) => (
-                                        <SelectItem key={w.id} value={w.id}>
-                                            Asignar a {w.nombre?.split(' ')[0] || (w.email ? w.email.split('@')[0] : 'Usuario')}
-                                        </SelectItem>
-                                    ))}
+                                    <SelectItem value="Confirmado">Marcar como Confirmado</SelectItem>
+                                    <SelectItem value="Preparando">Marcar como Preparando</SelectItem>
+                                    <SelectItem value="Enviado">Marcar como Enviado</SelectItem>
+                                    <SelectItem value="Entregado">Marcar como Entregado</SelectItem>
                                 </SelectContent>
                             </Select>
-                        )}
 
-                        <Button variant="outline" size="sm" onClick={() => setSelectedIds([])} className="h-9">
-                            Cancelar
-                        </Button>
-                    </div>
-                </div>
-            )}
+                            {userRole === 'admin' && (
+                                <Select onValueChange={(val) => bulkAssignMutation.mutate({ workerId: val })}>
+                                    <SelectTrigger className="w-[200px] h-12 bg-white/10 border-white/10 text-white rounded-xl font-bold cursor-pointer hover:bg-white/20 transition-all">
+                                        <SelectValue placeholder="Reasignar..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="unassigned">Quitar asignación</SelectItem>
+                                        {workers.map((w: ProfileRow) => (
+                                            <SelectItem key={w.id} value={w.id}>
+                                                {w.nombre?.split(' ')[0] || 'Trabajador'}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
 
-            {/* Admin Filters Bar */}
-            <div className="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-xl shadow-sm border">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                            <Button variant="ghost" onClick={() => setSelectedIds([])} className="h-12 px-6 text-white hover:bg-white/10 rounded-xl font-bold">
+                                CANCELAR
+                            </Button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* --- FILTERS BAR --- */}
+            <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100"
+            >
+                <div className="relative group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 group-focus-within:text-slate-900 transition-colors" />
                     <Input
-                        placeholder="Buscar por cliente, ID, DNI o teléfono..."
-                        className="pl-9 border-gray-200 focus-ring-premium"
+                        placeholder="Buscar cliente, DNI..."
+                        className="h-14 pl-12 bg-slate-50 border-none rounded-2xl font-medium focus:ring-4 focus:ring-slate-900/5 transition-all"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
 
-                {/* Status Filter */}
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-full md:w-[180px]">
+                    <SelectTrigger className="h-14 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 px-6">
                         <SelectValue placeholder="Estado" />
                     </SelectTrigger>
                     <SelectContent>
@@ -638,170 +492,143 @@ export default function PedidosPage() {
                     </SelectContent>
                 </Select>
 
-                {/* Worker Filter (Admin Only) */}
                 {userRole === 'admin' && (
                     <Select value={filterWorker} onValueChange={setFilterWorker}>
-                        <SelectTrigger className="w-full md:w-[200px]">
-                            <SelectValue placeholder="Filtrar por trabajador" />
+                        <SelectTrigger className="h-14 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 px-6">
+                            <SelectValue placeholder="Trabajador" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">Todos los trabajadores</SelectItem>
+                            <SelectItem value="all">Todo el equipo</SelectItem>
                             <SelectItem value="unassigned">Sin asignar</SelectItem>
                             {workers.map((w: ProfileRow) => (
                                 <SelectItem key={w.id} value={w.id}>
-                                    {w.nombre || (w.email ? w.email.split('@')[0] : 'Usuario')}
+                                    {w.nombre || 'Trabajador'}
                                 </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
                 )}
 
-                {/* Date Filter */}
-                <div className="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto min-w-0">
+                <div className="flex gap-2">
                     <Select value={dateFilter} onValueChange={setDateFilter}>
-                        <SelectTrigger className="w-full md:w-[150px]">
-                            <div className="flex items-center">
-                                <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                        <SelectTrigger className="h-14 flex-1 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 px-6">
+                            <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4 text-slate-400" />
                                 <SelectValue placeholder="Fecha" />
                             </div>
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">Todas las fechas</SelectItem>
+                            <SelectItem value="all">Cualquier fecha</SelectItem>
                             <SelectItem value="today">Hoy</SelectItem>
                             <SelectItem value="7days">Últimos 7 días</SelectItem>
                             <SelectItem value="thisMonth">Este mes</SelectItem>
-                            <SelectItem value="custom">Rango...</SelectItem>
+                            <SelectItem value="custom">Personalizado...</SelectItem>
                         </SelectContent>
                     </Select>
 
                     {dateFilter === 'custom' && (
-                        <div className="flex items-center gap-1 w-full md:w-auto animate-in fade-in zoom-in-95">
-                            <Input
-                                type="date"
-                                className="w-full md:w-[125px] h-9 text-xs px-2"
-                                value={customStartDate}
-                                onChange={(e) => setCustomStartDate(e.target.value)}
-                            />
-                            <span className="text-gray-400 text-xs">-</span>
-                            <Input
-                                type="date"
-                                className="w-full md:w-[125px] h-9 text-xs px-2"
-                                value={customEndDate}
-                                onChange={(e) => setCustomEndDate(e.target.value)}
-                            />
+                        <div className="flex gap-2 animate-in slide-in-from-right-4 duration-500">
+                            <Input type="date" className="h-14 w-36 rounded-2xl bg-slate-50 border-none text-xs" value={customStartDate} onChange={(e) => setCustomStartDate(e.target.value)} />
+                            <Input type="date" className="h-14 w-36 rounded-2xl bg-slate-50 border-none text-xs" value={customEndDate} onChange={(e) => setCustomEndDate(e.target.value)} />
                         </div>
                     )}
                 </div>
-            </div>
+            </motion.div>
 
-            {/* Empty State for Workers */}
-            {userRole === 'worker' && totalItems === 0 && !loadingPedidos && (
-                <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
-                    <div className="h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <User className="h-8 w-8 text-gray-400" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Sin pedidos asignados</h3>
-                    <p className="text-gray-500 max-w-md mx-auto">
-                        Aún no tienes pedidos delegados. El administrador te asignará pedidos cuando sea necesario.
-                    </p>
-                </div>
-            )}
-
-            {/* Table */}
+            {/* --- TABLE --- */}
             {(userRole === 'admin' || totalItems > 0) && (
-                <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden"
+                >
                     <Table>
-                        <TableHeader className="bg-gray-50">
-                            <TableRow>
-                                <TableHead className="w-[40px] pl-4">
+                        <TableHeader className="bg-slate-50/50">
+                            <TableRow className="hover:bg-transparent border-slate-100">
+                                <TableHead className="w-[60px] pl-8 h-16">
                                     <input
                                         type="checkbox"
-                                        className="h-4 w-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+                                        className="h-5 w-5 rounded-lg border-slate-300 text-slate-900 cursor-pointer transition-all focus:ring-offset-0 focus:ring-0"
                                         checked={paginatedPedidos.length > 0 && selectedIds.length === paginatedPedidos.length}
                                         onChange={handleSelectAll}
-                                        title="Seleccionar todos"
                                     />
                                 </TableHead>
-                                <TableHead className="w-[100px]">ID</TableHead>
-                                <TableHead>Cliente</TableHead>
-                                <TableHead>Fecha</TableHead>
-                                <TableHead>Total</TableHead>
-                                <TableHead>Estado del Pago</TableHead>
-                                <TableHead>Estado de Pedido</TableHead>
-                                {userRole === 'admin' && <TableHead>Asignado a</TableHead>}
-                                <TableHead className="text-right">Acciones</TableHead>
+                                <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">ID Orden</TableHead>
+                                <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Cliente & Contacto</TableHead>
+                                <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Fecha</TableHead>
+                                <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Inversión Total</TableHead>
+                                <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Estado Pago</TableHead>
+                                <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Estado Pedido</TableHead>
+                                {userRole === 'admin' && <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Asignación</TableHead>}
+                                <TableHead className="text-right h-16 pr-8 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Detalle</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {loadingPedidos ? (
-                                <OrderRowSkeleton />
+                                <OrderRowSkeleton count={10} />
                             ) : totalItems === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={userRole === 'admin' ? 9 : 8} className="text-center py-10">
-                                        No hay pedidos {filterWorker !== 'all' ? 'con este filtro' : ''}.
+                                    <TableCell colSpan={userRole === 'admin' ? 9 : 8} className="text-center py-20">
+                                        <div className="flex flex-col items-center gap-4 text-slate-300">
+                                            <Search size={48} strokeWidth={1} />
+                                            <p className="text-lg font-medium">No se encontraron pedidos con los filtros actuales.</p>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ) : (
                                 <AnimatePresence mode="popLayout" initial={false}>
-                                    {paginatedPedidos.map((pedido: PedidoRow) => {
+                                    {paginatedPedidos.map((pedido: PedidoRow, index: number) => {
                                         const isNew = recentOrderIds.has(pedido.id)
                                         return (
                                             <motion.tr
                                                 key={pedido.id}
                                                 layout
-                                                initial={isNew ? { opacity: 0, x: -20, backgroundColor: "rgba(34, 197, 94, 0.1)" } : false}
+                                                initial={{ opacity: 0, y: 10 }}
                                                 animate={{ 
                                                     opacity: 1, 
-                                                    x: 0, 
-                                                    backgroundColor: isNew ? "rgba(34, 197, 94, 0.05)" : (selectedIds.includes(pedido.id) ? "rgba(59, 130, 246, 0.05)" : "rgba(255, 255, 255, 0)") 
+                                                    y: 0, 
+                                                    backgroundColor: isNew ? "rgba(34, 197, 94, 0.05)" : (selectedIds.includes(pedido.id) ? "rgba(15, 23, 42, 0.02)" : "transparent") 
                                                 }}
                                                 exit={{ opacity: 0, scale: 0.95 }}
-                                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                                className={`border-b transition-colors ${
-                                                    selectedIds.includes(pedido.id) 
-                                                        ? "bg-blue-50/50" 
-                                                        : "group hover:bg-muted/30"
-                                                } ${isNew ? 'ring-2 ring-green-500/20 ring-inset' : ''}`}
+                                                transition={{ delay: index * 0.03 }}
+                                                className={`group border-slate-50 transition-colors ${selectedIds.includes(pedido.id) ? "bg-slate-50" : "hover:bg-slate-50/50"}`}
                                             >
-                                                <TableCell className="pl-4">
+                                                <TableCell className="pl-8 py-4">
                                                     <input
                                                         type="checkbox"
-                                                        className="h-4 w-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+                                                        className="h-5 w-5 rounded-lg border-slate-300 text-slate-900 cursor-pointer transition-all"
                                                         checked={selectedIds.includes(pedido.id)}
                                                         onChange={() => toggleSelection(pedido.id)}
                                                     />
                                                 </TableCell>
-                                                <TableCell className="font-mono font-medium relative">
+                                                <TableCell className="font-mono font-bold text-slate-900 relative">
                                                     #{pedido.id.toString().padStart(6, '0')}
                                                     {isNew && (
-                                                        <motion.span 
-                                                            initial={{ scale: 0.5, opacity: 0 }}
-                                                            animate={{ scale: 1, opacity: 1 }}
-                                                            className="absolute -top-1 -left-1 flex h-4 w-4"
-                                                        >
-                                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                                            <span className="relative inline-flex rounded-full h-4 w-4 bg-green-500 text-[8px] items-center justify-center text-white font-bold">N</span>
-                                                        </motion.span>
+                                                        <span className="absolute -top-1 -left-1 flex h-3 w-3">
+                                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                                                        </span>
                                                     )}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <div className="font-medium flex items-center gap-2">
-                                                        {pedido.nombre_contacto || pedido.clientes?.nombre || 'Anónimo'}
-                                                        {isNew && (
-                                                            <motion.span 
-                                                                animate={{ opacity: [0.4, 1, 0.4] }}
-                                                                transition={{ duration: 2, repeat: Infinity }}
-                                                                className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider"
-                                                            >
-                                                                Nuevo
-                                                            </motion.span>
-                                                        )}
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                                                            {pedido.nombre_contacto || pedido.clientes?.nombre || 'Anónimo'}
+                                                        </span>
+                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                                            {pedido.telefono_contacto || pedido.clientes?.telefono || 'Sin teléfono'}
+                                                        </span>
                                                     </div>
-                                                    <div className="text-xs text-gray-500">{pedido.telefono_contacto || pedido.clientes?.telefono}</div>
-                                                    <div className="text-xs text-gray-500">DNI: {pedido.dni_contacto || pedido.clientes?.dni || '—'}</div>
                                                 </TableCell>
-                                                <TableCell>{new Date(pedido.created_at).toLocaleDateString()}</TableCell>
-                                                <TableCell className="font-bold">{formatCurrency(pedido.total)}</TableCell>
+                                                <TableCell className="text-slate-500 text-xs font-medium">
+                                                    {new Date(pedido.created_at).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <span className="text-base font-black text-slate-900 tracking-tight">
+                                                        {formatCurrency(pedido.total)}
+                                                    </span>
+                                                </TableCell>
                                                 <TableCell>
                                                     <PaymentStatusBadge status={pedido.pago_status} />
                                                 </TableCell>
@@ -816,25 +643,21 @@ export default function PedidosPage() {
                                                         disabled={statusMutation.isPending}
                                                     >
                                                         <SelectTrigger
-                                                            className={`w-[135px] h-7 px-3 py-1 text-xs font-medium border shadow-none focus:ring-0 focus:ring-offset-0 transition-colors rounded-full ${pedido.status === 'Pendiente' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
-                                                                pedido.status === 'Confirmado' ? 'bg-blue-100 text-blue-800 border-blue-200' :
-                                                                    pedido.status === 'Preparando' ? 'bg-orange-100 text-orange-800 border-orange-200' :
-                                                                        pedido.status === 'Enviado' ? 'bg-indigo-100 text-indigo-800 border-indigo-200' :
-                                                                            pedido.status === 'Entregado' ? 'bg-green-100 text-green-800 border-green-200' :
-                                                                                pedido.status === 'Fallido' || pedido.status === 'Devuelto' ? 'bg-red-100 text-red-800 border-red-200' :
-                                                                                    'bg-gray-100 text-gray-800 border-gray-200'
-                                                                }`}
+                                                            className={`h-9 px-4 text-[10px] font-black uppercase tracking-widest border-none shadow-none focus:ring-0 rounded-full transition-all ${
+                                                                pedido.status === 'Pendiente' ? 'bg-amber-100 text-amber-700' :
+                                                                pedido.status === 'Confirmado' ? 'bg-sky-100 text-sky-700' :
+                                                                pedido.status === 'Preparando' ? 'bg-orange-100 text-orange-700' :
+                                                                pedido.status === 'Enviado' ? 'bg-indigo-100 text-indigo-700' :
+                                                                pedido.status === 'Entregado' ? 'bg-emerald-100 text-emerald-700' :
+                                                                'bg-rose-100 text-rose-700'
+                                                            }`}
                                                         >
                                                             <SelectValue />
                                                         </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="Pendiente">Pendiente</SelectItem>
-                                                            <SelectItem value="Confirmado">Confirmado</SelectItem>
-                                                            <SelectItem value="Preparando">Preparando</SelectItem>
-                                                            <SelectItem value="Enviado">Enviado</SelectItem>
-                                                            <SelectItem value="Entregado">Entregado</SelectItem>
-                                                            <SelectItem value="Devuelto">Devuelto</SelectItem>
-                                                            <SelectItem value="Fallido">Fallido / Cancelado</SelectItem>
+                                                        <SelectContent className="rounded-2xl border-slate-100 shadow-2xl">
+                                                            {['Pendiente', 'Confirmado', 'Preparando', 'Enviado', 'Entregado', 'Devuelto', 'Fallido'].map(s => (
+                                                                <SelectItem key={s} value={s} className="text-xs font-bold py-3 rounded-xl">{s}</SelectItem>
+                                                            ))}
                                                         </SelectContent>
                                                     </Select>
                                                 </TableCell>
@@ -845,32 +668,31 @@ export default function PedidosPage() {
                                                             onValueChange={(val) => assignMutation.mutate({ pedidoId: pedido.id, workerId: val })}
                                                             disabled={assignMutation.isPending}
                                                         >
-                                                            <SelectTrigger className="w-[160px] h-8 text-xs">
+                                                            <SelectTrigger className="h-9 bg-slate-50 border-none rounded-xl text-[10px] font-bold text-slate-600 hover:bg-slate-100 transition-all">
                                                                 <SelectValue>
-                                                                    {pedido.asignado_perfil?.nombre || pedido.asignado_perfil?.email || (
-                                                                        <span className="text-orange-600 flex items-center gap-1">
-                                                                            <UserPlus className="h-3 w-3" /> Sin asignar
+                                                                    {pedido.asignado_perfil?.nombre?.split(' ')[0] || (
+                                                                        <span className="flex items-center gap-1.5 opacity-60 italic">
+                                                                            <UserPlus size={12} /> Libre
                                                                         </span>
                                                                     )}
                                                                 </SelectValue>
                                                             </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="unassigned">
-                                                                    <span className="text-gray-500">Sin asignar</span>
-                                                                </SelectItem>
+                                                            <SelectContent className="rounded-2xl border-slate-100 shadow-2xl">
+                                                                <SelectItem value="unassigned" className="text-xs font-bold py-3">Libre / Sin asignar</SelectItem>
                                                                 {workers.map((w: ProfileRow) => (
-                                                                    <SelectItem key={w.id} value={w.id}>
-                                                                        {w.nombre || (w.email ? w.email.split('@')[0] : 'Usuario')}
+                                                                    <SelectItem key={w.id} value={w.id} className="text-xs font-bold py-3">
+                                                                        {w.nombre || 'Trabajador'}
                                                                     </SelectItem>
                                                                 ))}
                                                             </SelectContent>
                                                         </Select>
                                                     </TableCell>
                                                 )}
-                                                <TableCell className="text-right">
+                                                <TableCell className="text-right pr-8">
                                                     <Link href={`/admin/pedidos/${pedido.id}`}>
-                                                        <Button variant="ghost" size="icon">
-                                                            <Eye className="h-4 w-4 text-gray-500" />
+                                                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-all group/btn">
+                                                            <Eye className="h-5 w-5" />
+                                                            <ArrowRight className="absolute h-4 w-4 opacity-0 group-hover/btn:opacity-100 translate-x-[-10px] group-hover/btn:translate-x-[15px] transition-all" />
                                                         </Button>
                                                     </Link>
                                                 </TableCell>
@@ -881,233 +703,165 @@ export default function PedidosPage() {
                             )}
                         </TableBody>
                     </Table>
-                    {/* Pagination Controls */}
+
+                    {/* --- PAGINATION --- */}
                     {totalPages > 1 && (
-                        <div className="flex items-center justify-between px-6 py-4 border-t bg-gray-50/50">
-                            <div className="flex flex-1 justify-between sm:hidden">
+                        <div className="flex items-center justify-between px-8 py-6 border-t border-slate-50 bg-slate-50/30">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                Mostrando <span className="text-slate-900">{startIndexDisplay}-{endIndexDisplay}</span> de <span className="text-slate-900">{totalItems}</span> órdenes
+                            </p>
+                            <div className="flex items-center gap-2">
                                 <Button
                                     variant="outline"
-                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    className="h-10 w-10 p-0 rounded-xl border-slate-200"
+                                    onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
                                     disabled={currentPage === 1}
                                 >
-                                    Anterior
+                                    <ChevronLeft size={16} />
                                 </Button>
+
+                                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+                                    {getPageNumbers().map((page, idx) => (
+                                        typeof page === 'number' ? (
+                                            <Button
+                                                key={idx}
+                                                variant={currentPage === page ? "default" : "ghost"}
+                                                className={`h-8 min-w-[32px] px-2 rounded-lg text-xs font-black ${currentPage === page ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500'}`}
+                                                onClick={() => handlePageChange(page)}
+                                            >
+                                                {page}
+                                            </Button>
+                                        ) : (
+                                            <span key={idx} className="px-1 text-slate-300 text-[10px]">•••</span>
+                                        )
+                                    ))}
+                                </div>
+
                                 <Button
                                     variant="outline"
-                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                    className="h-10 w-10 p-0 rounded-xl border-slate-200"
+                                    onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
                                     disabled={currentPage === totalPages}
                                 >
-                                    Siguiente
+                                    <ChevronRight size={16} />
                                 </Button>
-                            </div>
-                            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-700">
-                                        Mostrando <span className="font-medium">{startIndexDisplay}</span> a <span className="font-medium">{endIndexDisplay}</span> de <span className="font-medium">{totalItems}</span> pedidos
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <div className="flex items-center gap-1">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="w-9 h-9 p-0"
-                                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                            disabled={currentPage === 1}
-                                        >
-                                            <ChevronLeft className="h-4 w-4" />
-                                        </Button>
-
-                                        {getPageNumbers().map((page, idx) => (
-                                            typeof page === 'number' ? (
-                                                <Button
-                                                    key={idx}
-                                                    variant={currentPage === page ? "default" : "outline"}
-                                                    size="sm"
-                                                    className="w-9 h-9 p-0 text-xs font-semibold"
-                                                    onClick={() => setCurrentPage(page)}
-                                                >
-                                                    {page}
-                                                </Button>
-                                            ) : (
-                                                <div key={idx} className="flex items-center justify-center w-8 h-8 text-gray-400">
-                                                    <span className="text-[10px] tracking-tighter">•••</span>
-                                                </div>
-                                            )
-                                        ))}
-
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="w-9 h-9 p-0"
-                                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                            disabled={currentPage === totalPages}
-                                        >
-                                            <ChevronRight className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-
-                                    {totalPages > 5 && (
-                                        <div className="hidden lg:flex items-center gap-2 border-l pl-4 border-gray-200">
-                                            <span className="text-xs text-gray-500 whitespace-nowrap">Ir a:</span>
-                                            <div className="relative">
-                                                <Input
-                                                    type="number"
-                                                    min={1}
-                                                    max={totalPages}
-                                                    className="w-14 h-8 px-2 text-xs focus-visible:ring-1"
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === 'Enter') {
-                                                            const val = parseInt((e.target as HTMLInputElement).value)
-                                                            if (val >= 1 && val <= totalPages) setCurrentPage(val)
-                                                        }
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
                             </div>
                         </div>
                     )}
-                </div>
+                </motion.div>
             )}
 
-            <Dialog open={bulkConfirmOpen} onOpenChange={(open) => {
-                if (!isCheckingStock && !bulkStatusMutation.isPending) {
-                    setBulkConfirmOpen(open)
-                    if (!open) {
-                        setPendingBulkStatus("")
-                        setStockError(null)
-                        setStockErrorsList([])
-                    }
-                }
-            }}>
-                <DialogContent>
+            {/* --- DIALOGS --- */}
+            <Dialog open={bulkConfirmOpen} onOpenChange={setBulkConfirmOpen}>
+                <DialogContent className="rounded-[2.5rem] p-8 border-none shadow-2xl">
                     <DialogHeader>
-                        <DialogTitle>Confirmación de Cambio Masivo</DialogTitle>
-                        <DialogDescription>
-                            Estás a punto de cambiar el estado de <strong>{selectedIds.length}</strong> pedidos a <strong>{pendingBulkStatus}</strong>.
+                        <DialogTitle className="text-3xl font-black tracking-tight">Confirmar Acción Masiva</DialogTitle>
+                        <DialogDescription className="text-slate-500 font-medium">
+                            Vas a actualizar {selectedIds.length} pedidos al estado <span className="font-bold text-slate-900">{pendingBulkStatus}</span>.
                         </DialogDescription>
                     </DialogHeader>
                     
-                    <div className="py-4">
+                    <div className="py-6">
                         {isCheckingStock ? (
-                            <div className="flex flex-col items-center justify-center gap-3 text-sm text-gray-500 py-4">
-                                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                                <span>Verificando disponibilidad de stock para {selectedIds.length} pedidos...</span>
+                            <div className="flex flex-col items-center gap-4 py-8">
+                                <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
+                                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Verificando Inventario...</p>
                             </div>
                         ) : stockError ? (
-                            <div className="flex flex-col gap-3 text-sm text-red-600 bg-red-50 p-4 rounded-lg border border-red-100">
-                                <div className="flex items-center gap-2 font-semibold text-base text-red-700">
-                                    <AlertCircle className="h-6 w-6" />
-                                    <span>Stock Insuficiente</span>
+                            <div className="space-y-4 bg-rose-50 p-6 rounded-3xl border border-rose-100">
+                                <div className="flex items-center gap-3 text-rose-600">
+                                    <AlertCircle size={24} />
+                                    <h4 className="font-black uppercase tracking-tight">Conflicto de Inventario</h4>
                                 </div>
-                                <p className="text-red-600">
-                                    No tienes stock suficiente para procesar todos los pedidos seleccionados. Por favor, revisa el detalle:
-                                </p>
+                                <p className="text-sm text-rose-700 font-medium leading-relaxed">{stockError}</p>
                                 {stockErrorsList.length > 0 && (
-                                    <ul className="mt-1 space-y-2 bg-white rounded p-3 border border-red-200">
-                                        {stockErrorsList.map((err, idx) => (
-                                            <li key={idx} className="flex justify-between items-center text-sm border-b border-gray-100 pb-2 last:border-0 last:pb-0">
-                                                <span className="font-medium text-gray-800">
-                                                    {err.productName} {err.sku ? <span className="text-xs text-gray-500 font-normal ml-1">(SKU: {err.sku})</span> : ''}
-                                                </span>
-                                                <div className="flex flex-col items-end leading-tight">
-                                                    <span className="text-red-600 font-semibold text-xs mb-0.5">Faltan {err.required - err.available}</span>
-                                                    <span className="text-xs text-gray-500">Stock: {err.available} / Pedidos: {err.required}</span>
-                                                </div>
-                                            </li>
+                                    <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2">
+                                        {stockErrorsList.map((err, i) => (
+                                            <div key={i} className="flex justify-between p-3 bg-white/50 rounded-xl border border-rose-100 text-xs">
+                                                <span className="font-bold text-slate-900">{err.productName}</span>
+                                                <span className="text-rose-600 font-black">Faltan {err.required - err.available}</span>
+                                            </div>
                                         ))}
-                                    </ul>
+                                    </div>
                                 )}
-                                <p className="mt-1 text-xs text-red-500">Reduce la cantidad de pedidos seleccionados o actualiza tu inventario en la sección de Productos.</p>
                             </div>
                         ) : (
-                            <div className="flex gap-3 text-sm text-gray-700 bg-blue-50 p-4 rounded-lg border border-blue-100">
-                                <CheckCircle2 className="h-6 w-6 text-blue-500 shrink-0" />
+                            <div className="flex gap-4 p-6 bg-emerald-50 rounded-3xl border border-emerald-100">
+                                <CheckCircle2 className="h-8 w-8 text-emerald-500 shrink-0" />
                                 <div>
-                                    <p className="font-semibold text-blue-900 mb-1">¡Stock Verificado!</p>
-                                    <p>Hay stock suficiente para procesar los <strong>{selectedIds.length}</strong> pedidos. ¿Estás seguro de que deseas aplicar el estado <strong>{pendingBulkStatus}</strong> a todos los pedidos seleccionados? Esta acción descontará el inventario.</p>
+                                    <h4 className="font-black text-emerald-900 uppercase tracking-tight text-sm mb-1">¡Todo listo para procesar!</h4>
+                                    <p className="text-xs text-emerald-700 leading-relaxed font-medium">Hay disponibilidad de stock suficiente para todos los pedidos seleccionados.</p>
                                 </div>
                             </div>
                         )}
                     </div>
                     
-                    <DialogFooter>
-                        <Button 
-                            variant="outline" 
-                            onClick={() => {
-                                setBulkConfirmOpen(false)
-                                setPendingBulkStatus("")
-                                setStockError(null)
-                            }}
-                            disabled={isCheckingStock || bulkStatusMutation.isPending}
-                        >
-                            {stockError ? 'Cerrar' : 'Cancelar'}
-                        </Button>
-                        {!stockError && (
+                    <DialogFooter className="gap-3">
+                        <Button variant="ghost" onClick={() => setBulkConfirmOpen(false)} className="h-14 px-8 rounded-2xl font-bold">CANCELAR</Button>
+                        {!stockError && !isCheckingStock && (
                             <Button 
                                 onClick={() => bulkStatusMutation.mutate({ status: pendingBulkStatus })} 
-                                disabled={isCheckingStock || bulkStatusMutation.isPending}
-                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                                className="h-14 px-10 rounded-2xl bg-slate-900 text-white font-black haptic-scale shadow-xl shadow-slate-200"
                             >
-                                {bulkStatusMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-                                Confirmar Cambio
+                                {bulkStatusMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : 'APLICAR CAMBIOS'}
                             </Button>
                         )}
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
-            {/* Export Selection Dialog */}
+            {/* --- EXPORT DIALOG --- */}
             <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
-                <DialogContent className="sm:max-w-[400px]">
+                <DialogContent className="rounded-[2.5rem] p-8 border-none shadow-2xl sm:max-w-[450px]">
                     <DialogHeader>
-                        <DialogTitle>Opciones de Exportación</DialogTitle>
-                        <DialogDescription>
-                            ¿Qué datos deseas exportar a Excel? Se respetarán los filtros actuales (búsqueda, fechas, estados).
+                        <DialogTitle className="text-3xl font-black tracking-tight">Exportar Reporte</DialogTitle>
+                        <DialogDescription className="font-medium text-slate-500">
+                            Descarga la data logística en formato Excel siguiendo los filtros aplicados.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <Button 
-                            variant="outline" 
-                            className="flex justify-start gap-3 h-14" 
-                            onClick={() => handleExportXlsx('page')}
-                            disabled={isExporting}
-                        >
-                            <div className="h-8 w-8 rounded bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                                <Eye className="h-4 w-4" />
-                            </div>
-                            <div className="text-left">
-                                <div className="font-semibold">Solo página actual</div>
-                                <div className="text-xs text-muted-foreground">Exporta los {paginatedPedidos.length} pedidos mostrados ahora.</div>
-                            </div>
-                        </Button>
-
-                        <Button 
-                            variant="outline" 
-                            className="flex justify-start gap-3 h-14" 
-                            onClick={() => handleExportXlsx('all')}
-                            disabled={isExporting}
-                        >
-                            <div className="h-8 w-8 rounded bg-green-100 text-green-600 flex items-center justify-center shrink-0">
-                                <RefreshCw className="h-4 w-4" />
-                            </div>
-                            <div className="text-left">
-                                <div className="font-semibold">Todos los pedidos</div>
-                                <div className="text-xs text-muted-foreground">Exporta el total de {totalItems} pedidos filtrados.</div>
-                            </div>
-                        </Button>
+                    <div className="grid gap-4 py-8">
+                        {[
+                            { id: 'page', label: 'Página Actual', desc: `Solo los ${paginatedPedidos.length} pedidos visibles.`, icon: Eye, color: 'blue' },
+                            { id: 'all', label: 'Todo el Universo', desc: `El total de ${totalItems} pedidos filtrados.`, icon: LayoutDashboard, color: 'emerald' }
+                        ].map(opt => (
+                            <button 
+                                key={opt.id}
+                                onClick={() => handleExportXlsx(opt.id as any)}
+                                disabled={isExporting}
+                                className="flex items-center gap-4 p-6 rounded-3xl bg-slate-50 hover:bg-slate-100 border border-slate-100 transition-all text-left group"
+                            >
+                                <div className={`h-12 w-12 rounded-2xl bg-white flex items-center justify-center text-slate-900 shadow-sm group-hover:shadow-md transition-all`}>
+                                    <opt.icon size={20} />
+                                </div>
+                                <div className="flex-1">
+                                    <div className="font-black text-slate-900 uppercase tracking-widest text-[10px]">{opt.label}</div>
+                                    <div className="text-xs text-slate-400 font-medium">{opt.desc}</div>
+                                </div>
+                                <ArrowRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+                            </button>
+                        ))}
                     </div>
-                    {isExporting && (
-                        <div className="flex items-center justify-center gap-2 text-sm text-blue-600 animate-pulse">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Generando archivo Excel...
-                        </div>
-                    )}
                 </DialogContent>
             </Dialog>
         </div>
+    )
+}
+
+export default function PedidosPage() {
+    return (
+        <Suspense fallback={
+            <div className="space-y-10 animate-in fade-in duration-500 max-w-[1600px] mx-auto pt-4">
+                <div className="flex justify-between items-end gap-6">
+                    <div className="space-y-3">
+                        <div className="h-14 w-64 bg-slate-100 animate-pulse rounded-2xl" />
+                        <div className="h-4 w-80 bg-slate-100 animate-pulse rounded-lg" />
+                    </div>
+                </div>
+                <div className="h-16 bg-slate-50 rounded-[2rem] border border-slate-100 animate-pulse" />
+                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden h-[500px] animate-pulse" />
+            </div>
+        }>
+            <PedidosPageContent />
+        </Suspense>
     )
 }

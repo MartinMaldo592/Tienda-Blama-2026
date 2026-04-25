@@ -4,8 +4,8 @@ import type { SortValue } from "@/features/products/types"
 import { ProductosClient } from "@/features/products/components/ProductosClient"
 
 export const metadata = {
-    title: 'Productos | Tienda Blama',
-    description: 'Explora nuestra amplia gama de productos en Tienda Blama. Calidad y mejores precios en un solo lugar.',
+    title: 'Colección Exclusiva | Blama Shop',
+    description: 'Descubre piezas únicas seleccionadas por su diseño y calidad excepcional. Una experiencia de compra elevada en Blama Shop.',
 }
 
 interface PageProps {
