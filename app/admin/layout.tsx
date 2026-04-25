@@ -7,7 +7,7 @@ import { AdminSidebar } from "@/components/admin/sidebar"
 import { Bell, ArrowRight, Menu, Loader2, WifiOff, Wifi } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { createClient } from "@/lib/supabase.client"
 import { toast } from "sonner"
 import Link from "next/link"
@@ -27,9 +27,25 @@ export default function AdminLayout({
     const supabase = createClient()
     const router = useRouter()
 
+    const offlineToastId = useRef<string | number | null>(null)
+
     useEffect(() => {
-        const handleOnline = () => toast.success("Conexión restablecida", { icon: <Wifi className="h-4 w-4" /> })
-        const handleOffline = () => toast.error("Sin conexión a internet", { icon: <WifiOff className="h-4 w-4" />, duration: Infinity })
+        const handleOnline = () => {
+            if (offlineToastId.current) {
+                toast.dismiss(offlineToastId.current)
+                offlineToastId.current = null
+            }
+            toast.success("Conexión restablecida", { icon: <Wifi className="h-4 w-4" /> })
+        }
+        
+        const handleOffline = () => {
+            if (!offlineToastId.current) {
+                offlineToastId.current = toast.error("Sin conexión a internet", { 
+                    icon: <WifiOff className="h-4 w-4" />, 
+                    duration: Infinity 
+                })
+            }
+        }
 
         window.addEventListener('online', handleOnline)
         window.addEventListener('offline', handleOffline)
