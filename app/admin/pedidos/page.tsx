@@ -82,8 +82,10 @@ function PedidosPageContent() {
     // Pagination state (Derived from URL to guarantee consistency)
     const currentPage = Number(searchParams.get("page")) || 1
     const itemsPerPage = 10
+    const [direction, setDirection] = useState(0) // -1 back, 1 forward
 
     const handlePageChange = (newPage: number) => {
+        setDirection(newPage > currentPage ? 1 : -1)
         const params = new URLSearchParams(searchParams.toString())
         if (newPage > 1) {
             params.set("page", newPage.toString())
@@ -576,8 +578,20 @@ function PedidosPageContent() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden"
+                    className="bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden relative"
                 >
+                    {/* Top Loader Bar */}
+                    <AnimatePresence>
+                        {isFetching && !loadingPedidos && (
+                            <motion.div 
+                                initial={{ scaleX: 0, opacity: 0 }}
+                                animate={{ scaleX: 1, opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 z-10 origin-left"
+                            />
+                        )}
+                    </AnimatePresence>
+
                     <Table>
                         <TableHeader className="bg-slate-50/50">
                             <TableRow className="hover:bg-transparent border-slate-100">
@@ -619,14 +633,20 @@ function PedidosPageContent() {
                                             <motion.tr
                                                 key={pedido.id}
                                                 layout
-                                                initial={{ opacity: 0, y: 10 }}
+                                                initial={{ opacity: 0, x: direction * 30, filter: 'blur(4px)' }}
                                                 animate={{ 
                                                     opacity: 1, 
-                                                    y: 0, 
+                                                    x: 0, 
+                                                    filter: 'blur(0px)',
                                                     backgroundColor: isNew ? "rgba(34, 197, 94, 0.05)" : (selectedIds.includes(pedido.id) ? "rgba(15, 23, 42, 0.02)" : "transparent") 
                                                 }}
-                                                exit={{ opacity: 0, scale: 0.95 }}
-                                                transition={{ delay: index * 0.03 }}
+                                                exit={{ opacity: 0, x: direction * -30, filter: 'blur(4px)' }}
+                                                transition={{ 
+                                                    type: "spring",
+                                                    stiffness: 400,
+                                                    damping: 35,
+                                                    delay: index * 0.015 
+                                                }}
                                                 className={`group border-slate-50 transition-colors ${selectedIds.includes(pedido.id) ? "bg-slate-50" : "hover:bg-slate-50/50"}`}
                                             >
                                                 <TableCell className="pl-8 py-4">
