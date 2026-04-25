@@ -26,7 +26,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
     ArrowLeft, User, Calendar, FileUp, Check, Save, 
     AlertCircle, Camera, Box, ChevronLeft, MapPin, 
-    CreditCard, History, FileText, Settings2, Loader2
+    CreditCard, History, FileText, Settings2, Loader2,
+    CheckCircle2, ChevronRight, X, User2, MapPinned, FileSearch
 } from "lucide-react"
 import { toast } from "sonner"
 import { formatCurrency } from "@/lib/utils"
