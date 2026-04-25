@@ -482,7 +482,50 @@ export default function PedidosPage() {
     }
 
     if (guard.loading) {
-        return <div className="p-10 flex gap-2"><Loader2 className="animate-spin" /> Verificando...</div>
+        return (
+            <div className="space-y-8 animate-in fade-in duration-500">
+                <div className="flex justify-between items-center">
+                    <div className="space-y-2">
+                        <div className="h-9 w-64 bg-gray-200 animate-pulse rounded-lg" />
+                        <div className="h-4 w-80 bg-gray-100 animate-pulse rounded-lg" />
+                    </div>
+                    <div className="flex gap-2">
+                        <div className="h-10 w-32 bg-gray-100 animate-pulse rounded-lg" />
+                        <div className="h-10 w-24 bg-gray-100 animate-pulse rounded-lg" />
+                    </div>
+                </div>
+
+                <div className="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-xl shadow-sm border">
+                    <div className="h-10 flex-1 bg-gray-50 animate-pulse rounded-lg" />
+                    <div className="h-10 w-full md:w-[180px] bg-gray-50 animate-pulse rounded-lg" />
+                    <div className="h-10 w-full md:w-[200px] bg-gray-50 animate-pulse rounded-lg" />
+                    <div className="h-10 w-full md:w-[150px] bg-gray-50 animate-pulse rounded-lg" />
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                    <Table>
+                        <TableHeader className="bg-gray-50">
+                            <TableRow>
+                                <TableHead className="w-[40px] pl-4">
+                                    <div className="h-4 w-4 bg-gray-200 rounded" />
+                                </TableHead>
+                                <TableHead className="w-[100px]">ID</TableHead>
+                                <TableHead>Cliente</TableHead>
+                                <TableHead>Fecha</TableHead>
+                                <TableHead>Total</TableHead>
+                                <TableHead>Estado del Pago</TableHead>
+                                <TableHead>Estado de Pedido</TableHead>
+                                {userRole === 'admin' && <TableHead>Asignado a</TableHead>}
+                                <TableHead className="text-right">Acciones</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <OrderRowSkeleton count={10} />
+                        </TableBody>
+                    </Table>
+                </div>
+            </div>
+        )
     }
 
     if (guard.accessDenied) {
