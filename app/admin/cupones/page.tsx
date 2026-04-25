@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select"
 import { RefreshCw, Plus, Trash2, Pencil } from "lucide-react"
 import { createAdminCupon, deleteAdminCupon, fetchAdminCupones, updateAdminCupon } from "@/features/admin"
+import { TableRowsSkeleton } from "@/components/admin/skeleton-previews"
 
 type CouponType = "porcentaje" | "monto"
 
@@ -219,7 +220,7 @@ export default function CuponesAdminPage() {
   }, [coupons])
 
   if (guard.loading || loading) {
-    return <div className="p-10">Cargando...</div>
+    return <TableRowsSkeleton columns={10} rows={10} />
   }
 
   if (guard.accessDenied) {
@@ -235,8 +236,8 @@ export default function CuponesAdminPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="gap-2" onClick={fetchCoupons}>
-            <RefreshCw className="h-4 w-4" /> Actualizar
+          <Button variant="outline" className="gap-2 haptic-scale shadow-sm" onClick={fetchCoupons} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> Actualizar
           </Button>
 
           <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
@@ -259,6 +260,7 @@ export default function CuponesAdminPage() {
                     onChange={(e) => setCodigo(e.target.value)}
                     placeholder="PROMO10"
                     disabled={saving}
+                    className="focus-ring-premium"
                   />
                 </div>
 
@@ -348,8 +350,9 @@ export default function CuponesAdminPage() {
                 </div>
 
                 <div className="pt-2">
-                  <Button className="w-full" onClick={handleSave} disabled={saving}>
-                    {saving ? "Guardando..." : "Guardar"}
+                  <Button className="w-full haptic-scale shadow-md bg-black text-white" onClick={handleSave} disabled={saving}>
+                    {saving ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : null}
+                    {saving ? "Guardando..." : "Guardar Cupón"}
                   </Button>
                 </div>
               </div>

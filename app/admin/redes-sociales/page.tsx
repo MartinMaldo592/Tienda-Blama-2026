@@ -14,8 +14,9 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { Plus, Save, Trash2, ExternalLink } from "lucide-react"
+import { Plus, Save, Trash2, ExternalLink, RefreshCw } from "lucide-react"
 import { fetchSocialLinks, saveSocialLink, deleteSocialLink, SocialLink } from "@/features/admin"
+import { TableRowsSkeleton } from "@/components/admin/skeleton-previews"
 import {
     Select,
     SelectContent,
@@ -130,7 +131,7 @@ export default function AdminSocialLinksPage() {
     }
 
     if (guard.loading || loading) {
-        return <div className="p-10">Cargando...</div>
+        return <TableRowsSkeleton columns={6} rows={5} />
     }
 
     if (guard.accessDenied) {
@@ -146,7 +147,10 @@ export default function AdminSocialLinksPage() {
                         Administra los enlaces a tus redes sociales que aparecen en el pie de página.
                     </p>
                 </div>
-                <Button variant="outline" onClick={fetchItems}>Actualizar</Button>
+                <Button variant="outline" onClick={fetchItems} className="gap-2 haptic-scale shadow-sm" disabled={loading}>
+                    <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                    Actualizar
+                </Button>
             </div>
 
             <div ref={formRef} className="bg-card border border-border rounded-xl p-6 space-y-5 shadow-sm">
@@ -186,6 +190,7 @@ export default function AdminSocialLinksPage() {
                             value={url}
                             onChange={(e) => setUrl(e.target.value)}
                             placeholder="https://www.instagram.com/mi-tienda"
+                            className="focus-ring-premium"
                         />
                     </div>
 
@@ -225,8 +230,8 @@ export default function AdminSocialLinksPage() {
                             Limpiar
                         </Button>
                     )}
-                    <Button onClick={handleSave} disabled={!url || saving}>
-                        <Save className="h-4 w-4 mr-2" />
+                    <Button onClick={handleSave} disabled={!url || saving} className="haptic-scale bg-primary text-primary-foreground shadow-sm">
+                        {saving ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                         {saving ? "Guardando..." : isEditing ? "Guardar cambios" : "Agregar"}
                     </Button>
                 </div>

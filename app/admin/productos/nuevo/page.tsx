@@ -10,6 +10,7 @@ import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
 import { useEffect, useState } from "react"
 import { fetchAdminCategorias } from "@/features/admin"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function NuevoProductoPage() {
     const router = useRouter()
@@ -27,7 +28,16 @@ export default function NuevoProductoPage() {
     if (guard.accessDenied) return <AccessDenied />
 
     if (guard.loading) {
-        return <div className="p-6 text-muted-foreground">Cargando...</div>
+        return (
+            <div className="p-6 space-y-6">
+                <Skeleton className="h-10 w-48" />
+                <Card className="p-6 space-y-6">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-32 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                </Card>
+            </div>
+        )
     }
 
     return (

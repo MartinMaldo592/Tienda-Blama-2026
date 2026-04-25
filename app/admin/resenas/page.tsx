@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { Check, RefreshCw, Trash2, X } from "lucide-react"
+import { Check, RefreshCw, Trash2, X, Star, ShieldAlert } from "lucide-react"
 import { deleteReview, fetchAdminReviews, setReviewApproved } from "@/features/admin"
+import { TableRowsSkeleton } from "@/components/admin/skeleton-previews"
 
 type ReviewRow = {
   id: number
@@ -97,7 +98,7 @@ export default function AdminResenasPage() {
     }
   }
 
-  if (guard.loading || loading) return <div className="p-10">Cargando...</div>
+  if (guard.loading || loading) return <TableRowsSkeleton columns={5} rows={10} />
   if (guard.accessDenied) return <AccessDenied message="Solo administradores." />
 
   return (
@@ -107,14 +108,19 @@ export default function AdminResenasPage() {
           <h1 className="text-3xl font-bold">Reseñas</h1>
           <p className="text-muted-foreground">Aprueba reseñas para que se muestren en productos.</p>
         </div>
-        <Button variant="outline" onClick={fetchItems} className="gap-2">
-          <RefreshCw className="h-4 w-4" />
+        <Button variant="outline" onClick={fetchItems} className="gap-2 haptic-scale shadow-sm" disabled={loading}>
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           Actualizar
         </Button>
       </div>
 
       <div className="bg-card border border-border rounded-xl p-4">
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por producto, texto o cliente..." />
+        <Input 
+          value={search} 
+          onChange={(e) => setSearch(e.target.value)} 
+          placeholder="Buscar por producto, texto o cliente..." 
+          className="focus-ring-premium"
+        />
       </div>
 
       <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -174,15 +180,15 @@ export default function AdminResenasPage() {
                         Aprobar
                       </Button>
                     )}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={disabled}
-                      onClick={() => remove(r.id)}
-                      className="border-destructive/40 text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={disabled}
+                        onClick={() => remove(r.id)}
+                        className="border-destructive/40 text-destructive haptic-scale hover:bg-destructive/5"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                   </TableCell>
                 </TableRow>
               )

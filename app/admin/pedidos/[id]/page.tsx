@@ -393,10 +393,29 @@ export default function PedidoDetallePage() {
 
     const displayedShippingMethod = isEditClientOpen ? clientForm.metodo_envio : (pedido?.metodo_envio || '')
 
-    if (guard.loading) return <div className="p-10">Cargando...</div>
-    if (guard.accessDenied) return <AccessDenied />
-
-    if (loading) return <div className="p-10 text-center">Cargando pedido...</div>
+    if (guard.loading || loading) {
+        return (
+            <div className="space-y-6 max-w-5xl mx-auto p-6">
+                <div className="flex items-center gap-4">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <Skeleton className="h-10 w-64" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Skeleton className="h-32 w-full" />
+                    <Skeleton className="h-32 w-full" />
+                    <Skeleton className="h-32 w-full" />
+                </div>
+                <Card className="p-6">
+                    <Skeleton className="h-6 w-48 mb-4" />
+                    <div className="space-y-2">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                    </div>
+                </Card>
+            </div>
+        )
+    }
     if (!pedido) return <div className="p-10 text-center">Pedido no encontrado</div>
 
     return (

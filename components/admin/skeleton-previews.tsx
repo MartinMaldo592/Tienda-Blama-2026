@@ -50,10 +50,10 @@ export function TableRowsSkeleton({ columns, rows = 5, hasCheckbox = true }: Tab
     )
 }
 
-export function OrderRowSkeleton() {
+export function OrderRowSkeleton({ count = 5 }: { count?: number } = {}) {
     return (
         <>
-            {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: count }).map((_, i) => (
                 <TableRow key={i}>
                     <TableCell className="pl-4"><Skeleton className="h-4 w-4 rounded" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-12" /></TableCell>
@@ -75,10 +75,10 @@ export function OrderRowSkeleton() {
     )
 }
 
-export function ProductRowSkeleton() {
+export function ProductRowSkeleton({ count = 5 }: { count?: number } = {}) {
     return (
         <>
-            {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: count }).map((_, i) => (
                 <TableRow key={i}>
                     <TableCell>
                         <Skeleton className="h-10 w-10 rounded-md" />

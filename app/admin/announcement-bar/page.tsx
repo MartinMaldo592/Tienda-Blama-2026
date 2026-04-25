@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/select"
 import { AnnouncementBar } from "@/components/announcement-bar"
 import { fetchAnnouncementBarConfigViaApi, saveAnnouncementBarConfigViaApi } from "@/features/admin"
+import { Skeleton } from "@/components/ui/skeleton"
+import { RefreshCw, Save } from "lucide-react"
 
 function toBoolSelectValue(v: boolean) {
   return v ? "true" : "false"
@@ -92,8 +94,20 @@ export default function AdminAnnouncementBarPage() {
     }
   }
 
-  if (guard.loading) {
-    return <div className="p-6 text-muted-foreground">Cargando...</div>
+  if (guard.loading || loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-4 w-96" />
+        <Card>
+          <CardContent className="p-10 space-y-4">
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-10 w-32" />
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   if (guard.accessDenied) {
@@ -128,7 +142,12 @@ export default function AdminAnnouncementBarPage() {
 
             <div className="space-y-2">
               <Label>Intervalo (ms)</Label>
-              <Input value={intervalMs} onChange={(e) => setIntervalMs(e.target.value)} placeholder="3500" />
+              <Input 
+                value={intervalMs} 
+                onChange={(e) => setIntervalMs(e.target.value)} 
+                placeholder="3500" 
+                className="focus-ring-premium"
+              />
               <p className="text-xs text-muted-foreground">Mín 500ms, máx 30000ms.</p>
             </div>
           </div>
@@ -145,7 +164,8 @@ export default function AdminAnnouncementBarPage() {
           </div>
 
           <div className="flex gap-2">
-            <Button onClick={onSave} disabled={!canSave || saving || loading}>
+            <Button onClick={onSave} disabled={!canSave || saving || loading} className="haptic-scale bg-black text-white shadow-md">
+              {saving ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
               {saving ? "Guardando..." : "Guardar"}
             </Button>
             <Button
@@ -176,7 +196,6 @@ export default function AdminAnnouncementBarPage() {
         </CardContent>
       </Card>
 
-      {loading && <div className="text-sm text-muted-foreground">Cargando configuración...</div>}
     </div>
   )
 }

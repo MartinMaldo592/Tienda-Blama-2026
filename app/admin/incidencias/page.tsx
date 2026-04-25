@@ -33,6 +33,7 @@ import {
     fetchPedidosForIncidencias,
     uploadIncidenciaImages,
 } from "@/features/admin"
+import { TableRowsSkeleton } from "@/components/admin/skeleton-previews"
 
 const TIPOS = [
     "Devolución",
@@ -192,7 +193,7 @@ export default function IncidenciasPage() {
     }
 
     if (guard.loading || loading) {
-        return <div className="p-10">Cargando...</div>
+        return <TableRowsSkeleton columns={6} rows={10} />
     }
 
     if (guard.accessDenied) {
@@ -206,8 +207,8 @@ export default function IncidenciasPage() {
                     <h1 className="text-3xl font-bold text-gray-900">Incidencias</h1>
                     <p className="text-gray-500">Gestiona reclamos, devoluciones y problemas de pedidos.</p>
                 </div>
-                <Button variant="outline" className="gap-2" onClick={refreshAll} disabled={loading}>
-                    <RefreshCw className="h-4 w-4" /> Actualizar
+                <Button variant="outline" className="gap-2 haptic-scale shadow-sm" onClick={refreshAll} disabled={loading}>
+                    <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> Actualizar
                 </Button>
             </div>
 
@@ -315,8 +316,9 @@ export default function IncidenciasPage() {
                         )}
                     </div>
                     <div className="md:col-span-2">
-                        <Button onClick={handleCreate} disabled={creating || uploading} className="w-full md:w-auto">
-                            Registrar
+                        <Button onClick={handleCreate} disabled={creating || uploading} className="w-full md:w-auto haptic-scale bg-black text-white shadow-md">
+                            {creating ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : null}
+                            {creating ? "Registrando..." : "Registrar Incidencia"}
                         </Button>
                     </div>
                 </CardContent>
@@ -330,11 +332,12 @@ export default function IncidenciasPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div className="space-y-1">
                             <div className="text-sm text-muted-foreground">Filtrar por pedido</div>
-                            <Input
+                             <Input
                                 inputMode="numeric"
                                 placeholder="ID pedido"
                                 value={filterPedido}
                                 onChange={(e) => setFilterPedido(e.target.value.replace(/\D/g, ""))}
+                                className="focus-ring-premium"
                             />
                         </div>
                         <div className="space-y-1">
@@ -367,9 +370,7 @@ export default function IncidenciasPage() {
                             </TableHeader>
                             <TableBody>
                                 {loading ? (
-                                    <TableRow>
-                                        <TableCell colSpan={6} className="text-center py-10">Cargando...</TableCell>
-                                    </TableRow>
+                                    <TableRowsSkeleton columns={6} rows={5} hasCheckbox={false} />
                                 ) : filtered.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={6} className="text-center py-10">No hay incidencias.</TableCell>

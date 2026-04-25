@@ -2,9 +2,7 @@
 
 import Image from "next/image"
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase.client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useRoleGuard } from "@/lib/use-role-guard"
@@ -20,15 +18,14 @@ import {
 
 import { formatCurrency } from "@/lib/utils"
 
-import { Loader2, Package, Search, Plus, ImageIcon, Trash2, Edit, RefreshCw } from "lucide-react"
-import { deleteAdminProductoViaApi, fetchAdminProductos, deleteFromR2 } from "@/features/admin"
+import { Loader2, Search, Plus, ImageIcon, Trash2, Edit, RefreshCw } from "lucide-react"
+import { fetchAdminProductos, deleteFromR2 } from "@/features/admin"
 import { deleteProductAction } from "@/features/admin/actions/products"
 import { Producto } from "@/features/admin/types"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { ProductRowSkeleton } from "@/components/admin/skeleton-previews"
 
 export default function ProductosPage() {
-    const router = useRouter()
     const queryClient = useQueryClient()
     const [searchTerm, setSearchTerm] = useState("")
 
@@ -42,7 +39,7 @@ export default function ProductosPage() {
     })
 
     // 2. Deletion Mutation
-    const deleteMutation = useMutation({
+    const deleteMutation = useMutation<number, Error, Producto>({
         mutationFn: async (producto: Producto) => {
             // 1. Delete images and videos from R2 (Cloudflare)
             const urlsToDelete = [
@@ -82,7 +79,32 @@ export default function ProductosPage() {
     if (guard.accessDenied) return <AccessDenied />
 
     if (guard.loading) {
-        return <div className="p-6 text-muted-foreground flex items-center gap-2"><Loader2 className="animate-spin" /> Cargando...</div>
+        return (
+            <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                    <div className="space-y-2">
+                        <div className="h-9 w-48 bg-gray-200 animate-pulse rounded-lg" />
+                        <div className="h-4 w-64 bg-gray-100 animate-pulse rounded-lg" />
+                    </div>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                    <Table>
+                        <TableHeader className="bg-gray-50">
+                            <TableRow>
+                                <TableHead className="w-[80px]">Imagen</TableHead>
+                                <TableHead>Nombre</TableHead>
+                                <TableHead>Precio</TableHead>
+                                <TableHead>Stock</TableHead>
+                                <TableHead className="text-right">Acciones</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <ProductRowSkeleton count={8} />
+                        </TableBody>
+                    </Table>
+                </div>
+            </div>
+        )
     }
 
     return (

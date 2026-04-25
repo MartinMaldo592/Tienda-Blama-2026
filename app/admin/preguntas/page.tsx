@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Check, MessageSquare, RefreshCw, Save, X } from "lucide-react"
 import { fetchAdminQuestions, saveQuestionAnswer, setQuestionPublished } from "@/features/admin"
+import { TableRowsSkeleton } from "@/components/admin/skeleton-previews"
 
 type QuestionRow = {
   id: number
@@ -111,7 +112,7 @@ export default function AdminPreguntasPage() {
     }
   }
 
-  if (guard.loading || loading) return <div className="p-10">Cargando...</div>
+  if (guard.loading || loading) return <TableRowsSkeleton columns={4} rows={10} />
   if (guard.accessDenied) return <AccessDenied message="Solo administradores." />
 
   return (
@@ -121,14 +122,19 @@ export default function AdminPreguntasPage() {
           <h1 className="text-3xl font-bold">Preguntas</h1>
           <p className="text-muted-foreground">Responde y publica preguntas para reducir consultas por WhatsApp.</p>
         </div>
-        <Button variant="outline" onClick={fetchItems} className="gap-2">
-          <RefreshCw className="h-4 w-4" />
+        <Button variant="outline" onClick={fetchItems} className="gap-2 haptic-scale shadow-sm" disabled={loading}>
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           Actualizar
         </Button>
       </div>
 
       <div className="bg-card border border-border rounded-xl p-4">
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por producto o texto..." />
+        <Input 
+          value={search} 
+          onChange={(e) => setSearch(e.target.value)} 
+          placeholder="Buscar por producto o texto..." 
+          className="focus-ring-premium"
+        />
       </div>
 
       {editingId != null ? (
@@ -144,9 +150,9 @@ export default function AdminPreguntasPage() {
           </div>
           <Textarea value={answer} onChange={(e) => setAnswer(e.target.value)} placeholder="Escribe una respuesta clara..." />
           <div className="flex justify-end">
-            <Button onClick={() => saveAnswer(editingId)} className="gap-2" disabled={busyId === editingId}>
-              <Save className="h-4 w-4" />
-              Guardar y publicar
+            <Button onClick={() => saveAnswer(editingId)} className="gap-2 haptic-scale bg-black text-white shadow-md" disabled={busyId === editingId}>
+              {busyId === editingId ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {busyId === editingId ? "Guardando..." : "Guardar y publicar"}
             </Button>
           </div>
         </div>
