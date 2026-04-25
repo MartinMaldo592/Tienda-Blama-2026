@@ -53,6 +53,20 @@ import {
 import { PedidoRow, ProfileRow } from "@/features/admin/types"
 
 function PedidosPageContent() {
+    const [exportDropdownOpen, setExportDropdownOpen] = useState(false)
+    const exportDropdownRef = useRef<HTMLDivElement>(null)
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (exportDropdownRef.current && !exportDropdownRef.current.contains(event.target as Node)) {
+                setExportDropdownOpen(false)
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => document.removeEventListener("mousedown", handleClickOutside)
+    }, [])
+
     const queryClient = useQueryClient()
     const pathname = usePathname()
     const searchParams = useSearchParams()
@@ -75,7 +89,6 @@ function PedidosPageContent() {
     const [isCheckingStock, setIsCheckingStock] = useState(false)
     const [stockError, setStockError] = useState<string | null>(null)
     const [stockErrorsList, setStockErrorsList] = useState<any[]>([])
-    const [exportDialogOpen, setExportDialogOpen] = useState(false)
     const [isExporting, setIsExporting] = useState(false)
     const [recentOrderIds, setRecentOrderIds] = useState<Set<number>>(new Set())
 
@@ -336,7 +349,7 @@ function PedidosPageContent() {
             const workbook = XLSX.utils.book_new()
             XLSX.utils.book_append_sheet(workbook, worksheet, "Pedidos")
             XLSX.writeFile(workbook, `Pedidos_Blama_${new Date().toISOString().slice(0, 10)}.xlsx`)
-            setExportDialogOpen(false)
+            setExportDropdownOpen(false)
             toast.success("Exportado correctamente")
         } catch (error) { toast.error("Error al exportar") } finally { setIsExporting(false) }
     }
@@ -422,15 +435,61 @@ function PedidosPageContent() {
                     className="flex flex-wrap gap-3 w-full lg:w-auto"
                 >
                     {userRole === 'admin' && (
-                        <Button 
-                            variant="outline" 
-                            className="flex-1 md:flex-none gap-2 h-14 px-8 rounded-2xl border-slate-200 hover:bg-slate-50 text-slate-900 font-black tracking-tight shadow-sm transition-all haptic-scale" 
-                            onClick={() => setExportDialogOpen(true)} 
-                            disabled={totalItems === 0}
-                        >
-                            <Download className={`h-4 w-4 ${isExporting ? 'animate-spin' : ''}`} />
-                            EXPORTAR DATA
-                        </Button>
+                        <div className="relative" ref={exportDropdownRef}>
+                            <Button 
+                                variant="outline" 
+                                className={`flex-1 md:flex-none gap-2 h-14 px-8 rounded-2xl border-slate-200 font-black tracking-tight shadow-sm transition-all haptic-scale ${exportDropdownOpen ? 'bg-slate-100 border-slate-300 ring-4 ring-slate-100' : 'bg-white hover:bg-slate-50'}`} 
+                                onClick={() => setExportDropdownOpen(!exportDropdownOpen)} 
+                                disabled={totalItems === 0 || isExporting}
+                            >
+                                <Download className={`h-4 w-4 ${isExporting ? 'animate-spin' : ''}`} />
+                                EXPORTAR DATA
+                            </Button>
+
+                            <AnimatePresence>
+                                {exportDropdownOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        className="absolute right-0 mt-3 w-72 bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100 p-3 z-[60] overflow-hidden"
+                                    >
+                                        <div className="p-4 border-b border-slate-50 mb-2">
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Formato Excel</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <button
+                                                onClick={() => handleExportXlsx('page')}
+                                                disabled={isExporting}
+                                                className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group text-left"
+                                            >
+                                                <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                                    <Eye size={18} />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="text-xs font-black text-slate-900 uppercase">Página Actual</p>
+                                                    <p className="text-[10px] text-slate-400 font-bold">{paginatedPedidos.length} pedidos</p>
+                                                </div>
+                                            </button>
+
+                                            <button
+                                                onClick={() => handleExportXlsx('all')}
+                                                disabled={isExporting}
+                                                className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group text-left"
+                                            >
+                                                <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all">
+                                                    <LayoutDashboard size={18} />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="text-xs font-black text-slate-900 uppercase">Todo el Universo</p>
+                                                    <p className="text-[10px] text-slate-400 font-bold">{totalItems} pedidos</p>
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     )}
                     <Button
                         className="flex-1 md:flex-none gap-2 h-14 px-8 rounded-2xl bg-slate-900 text-white hover:bg-blue-600 font-black tracking-tight shadow-xl shadow-slate-200 hover:shadow-blue-200 transition-all haptic-scale"
@@ -865,39 +924,7 @@ function PedidosPageContent() {
                 </DialogContent>
             </Dialog>
 
-            {/* --- EXPORT DIALOG --- */}
-            <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
-                <DialogContent className="rounded-[2.5rem] p-8 border-none shadow-2xl sm:max-w-[450px]">
-                    <DialogHeader>
-                        <DialogTitle className="text-3xl font-black tracking-tight">Exportar Reporte</DialogTitle>
-                        <DialogDescription className="font-medium text-slate-500">
-                            Descarga la data logística en formato Excel siguiendo los filtros aplicados.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-8">
-                        {[
-                            { id: 'page', label: 'Página Actual', desc: `Solo los ${paginatedPedidos.length} pedidos visibles.`, icon: Eye, color: 'blue' },
-                            { id: 'all', label: 'Todo el Universo', desc: `El total de ${totalItems} pedidos filtrados.`, icon: LayoutDashboard, color: 'emerald' }
-                        ].map(opt => (
-                            <button 
-                                key={opt.id}
-                                onClick={() => handleExportXlsx(opt.id as any)}
-                                disabled={isExporting}
-                                className="flex items-center gap-4 p-6 rounded-3xl bg-slate-50 hover:bg-slate-100 border border-slate-100 transition-all text-left group"
-                            >
-                                <div className={`h-12 w-12 rounded-2xl bg-white flex items-center justify-center text-slate-900 shadow-sm group-hover:shadow-md transition-all`}>
-                                    <opt.icon size={20} />
-                                </div>
-                                <div className="flex-1">
-                                    <div className="font-black text-slate-900 uppercase tracking-widest text-[10px]">{opt.label}</div>
-                                    <div className="text-xs text-slate-400 font-medium">{opt.desc}</div>
-                                </div>
-                                <ArrowRight size={16} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
-                            </button>
-                        ))}
-                    </div>
-                </DialogContent>
-            </Dialog>
+            {/* --- EXPORT DIALOG REMOVED --- */}
         </div>
     )
 }
