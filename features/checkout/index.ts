@@ -3,3 +3,7 @@ export * from "@/features/checkout/services/coupons.client"
 export * from "@/features/checkout/services/checkout.client"
 export * from "@/features/checkout/utils/device"
 export * from "@/features/checkout/utils/whatsapp"
+// Sprint 1: Consolidated from lib/
+export * from "@/features/checkout/utils/totals"
+export * from "@/features/checkout/validations/checkout.schema"
+export * from "@/features/checkout/store/whatsapp"
