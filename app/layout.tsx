@@ -6,7 +6,7 @@ import "./globals.css";
 import { LayoutShell } from "@/components/layout-shell";
 import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/sonner";
-import { createClient } from "@/lib/supabase.server";
+import { createClient } from "@supabase/supabase-js";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -72,9 +72,14 @@ import { unstable_cache } from "next/cache";
 
 const getAnnouncementData = unstable_cache(
   async () => {
-    const supabase = await createClient()
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { auth: { persistSession: false } }
+    )
     try {
       const { data } = await supabase
+
         .from("announcement_bar")
         .select("enabled, interval_ms, messages")
         .eq("id", 1)
