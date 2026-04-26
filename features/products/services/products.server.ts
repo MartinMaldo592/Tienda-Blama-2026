@@ -169,11 +169,14 @@ export const listCategories = unstable_cache(
         const supabase = createAnonServerClient()
         if (!supabase) return []
         const { data, error } = await supabase.from("categorias").select("*").order("nombre", { ascending: true })
-        if (error) return []
+        if (error) {
+            console.error("Error fetching categories:", error)
+            return []
+        }
         return (data as Category[]) || []
     },
     ['categories-list'],
-    { tags: ['products'] }
+    { tags: ['products', 'categories'], revalidate: 3600 }
 )
 
 export type ListProductsParams = {
@@ -193,7 +196,10 @@ export type ListProductsResult = {
     totalCount: number
 }
 
-export async function listProducts(params: ListProductsParams): Promise<ListProductsResult> {
+/**
+ * Versión interna de listProducts que realiza la consulta a la base de datos.
+ */
+async function listProductsBase(params: ListProductsParams, allCategories?: Category[]): Promise<ListProductsResult> {
     const supabase = createAnonServerClient()
     if (!supabase) return { productos: [], totalCount: 0 }
 
@@ -211,37 +217,51 @@ export async function listProducts(params: ListProductsParams): Promise<ListProd
         if (Number.isFinite(subcatId) && subcatId > 0) {
             productsQuery = productsQuery.eq("categoria_id", subcatId)
         } else {
-            const { data: catRow } = await supabase
-                .from("categorias")
-                .select("id")
-                .eq("slug", params.subcat!)
-                .maybeSingle()
-            if ((catRow as any)?.id) {
-                productsQuery = productsQuery.eq("categoria_id", (catRow as any).id)
+            // Intentar encontrar por slug en la lista de categorías si se proporcionó
+            const foundCat = allCategories?.find(c => c.slug === params.subcat)
+            if (foundCat) {
+                productsQuery = productsQuery.eq("categoria_id", foundCat.id)
+            } else {
+                // Fallback a consulta individual
+                const { data: catRow } = await supabase
+                    .from("categorias")
+                    .select("id")
+                    .eq("slug", params.subcat!)
+                    .maybeSingle()
+                if ((catRow as any)?.id) {
+                    productsQuery = productsQuery.eq("categoria_id", (catRow as any).id)
+                }
             }
         }
     } else if (hasCat) {
         let parentId = Number(params.cat)
         if (!Number.isFinite(parentId) || parentId <= 0) {
-            const { data: catRow } = await supabase
-                .from("categorias")
-                .select("id")
-                .eq("slug", params.cat)
-                .maybeSingle()
-            if ((catRow as any)?.id) {
-                parentId = (catRow as any).id
+            const foundCat = allCategories?.find(c => c.slug === params.cat)
+            if (foundCat) {
+                parentId = foundCat.id
             } else {
-                parentId = 0
+                const { data: catRow } = await supabase
+                    .from("categorias")
+                    .select("id")
+                    .eq("slug", params.cat)
+                    .maybeSingle()
+                parentId = (catRow as any)?.id || 0
             }
         }
 
         if (parentId > 0) {
-            const { data: children } = await supabase
-                .from("categorias")
-                .select("id")
-                .eq("parent_id", parentId)
+            let childrenIds: number[] = []
+            if (allCategories) {
+                childrenIds = allCategories.filter(c => c.parent_id === parentId).map(c => c.id)
+            } else {
+                const { data: children } = await supabase
+                    .from("categorias")
+                    .select("id")
+                    .eq("parent_id", parentId)
+                childrenIds = (children as any[])?.map(c => c.id) || []
+            }
 
-            const ids = [parentId, ...((children as any[])?.map(c => c.id) || [])]
+            const ids = [parentId, ...childrenIds]
             productsQuery = productsQuery.in("categoria_id", ids)
         }
     }
@@ -277,10 +297,37 @@ export async function listProducts(params: ListProductsParams): Promise<ListProd
 
     const { data, error, count } = await productsQuery
 
-    if (error) return { productos: [], totalCount: 0 }
+    if (error) {
+        console.error("Error in listProducts query:", error)
+        return { productos: [], totalCount: 0 }
+    }
 
     return {
         productos: (data as Product[]) || [],
         totalCount: Number(count || 0),
     }
+}
+
+/**
+ * Función principal para listar productos con caché y optimización.
+ */
+export async function listProducts(params: ListProductsParams, allCategories?: Category[]): Promise<ListProductsResult> {
+    // Si no tenemos categorías, las cargamos para optimizar la resolución de slugs
+    let categories = allCategories
+    if (!categories && (params.cat !== 'all' || params.subcat !== 'all')) {
+        categories = await listCategories()
+    }
+
+    // Generamos una clave de caché basada en los parámetros
+    const cacheKey = `list-products-${JSON.stringify(params)}`
+    
+    // Usamos unstable_cache para cachear el resultado de la búsqueda
+    return unstable_cache(
+        async () => listProductsBase(params, categories),
+        [cacheKey],
+        { 
+            tags: ['products'], 
+            revalidate: 600 // Cache de 10 minutos para búsquedas
+        }
+    )()
 }

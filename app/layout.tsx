@@ -68,27 +68,33 @@ export const metadata: Metadata = {
   },
 };
 
-async function getAnnouncementData() {
-  const supabase = await createClient()
-  try {
-    const { data } = await supabase
-      .from("announcement_bar")
-      .select("enabled, interval_ms, messages")
-      .eq("id", 1)
-      .maybeSingle()
+import { unstable_cache } from "next/cache";
 
-    if (!data) return null
+const getAnnouncementData = unstable_cache(
+  async () => {
+    const supabase = await createClient()
+    try {
+      const { data } = await supabase
+        .from("announcement_bar")
+        .select("enabled, interval_ms, messages")
+        .eq("id", 1)
+        .maybeSingle()
 
-    return {
-      enabled: Boolean(data.enabled),
-      intervalMs: Number(data.interval_ms) || 3500,
-      messages: (Array.isArray(data.messages) ? data.messages : []) as string[],
+      if (!data) return null
+
+      return {
+        enabled: Boolean(data.enabled),
+        intervalMs: Number(data.interval_ms) || 3500,
+        messages: (Array.isArray(data.messages) ? data.messages : []) as string[],
+      }
+    } catch (err) {
+      console.error("Error fetching announcement:", err)
+      return null
     }
-  } catch (err) {
-    console.error("Error fetching announcement:", err)
-    return null
-  }
-}
+  },
+  ['announcement-bar'],
+  { tags: ['announcement'], revalidate: 3600 }
+)
 
 export default async function RootLayout({
   children,
