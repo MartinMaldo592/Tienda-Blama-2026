@@ -347,76 +347,7 @@ export interface BulkStockError {
 }
 
 export async function checkBulkStockSufficient(pedidoIds: number[]): Promise<{ ok: boolean; message?: string, errors?: BulkStockError[] }> {
-  const supabase = createClient()
-  
-  if (!pedidoIds || pedidoIds.length === 0) return { ok: true }
-
-  // 1. Get all items for the selected orders that are NOT yet deducted
-  const { data: items, error } = await supabase
-    .from("pedido_items")
-    .select("producto_id, producto_variante_id, cantidad, pedidos!inner(stock_descontado)")
-    .in("pedido_id", pedidoIds)
-    .eq("pedidos.stock_descontado", false)
-    
-  if (error) throw error
-  if (!items || items.length === 0) return { ok: true }
-
-  // 2. Aggregate quantities required by product/variant
-  const requiredStock: Record<string, { pId: number; vId: number | null; qty: number }> = {}
-  for (const item of items) {
-    const vId = (item as any).producto_variante_id || null
-    const key = `${item.producto_id}-${vId || 'null'}`
-    if (!requiredStock[key]) {
-      requiredStock[key] = { pId: item.producto_id, vId: vId, qty: 0 }
-    }
-    requiredStock[key].qty += item.cantidad
-  }
-
-  const stockErrors: BulkStockError[] = []
-
-  // 3. Check each product/variant against DB
-  for (const key in requiredStock) {
-    const { pId, vId, qty } = requiredStock[key]
-    
-    if (vId) {
-      // Check variant stock
-      const { data: variant, error: vErr } = await supabase
-        .from("producto_variantes")
-        .select("stock, sku, productos(nombre)")
-        .eq("id", vId)
-        .single()
-      
-      if (vErr && vErr.code !== 'PGRST116') throw vErr
-      if (variant && (variant.stock || 0) < qty) {
-        stockErrors.push({
-            productName: (variant as any).productos?.nombre || 'Producto con Variante',
-            sku: variant.sku,
-            required: qty,
-            available: variant.stock || 0
-        })
-      }
-    } else {
-      // Check product stock
-      const { data: prod, error: pErr } = await supabase
-        .from("productos")
-        .select("stock, nombre")
-        .eq("id", pId)
-        .single()
-      
-      if (pErr && pErr.code !== 'PGRST116') throw pErr
-      if (prod && (prod.stock || 0) < qty) {
-        stockErrors.push({
-            productName: prod.nombre || 'Producto',
-            required: qty,
-            available: prod.stock || 0
-        })
-      }
-    }
-  }
-
-  if (stockErrors.length > 0) {
-      return { ok: false, message: 'Stock insuficiente para algunos productos.', errors: stockErrors }
-  }
-
+  // El usuario solicitó permitir stock negativo para preventas,
+  // por lo que omitimos la validación restrictiva de stock.
   return { ok: true }
 }

@@ -2,13 +2,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { UseFormRegister, FieldErrors } from "react-hook-form"
 import { ProductFormValues } from "@/features/admin/schemas/product.schema"
+import { Info } from "lucide-react"
 
 interface ProductPricingProps {
     register: UseFormRegister<ProductFormValues>
     errors: FieldErrors<ProductFormValues>
+    isEditing?: boolean
 }
 
-export function ProductPricing({ register, errors }: ProductPricingProps) {
+export function ProductPricing({ register, errors, isEditing }: ProductPricingProps) {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
@@ -39,8 +41,15 @@ export function ProductPricing({ register, errors }: ProductPricingProps) {
                     id="stock"
                     type="number"
                     placeholder="10"
+                    disabled={isEditing}
                     {...register("stock")}
                 />
+                {isEditing && (
+                    <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-1">
+                        <Info className="w-3 h-3" />
+                        Para modificar, ve al módulo de Inventario.
+                    </p>
+                )}
                 {errors.stock && <p className="text-sm text-red-500">{errors.stock.message}</p>}
             </div>
             <div className="space-y-2">

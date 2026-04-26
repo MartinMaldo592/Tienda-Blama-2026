@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase.client"
-import { LayoutDashboard, ShoppingBag, Package, Users, AlertCircle, LogOut, Percent, Image as ImageIcon, Star, MessageSquare, Megaphone, Share2, ShieldAlert } from "lucide-react"
+import { LayoutDashboard, ShoppingBag, Package, PackageOpen, Users, AlertCircle, LogOut, Percent, Image as ImageIcon, Star, MessageSquare, Megaphone, Share2, ShieldAlert } from "lucide-react"
 
 interface AdminSidebarProps {
     role: string
@@ -23,6 +23,7 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
         { href: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard", roles: ["admin", "worker"] },
         { href: "/admin/pedidos", icon: ShoppingBag, label: "Pedidos", roles: ["admin", "worker"] },
         { href: "/admin/productos", icon: Package, label: "Productos", roles: ["admin"] }, // Solo admin
+        { href: "/admin/inventario", icon: PackageOpen, label: "Inventario", roles: ["admin"] },
         { href: "/admin/clientes", icon: Users, label: "Clientes", roles: ["admin"] }, // Solo admin
         { href: "/admin/cupones", icon: Percent, label: "Cupones", roles: ["admin"] },
         { href: "/admin/announcement-bar", icon: Megaphone, label: "Announcement Bar", roles: ["admin"] },

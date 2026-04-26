@@ -1,16 +1,17 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Trash2 } from "lucide-react"
+import { Trash2, Info } from "lucide-react"
 import { Control, UseFormRegister, useFieldArray } from "react-hook-form"
 import { ProductFormValues } from "@/features/admin/schemas/product.schema"
 
 interface VariantsEditorProps {
     control: Control<ProductFormValues>
     register: UseFormRegister<ProductFormValues>
+    isEditing?: boolean
 }
 
-export function VariantsEditor({ control, register }: VariantsEditorProps) {
+export function VariantsEditor({ control, register, isEditing }: VariantsEditorProps) {
     const { fields, append, remove } = useFieldArray({
         control,
         name: "variantes"
@@ -19,7 +20,15 @@ export function VariantsEditor({ control, register }: VariantsEditorProps) {
     return (
         <div className="space-y-3">
             <div className="flex items-center justify-between">
-                <Label>Variantes (talla / color / modelo)</Label>
+                <div className="space-y-1">
+                    <Label>Variantes (talla / color / modelo)</Label>
+                    {isEditing && (
+                        <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <Info className="w-3 h-3" />
+                            El stock de variantes existentes se modifica en el Inventario.
+                        </p>
+                    )}
+                </div>
                 <Button
                     type="button"
                     variant="outline"
@@ -71,6 +80,7 @@ export function VariantsEditor({ control, register }: VariantsEditorProps) {
                                 <Label className="text-xs">Stock</Label>
                                 <Input
                                     type="number"
+                                    disabled={isEditing}
                                     {...register(`variantes.${index}.stock`)}
                                     placeholder="0"
                                 />

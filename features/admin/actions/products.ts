@@ -194,7 +194,13 @@ async function replaceSpecs(supabaseAdmin: any, productId: number, specs: SpecIn
 }
 
 async function replaceVariants(supabaseAdmin: any, productId: number, variants: VariantInput[]) {
-  await supabaseAdmin.from("producto_variantes").delete().eq("producto_id", productId)
+  // Obtener variantes actuales
+  const { data: currentVariants } = await supabaseAdmin
+    .from("producto_variantes")
+    .select("id, etiqueta")
+    .eq("producto_id", productId)
+
+  const currentMap = new Map((currentVariants || []).map((v: any) => [v.etiqueta.toLowerCase(), v.id]))
 
   const clean = variants
     .map((v) => ({
@@ -206,20 +212,56 @@ async function replaceVariants(supabaseAdmin: any, productId: number, variants: 
     }))
     .filter((v) => v.etiqueta.length > 0)
 
-  if (clean.length === 0) return null
+  const toDelete = new Set(currentMap.keys())
+  const toUpsert = []
 
-  const { error: insErr } = await supabaseAdmin.from("producto_variantes").insert(
-    clean.map((v) => ({
+  for (const v of clean) {
+    const key = v.etiqueta.toLowerCase()
+    toDelete.delete(key) // Mantener esta variante
+
+    const existingId = currentMap.get(key)
+    toUpsert.push({
+      id: existingId, // Si existe, hará update en el upsert
       producto_id: productId,
       etiqueta: v.etiqueta,
       precio: v.precio,
       precio_antes: v.precio_antes,
-      stock: v.stock,
+      // Si ya existía, el stock se manejará por Kardex, pero lo pasamos de todas formas
+      stock: v.stock, 
       activo: v.activo,
-    }))
-  )
+    })
+  }
 
-  return insErr || null
+  // Borrar las que ya no están
+  if (toDelete.size > 0) {
+    const idsToDelete = Array.from(toDelete).map(k => currentMap.get(k))
+    await supabaseAdmin.from("producto_variantes").delete().in("id", idsToDelete)
+  }
+
+  // Insertar/Actualizar las nuevas (upsert)
+  if (toUpsert.length > 0) {
+    // Upsert requiere que le pases el ID si existe para hacer match con la primary key
+    for (const item of toUpsert) {
+      if (item.id) {
+        await supabaseAdmin.from("producto_variantes").update(item).eq("id", item.id)
+      } else {
+        const { data: newVar } = await supabaseAdmin.from("producto_variantes").insert(item).select("id").single()
+        if (newVar?.id && item.stock && item.stock !== 0) {
+          await supabaseAdmin.from("inventario_movimientos").insert({
+            producto_id: item.producto_id,
+            variante_id: newVar.id,
+            almacen_id: 1,
+            tipo_movimiento: 'AJUSTE_INICIAL',
+            cantidad: item.stock,
+            costo_unitario: 0,
+            notas: 'Stock inicial al crear variante'
+          })
+        }
+      }
+    }
+  }
+
+  return null
 }
 
 /**
@@ -235,6 +277,7 @@ export async function upsertProductAction(args: {
   try {
     const { supabaseAdmin } = await validateAdmin()
     const { id, product, specs = [], variants = [] } = args
+    const isNew = !id || id <= 0
 
     const saved = await internalUpsertProduct({ supabaseAdmin, id, product })
     if (!saved.ok) {
@@ -242,6 +285,18 @@ export async function upsertProductAction(args: {
     }
 
     const productId = Number(saved.id)
+
+    // Si es un producto nuevo sin variantes y tiene stock inicial
+    if (isNew && variants.length === 0 && product.stock && product.stock !== 0) {
+      await supabaseAdmin.from("inventario_movimientos").insert({
+        producto_id: productId,
+        almacen_id: 1,
+        tipo_movimiento: 'AJUSTE_INICIAL',
+        cantidad: product.stock,
+        costo_unitario: 0,
+        notas: 'Stock inicial al crear producto'
+      })
+    }
 
     await replaceSpecs(supabaseAdmin, productId, specs)
     await replaceVariants(supabaseAdmin, productId, variants)
@@ -254,6 +309,7 @@ export async function upsertProductAction(args: {
     return { error: e.message || "Error desconocido" }
   }
 }
+
 
 export async function deleteProductAction(id: number) {
   try {
