@@ -71,7 +71,8 @@ export async function registrarMovimientoAction(payload: MovimientoInventarioPay
     }
 
     // Revalidate paths
-    revalidateTag('products')
+    // @ts-expect-error Next.js typing issue
+    revalidateTag('products', { expire: 0 })
     revalidatePath('/admin/inventario')
     revalidatePath('/admin/productos')
 
