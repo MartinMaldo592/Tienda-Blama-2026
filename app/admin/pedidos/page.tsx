@@ -416,7 +416,7 @@ function PedidosPageContent() {
                                         className="bg-blue-50 text-blue-600 p-2 rounded-xl"
                                     >
                                         <RefreshCw className="h-4 w-4 animate-spin" />
-                                    </motion.div>
+                                    </m.div>
                                 )}
                             </div>
                             <div className="flex items-center gap-2 mt-1">
