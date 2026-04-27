@@ -30,8 +30,9 @@ import { sendGTMEvent } from "@/lib/gtm"
 import { QuickCustomer } from "@/components/checkout/quick-checkout/quick-customer"
 import { QuickAddress } from "@/components/checkout/quick-checkout/quick-address"
 import { QuickSummary } from "@/components/checkout/quick-checkout/quick-summary"
-import { useGoogleMap } from "@react-google-maps/api"
+import { useJsApiLoader } from "@react-google-maps/api"
 
+const libraries: ("places")[] = ["places"];
 
 interface QuickCheckoutModalProps {
     isOpen: boolean
@@ -41,6 +42,12 @@ interface QuickCheckoutModalProps {
 }
 
 export function QuickCheckoutModal({ isOpen, onClose, product, variant }: QuickCheckoutModalProps) {
+    useJsApiLoader({
+        id: 'google-map-script',
+        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+        libraries: libraries,
+    })
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent

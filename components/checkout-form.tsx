@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useJsApiLoader } from "@react-google-maps/api"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import usePlacesAutocomplete, {
     getGeocode,
     getLatLng,
@@ -602,13 +602,13 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
 
             <AnimatePresence>
                 {isRedirecting && (
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/90 backdrop-blur-xl"
                     >
-                        <motion.div
+                        <m.div
                             initial={{ scale: 0.8, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             className="flex flex-col items-center gap-4 text-center"
@@ -623,8 +623,8 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                                 <h2 className="text-xl font-bold text-gray-900">Procesando tu pedido...</h2>
                                 <p className="text-gray-500 text-sm">Estamos finalizando tu compra de forma segura.</p>
                             </div>
-                        </motion.div>
-                    </motion.div>
+                        </m.div>
+                    </m.div>
                 )}
             </AnimatePresence>
         </>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
 import { Badge } from "@/components/ui/badge"
@@ -115,7 +115,7 @@ export default function MovimientosPage() {
         <div className="space-y-10 pb-20 max-w-[1600px] mx-auto animate-in fade-in duration-700">
             {/* --- HEADER --- */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 pt-4">
-                <motion.div
+                <m.div
                     initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="space-y-4"
@@ -138,13 +138,13 @@ export default function MovimientosPage() {
                             <div className="flex items-center gap-3">
                                 <h1 className="text-5xl font-black text-slate-900 tracking-tight">Kardex</h1>
                                 {loading && (
-                                    <motion.div
+                                    <m.div
                                         initial={{ opacity: 0, scale: 0.5 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         className="bg-indigo-50 text-indigo-600 p-2 rounded-xl"
                                     >
                                         <RefreshCw className="h-4 w-4 animate-spin" />
-                                    </motion.div>
+                                    </m.div>
                                 )}
                             </div>
                             <div className="flex items-center gap-2 mt-1">
@@ -155,9 +155,9 @@ export default function MovimientosPage() {
                             </div>
                         </div>
                     </div>
-                </motion.div>
+                </m.div>
 
-                <motion.div
+                <m.div
                     initial={{ opacity: 0, x: 30 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="flex flex-wrap gap-3 w-full lg:w-auto"
@@ -170,11 +170,11 @@ export default function MovimientosPage() {
                         <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
                         SINCRONIZAR
                     </Button>
-                </motion.div>
+                </m.div>
             </div>
 
             {/* --- TABLE --- */}
-            <motion.div
+            <m.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
@@ -215,7 +215,7 @@ export default function MovimientosPage() {
                                     const isPos = mov.cantidad > 0
 
                                     return (
-                                        <motion.tr
+                                        <m.tr
                                             key={mov.id}
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
@@ -250,7 +250,7 @@ export default function MovimientosPage() {
                                             <TableCell className={`text-right pr-8 font-black bg-slate-50/50 tabular-nums ${isPos ? 'text-emerald-600' : 'text-rose-600'}`}>
                                                 {formatCurrency(Math.abs(mov.valor_total))}
                                             </TableCell>
-                                        </motion.tr>
+                                        </m.tr>
                                     )
                                 })
                             )}
@@ -266,7 +266,7 @@ export default function MovimientosPage() {
                         </p>
                     </div>
                 )}
-            </motion.div>
+            </m.div>
         </div>
     )
 }

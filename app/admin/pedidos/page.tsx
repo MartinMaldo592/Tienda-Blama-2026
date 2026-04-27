@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, Suspense } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import { createClient } from "@/lib/supabase.client"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
@@ -395,7 +395,7 @@ function PedidosPageContent() {
         <div className="space-y-10 pb-20 max-w-[1600px] mx-auto animate-in fade-in duration-700">
             {/* --- HEADER --- */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 pt-4">
-                <motion.div 
+                <m.div 
                     initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="space-y-4"
@@ -410,7 +410,7 @@ function PedidosPageContent() {
                                     {userRole === 'admin' ? 'Pedidos' : 'Mis Entregas'}
                                 </h1>
                                 {isFetching && !loadingPedidos && (
-                                    <motion.div 
+                                    <m.div 
                                         initial={{ opacity: 0, scale: 0.5 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         className="bg-blue-50 text-blue-600 p-2 rounded-xl"
@@ -427,9 +427,9 @@ function PedidosPageContent() {
                             </div>
                         </div>
                     </div>
-                </motion.div>
+                </m.div>
 
-                <motion.div 
+                <m.div 
                     initial={{ opacity: 0, x: 30 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="flex flex-wrap gap-3 w-full lg:w-auto"
@@ -448,7 +448,7 @@ function PedidosPageContent() {
 
                             <AnimatePresence>
                                 {exportDropdownOpen && (
-                                    <motion.div
+                                    <m.div
                                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -486,7 +486,7 @@ function PedidosPageContent() {
                                                 </div>
                                             </button>
                                         </div>
-                                    </motion.div>
+                                    </m.div>
                                 )}
                             </AnimatePresence>
                         </div>
@@ -499,13 +499,13 @@ function PedidosPageContent() {
                         {isFetching ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />}
                         SINCRONIZAR
                     </Button>
-                </motion.div>
+                </m.div>
             </div>
 
             {/* --- BULK ACTIONS --- */}
             <AnimatePresence>
                 {selectedIds.length > 0 && (
-                    <motion.div 
+                    <m.div 
                         initial={{ opacity: 0, y: -20, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -20, scale: 0.95 }}
@@ -553,12 +553,12 @@ function PedidosPageContent() {
                                 CANCELAR
                             </Button>
                         </div>
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
 
             {/* --- FILTERS BAR --- */}
-            <motion.div 
+            <m.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
@@ -629,11 +629,11 @@ function PedidosPageContent() {
                         </div>
                     )}
                 </div>
-            </motion.div>
+            </m.div>
 
             {/* --- TABLE --- */}
             {(userRole === 'admin' || totalItems > 0) && (
-                <motion.div 
+                <m.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
@@ -642,7 +642,7 @@ function PedidosPageContent() {
                     {/* Top Loader Bar */}
                     <AnimatePresence>
                         {isFetching && !loadingPedidos && (
-                            <motion.div 
+                            <m.div 
                                 initial={{ scaleX: 0, opacity: 0 }}
                                 animate={{ scaleX: 1, opacity: 1 }}
                                 exit={{ opacity: 0 }}
@@ -689,7 +689,7 @@ function PedidosPageContent() {
                                     {paginatedPedidos.map((pedido: PedidoRow, index: number) => {
                                         const isNew = recentOrderIds.has(pedido.id)
                                         return (
-                                            <motion.tr
+                                            <m.tr
                                                 key={pedido.id}
                                                 layout
                                                 initial={{ opacity: 0, x: direction * 30, filter: 'blur(4px)' }}
@@ -810,7 +810,7 @@ function PedidosPageContent() {
                                                         </Button>
                                                     </Link>
                                                 </TableCell>
-                                            </motion.tr>
+                                            </m.tr>
                                         )
                                     })}
                                 </AnimatePresence>
@@ -862,7 +862,7 @@ function PedidosPageContent() {
                             </div>
                         </div>
                     )}
-                </motion.div>
+                </m.div>
             )}
 
             {/* --- DIALOGS --- */}

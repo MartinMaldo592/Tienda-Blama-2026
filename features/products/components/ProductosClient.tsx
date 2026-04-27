@@ -23,7 +23,7 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 
 interface ProductosClientProps {
     initialProducts: Product[]
@@ -107,7 +107,7 @@ export function ProductosClient({
             {/* --- HERO HEADER --- */}
             <div className="relative pt-20 pb-16 overflow-hidden">
                 <div className="container mx-auto px-6 relative z-10">
-                    <motion.div 
+                    <m.div 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="max-w-3xl"
@@ -122,7 +122,7 @@ export function ProductosClient({
                         <p className="text-lg text-slate-500 font-medium leading-relaxed max-w-xl">
                             Explora piezas seleccionadas por su diseño, calidad y carácter. Objetos que cuentan una historia en cada detalle.
                         </p>
-                    </motion.div>
+                    </m.div>
                 </div>
                 {/* Decorative Element */}
                 <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-blue-50/50 to-transparent pointer-events-none" />
@@ -196,7 +196,7 @@ export function ProductosClient({
                 {/* --- ACTIVE BADGES --- */}
                 <AnimatePresence>
                     {(selectedCategory !== "all" || onlyInStock || minPrice || maxPrice || initialParams.q) && (
-                        <motion.div 
+                        <m.div 
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
@@ -212,7 +212,7 @@ export function ProductosClient({
                             >
                                 Limpiar Todo
                             </Button>
-                        </motion.div>
+                        </m.div>
                     )}
                 </AnimatePresence>
 
@@ -224,7 +224,7 @@ export function ProductosClient({
                             <p className="text-xl font-medium">No encontramos lo que buscas.</p>
                         </div>
                     ) : (
-                        <motion.div 
+                        <m.div 
                             variants={container}
                             initial="hidden"
                             animate="show"
@@ -233,7 +233,7 @@ export function ProductosClient({
                             {initialProducts.map((producto, idx) => (
                                 <ProductCard key={producto.id} product={producto as any} imagePriority={idx < 4} />
                             ))}
-                        </motion.div>
+                        </m.div>
                     )}
 
                     {/* --- PAGINATION --- */}

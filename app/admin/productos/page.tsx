@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table"
 
 import { formatCurrency } from "@/lib/utils"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import { Loader2, Search, Plus, ImageIcon, Trash2, Edit, RefreshCw, Box, ArrowRight } from "lucide-react"
 import { fetchAdminProductos, deleteFromR2 } from "@/features/admin"
 import { deleteProductAction } from "@/features/admin/actions/products"
@@ -107,7 +107,7 @@ export default function ProductosPage() {
         <div className="space-y-8 pb-10">
             {/* --- HEADER --- */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-                <motion.div 
+                <m.div 
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                 >
@@ -118,9 +118,9 @@ export default function ProductosPage() {
                         <h1 className="text-4xl font-black text-slate-900 tracking-tight">Productos</h1>
                     </div>
                     <p className="text-slate-500 font-medium">Gestiona tu inventario con precisión quirúrgica.</p>
-                </motion.div>
+                </m.div>
 
-                <motion.div 
+                <m.div 
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="flex gap-3 w-full md:w-auto"
@@ -139,11 +139,11 @@ export default function ProductosPage() {
                             <Plus className="h-5 w-5" /> Nuevo Ítem
                         </Link>
                     </Button>
-                </motion.div>
+                </m.div>
             </div>
 
             {/* --- SEARCH & FILTERS --- */}
-            <motion.div 
+            <m.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
@@ -158,10 +158,10 @@ export default function ProductosPage() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
-            </motion.div>
+            </m.div>
 
             {/* --- TABLE CONTAINER --- */}
-            <motion.div 
+            <m.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
@@ -192,7 +192,7 @@ export default function ProductosPage() {
                                 </TableRow>
                             ) : (
                                 filteredProductos.map((producto: Producto, index: number) => (
-                                    <motion.tr 
+                                    <m.tr 
                                         key={producto.id}
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
@@ -261,13 +261,13 @@ export default function ProductosPage() {
                                                 </Button>
                                             </div>
                                         </TableCell>
-                                    </motion.tr>
+                                    </m.tr>
                                 ))
                             )}
                         </AnimatePresence>
                     </TableBody>
                 </Table>
-            </motion.div>
+            </m.div>
         </div>
     )
 }

@@ -39,7 +39,7 @@ import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidoDetail, updatePedid
 import { createClient } from "@/lib/supabase.client"
 import { OrderNotesCard } from "@/components/admin/orders/order-notes-card"
 import { OrderLabelGenerator } from "@/components/admin/orders/order-label-generator"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 
 export default function PedidoDetallePage() {
     const params = useParams()
@@ -462,7 +462,7 @@ export default function PedidoDetallePage() {
             </div>
 
             {/* --- STEPPER PROGRESS --- */}
-            <motion.div 
+            <m.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full bg-white border border-slate-100 rounded-[2.5rem] p-10 shadow-[0_8px_30px_rgb(0,0,0,0.03)]"
@@ -493,16 +493,16 @@ export default function PedidoDetallePage() {
                     })}
                 </div>
                 {(pedido.status === 'Fallido' || pedido.status === 'Cancelado') && (
-                    <motion.div 
+                    <m.div 
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         className="mt-8 flex items-center justify-center gap-3 py-4 bg-rose-50 rounded-2xl border border-rose-100 text-rose-600 font-bold"
                     >
                         <AlertCircle size={20} />
                         ORDEN CANCELADA O FALLIDA
-                    </motion.div>
+                    </m.div>
                 )}
-            </motion.div>
+            </m.div>
 
             {/* --- LOCKED NOTICE --- */}
             {isLocked && (

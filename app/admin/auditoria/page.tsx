@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase.client"
 import { fetchAuditLogs, AuditLog } from "@/features/admin/services/audit.client"
@@ -121,7 +121,7 @@ export default function AuditPage() {
                                 </TableRow>
                             ) : (
                                 logs.map((log) => (
-                                    <motion.tr
+                                    <m.tr
                                         key={log.id}
                                         layout
                                         initial={{ opacity: 0, y: -20 }}
@@ -164,7 +164,7 @@ export default function AuditPage() {
                                                 <Eye className="h-4 w-4" />
                                             </Button>
                                         </TableCell>
-                                    </motion.tr>
+                                    </m.tr>
                                 ))
                             )}
                         </AnimatePresence>

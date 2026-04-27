@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
 import { Badge } from "@/components/ui/badge"
@@ -159,7 +159,7 @@ export default function InventarioPage() {
         <div className="space-y-10 pb-20 max-w-[1600px] mx-auto animate-in fade-in duration-700">
             {/* --- HEADER --- */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 pt-4">
-                <motion.div
+                <m.div
                     initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="space-y-4"
@@ -172,13 +172,13 @@ export default function InventarioPage() {
                             <div className="flex items-center gap-3">
                                 <h1 className="text-5xl font-black text-slate-900 tracking-tight">Inventario</h1>
                                 {loading && (
-                                    <motion.div
+                                    <m.div
                                         initial={{ opacity: 0, scale: 0.5 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         className="bg-emerald-50 text-emerald-600 p-2 rounded-xl"
                                     >
                                         <RefreshCw className="h-4 w-4 animate-spin" />
-                                    </motion.div>
+                                    </m.div>
                                 )}
                             </div>
                             <div className="flex items-center gap-2 mt-1">
@@ -189,9 +189,9 @@ export default function InventarioPage() {
                             </div>
                         </div>
                     </div>
-                </motion.div>
+                </m.div>
 
-                <motion.div
+                <m.div
                     initial={{ opacity: 0, x: 30 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="flex flex-wrap gap-3 w-full lg:w-auto"
@@ -215,11 +215,11 @@ export default function InventarioPage() {
                         <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
                         SINCRONIZAR
                     </Button>
-                </motion.div>
+                </m.div>
             </div>
 
             {/* --- STATS CARDS --- */}
-            <motion.div
+            <m.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
@@ -253,10 +253,10 @@ export default function InventarioPage() {
                     onClick={() => setStockFilter(stockFilter === "out" ? "all" : "out")}
                     active={stockFilter === "out"}
                 />
-            </motion.div>
+            </m.div>
 
             {/* --- FILTERS BAR --- */}
-            <motion.div
+            <m.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
@@ -298,10 +298,10 @@ export default function InventarioPage() {
 
                     <AjusteStockModal items={inventory} />
                 </div>
-            </motion.div>
+            </m.div>
 
             {/* --- TABLE --- */}
-            <motion.div
+            <m.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
@@ -337,7 +337,7 @@ export default function InventarioPage() {
                             </TableRow>
                         ) : (
                             filtered.map((item, idx) => (
-                                <motion.tr
+                                <m.tr
                                     key={`${item.producto_id}_${item.variante_id}`}
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
@@ -367,7 +367,7 @@ export default function InventarioPage() {
                                             </Badge>
                                         )}
                                     </TableCell>
-                                </motion.tr>
+                                </m.tr>
                             ))
                         )}
                     </TableBody>
@@ -381,7 +381,7 @@ export default function InventarioPage() {
                         </p>
                     </div>
                 )}
-            </motion.div>
+            </m.div>
         </div>
     )
 }
@@ -406,7 +406,7 @@ function InventoryStatCard({ label, value, icon, colorClass, loading, delay = 0,
     }
 
     return (
-        <motion.div
+        <m.div
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay, duration: 0.5, ease: "easeOut" }}
@@ -430,6 +430,6 @@ function InventoryStatCard({ label, value, icon, colorClass, loading, delay = 0,
                     )}
                 </div>
             </div>
-        </motion.div>
+        </m.div>
     )
 }

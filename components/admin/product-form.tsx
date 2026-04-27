@@ -18,7 +18,7 @@ import { MediaManager } from "./product-form/media-manager"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { productSchema, ProductFormValues } from "@/features/admin/schemas/product.schema"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import { fetchProductoSpecsAndVariants } from "@/features/admin"
 
 interface ProductFormProps {
@@ -207,7 +207,7 @@ export function ProductForm({ productToEdit, categories = DEFAULT_CATEGORIES, on
                         <tab.icon size={16} className="relative z-10" />
                         <span className="relative z-10 hidden sm:inline">{tab.label}</span>
                         {activeTab === tab.id && (
-                            <motion.div 
+                            <m.div 
                                 layoutId="activeTab"
                                 className="absolute inset-0 bg-slate-900 rounded-2xl shadow-lg shadow-slate-200"
                                 transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
@@ -219,7 +219,7 @@ export function ProductForm({ productToEdit, categories = DEFAULT_CATEGORIES, on
 
             <div className="bg-white rounded-[2.5rem] p-8 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.05)] border border-slate-100 min-h-[500px]">
                 <AnimatePresence mode="wait">
-                    <motion.div
+                    <m.div
                         key={activeTab}
                         initial={{ opacity: 0, x: 10 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -315,7 +315,7 @@ export function ProductForm({ productToEdit, categories = DEFAULT_CATEGORIES, on
                                 </div>
                             </div>
                         )}
-                    </motion.div>
+                    </m.div>
                 </AnimatePresence>
             </div>
 

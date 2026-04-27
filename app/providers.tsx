@@ -2,18 +2,9 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { useState } from "react"
-import { useJsApiLoader, Libraries } from "@react-google-maps/api"
-
-const libraries: Libraries = ["places"]
+import { LazyMotion, domMax } from "framer-motion"
 
 export function Providers({ children }: { children: React.ReactNode }) {
-    // Carga de Google Maps sin bloquear el renderizado de la app
-    useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-        libraries: libraries,
-    })
-
     const [queryClient] = useState(() => new QueryClient({
         defaultOptions: {
             queries: {
@@ -25,7 +16,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
     return (
         <QueryClientProvider client={queryClient}>
-            {children}
+            <LazyMotion features={domMax} strict>
+                {children}
+            </LazyMotion>
         </QueryClientProvider>
     )
 }

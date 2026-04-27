@@ -15,7 +15,7 @@ import { createClient } from "@/lib/supabase.client"
 import { PedidoRow, PedidoPago } from "@/features/admin/types"
 import { formatCurrency } from "@/lib/utils"
 import { useFileUpload } from "@/hooks/use-file-upload"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 
 interface OrderPaymentCardProps {
     pedido: PedidoRow
@@ -299,7 +299,7 @@ export function OrderPaymentCard({ pedido, isLocked, currentUser, userRole = 'wo
                             <span className={porcentajePagado >= 100 ? 'text-emerald-600' : ''}>{porcentajePagado}%</span>
                         </div>
                         <div className="h-3 w-full bg-slate-200 rounded-full overflow-hidden">
-                            <motion.div 
+                            <m.div 
                                 className={`h-full rounded-full ${porcentajePagado >= 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
                                 initial={{ width: 0 }}
                                 animate={{ width: `${porcentajePagado}%` }}
@@ -357,7 +357,7 @@ export function OrderPaymentCard({ pedido, isLocked, currentUser, userRole = 'wo
                                 const amountClass = isRefund ? 'text-rose-600' : 'text-slate-900';
                                 
                                 return (
-                                    <motion.div 
+                                    <m.div 
                                         key={pago.id}
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
@@ -438,7 +438,7 @@ export function OrderPaymentCard({ pedido, isLocked, currentUser, userRole = 'wo
                                         {/* Image Preview */}
                                         <AnimatePresence>
                                             {pago.comprobante_url && visiblePayments[pago.id] && (
-                                                <motion.div 
+                                                <m.div 
                                                     initial={{ height: 0, opacity: 0 }}
                                                     animate={{ height: 'auto', opacity: 1 }}
                                                     exit={{ height: 0, opacity: 0 }}
@@ -458,10 +458,10 @@ export function OrderPaymentCard({ pedido, isLocked, currentUser, userRole = 'wo
                                                             </a>
                                                         </div>
                                                     )}
-                                                </motion.div>
+                                                </m.div>
                                             )}
                                         </AnimatePresence>
-                                    </motion.div>
+                                    </m.div>
                                 )
                             })}
                         </AnimatePresence>
@@ -474,7 +474,7 @@ export function OrderPaymentCard({ pedido, isLocked, currentUser, userRole = 'wo
                 <div className="p-8 pt-0">
                     <AnimatePresence mode="wait">
                         {!showForm ? (
-                            <motion.div
+                            <m.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
@@ -485,9 +485,9 @@ export function OrderPaymentCard({ pedido, isLocked, currentUser, userRole = 'wo
                                 >
                                     <Plus size={18} className="mr-2" /> AGREGAR TRANSACCIÓN
                                 </Button>
-                            </motion.div>
+                            </m.div>
                         ) : (
-                            <motion.div
+                            <m.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
@@ -673,7 +673,7 @@ export function OrderPaymentCard({ pedido, isLocked, currentUser, userRole = 'wo
                                         {saving ? 'PROCESANDO...' : `CONFIRMAR INGRESO DE ${monto ? formatCurrency(parseFloat(monto) || 0) : 'S/0.00'}`}
                                     </Button>
                                 </div>
-                            </motion.div>
+                            </m.div>
                         )}
                     </AnimatePresence>
                 </div>

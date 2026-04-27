@@ -11,7 +11,7 @@ import { useDashboardStats } from "@/features/admin/hooks/use-admin-dashboard"
 import { useQueryClient } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase.client"
 import { DashboardStatsSkeleton } from "@/components/admin/skeleton-previews"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { SalesChart, type SalesDataPoint } from "@/components/admin/dashboard/sales-chart"
 import { fetchAdminSalesChart } from "@/features/admin/services/dashboard.client"
@@ -87,7 +87,7 @@ export default function AdminDashboard() {
         <div className="space-y-10 pb-20 max-w-[1600px] mx-auto animate-in fade-in duration-700">
             {/* --- HEADER MATCHING PEDIDOS/PRODUCTOS --- */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 pt-4">
-                <motion.div 
+                <m.div 
                     initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="space-y-4"
@@ -110,9 +110,9 @@ export default function AdminDashboard() {
                             </div>
                         </div>
                     </div>
-                </motion.div>
+                </m.div>
 
-                <motion.div 
+                <m.div 
                     initial={{ opacity: 0, x: 30 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="flex flex-wrap gap-3 w-full lg:w-auto"
@@ -125,14 +125,14 @@ export default function AdminDashboard() {
                         <RefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
                         SINCRONIZAR
                     </Button>
-                </motion.div>
+                </m.div>
             </div>
 
             {/* --- MAIN STATS GRID --- */}
             {isLoading ? (
                 <DashboardStatsSkeleton />
             ) : (
-                <motion.div 
+                <m.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
@@ -193,12 +193,12 @@ export default function AdminDashboard() {
                             delay={0.1}
                         />
                     )}
-                </motion.div>
+                </m.div>
             )}
 
             {/* --- SALES CHART & SECONDARY STATS --- */}
             {userRole === "admin" && (
-                <motion.div 
+                <m.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
@@ -231,7 +231,7 @@ export default function AdminDashboard() {
                         />
                         
                         {/* --- QUICK LINKS CARD --- */}
-                        <motion.div 
+                        <m.div 
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.45 }}
@@ -255,13 +255,13 @@ export default function AdminDashboard() {
                                     <span className="font-bold text-sm tracking-wide">Inventario</span>
                                 </Link>
                             </div>
-                        </motion.div>
+                        </m.div>
                     </div>
-                </motion.div>
+                </m.div>
             )}
 
             {userRole !== 'admin' && (
-                <motion.div 
+                <m.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
@@ -279,7 +279,7 @@ export default function AdminDashboard() {
                         </div>
                         <ArrowRight size={24} className="text-slate-500 group-hover:translate-x-2 group-hover:text-white transition-all" />
                     </Link>
-                </motion.div>
+                </m.div>
             )}
         </div>
     )
@@ -315,7 +315,7 @@ function StatsCard({ title, value, change, icon, wrapperClass, loading, href, de
     }
 
     const content = (
-        <motion.div 
+        <m.div 
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay, duration: 0.5, ease: "easeOut" }}
@@ -353,7 +353,7 @@ function StatsCard({ title, value, change, icon, wrapperClass, loading, href, de
                     )}
                 </div>
             </div>
-        </motion.div>
+        </m.div>
     )
 
     if (typeof href === 'string') {
