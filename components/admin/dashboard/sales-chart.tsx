@@ -58,34 +58,34 @@ export function SalesChart({ data, loading, period, onPeriodChange }: SalesChart
     }
 
     return (
-        <Card className="col-span-4 border shadow-sm overflow-hidden bg-white/50 backdrop-blur-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="col-span-4 border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden bg-white rounded-[2rem] h-full flex flex-col">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0 pb-6 pt-8 px-8">
                 <div className="space-y-1">
-                    <CardTitle className="text-base font-semibold text-gray-800">Tendencia de Ventas</CardTitle>
+                    <CardTitle className="text-xl font-black text-slate-900 tracking-tight">Tendencia de Ventas</CardTitle>
                     <CardDescription>
                         Total en este periodo: <span className="font-bold text-gray-900 text-lg ml-1">{formatCurrency(totalPeriodSales)}</span>
                         <span className="text-gray-300 mx-2">•</span>
                         <span className="font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full text-xs">{totalPeriodOrders} pedidos</span>
                     </CardDescription>
                 </div>
-                <div className="flex bg-gray-100 p-1 rounded-xl">
+                <div className="flex bg-slate-100 p-1 rounded-2xl w-full sm:w-auto mt-4 sm:mt-0">
                     {(["week", "month", "year"] as const).map((p) => (
                         <Button
                             key={p}
                             variant="ghost"
                             size="sm"
                             onClick={() => onPeriodChange(p)}
-                            className={`px-3 h-8 text-xs font-medium rounded-lg transition-all ${period === p
-                                ? "bg-white text-gray-900 shadow-sm ring-1 ring-black/5"
-                                : "text-gray-500 hover:text-gray-900 hover:bg-gray-200/50"
+                            className={`flex-1 sm:flex-none px-6 h-10 text-xs font-black tracking-wide rounded-[1rem] transition-all haptic-scale ${period === p
+                                ? "bg-white text-blue-600 shadow-md ring-1 ring-slate-200"
+                                : "text-slate-500 hover:text-slate-900 hover:bg-slate-200/50"
                                 }`}
                         >
-                            {p === "week" ? "7 Días" : p === "month" ? "30 Días" : "Año"}
+                            {p === "week" ? "7 DÍAS" : p === "month" ? "30 DÍAS" : "AÑO"}
                         </Button>
                     ))}
                 </div>
             </CardHeader>
-            <CardContent className="pl-0 pr-0 pb-0">
+            <CardContent className="px-2 sm:px-8 pb-8 flex-1">
                 <div className="h-[350px] w-full mt-4">
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart
