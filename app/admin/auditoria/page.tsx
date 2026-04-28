@@ -7,162 +7,98 @@ import { createClient } from "@/lib/supabase.client"
 import { fetchAuditLogs, AuditLog } from "@/features/admin/services/audit.client"
 import { useRoleGuard } from "@/lib/use-role-guard"
 import { AccessDenied } from "@/components/admin/access-denied"
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
+import { AdminPageHeader } from "@/components/admin/page-header"
+import { AdminPageSkeleton } from "@/components/admin/page-skeleton"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ShieldAlert, Activity, RefreshCw, User, Database, Clock, Eye, Filter } from "lucide-react"
-import { TableRowsSkeleton } from "@/components/admin/skeleton-previews"
+import { ShieldAlert, Activity, RefreshCw, User, Database, Clock, Eye } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 
 export default function AuditPage() {
-    const queryClient = useQueryClient()
+    const qc = useQueryClient()
     const guard = useRoleGuard({ allowedRoles: ['admin'] })
     const [isLive, setIsLive] = useState(true)
 
     const { data: logs = [], isLoading, isFetching } = useQuery({
-        queryKey: ["auditLogs"],
-        queryFn: fetchAuditLogs,
-        refetchInterval: isLive ? 10000 : false, // Auto-refresh every 10s if live
+        queryKey: ["auditLogs"], queryFn: fetchAuditLogs,
+        refetchInterval: isLive ? 10000 : false,
     })
 
-    // Real-time subscription
     useEffect(() => {
         if (!isLive) return
-
         const supabase = createClient()
-        const channel = supabase
-            .channel('system_audit_logs_changes')
-            .on(
-                'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'system_audit_logs' },
-                () => {
-                    queryClient.invalidateQueries({ queryKey: ["auditLogs"] })
-                }
-            )
-            .subscribe()
-
-        return () => {
-            supabase.removeChannel(channel)
-        }
-    }, [isLive, queryClient])
+        const channel = supabase.channel('system_audit_logs_changes').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'system_audit_logs' }, () => { qc.invalidateQueries({ queryKey: ["auditLogs"] }) }).subscribe()
+        return () => { supabase.removeChannel(channel) }
+    }, [isLive, qc])
 
     if (guard.accessDenied) return <AccessDenied />
-    if (guard.loading) return <TableRowsSkeleton columns={5} rows={10} />
+    if (guard.loading || isLoading) return <AdminPageSkeleton hasStats={0} tableColumns={5} tableRows={10} />
 
     const getActionBadge = (action: string) => {
         switch (action) {
-            case 'INSERT': return <Badge className="bg-green-100 text-green-700 border-green-200">INSERTAR</Badge>
-            case 'UPDATE': return <Badge className="bg-blue-100 text-blue-700 border-blue-200">ACTUALIZAR</Badge>
-            case 'DELETE': return <Badge className="bg-red-100 text-red-700 border-red-200">ELIMINAR</Badge>
-            default: return <Badge variant="outline">{action}</Badge>
+            case 'INSERT': return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 rounded-full">INSERTAR</Badge>
+            case 'UPDATE': return <Badge className="bg-blue-100 text-blue-700 border-blue-200 rounded-full">ACTUALIZAR</Badge>
+            case 'DELETE': return <Badge className="bg-red-100 text-red-700 border-red-200 rounded-full">ELIMINAR</Badge>
+            default: return <Badge variant="outline" className="rounded-full">{action}</Badge>
         }
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                        <ShieldAlert className="h-8 w-8 text-blue-600" />
-                        Panel de Auditoría
-                    </h1>
-                    <p className="text-gray-500">Monitoreo de actividad del sistema en tiempo real.</p>
-                </div>
-
-                <div className="flex gap-2">
-                    <Button 
-                        variant={isLive ? "default" : "outline"}
-                        className={`gap-2 haptic-scale ${isLive ? 'bg-green-600 hover:bg-green-700' : ''}`}
-                        onClick={() => setIsLive(!isLive)}
-                    >
-                        <Activity className={`h-4 w-4 ${isLive ? 'animate-pulse' : ''}`} />
-                        {isLive ? 'Live Tracking ON' : 'Live Tracking OFF'}
+        <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="space-y-10 max-w-[1600px] mx-auto">
+            <AdminPageHeader icon={<ShieldAlert size={28} strokeWidth={1.5} />} iconColor="bg-slate-800" iconShadow="shadow-slate-300" title="Auditoría" subtitle="Monitoreo de actividad del sistema en tiempo real" isFetching={isFetching} dotColor={isLive ? "bg-emerald-500" : "bg-slate-300"}
+                actions={<>
+                    <Button variant={isLive ? "default" : "outline"} className={`gap-2 haptic-scale rounded-2xl h-14 px-6 font-bold ${isLive ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg' : ''}`} onClick={() => setIsLive(!isLive)}>
+                        <Activity className={`h-4 w-4 ${isLive ? 'animate-pulse' : ''}`} />{isLive ? 'Live ON' : 'Live OFF'}
                     </Button>
-                    <Button
-                        variant="outline"
-                        className="gap-2 haptic-scale"
-                        onClick={() => queryClient.invalidateQueries({ queryKey: ["auditLogs"] })}
-                        disabled={isFetching}
-                    >
-                        <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-                        Refrescar
+                    <Button variant="outline" className="gap-2 haptic-scale shadow-sm rounded-2xl h-14 px-6 font-bold" onClick={() => qc.invalidateQueries({ queryKey: ["auditLogs"] })} disabled={isFetching}>
+                        <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />Refrescar
                     </Button>
-                </div>
-            </div>
+                </>}
+            />
 
-            <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+            <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
                 <Table>
-                    <TableHeader className="bg-gray-50">
-                        <TableRow>
-                            <TableHead className="w-[180px]">Fecha y Hora</TableHead>
-                            <TableHead>Usuario</TableHead>
-                            <TableHead>Acción</TableHead>
-                            <TableHead>Tabla / ID</TableHead>
-                            <TableHead className="text-right">Detalles</TableHead>
+                    <TableHeader className="bg-slate-50/50">
+                        <TableRow className="h-16 hover:bg-transparent border-slate-100">
+                            {["Fecha y Hora", "Usuario", "Acción", "Tabla / ID", "Detalles"].map((h, i) => (
+                                <TableHead key={h} className={`text-slate-400 font-black text-[11px] uppercase tracking-widest ${i === 0 ? 'pl-8' : ''} ${i === 4 ? 'pr-8 text-right' : ''}`}>{h}</TableHead>
+                            ))}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         <AnimatePresence mode="popLayout">
-                            {isLoading ? (
-                                <TableRowsSkeleton columns={5} rows={10} hasCheckbox={false} />
-                            ) : logs.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-20 text-gray-400 italic">
-                                        No se han registrado acciones aún.
-                                    </TableCell>
-                                </TableRow>
+                            {logs.length === 0 ? (
+                                <TableRow><TableCell colSpan={5} className="text-center py-20 text-slate-400 italic">No se han registrado acciones aún.</TableCell></TableRow>
                             ) : (
                                 logs.map((log) => (
-                                    <m.tr
-                                        key={log.id}
-                                        layout
-                                        initial={{ opacity: 0, y: -20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, scale: 0.95 }}
-                                        className="hover:bg-gray-50 transition-colors border-b last:border-0"
-                                    >
-                                        <TableCell className="font-medium text-gray-600">
+                                    <m.tr key={log.id} layout initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="h-[72px] hover:bg-slate-50/80 transition-colors border-slate-50">
+                                        <TableCell className="pl-8">
                                             <div className="flex items-center gap-2">
-                                                <Clock className="h-3 w-3 text-gray-400" />
-                                                {format(new Date(log.changed_at), "HH:mm:ss", { locale: es })}
-                                                <span className="text-[10px] text-gray-300 ml-1">
-                                                    {format(new Date(log.changed_at), "dd/MM/yy", { locale: es })}
-                                                </span>
+                                                <Clock className="h-3.5 w-3.5 text-slate-300" />
+                                                <span className="font-bold text-slate-700">{format(new Date(log.changed_at), "HH:mm:ss", { locale: es })}</span>
+                                                <span className="text-[10px] text-slate-300 ml-1">{format(new Date(log.changed_at), "dd/MM/yy", { locale: es })}</span>
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            <div className="flex items-center gap-2">
-                                                <div className="h-7 w-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-                                                    <User className="h-4 w-4" />
-                                                </div>
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-9 w-9 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center text-slate-500 border border-slate-200"><User className="h-4 w-4" /></div>
                                                 <div className="flex flex-col">
-                                                    <span className="text-sm font-semibold">{log.usuario?.nombre || 'Sistema'}</span>
-                                                    <span className="text-[10px] text-gray-400">{log.usuario?.email || 'automated@blama.com'}</span>
+                                                    <span className="text-sm font-bold text-slate-800">{log.usuario?.nombre || 'Sistema'}</span>
+                                                    <span className="text-[10px] text-slate-400">{log.usuario?.email || 'automated@blama.com'}</span>
                                                 </div>
                                             </div>
                                         </TableCell>
                                         <TableCell>{getActionBadge(log.action)}</TableCell>
                                         <TableCell>
                                             <div className="flex flex-col">
-                                                <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-gray-700 capitalize">
-                                                    <Database className="h-3 w-3 text-gray-400" />
-                                                    {log.table_name}
-                                                </div>
-                                                <span className="text-[10px] text-gray-400">ID: {log.record_id}</span>
+                                                <div className="flex items-center gap-1.5 text-xs font-mono font-black text-slate-700 capitalize"><Database className="h-3.5 w-3.5 text-slate-300" />{log.table_name}</div>
+                                                <span className="text-[10px] text-slate-300">ID: {log.record_id}</span>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-right">
-                                            <Button variant="ghost" size="sm" className="h-8 w-8 haptic-scale">
-                                                <Eye className="h-4 w-4" />
-                                            </Button>
+                                        <TableCell className="pr-8 text-right">
+                                            <Button variant="ghost" size="sm" className="h-9 w-9 haptic-scale rounded-xl"><Eye className="h-4 w-4 text-slate-400" /></Button>
                                         </TableCell>
                                     </m.tr>
                                 ))
@@ -170,7 +106,7 @@ export default function AuditPage() {
                         </AnimatePresence>
                     </TableBody>
                 </Table>
-            </div>
-        </div>
+            </m.div>
+        </m.div>
     )
 }
