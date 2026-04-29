@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef, Suspense } from "react"
 import { m, AnimatePresence } from "framer-motion"
 import { createClient } from "@/lib/supabase.client"
-import { useRoleGuard } from "@/lib/use-role-guard"
-import { AccessDenied } from "@/components/admin/access-denied"
+import { useRoleGuard } from "@/hooks/use-role-guard"
+import { AccessDenied } from "@/features/admin/components/access-denied"
 import {
     Table,
     TableBody,
@@ -37,8 +37,8 @@ import {
 } from "@/components/ui/select"
 import { formatCurrency } from "@/lib/utils"
 import { toast } from "sonner"
-import { PaymentStatusBadge } from "@/components/admin/orders/status-badges"
-import { OrderRowSkeleton } from "@/components/admin/skeleton-previews"
+import { PaymentStatusBadge } from "@/features/admin/components/orders/status-badges"
+import { OrderRowSkeleton } from "@/features/admin/components/skeleton-previews"
 import Link from "next/link"
 import { Skeleton } from "@/components/ui/skeleton"
 import { usePathname, useSearchParams, useRouter } from "next/navigation"

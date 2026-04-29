@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { triggerOrderConfirmationEmail } from "@/lib/email-service"
+import { triggerOrderConfirmationEmail } from "@/features/emails"
 import { checkRateLimit, getClientIP } from "@/lib/rate-limit"
 import { z } from "zod"
 
 export const runtime = "nodejs"
 
-import { validateAndCalculateTotals } from "@/lib/checkout-utils"
+import { validateAndCalculateTotals } from "@/features/checkout"
 
 function getEnv() {
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -25,7 +25,7 @@ const CheckoutItemSchema = z.object({
   variante_nombre: z.string().nullable().optional(),
 })
 
-import { identitySchema, checkoutBaseFields } from "@/lib/validations/checkout.schema"
+import { identitySchema, checkoutBaseFields } from "@/features/checkout"
 
 const CheckoutBodySchema = z.object({
   name: identitySchema.name,

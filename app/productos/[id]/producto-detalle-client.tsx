@@ -45,7 +45,7 @@ import { ProductCard } from "@/components/product-card"
 import { ProductSocialProof } from "@/components/product-social-proof"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import dynamic from "next/dynamic"
-const QuickCheckoutModal = dynamic(() => import("@/components/quick-checkout-modal").then(mod => mod.QuickCheckoutModal), {
+const QuickCheckoutModal = dynamic(() => import("@/features/checkout/components/quick-checkout-modal").then(mod => mod.QuickCheckoutModal), {
     ssr: false
 })
 
@@ -64,7 +64,7 @@ function parseProductIdentifier(raw: string): string | number {
     return raw
 }
 
-import { useWhatsAppStore } from "@/lib/whatsapp-store"
+import { useWhatsAppStore } from "@/features/checkout"
 
 // ... existing imports
 

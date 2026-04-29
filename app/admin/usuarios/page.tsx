@@ -7,11 +7,13 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useRoleGuard } from "@/lib/use-role-guard"
-import { AccessDenied } from "@/components/admin/access-denied"
-import { AdminPageHeader } from "@/components/admin/page-header"
-import { AdminPageSkeleton } from "@/components/admin/page-skeleton"
-import { createWorkerViaApi, fetchAdminProfiles, updateUserRole, updateUserProfile } from "@/features/admin"
+import { useRoleGuard } from "@/hooks/use-role-guard"
+import { AccessDenied } from "@/features/admin/components/access-denied"
+import { AdminPageHeader } from "@/features/admin/components/page-header"
+import { AdminPageSkeleton } from "@/features/admin/components/page-skeleton"
+import { fetchAdminProfiles } from "@/features/admin"
+import { createWorkerAction, updateUserProfile, updateUserRole } from "@/features/admin/actions/users"
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ShieldCheck, UserCheck, Loader2, Search, UserPlus, Mail, User, Shield, AlertTriangle, Lock, RefreshCw, Edit2, Users } from "lucide-react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
@@ -40,11 +42,15 @@ export default function UsuariosPage() {
 
   const createMut = useMutation({
     mutationFn: async () => {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session) throw new Error("No hay sesión activa")
-      return createWorkerViaApi({ accessToken: session.access_token, email, nombre, password: password||null, role: roleToAssign })
+      return createWorkerAction({
+        email,
+        nombre,
+        password: password || null,
+        role: roleToAssign,
+        origin: window.location.origin
+      })
     },
+
     onSuccess: (json:any) => {
       toast.success(json?.isInvite?`Invitación enviada para rol ${roleToAssign==="admin"?"Administrador":"Trabajador"}.`:`Usuario creado como ${roleToAssign==="admin"?"Administrador":"Trabajador"}.`)
       setEmail("");setNombre("");setPassword("");setRoleToAssign("worker")

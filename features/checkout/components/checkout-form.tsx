@@ -30,17 +30,17 @@ import { useRouter } from "next/navigation"
 import { SuccessCheckmark } from "@/components/ui/success-checkmark"
 
 // New modular components
-import { CheckoutShipping } from "@/components/checkout/checkout-shipping"
-import { CheckoutCustomer } from "@/components/checkout/checkout-customer"
-import { CheckoutAddress } from "@/components/checkout/checkout-address"
-import { CheckoutSummary } from "@/components/checkout/checkout-summary"
-import { CheckoutPayment } from "@/components/checkout/checkout-payment" // Nuevo
-import { CulqiPaymentButton } from "@/components/checkout/culqi-payment-button" // Nuevo
+import { CheckoutShipping } from "@/features/checkout/components/checkout-shipping"
+import { CheckoutCustomer } from "@/features/checkout/components/checkout-customer"
+import { CheckoutAddress } from "@/features/checkout/components/checkout-address"
+import { CheckoutSummary } from "@/features/checkout/components/checkout-summary"
+import { CheckoutPayment } from "@/features/checkout/components/checkout-payment" // Nuevo
+import { CulqiPaymentButton } from "@/features/checkout/components/culqi-payment-button" // Nuevo
 
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { identitySchema, checkoutBaseFields } from "@/lib/validations/checkout.schema"
+import { identitySchema, checkoutBaseFields } from "@/features/checkout"
 
 // Define libraries array outside component to prevent re-renders
 const libraries: ("places")[] = ["places"];
