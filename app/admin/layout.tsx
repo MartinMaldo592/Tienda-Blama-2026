@@ -1,9 +1,9 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { useRoleGuard } from "@/lib/use-role-guard"
-import { AccessDenied } from "@/components/admin/access-denied"
-import { AdminSidebar } from "@/components/admin/sidebar"
+import { useRoleGuard } from "@/hooks/use-role-guard"
+import { AccessDenied } from "@/features/admin/components/access-denied"
+import { AdminSidebar } from "@/features/admin/components/sidebar"
 import { Bell, ArrowRight, Menu, Loader2, WifiOff, Wifi } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase.client"
 import { toast } from "sonner"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { CommandPalette } from "@/components/admin/command-palette"
+import { CommandPalette } from "@/features/admin/components/command-palette"
 
 // Force redeploy
 export default function AdminLayout({

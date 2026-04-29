@@ -108,7 +108,7 @@ export async function fetchAdminPedidosEnProceso(args: { status: StatusFilter; f
   return (data as any[]) || []
 }
 
-import type { SalesDataPoint } from "@/components/admin/dashboard/sales-chart"
+import type { SalesDataPoint } from "@/features/admin/components/dashboard/sales-chart"
 
 export async function fetchAdminSalesChart(period: "week" | "month" | "year"): Promise<SalesDataPoint[]> {
   const supabase = createClient()

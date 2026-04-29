@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { triggerOrderConfirmationEmail } from "@/lib/email-service"
+import { triggerOrderConfirmationEmail } from "@/features/emails"
 
 export const runtime = "nodejs"
 

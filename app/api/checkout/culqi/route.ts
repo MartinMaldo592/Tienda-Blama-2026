@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { triggerOrderConfirmationEmail } from "@/lib/email-service"
+import { triggerOrderConfirmationEmail } from "@/features/emails"
 import { checkRateLimit, getClientIP } from "@/lib/rate-limit"
 import { z } from "zod"
 
 export const runtime = "nodejs" // Necesario para hacer fetch a APIs externas sin problemas de timeout en Edge
 
-import { validateAndCalculateTotals } from "@/lib/checkout-utils"
+import { validateAndCalculateTotals } from "@/features/checkout"
 
 // ── Tipos y Esquemas ──
 
@@ -19,7 +19,7 @@ const CheckoutItemSchema = z.object({
     variante_nombre: z.string().nullable().optional(),
 })
 
-import { identitySchema, checkoutBaseFields } from "@/lib/validations/checkout.schema"
+import { identitySchema, checkoutBaseFields } from "@/features/checkout"
 
 const CulqiCheckoutSchema = z.object({
     // Datos del Cliente

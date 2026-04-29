@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase.client"
 import { fetchAdminDashboardStats, fetchAdminSalesChart } from "@/features/admin/services/dashboard.client"
 import type { AdminDashboardStats } from "@/features/admin/types"
-import type { SalesDataPoint } from "@/components/admin/dashboard/sales-chart"
+import type { SalesDataPoint } from "@/features/admin/components/dashboard/sales-chart"
 
 // Hook para las estadísticas generales
 export function useDashboardStats(role: string, currentUserId: string) {

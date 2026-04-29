@@ -2,7 +2,7 @@
 
 import { createClient as createAdminClient } from "@supabase/supabase-js"
 import { createClient as createServerClient } from "@/lib/supabase.server"
-import { getSupabaseEnv } from "@/features/admin/services/admin.server"
+import { getSupabaseEnv, validateAdminAction } from "@/features/admin/services/admin.server"
 import { revalidateTag, revalidatePath } from "next/cache"
 
 /**
@@ -83,33 +83,6 @@ function normalizeVideos(input: unknown) {
     if (unique.length >= 6) break
   }
   return unique
-}
-
-/**
- * Private helpers
- */
-
-async function validateAdmin() {
-    const supabase = await createServerClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-    if (authError || !user) throw new Error("No autenticado")
-
-    const { url, service } = getSupabaseEnv()
-    if (!url || !service) throw new Error("Error de configuración del servidor")
-
-    const supabaseAdmin = createAdminClient(url, service)
-    const { data: profile } = await supabaseAdmin
-        .from("usuarios")
-        .select("role")
-        .eq("id", user.id)
-        .maybeSingle()
-
-    if (String(profile?.role || "").toLowerCase() !== "admin") {
-        throw new Error("No tienes permisos de administrador")
-    }
-
-    return { supabaseAdmin, user }
 }
 
 async function internalUpsertProduct(args: {
@@ -275,7 +248,7 @@ export async function upsertProductAction(args: {
   variants?: VariantInput[]
 }) {
   try {
-    const { supabaseAdmin } = await validateAdmin()
+    const { supabaseAdmin } = await validateAdminAction()
     const { id, product, specs = [], variants = [] } = args
     const isNew = !id || id <= 0
 
@@ -313,7 +286,7 @@ export async function upsertProductAction(args: {
 
 export async function deleteProductAction(id: number) {
   try {
-    const { supabaseAdmin } = await validateAdmin()
+    const { supabaseAdmin } = await validateAdminAction()
     
     if (!id || id <= 0) return { error: "ID de producto inválido" }
 
