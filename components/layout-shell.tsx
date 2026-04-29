@@ -2,7 +2,7 @@
 
 import { useMemo } from "react"
 import { usePathname } from "next/navigation"
-import { useWhatsAppStore } from "@/lib/whatsapp-store"
+import { useWhatsAppStore } from "@/features/checkout"
 
 import { Header } from "@/components/header"
 

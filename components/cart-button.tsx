@@ -18,7 +18,7 @@ import {
     SheetClose,
 } from "@/components/ui/sheet"
 
-import { CheckoutForm } from "@/components/checkout-form"
+import { CheckoutForm } from "@/features/checkout/components/checkout-form"
 import { SuccessCheckmark } from "@/components/ui/success-checkmark"
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false })
 

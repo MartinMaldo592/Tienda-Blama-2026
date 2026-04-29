@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { createClient as createAdminClient } from "@supabase/supabase-js"
+import { createClient as createServerClient } from "@/lib/supabase.server"
+
 
 export const ADMIN_RUNTIME = "nodejs" as const
 
@@ -32,14 +34,16 @@ export async function requireAdmin(req: Request) {
     }
   }
 
-  const supabaseAuth = createClient(url, anon)
+  const supabaseAuth = createAdminClient(url, anon)
+
   const { data: userData, error: userErr } = await supabaseAuth.auth.getUser(token)
   if (userErr || !userData?.user) {
     return { ok: false as const, res: NextResponse.json({ error: "Invalid session" }, { status: 401 }) }
   }
 
   // Use Service Role to bypass RLS when checking permissions
-  const supabaseAdmin = createClient(url, service)
+  const supabaseAdmin = createAdminClient(url, service)
+
 
   const { data: userRecord, error: profileErr } = await supabaseAdmin
     .from("usuarios")
@@ -57,3 +61,27 @@ export async function requireAdmin(req: Request) {
 
   return { ok: true as const, supabaseAdmin }
 }
+
+export async function validateAdminAction() {
+  const supabase = await createServerClient()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+  if (authError || !user) throw new Error("No autenticado")
+
+  const { url, service } = getSupabaseEnv()
+  if (!url || !service) throw new Error("Error de configuración del servidor")
+
+  const supabaseAdmin = createAdminClient(url, service)
+  const { data: profile } = await supabaseAdmin
+      .from("usuarios")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle()
+
+  if (String(profile?.role || "").toLowerCase() !== "admin") {
+      throw new Error("No tienes permisos de administrador")
+  }
+
+  return { supabaseAdmin, user }
+}
+

@@ -1,17 +1,18 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { useRoleGuard } from "@/lib/use-role-guard"
-import { AccessDenied } from "@/components/admin/access-denied"
-import { AdminPageHeader } from "@/components/admin/page-header"
-import { AdminPageSkeleton } from "@/components/admin/page-skeleton"
+import { useRoleGuard } from "@/hooks/use-role-guard"
+import { AccessDenied } from "@/features/admin/components/access-denied"
+import { AdminPageHeader } from "@/features/admin/components/page-header"
+import { AdminPageSkeleton } from "@/features/admin/components/page-skeleton"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AnnouncementBar } from "@/components/announcement-bar"
-import { fetchAnnouncementBarConfigViaApi, saveAnnouncementBarConfigViaApi } from "@/features/admin"
+import { getAnnouncementBarConfigAction, updateAnnouncementBarConfigAction } from "@/features/admin/actions/announcement"
+
 import { Megaphone, RefreshCw, Save, Eye } from "lucide-react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
@@ -29,11 +30,14 @@ export default function AdminAnnouncementBarPage() {
   const [messagesText, setMessagesText] = useState("")
   const [synced, setSynced] = useState(false)
 
-  const { data: config, isLoading, isFetching } = useQuery({
+  const { data: result, isLoading, isFetching } = useQuery({
     queryKey: ["announcementConfig"],
-    queryFn: fetchAnnouncementBarConfigViaApi,
+    queryFn: () => getAnnouncementBarConfigAction(),
     enabled: !guard.loading && !guard.accessDenied,
   })
+
+  const config = result?.data
+
 
   // Sync form state from fetched config (only once on initial load)
   useEffect(() => {
@@ -45,7 +49,8 @@ export default function AdminAnnouncementBarPage() {
   }, [config, synced])
 
   const saveMut = useMutation({
-    mutationFn: () => saveAnnouncementBarConfigViaApi({ enabled, interval_ms: Number(intervalMs), messages: normalizeMessages(messagesText) }),
+    mutationFn: () => updateAnnouncementBarConfigAction({ enabled, interval_ms: Number(intervalMs), messages: normalizeMessages(messagesText) }),
+
     onSuccess: () => { toast.success("Configuración guardada"); setSynced(false); qc.invalidateQueries({queryKey:["announcementConfig"]}) },
     onError: (e:any) => toast.error(e?.message||"Error al guardar"),
   })

@@ -27,9 +27,9 @@ import {
 } from "@/features/checkout"
 import { useCheckoutDraft } from "@/features/checkout/hooks/use-checkout-draft"
 import { sendGTMEvent } from "@/lib/gtm"
-import { QuickCustomer } from "@/components/checkout/quick-checkout/quick-customer"
-import { QuickAddress } from "@/components/checkout/quick-checkout/quick-address"
-import { QuickSummary } from "@/components/checkout/quick-checkout/quick-summary"
+import { QuickCustomer } from "@/features/checkout/components/quick-checkout/quick-customer"
+import { QuickAddress } from "@/features/checkout/components/quick-checkout/quick-address"
+import { QuickSummary } from "@/features/checkout/components/quick-checkout/quick-summary"
 import { useJsApiLoader } from "@react-google-maps/api"
 
 const libraries: ("places")[] = ["places"];

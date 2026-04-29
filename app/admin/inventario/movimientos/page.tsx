@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { m } from "framer-motion"
-import { useRoleGuard } from "@/lib/use-role-guard"
-import { AccessDenied } from "@/components/admin/access-denied"
+import { useRoleGuard } from "@/hooks/use-role-guard"
+import { AccessDenied } from "@/features/admin/components/access-denied"
 import { Badge } from "@/components/ui/badge"
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow

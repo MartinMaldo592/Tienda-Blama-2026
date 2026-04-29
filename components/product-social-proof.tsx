@@ -10,6 +10,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Star } from "lucide-react"
+import { submitReviewAction } from "@/features/reviews/actions/submit"
+import { submitQuestionAction } from "@/features/questions/actions/submit"
+
 
 type ReviewRow = {
   id: number
@@ -148,21 +151,17 @@ export function ProductSocialProof({ productId, section = 'all' }: { productId: 
 
       reviewFiles.slice(0, 3).forEach((f) => fd.append("photos", f))
 
-      const res = await fetch("/api/reviews/submit", {
-        method: "POST",
-        body: fd,
-      })
-
-      const json = await res.json().catch(() => null)
-      if (!res.ok) {
-        throw new Error(String(json?.error || "No se pudo enviar la reseña"))
+      const result = await submitReviewAction(fd)
+      if (result.error) {
+        throw new Error(result.error)
       }
 
       setReviewTitle("")
       setReviewBody("")
       setReviewFiles([])
 
-      const verified = Boolean(json?.verified)
+      const verified = Boolean(result.verified)
+
       setReviewSent(
         verified
           ? "Reseña enviada. Se marcará como comprador verificado cuando sea aprobada."
@@ -189,18 +188,13 @@ export function ProductSocialProof({ productId, section = 'all' }: { productId: 
     setQSent(null)
 
     try {
-      const res = await fetch("/api/questions/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, question: qText, askerName: qName, askerPhone: qPhone }),
-      })
-
-      const json = await res.json().catch(() => null)
-      if (!res.ok) {
-        throw new Error(String(json?.error || "No se pudo enviar la pregunta"))
+      const result = await submitQuestionAction({ productId, question: qText, askerName: qName, askerPhone: qPhone })
+      if (result.error) {
+        throw new Error(result.error)
       }
 
       setQText("")
+
       setQSent("Pregunta enviada. Se publicará cuando sea respondida/aprobada.")
 
       setShowQuestionForm(false)

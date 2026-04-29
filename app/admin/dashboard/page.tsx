@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRoleGuard } from "@/lib/use-role-guard"
-import { AccessDenied } from "@/components/admin/access-denied"
+import { useRoleGuard } from "@/hooks/use-role-guard"
+import { AccessDenied } from "@/features/admin/components/access-denied"
 import { DollarSign, ShoppingBag, Users, Package, ClipboardList, AlertTriangle, RefreshCw, LayoutDashboard, ArrowRight, CheckCircle2 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrency } from "@/lib/utils"
@@ -10,10 +10,10 @@ import Link from "next/link"
 import { useDashboardStats } from "@/features/admin/hooks/use-admin-dashboard"
 import { useQueryClient } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase.client"
-import { DashboardStatsSkeleton } from "@/components/admin/skeleton-previews"
+import { DashboardStatsSkeleton } from "@/features/admin/components/skeleton-previews"
 import { m } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { SalesChart, type SalesDataPoint } from "@/components/admin/dashboard/sales-chart"
+import { SalesChart, type SalesDataPoint } from "@/features/admin/components/dashboard/sales-chart"
 import { fetchAdminSalesChart } from "@/features/admin/services/dashboard.client"
 
 function useCurrentUserId() {
