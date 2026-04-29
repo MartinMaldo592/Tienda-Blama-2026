@@ -82,14 +82,14 @@ export default function PedidoDetallePage() {
         return false
     }
 
-    const fetchPedido = useCallback(async () => {
-        setLoading(true)
+    const fetchPedido = useCallback(async (showSkeleton = false) => {
+        if (showSkeleton) setLoading(true)
         try {
             const pedidoId = Number(id)
             if (!pedidoId) {
                 setPedido(null)
                 setItems([])
-                setLoading(false)
+                if (showSkeleton) setLoading(false)
                 return
             }
 
@@ -117,7 +117,7 @@ export default function PedidoDetallePage() {
             setPedido(null)
             setItems([])
         }
-        setLoading(false)
+        if (showSkeleton) setLoading(false)
     }, [id])
 
     useEffect(() => {
@@ -138,7 +138,7 @@ export default function PedidoDetallePage() {
                 } else {
                     setWorkers([])
                 }
-                await fetchPedido()
+                await fetchPedido(true)
             })()
     }, [id, guard.loading, guard.accessDenied, guard.role, fetchPedido])
 
@@ -159,7 +159,6 @@ export default function PedidoDetallePage() {
 
     useEffect(() => {
         if (!id) return
-        fetchPedido()
         fetchLogs()
         getUserName()
     }, [id])
