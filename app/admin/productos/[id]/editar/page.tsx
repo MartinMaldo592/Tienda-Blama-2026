@@ -17,7 +17,7 @@ export default function EditarProductoPage() {
     const params = useParams()
     const id = params.id as string
 
-    const guard = useRoleGuard({ allowedRoles: ['admin'] })
+    const guard = useRoleGuard({ allowedRoles: ['superadmin', 'admin'] })
 
     const [loading, setLoading] = useState(true)
     const [producto, setProducto] = useState<any>(null)
@@ -116,3 +116,4 @@ export default function EditarProductoPage() {
         </div>
     )
 }
+

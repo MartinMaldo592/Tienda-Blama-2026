@@ -24,7 +24,7 @@ export default function DashboardPedidosPendientesPage() {
     const [loading, setLoading] = useState(true)
     const [pedidos, setPedidos] = useState<any[]>([])
 
-    const guard = useRoleGuard({ allowedRoles: ["admin"] })
+    const guard = useRoleGuard({ allowedRoles: ["superadmin", "admin"] })
 
     const fetchPendientes = useCallback(async () => {
         setLoading(true)

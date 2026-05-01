@@ -20,7 +20,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
 export default function ProductosPage() {
-    const guard = useRoleGuard({ allowedRoles: ['admin'] })
+    const guard = useRoleGuard({ allowedRoles: ['superadmin', 'admin'] })
     const qc = useQueryClient()
     const [searchTerm, setSearchTerm] = useState("")
 
@@ -142,3 +142,4 @@ export default function ProductosPage() {
         </m.div>
     )
 }
+

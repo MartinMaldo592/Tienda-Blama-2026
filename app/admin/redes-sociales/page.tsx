@@ -18,7 +18,7 @@ import { toast } from "sonner"
 import { m, AnimatePresence } from "framer-motion"
 
 export default function AdminSocialLinksPage() {
-  const guard = useRoleGuard({ allowedRoles: ["admin"] })
+  const guard = useRoleGuard({ allowedRoles: ["superadmin", "admin"] })
   const qc = useQueryClient()
   const formRef = useRef<HTMLDivElement|null>(null)
 

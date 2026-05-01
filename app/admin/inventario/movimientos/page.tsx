@@ -66,7 +66,7 @@ function KardexRowSkeleton({ count = 10 }: { count?: number }) {
 }
 
 export default function MovimientosPage() {
-    const guard = useRoleGuard({ allowedRoles: ["admin"] })
+    const guard = useRoleGuard({ allowedRoles: ["superadmin", "admin"] })
     const [movimientos, setMovimientos] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 

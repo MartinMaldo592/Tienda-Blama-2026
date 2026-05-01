@@ -46,7 +46,7 @@ export default function PedidoDetallePage() {
     const router = useRouter()
     const id = params.id as string
 
-    const guard = useRoleGuard({ allowedRoles: ["admin", "worker"] })
+    const guard = useRoleGuard({ allowedRoles: ["superadmin", "admin", "worker"] })
 
     const [pedido, setPedido] = useState<PedidoRow | null>(null)
     const [items, setItems] = useState<PedidoItemRow[]>([])
@@ -259,7 +259,7 @@ export default function PedidoDetallePage() {
     }
 
     const isLocked = (() => {
-        if (!pedido || userRole === 'admin') return false
+        if (!pedido || (userRole === 'admin' || userRole === 'superadmin')) return false
         const terminalStates = ['Entregado', 'Enviado', 'Fallido']
         if (!terminalStates.includes(pedido.status)) return false
         const updateTime = new Date(pedido.updated_at || pedido.created_at).getTime()
@@ -413,7 +413,7 @@ export default function PedidoDetallePage() {
                 </div>
 
                 <div className="flex flex-wrap gap-3 w-full lg:w-auto">
-                    {userRole === 'admin' && (
+                    {(userRole === 'admin' || userRole === 'superadmin') && (
                         <div className="flex items-center gap-2 bg-white px-4 h-14 rounded-2xl border border-slate-100 shadow-sm">
                             <User size={16} className="text-slate-400" />
                             <Select value={assignedTo} onValueChange={handleAssignWorker} disabled={isLocked}>
@@ -740,3 +740,4 @@ function StatusBadge({ status }: { status: string }) {
         </Badge>
     )
 }
+

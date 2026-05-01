@@ -4,7 +4,7 @@ import type { AdminRole, PedidoItemRow, PedidoRow, ProfileRow, ProductoVariante,
 
 export async function fetchAdminWorkers(): Promise<ProfileRow[]> {
   const supabase = createClient()
-  const { data, error } = await supabase.from("usuarios").select("id, email, nombre, role").eq("role", "worker")
+  const { data, error } = await supabase.from("usuarios").select("id, email, nombre, role").in("role", ["worker", "admin"])
   if (error) throw error
   return (data as ProfileRow[]) || []
 }

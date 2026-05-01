@@ -24,7 +24,7 @@ type QuestionRow = {
 }
 
 export default function AdminPreguntasPage() {
-  const guard = useRoleGuard({ allowedRoles: ["admin"] })
+  const guard = useRoleGuard({ allowedRoles: ["superadmin", "admin"] })
   const qc = useQueryClient()
   const [search, setSearch] = useState("")
   const [busyId, setBusyId] = useState<number|null>(null)

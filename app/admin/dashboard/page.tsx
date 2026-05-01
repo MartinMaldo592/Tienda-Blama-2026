@@ -27,7 +27,7 @@ function useCurrentUserId() {
 }
 
 export default function AdminDashboard() {
-    const guard = useRoleGuard({ allowedRoles: ["admin", "worker"] })
+    const guard = useRoleGuard({ allowedRoles: ["superadmin", "admin", "worker"] })
     const userRole = guard.role || 'worker'
     const userId = useCurrentUserId()
 
@@ -99,13 +99,13 @@ export default function AdminDashboard() {
                         <div>
                             <div className="flex items-center gap-3">
                                 <h1 className="text-5xl font-black text-slate-900 tracking-tight">
-                                    {userRole === 'admin' ? 'Dashboard' : 'Mi Panel'}
+                                    {userRole === 'admin' || userRole === 'superadmin' ? 'Dashboard' : 'Mi Panel'}
                                 </h1>
                             </div>
                             <div className="flex items-center gap-2 mt-1">
                                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                                 <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">
-                                    {userRole === 'admin' ? 'Visión global de tu negocio' : 'Resumen de tus operaciones'}
+                                    {userRole === 'admin' || userRole === 'superadmin' ? 'Visión global de tu negocio' : 'Resumen de tus operaciones'}
                                 </p>
                             </div>
                         </div>
@@ -138,7 +138,7 @@ export default function AdminDashboard() {
                     transition={{ delay: 0.1 }}
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
                 >
-                    {userRole === 'admin' ? (
+                    {userRole === 'admin' || userRole === 'superadmin' ? (
                         <>
                             <StatsCard
                                 title="Ventas (Entregado)"
@@ -197,7 +197,7 @@ export default function AdminDashboard() {
             )}
 
             {/* --- SALES CHART & SECONDARY STATS --- */}
-            {userRole === "admin" && (
+            {(userRole === "admin" || userRole === "superadmin") && (
                 <m.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -260,7 +260,7 @@ export default function AdminDashboard() {
                 </m.div>
             )}
 
-            {userRole !== 'admin' && (
+            {userRole !== 'admin' && userRole !== 'superadmin' && (
                 <m.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}

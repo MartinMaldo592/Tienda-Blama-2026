@@ -22,7 +22,7 @@ type ReviewRow = {
 }
 
 export default function AdminResenasPage() {
-  const guard = useRoleGuard({ allowedRoles: ["admin"] })
+  const guard = useRoleGuard({ allowedRoles: ["superadmin", "admin"] })
   const qc = useQueryClient()
   const [search, setSearch] = useState("")
   const [busyId, setBusyId] = useState<number|null>(null)

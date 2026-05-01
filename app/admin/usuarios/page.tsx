@@ -12,7 +12,7 @@ import { AccessDenied } from "@/features/admin/components/access-denied"
 import { AdminPageHeader } from "@/features/admin/components/page-header"
 import { AdminPageSkeleton } from "@/features/admin/components/page-skeleton"
 import { fetchAdminProfiles } from "@/features/admin"
-import { createWorkerAction, updateUserProfile, updateUserRole } from "@/features/admin/actions/users"
+import { createWorkerAction, updateUserProfile, updateUserRole, updateUserStatus } from "@/features/admin/actions/users"
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ShieldCheck, UserCheck, Loader2, Search, UserPlus, Mail, User, Shield, AlertTriangle, Lock, RefreshCw, Edit2, Users } from "lucide-react"
@@ -25,7 +25,7 @@ import { m, AnimatePresence } from "framer-motion"
 export default function UsuariosPage() {
   const router = useRouter()
   const qc = useQueryClient()
-  const guard = useRoleGuard({ allowedRoles: ["admin"] })
+  const guard = useRoleGuard({ allowedRoles: ["superadmin", "admin"] })
 
   const [email, setEmail] = useState("")
   const [nombre, setNombre] = useState("")
@@ -33,6 +33,7 @@ export default function UsuariosPage() {
   const [roleToAssign, setRoleToAssign] = useState("worker")
   const [searchTerm, setSearchTerm] = useState("")
   const [confirmRoleDialog, setConfirmRoleDialog] = useState<{open:boolean;userId:string;newRole:string;userName:string}|null>(null)
+  const [confirmStatusDialog, setConfirmStatusDialog] = useState<{open:boolean;userId:string;activo:boolean;userName:string}|null>(null)
   const [editProfileDialog, setEditProfileDialog] = useState<{open:boolean;userId:string;nombre:string}|null>(null)
 
   const { data: profiles = [], isLoading, isFetching } = useQuery({
@@ -78,6 +79,19 @@ export default function UsuariosPage() {
     onError: (err:any) => toast.error("Error: "+err.message),
   })
 
+  const updateStatusMut = useMutation({
+    mutationFn: ({userId,activo}:{userId:string,activo:boolean}) => updateUserStatus(userId,activo),
+    onMutate: async ({userId,activo}) => {
+      await qc.cancelQueries({queryKey:["adminProfiles"]})
+      const prev = qc.getQueryData(["adminProfiles"])
+      qc.setQueryData(["adminProfiles"], (old:any) => old?.map((p:any) => p.id===userId?{...p,activo}:p))
+      return { prev }
+    },
+    onError: (err:any,_,ctx) => { if(ctx?.prev)qc.setQueryData(["adminProfiles"],ctx.prev); toast.error("Error: "+err.message) },
+    onSettled: () => { qc.invalidateQueries({queryKey:["adminProfiles"]});qc.invalidateQueries({queryKey:["adminWorkers"]}) },
+    onSuccess: (_, {activo}) => { toast.success(`Usuario ${activo ? "activado" : "desactivado"}`); setConfirmStatusDialog(null) },
+  })
+
   const filteredProfiles = profiles.filter((p:any) => p.email?.toLowerCase().includes(searchTerm.toLowerCase())||p.nombre?.toLowerCase().includes(searchTerm.toLowerCase()))
 
   const stats = { total: profiles.length, admins: profiles.filter((p:any)=>p.role==="admin").length, workers: profiles.filter((p:any)=>p.role==="worker").length }
@@ -109,7 +123,15 @@ export default function UsuariosPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="space-y-2"><Label className="text-xs font-bold uppercase text-slate-400 tracking-widest">Email</Label><div className="relative"><Mail className="absolute left-3 top-3.5 h-4 w-4 text-slate-300"/><Input type="email" className="pl-9 rounded-xl h-12" value={email} onChange={e=>setEmail(e.target.value)} placeholder="ejemplo@blama.shop"/></div></div>
           <div className="space-y-2"><Label className="text-xs font-bold uppercase text-slate-400 tracking-widest">Nombre</Label><div className="relative"><User className="absolute left-3 top-3.5 h-4 w-4 text-slate-300"/><Input className="pl-9 rounded-xl h-12" value={nombre} onChange={e=>setNombre(e.target.value)} placeholder="Juan Pérez"/></div></div>
-          <div className="space-y-2"><Label className="text-xs font-bold uppercase text-slate-400 tracking-widest">Rol</Label><Select value={roleToAssign} onValueChange={setRoleToAssign}><SelectTrigger className="rounded-xl h-12"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="worker">Worker (Logística)</SelectItem><SelectItem value="admin">Administrador (Total)</SelectItem></SelectContent></Select></div>
+          <div className="space-y-2"><Label className="text-xs font-bold uppercase text-slate-400 tracking-widest">Rol</Label>
+            <Select value={roleToAssign} onValueChange={setRoleToAssign}>
+              <SelectTrigger className="rounded-xl h-12"><SelectValue/></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="worker">Worker (Logística)</SelectItem>
+                {guard.role === "superadmin" && <SelectItem value="admin">Administrador (Total)</SelectItem>}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="space-y-2"><Label className="text-xs font-bold uppercase text-slate-400 tracking-widest">Contraseña</Label><div className="relative"><Lock className="absolute left-3 top-3.5 h-4 w-4 text-slate-300"/><Input type="password" className="pl-9 rounded-xl h-12" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Vacío = invitar vía email"/></div></div>
         </div>
         <div className="flex justify-end pt-2"><Button onClick={()=>createMut.mutate()} disabled={createMut.isPending||!email.trim()||!nombre.trim()} className="haptic-scale shadow-lg rounded-2xl h-14 px-8 font-bold bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:from-violet-700 hover:to-purple-700">{createMut.isPending?<><Loader2 className="mr-2 h-4 w-4 animate-spin"/>Procesando...</>:<><UserPlus className="mr-2 h-4 w-4"/>Crear Usuario</>}</Button></div>
@@ -124,7 +146,7 @@ export default function UsuariosPage() {
         <Table>
           <TableHeader className="bg-slate-50/50">
             <TableRow className="h-16 hover:bg-transparent border-slate-100">
-              {["Usuario","Nombre","Nivel de Acceso","Fecha Registro"].map((h,i)=>(<TableHead key={h} className={`text-slate-400 font-black text-[11px] uppercase tracking-widest ${i===0?'pl-8':''} ${i===3?'pr-8 text-right':''}`}>{h}</TableHead>))}
+              {["Usuario","Nombre","Nivel de Acceso","Estado","Fecha Registro"].map((h,i)=>(<TableHead key={h} className={`text-slate-400 font-black text-[11px] uppercase tracking-widest ${i===0?'pl-8':''} ${i===4?'pr-8 text-right':''}`}>{h}</TableHead>))}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -138,18 +160,26 @@ export default function UsuariosPage() {
                     <div className="flex items-center gap-3">
                       <div className="h-9 w-9 rounded-2xl bg-gradient-to-br from-violet-100 to-purple-50 flex items-center justify-center text-violet-600 font-black text-xs uppercase border border-violet-100">{p.nombre?.charAt(0)||"U"}</div>
                       <span className="font-medium text-slate-800">{p.nombre||"Sin nombre"}</span>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg" onClick={()=>setEditProfileDialog({open:true,userId:p.id,nombre:p.nombre||""})}><Edit2 className="h-3.5 w-3.5 text-slate-400"/></Button>
+                      {!(p.role === "superadmin" && guard.role !== "superadmin") && (
+                        <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg" onClick={()=>setEditProfileDialog({open:true,userId:p.id,nombre:p.nombre||""})}><Edit2 className="h-3.5 w-3.5 text-slate-400"/></Button>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Select defaultValue={p.role||"user"} onValueChange={val=>setConfirmRoleDialog({open:true,userId:p.id,newRole:val,userName:p.nombre||p.email})} disabled={updateRoleMut.isPending}>
+                    <Select defaultValue={p.role||"user"} onValueChange={val=>setConfirmRoleDialog({open:true,userId:p.id,newRole:val,userName:p.nombre||p.email})} disabled={updateRoleMut.isPending || (p.role === "superadmin" && guard.role !== "superadmin") || (guard.role !== "superadmin")}>
                       <SelectTrigger className="w-[160px] h-9 rounded-xl border-slate-200"><SelectValue/></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="admin" className="text-red-600"><div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4"/>Administrador</div></SelectItem>
+                        {p.role === "superadmin" && <SelectItem value="superadmin" className="text-amber-600"><div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4"/>Propietario</div></SelectItem>}
+                        <SelectItem value="admin" className="text-red-600" disabled={guard.role !== "superadmin"}><div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4"/>Administrador</div></SelectItem>
                         <SelectItem value="worker"><div className="flex items-center gap-2"><UserCheck className="h-4 w-4 text-blue-600"/>Trabajador</div></SelectItem>
                         <SelectItem value="user"><div className="flex items-center gap-2 opacity-60"><User className="h-4 w-4"/>Cliente</div></SelectItem>
                       </SelectContent>
                     </Select>
+                  </TableCell>
+                  <TableCell>
+                    <button onClick={() => setConfirmStatusDialog({open: true, userId: p.id, activo: !p.activo, userName: p.nombre||p.email})} disabled={updateStatusMut.isPending || (p.role === "superadmin" && guard.role !== "superadmin")} className={`inline-flex items-center justify-center px-3 py-1 text-[11px] font-bold uppercase tracking-wider rounded-lg transition-colors border ${!(p.role === "superadmin" && guard.role !== "superadmin") ? 'hover:scale-105' : 'opacity-50 cursor-not-allowed'} ${p.activo !== false ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100' : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'}`}>
+                      {p.activo !== false ? "Activo" : "Inactivo"}
+                    </button>
                   </TableCell>
                   <TableCell className="pr-8 text-right text-sm text-slate-400 font-medium">{p.created_at?new Date(p.created_at).toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}):"-"}</TableCell>
                 </m.tr>
@@ -183,6 +213,21 @@ export default function UsuariosPage() {
           <DialogFooter>
             <Button variant="outline" className="rounded-xl" onClick={()=>setEditProfileDialog(null)} disabled={updateProfileMut.isPending}>Cancelar</Button>
             <Button className="rounded-xl" onClick={()=>editProfileDialog&&updateProfileMut.mutate({userId:editProfileDialog.userId,nombre:editProfileDialog.nombre})} disabled={updateProfileMut.isPending||!editProfileDialog?.nombre.trim()}>{updateProfileMut.isPending?<Loader2 className="animate-spin h-4 w-4"/>:"Guardar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm Status Dialog */}
+      <Dialog open={confirmStatusDialog?.open} onOpenChange={open=>!open&&setConfirmStatusDialog(null)}>
+        <DialogContent className="max-w-[400px] rounded-2xl">
+          <DialogHeader>
+            <div className={`h-12 w-12 rounded-2xl flex items-center justify-center mb-2 ${confirmStatusDialog?.activo ? 'bg-green-50' : 'bg-rose-50'}`}><AlertTriangle className={`h-6 w-6 ${confirmStatusDialog?.activo ? 'text-green-600' : 'text-rose-600'}`}/></div>
+            <DialogTitle className="font-black">Confirmar Cambio de Estado</DialogTitle>
+            <DialogDescription>¿Estás seguro de que deseas <strong>{confirmStatusDialog?.activo ? "activar" : "desactivar"}</strong> el acceso al usuario <strong>{confirmStatusDialog?.userName}</strong>?</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0 mt-4">
+            <Button variant="outline" className="rounded-xl" onClick={()=>setConfirmStatusDialog(null)} disabled={updateStatusMut.isPending}>Cancelar</Button>
+            <Button variant={confirmStatusDialog?.activo ? "default" : "destructive"} className="rounded-xl" onClick={()=>confirmStatusDialog&&updateStatusMut.mutate({userId:confirmStatusDialog.userId,activo:confirmStatusDialog.activo})} disabled={updateStatusMut.isPending}>{updateStatusMut.isPending?<Loader2 className="animate-spin h-4 w-4"/>:"Confirmar"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

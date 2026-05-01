@@ -23,7 +23,7 @@ function parseBoolVal(v: string) { return v === "true" }
 function normalizeMessages(v: string) { return v.split("\n").map(s=>s.trim()).filter(Boolean).slice(0,10) }
 
 export default function AdminAnnouncementBarPage() {
-  const guard = useRoleGuard({ allowedRoles: ["admin"] })
+  const guard = useRoleGuard({ allowedRoles: ["superadmin", "admin"] })
   const qc = useQueryClient()
   const [enabled, setEnabled] = useState(true)
   const [intervalMs, setIntervalMs] = useState("3500")

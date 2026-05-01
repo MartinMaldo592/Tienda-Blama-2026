@@ -37,7 +37,7 @@ export default function DashboardPedidosEnProcesoPage() {
     const router = useRouter()
     const [loading, setLoading] = useState(true)
 
-    const guard = useRoleGuard({ allowedRoles: ["admin"] })
+    const guard = useRoleGuard({ allowedRoles: ["superadmin", "admin"] })
 
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
     const [from, setFrom] = useState<string>(new Date().toISOString().slice(0, 10))

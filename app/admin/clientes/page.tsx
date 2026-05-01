@@ -17,7 +17,7 @@ import { fetchAdminClientes } from "@/features/admin"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 
 export default function ClientesPage() {
-    const guard = useRoleGuard({ allowedRoles: ["admin"] })
+    const guard = useRoleGuard({ allowedRoles: ["superadmin", "admin"] })
     const qc = useQueryClient()
     const [searchTerm, setSearchTerm] = useState("")
 
