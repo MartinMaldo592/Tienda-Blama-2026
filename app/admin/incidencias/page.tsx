@@ -25,7 +25,7 @@ type Tipo = (typeof TIPOS)[number]
 type TipoFilter = Tipo | "all"
 
 export default function IncidenciasPage() {
-  const guard = useRoleGuard({ allowedRoles: ["admin", "worker"] })
+  const guard = useRoleGuard({ allowedRoles: ["superadmin", "admin", "worker"] })
   const qc = useQueryClient()
   const [userRole, setUserRole] = useState("worker")
   const [pedidoId, setPedidoId] = useState("")

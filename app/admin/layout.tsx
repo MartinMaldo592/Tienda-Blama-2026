@@ -21,7 +21,7 @@ export default function AdminLayout({
     children: React.ReactNode
 }) {
     const pathname = usePathname()
-    const guard = useRoleGuard({ allowedRoles: ["admin", "worker"] })
+    const guard = useRoleGuard({ allowedRoles: ["superadmin", "admin", "worker"] })
     const isTicketRoute = pathname?.includes('/admin/pedidos/') && pathname?.endsWith('/ticket')
     const [isSheetOpen, setIsSheetOpen] = useState(false)
     const supabase = createClient()

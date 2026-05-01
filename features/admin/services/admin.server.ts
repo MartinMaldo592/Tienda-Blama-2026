@@ -55,7 +55,8 @@ export async function requireAdmin(req: Request) {
     return { ok: false as const, res: NextResponse.json({ error: profileErr.message }, { status: 500 }) }
   }
 
-  if (String((userRecord as any)?.role || "").toLowerCase() !== "admin") {
+  const role = String((userRecord as any)?.role || "").toLowerCase()
+  if (role !== "admin" && role !== "superadmin") {
     return { ok: false as const, res: NextResponse.json({ error: "Forbidden" }, { status: 403 }) }
   }
 
@@ -78,8 +79,32 @@ export async function validateAdminAction() {
       .eq("id", user.id)
       .maybeSingle()
 
-  if (String(profile?.role || "").toLowerCase() !== "admin") {
+  const role = String(profile?.role || "").toLowerCase()
+  if (role !== "admin" && role !== "superadmin") {
       throw new Error("No tienes permisos de administrador")
+  }
+
+  return { supabaseAdmin, user, role }
+}
+
+export async function validateSuperAdminAction() {
+  const supabase = await createServerClient()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+  if (authError || !user) throw new Error("No autenticado")
+
+  const { url, service } = getSupabaseEnv()
+  if (!url || !service) throw new Error("Error de configuración del servidor")
+
+  const supabaseAdmin = createAdminClient(url, service)
+  const { data: profile } = await supabaseAdmin
+      .from("usuarios")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle()
+
+  if (String(profile?.role || "").toLowerCase() !== "superadmin") {
+      throw new Error("No tienes permisos de súper administrador")
   }
 
   return { supabaseAdmin, user }

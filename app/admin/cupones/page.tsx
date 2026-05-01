@@ -35,7 +35,7 @@ function toIsoStart(s: string) { const v=s.trim(); if(!v)return null; const d=ne
 function toIsoEnd(s: string) { const v=s.trim(); if(!v)return null; const d=new Date(`${v}T23:59:59.999`); return Number.isNaN(d.getTime())?null:d.toISOString() }
 
 export default function CuponesAdminPage() {
-  const guard = useRoleGuard({ allowedRoles: ["admin"] })
+  const guard = useRoleGuard({ allowedRoles: ["superadmin", "admin"] })
   const qc = useQueryClient()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editing, setEditing] = useState<CouponRow | null>(null)

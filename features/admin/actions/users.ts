@@ -12,7 +12,7 @@ export async function createWorkerAction(args: {
   origin: string
 }) {
   try {
-    const { supabaseAdmin } = await validateAdminAction()
+    const { supabaseAdmin, role: currentUserRole } = await validateAdminAction()
 
     const { url, service } = getSupabaseEnv()
     if (!url || !service) throw new Error("Server env not configured")
@@ -22,8 +22,15 @@ export async function createWorkerAction(args: {
     const passwordRaw = args.password ? String(args.password) : ""
     const role = String(args.role || "worker").toLowerCase()
 
-    const validRoles = ["admin", "worker", "user"]
-    const finalRole = validRoles.includes(role) ? role : "worker"
+    const validRoles = ["superadmin", "admin", "worker", "user"]
+    let finalRole = validRoles.includes(role) ? role : "worker"
+
+    // Enforce role hierarchy for creation
+    if (currentUserRole !== "superadmin") {
+      if (finalRole === "superadmin" || finalRole === "admin") {
+        return { error: "Solo los súper administradores pueden crear otros administradores." }
+      }
+    }
 
     if (!email) return { error: "Falta el correo electrónico" }
 
@@ -80,10 +87,17 @@ export async function createWorkerAction(args: {
 
 export async function updateUserProfile(userId: string, nombre: string) {
   try {
-    const { supabaseAdmin } = await validateAdminAction()
+    const { supabaseAdmin, role: currentUserRole } = await validateAdminAction()
 
     if (!userId || typeof nombre !== 'string') {
       return { error: "ID de usuario o nombre inválido" }
+    }
+
+    if (currentUserRole !== "superadmin") {
+      const { data: targetUser } = await supabaseAdmin.from("usuarios").select("role").eq("id", userId).maybeSingle()
+      if (targetUser?.role === "superadmin") {
+        return { error: "No puedes modificar a un súper administrador." }
+      }
     }
 
     const { error } = await supabaseAdmin
@@ -102,15 +116,54 @@ export async function updateUserProfile(userId: string, nombre: string) {
 
 export async function updateUserRole(userId: string, role: string) {
   try {
-    const { supabaseAdmin } = await validateAdminAction()
+    const { supabaseAdmin, role: currentUserRole } = await validateAdminAction()
 
     if (!userId || !role) {
       return { error: "ID de usuario o rol inválido" }
     }
 
+    if (currentUserRole !== "superadmin") {
+      if (role === "superadmin" || role === "admin") {
+        return { error: "No tienes permiso para asignar este rol." }
+      }
+      const { data: targetUser } = await supabaseAdmin.from("usuarios").select("role").eq("id", userId).maybeSingle()
+      if (targetUser?.role === "superadmin") {
+        return { error: "No puedes modificar a un súper administrador." }
+      }
+    }
+
     const { error } = await supabaseAdmin
       .from("usuarios")
       .update({ role })
+      .eq("id", userId)
+
+    if (error) throw error
+
+    revalidatePath("/admin/usuarios")
+    return { ok: true }
+  } catch (e: any) {
+    return { error: e.message || "Error desconocido" }
+  }
+}
+
+export async function updateUserStatus(userId: string, activo: boolean) {
+  try {
+    const { supabaseAdmin, role: currentUserRole } = await validateAdminAction()
+
+    if (!userId) {
+      return { error: "ID de usuario inválido" }
+    }
+
+    if (currentUserRole !== "superadmin") {
+      const { data: targetUser } = await supabaseAdmin.from("usuarios").select("role").eq("id", userId).maybeSingle()
+      if (targetUser?.role === "superadmin") {
+        return { error: "No puedes desactivar a un súper administrador." }
+      }
+    }
+
+    const { error } = await supabaseAdmin
+      .from("usuarios")
+      .update({ activo })
       .eq("id", userId)
 
     if (error) throw error

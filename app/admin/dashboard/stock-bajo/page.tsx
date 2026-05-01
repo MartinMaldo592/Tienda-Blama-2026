@@ -26,7 +26,7 @@ export default function DashboardStockBajoPage() {
     const [threshold, setThreshold] = useState<number>(5)
     const [productos, setProductos] = useState<any[]>([])
 
-    const guard = useRoleGuard({ allowedRoles: ["admin"] })
+    const guard = useRoleGuard({ allowedRoles: ["superadmin", "admin"] })
 
     const fetchStockBajo = useCallback(async (th: number) => {
         setLoading(true)

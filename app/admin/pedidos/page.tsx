@@ -109,7 +109,7 @@ function PedidosPageContent() {
         router.push(query ? `${pathname}?${query}` : pathname, { scroll: false })
     }
 
-    const guard = useRoleGuard({ allowedRoles: ["admin", "worker"] })
+    const guard = useRoleGuard({ allowedRoles: ["superadmin", "admin", "worker"] })
     const userRole = String(guard.role || 'worker')
 
     useEffect(() => {
@@ -220,7 +220,7 @@ function PedidosPageContent() {
     const { data: workers = [] } = useQuery({
         queryKey: ["adminWorkers"],
         queryFn: fetchAdminWorkers,
-        enabled: userRole === 'admin' && !guard.loading,
+        enabled: (userRole === 'admin' || userRole === 'superadmin') && !guard.loading,
     })
 
     const getPageNumbers = () => {
@@ -407,7 +407,7 @@ function PedidosPageContent() {
                         <div>
                             <div className="flex items-center gap-3">
                                 <h1 className="text-5xl font-black text-slate-900 tracking-tight">
-                                    {userRole === 'admin' ? 'Pedidos' : 'Mis Entregas'}
+                                    {(userRole === 'admin' || userRole === 'superadmin') ? 'Pedidos' : 'Mis Entregas'}
                                 </h1>
                                 {isFetching && !loadingPedidos && (
                                     <m.div 
@@ -434,7 +434,7 @@ function PedidosPageContent() {
                     animate={{ opacity: 1, x: 0 }}
                     className="flex flex-wrap gap-3 w-full lg:w-auto"
                 >
-                    {userRole === 'admin' && (
+                    {(userRole === 'admin' || userRole === 'superadmin') && (
                         <div className="relative" ref={exportDropdownRef}>
                             <Button 
                                 variant="outline" 
@@ -533,7 +533,7 @@ function PedidosPageContent() {
                                 </SelectContent>
                             </Select>
 
-                            {userRole === 'admin' && (
+                            {(userRole === 'admin' || userRole === 'superadmin') && (
                                 <Select onValueChange={(val) => bulkAssignMutation.mutate({ workerId: val })}>
                                     <SelectTrigger className="w-[200px] h-12 bg-white/10 border-white/10 text-white rounded-xl font-bold cursor-pointer hover:bg-white/20 transition-all">
                                         <SelectValue placeholder="Reasignar..." />
@@ -588,7 +588,7 @@ function PedidosPageContent() {
                     </SelectContent>
                 </Select>
 
-                {userRole === 'admin' && (
+                {(userRole === 'admin' || userRole === 'superadmin') && (
                     <Select value={filterWorker} onValueChange={setFilterWorker}>
                         <SelectTrigger className="h-14 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 px-6">
                             <SelectValue placeholder="Trabajador" />
@@ -632,7 +632,7 @@ function PedidosPageContent() {
             </m.div>
 
             {/* --- TABLE --- */}
-            {(userRole === 'admin' || totalItems > 0) && (
+            {((userRole === 'admin' || userRole === 'superadmin') || totalItems > 0) && (
                 <m.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -668,7 +668,7 @@ function PedidosPageContent() {
                                 <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Inversión Total</TableHead>
                                 <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Estado Pago</TableHead>
                                 <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Estado Pedido</TableHead>
-                                {userRole === 'admin' && <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Asignación</TableHead>}
+                                {(userRole === 'admin' || userRole === 'superadmin') && <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Asignación</TableHead>}
                                 <TableHead className="text-right h-16 pr-8 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Detalle</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -677,7 +677,7 @@ function PedidosPageContent() {
                                 <OrderRowSkeleton count={10} />
                             ) : totalItems === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={userRole === 'admin' ? 9 : 8} className="text-center py-20">
+                                    <TableCell colSpan={(userRole === 'admin' || userRole === 'superadmin') ? 9 : 8} className="text-center py-20">
                                         <div className="flex flex-col items-center gap-4 text-slate-300">
                                             <Search size={48} strokeWidth={1} />
                                             <p className="text-lg font-medium">No se encontraron pedidos con los filtros actuales.</p>
@@ -775,7 +775,7 @@ function PedidosPageContent() {
                                                         </SelectContent>
                                                     </Select>
                                                 </TableCell>
-                                                {userRole === 'admin' && (
+                                                {(userRole === 'admin' || userRole === 'superadmin') && (
                                                     <TableCell>
                                                         <Select
                                                             value={pedido.asignado_a || 'unassigned'}
@@ -947,3 +947,4 @@ export default function PedidosPage() {
         </Suspense>
     )
 }
+

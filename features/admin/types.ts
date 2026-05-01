@@ -4,7 +4,7 @@ import { Database } from "@/types/database.types"
 // Helper to extract Row types
 export type Tables<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Row"]
 
-export type AdminRole = "admin" | "worker"
+export type AdminRole = "superadmin" | "admin" | "worker"
 
 // Base Entity Types
 export type Producto = Tables<"productos">
@@ -23,6 +23,7 @@ export type ProfileRow = {
   nombre?: string | null
   role?: AdminRole | string | null
   created_at?: string | null
+  activo?: boolean | null
 }
 
 // Extended Types for UI (Joins)

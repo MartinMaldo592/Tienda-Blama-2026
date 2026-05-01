@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export default function NuevoProductoPage() {
     const router = useRouter()
-    const guard = useRoleGuard({ allowedRoles: ['admin'] })
+    const guard = useRoleGuard({ allowedRoles: ['superadmin', 'admin'] })
     const [categories, setCategories] = useState<any[]>([])
 
     useEffect(() => {
@@ -67,3 +67,4 @@ export default function NuevoProductoPage() {
         </div>
     )
 }
+

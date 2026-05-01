@@ -18,7 +18,7 @@ import { es } from "date-fns/locale"
 
 export default function AuditPage() {
     const qc = useQueryClient()
-    const guard = useRoleGuard({ allowedRoles: ['admin'] })
+    const guard = useRoleGuard({ allowedRoles: ['superadmin', 'admin'] })
     const [isLive, setIsLive] = useState(true)
 
     const { data: logs = [], isLoading, isFetching } = useQuery({
@@ -110,3 +110,4 @@ export default function AuditPage() {
         </m.div>
     )
 }
+

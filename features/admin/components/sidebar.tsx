@@ -37,8 +37,10 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
         { href: "/admin/auditoria", icon: ShieldAlert, label: "Auditoría", roles: ["admin"] },
     ]
 
-    // Filter menu items based on user role
-    const visibleMenuItems = menuItems.filter(item => item.roles.includes(role))
+    // Filter menu items based on user role (superadmin sees everything admin sees)
+    const visibleMenuItems = menuItems.filter(item => 
+        item.roles.includes(role) || (role === "superadmin" && item.roles.includes("admin"))
+    )
 
     // Check if a menu item is active (matches current pathname or is a parent)
     const isActive = (href: string) => {
@@ -54,7 +56,7 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
                     CRM Pro
                 </h2>
                 <p className="text-xs text-muted-foreground mt-1">
-                    {role === 'admin' ? 'Panel de Administración' : 'Panel de Trabajador'}
+                    {role === 'superadmin' ? 'Panel Propietario' : role === 'admin' ? 'Panel de Administración' : 'Panel de Trabajador'}
                 </p>
             </div>
 
@@ -98,11 +100,12 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
 
             {/* Role Badge */}
             <div className="px-3 pb-3 shrink-0">
-                <div className={`px-3 py-2 rounded-xl text-xs font-bold text-center ${role === 'admin'
-                    ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-700 border border-blue-200/50'
-                    : 'bg-accent/10 text-accent-foreground border border-border'
+                <div className={`px-3 py-2 rounded-xl text-xs font-bold text-center ${
+                    role === 'superadmin' ? 'bg-gradient-to-r from-amber-500/10 to-orange-500/10 text-amber-700 border border-amber-200/50' :
+                    role === 'admin' ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-700 border border-blue-200/50' :
+                    'bg-accent/10 text-accent-foreground border border-border'
                     }`}>
-                    {role === 'admin' ? '👑 Administrador' : '👤 Trabajador'}
+                    {role === 'superadmin' ? '⭐ Propietario' : role === 'admin' ? '👑 Administrador' : '👤 Trabajador'}
                 </div>
             </div>
 

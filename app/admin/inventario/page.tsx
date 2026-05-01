@@ -18,7 +18,7 @@ import { fetchAdminInventory } from "@/features/admin"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 
 export default function InventarioPage() {
-    const guard = useRoleGuard({ allowedRoles: ["admin", "worker"] })
+    const guard = useRoleGuard({ allowedRoles: ["superadmin", "admin", "worker"] })
     const qc = useQueryClient()
     const [searchTerm, setSearchTerm] = useState("")
     const [stockFilter, setStockFilter] = useState<"all" | "low" | "out" | "ok">("all")
