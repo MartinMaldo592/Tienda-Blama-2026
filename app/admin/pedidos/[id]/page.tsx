@@ -677,7 +677,7 @@ export default function PedidoDetallePage() {
                 </TabsContent>
 
                 <TabsContent value="documentos" className="outline-none">
-                    <OrderLabelGenerator pedido={pedido} isLocked={isLocked} />
+                    <OrderLabelGenerator pedido={pedido} items={items} isLocked={isLocked} />
                 </TabsContent>
 
                 <TabsContent value="historial" className="outline-none">

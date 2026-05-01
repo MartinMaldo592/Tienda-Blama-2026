@@ -1,17 +1,19 @@
 import { useState, useRef } from 'react'
 import { Button } from "@/components/ui/button"
-import { Printer, Download, Ticket, Package } from "lucide-react"
+import { Printer, Download, Ticket, Package, Loader2 } from "lucide-react"
 import { jsPDF } from 'jspdf'
 import * as QRCode from 'qrcode'
 import { toast } from "sonner"
 
 interface OrderLabelGeneratorProps {
     pedido: any
+    items: any[]
     isLocked: boolean
 }
 
-export function OrderLabelGenerator({ pedido, isLocked }: OrderLabelGeneratorProps) {
+export function OrderLabelGenerator({ pedido, items, isLocked }: OrderLabelGeneratorProps) {
     const [generating, setGenerating] = useState(false)
+    const [generatingTicket, setGeneratingTicket] = useState(false)
 
     // Datos del cliente
     const clienteNombre = pedido.nombre_contacto || pedido.clientes?.nombre || 'Cliente'
@@ -165,8 +167,151 @@ export function OrderLabelGenerator({ pedido, isLocked }: OrderLabelGeneratorPro
         }
     }
 
-    const downloadTicket = () => {
-        window.open(`/admin/pedidos/${pedido.id}/ticket`, '_blank')
+    const generateTicketPDF = async () => {
+        setGeneratingTicket(true)
+        try {
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            })
+
+            const orderId = String(pedido.id).padStart(6, '0')
+            
+            // Colores
+            const primaryColor = [15, 23, 42] // slate-900
+            const secondaryColor = [100, 116, 139] // slate-500
+            
+            // Header
+            doc.setFont("helvetica", "bold")
+            doc.setFontSize(22)
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2])
+            doc.text("TICKET DE PEDIDO", 20, 30)
+            
+            doc.setFontSize(10)
+            doc.setFont("helvetica", "normal")
+            doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
+            doc.text(`ORDEN: #${orderId}`, 20, 38)
+            doc.text(`FECHA: ${new Date(pedido.created_at).toLocaleString()}`, 20, 43)
+            
+            // Estado box
+            doc.setDrawColor(226, 232, 240) // slate-200
+            doc.setFillColor(248, 250, 252) // slate-50
+            doc.roundedRect(140, 22, 50, 22, 3, 3, 'FD')
+            
+            doc.setFont("helvetica", "bold")
+            doc.setFontSize(9)
+            doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
+            doc.text("ESTADO", 145, 30)
+            
+            doc.setFontSize(12)
+            doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2])
+            doc.text(pedido.status.toUpperCase(), 145, 38)
+            
+            // Cliente y Entrega
+            let currentY = 60
+            
+            // Box Cliente
+            doc.setDrawColor(226, 232, 240)
+            doc.rect(20, currentY, 80, 35)
+            doc.setFont("helvetica", "bold")
+            doc.setFontSize(10)
+            doc.text("CLIENTE", 25, currentY + 8)
+            
+            doc.setFont("helvetica", "normal")
+            doc.setFontSize(9)
+            doc.text(clienteNombre.toUpperCase(), 25, currentY + 16)
+            doc.text(`DNI: ${clienteDNI || '-'}`, 25, currentY + 22)
+            doc.text(`CEL: ${clienteTelefono || '-'}`, 25, currentY + 28)
+            
+            // Box Entrega
+            doc.rect(110, currentY, 80, 35)
+            doc.setFont("helvetica", "bold")
+            doc.text("ENTREGA", 115, currentY + 8)
+            
+            doc.setFont("helvetica", "normal")
+            const splitAddress = doc.splitTextToSize(direccionCompleta.toUpperCase(), 70)
+            doc.text(splitAddress, 115, currentY + 16)
+            
+            currentY += 50
+            
+            // Tabla de productos
+            doc.setFont("helvetica", "bold")
+            doc.setFontSize(11)
+            doc.text("DETALLE DE PRODUCTOS", 20, currentY)
+            
+            currentY += 8
+            
+            // Cabecera Tabla
+            doc.setFillColor(241, 245, 249) // slate-100
+            doc.rect(20, currentY, 170, 10, 'F')
+            doc.setFontSize(9)
+            doc.text("PRODUCTO", 25, currentY + 7)
+            doc.text("CANT.", 120, currentY + 7, { align: 'right' })
+            doc.text("UNIT.", 150, currentY + 7, { align: 'right' })
+            doc.text("SUBTOTAL", 185, currentY + 7, { align: 'right' })
+            
+            currentY += 10
+            
+            doc.setFont("helvetica", "normal")
+            items.forEach((it, index) => {
+                const unit = Number(it.productos?.precio ?? 0)
+                const qty = Number(it.cantidad ?? 0)
+                const sub = unit * qty
+                
+                doc.text(it.productos?.nombre || "Producto", 25, currentY + 7)
+                doc.text(qty.toString(), 120, currentY + 7, { align: 'right' })
+                doc.text(`S/ ${unit.toFixed(2)}`, 150, currentY + 7, { align: 'right' })
+                doc.text(`S/ ${sub.toFixed(2)}`, 185, currentY + 7, { align: 'right' })
+                
+                doc.setDrawColor(241, 245, 249)
+                doc.line(20, currentY + 10, 190, currentY + 10)
+                
+                currentY += 10
+                
+                // Nueva página si es necesario
+                if (currentY > 260) {
+                    doc.addPage()
+                    currentY = 20
+                }
+            })
+            
+            // Totales
+            currentY += 10
+            const subtotal = Number(pedido.subtotal ?? pedido.total)
+            const descuento = Number(pedido.descuento ?? 0)
+            const total = Number(pedido.total ?? 0)
+            
+            doc.setFontSize(10)
+            doc.text("SUBTOTAL:", 150, currentY, { align: 'right' })
+            doc.text(`S/ ${subtotal.toFixed(2)}`, 185, currentY, { align: 'right' })
+            
+            if (descuento > 0) {
+                currentY += 6
+                doc.text("DESCUENTO:", 150, currentY, { align: 'right' })
+                doc.text(`- S/ ${descuento.toFixed(2)}`, 185, currentY, { align: 'right' })
+            }
+            
+            currentY += 10
+            doc.setFont("helvetica", "bold")
+            doc.setFontSize(14)
+            doc.text("TOTAL:", 150, currentY, { align: 'right' })
+            doc.text(`S/ ${total.toFixed(2)}`, 185, currentY, { align: 'right' })
+            
+            // Branding footer
+            doc.setFontSize(8)
+            doc.setFont("helvetica", "italic")
+            doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2])
+            doc.text("Gracias por su preferencia - BLAMA SHOP", 105, 280, { align: 'center' })
+
+            doc.save(`TICKET_ORDEN_${orderId}.pdf`)
+            toast.success("Ticket generado correctamente")
+        } catch (error) {
+            console.error("Error ticket", error)
+            toast.error("Error al generar el ticket")
+        } finally {
+            setGeneratingTicket(false)
+        }
     }
 
     return (
@@ -263,10 +408,20 @@ export function OrderLabelGenerator({ pedido, isLocked }: OrderLabelGeneratorPro
                             className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-md"
                             size="lg"
                             variant="outline"
-                            onClick={downloadTicket}
+                            onClick={generateTicketPDF}
+                            disabled={generatingTicket}
                         >
-                            <Download className="mr-2 h-5 w-5" />
-                            Descargar Ticket
+                            {generatingTicket ? (
+                                <>
+                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                    Generando...
+                                </>
+                            ) : (
+                                <>
+                                    <Download className="mr-2 h-5 w-5" />
+                                    Descargar Ticket
+                                </>
+                            )}
                         </Button>
                     </div>
                 </div>
