@@ -267,47 +267,68 @@ export function OrderPaymentCard({ pedido, isLocked, currentUser, userRole = 'wo
                             </p>
                         </div>
                     </div>
-                    <div className={`px-4 py-2 rounded-xl border ${currentStatusStyle.bg} ${currentStatusStyle.border}`}>
-                        <span className={`text-xs font-black uppercase tracking-widest ${currentStatusStyle.text}`}>
-                            {estadoPagoCalculado}
-                        </span>
-                    </div>
+                    {/* Badge: only render after payments are loaded to avoid 'Pendiente' flash */}
+                    {loadingPagos ? (
+                        <div className="h-8 w-24 bg-slate-100 rounded-xl animate-pulse" />
+                    ) : (
+                        <div className={`px-4 py-2 rounded-xl border ${currentStatusStyle.bg} ${currentStatusStyle.border}`}>
+                            <span className={`text-xs font-black uppercase tracking-widest ${currentStatusStyle.text}`}>
+                                {estadoPagoCalculado}
+                            </span>
+                        </div>
+                    )}
                 </div>
 
-                {/* Main Progress & Stats */}
-                <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 space-y-6">
-                    <div className="grid grid-cols-3 gap-4 text-center divide-x divide-slate-200">
-                        <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Monto Total</p>
-                            <p className="text-lg font-black text-slate-900 tracking-tighter">{formatCurrency(pedido.total || 0)}</p>
+                {/* Main Progress & Stats: skeleton while loading */}
+                {loadingPagos ? (
+                    <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 space-y-6 animate-pulse">
+                        <div className="grid grid-cols-3 gap-4 text-center divide-x divide-slate-200">
+                            {[0,1,2].map(i => (
+                                <div key={i} className="flex flex-col items-center gap-2">
+                                    <div className="h-3 w-16 bg-slate-200 rounded" />
+                                    <div className="h-5 w-20 bg-slate-200 rounded" />
+                                </div>
+                            ))}
                         </div>
-                        <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Recaudado</p>
-                            <p className="text-lg font-black text-emerald-600 tracking-tighter">{formatCurrency(totalPagado)}</p>
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Pendiente</p>
-                            <p className={`text-lg font-black tracking-tighter ${saldoPendiente > 0 ? 'text-rose-600' : 'text-slate-900'}`}>
-                                {formatCurrency(saldoPendiente)}
-                            </p>
+                        <div className="space-y-2">
+                            <div className="h-3 w-full bg-slate-200 rounded-full" />
                         </div>
                     </div>
+                ) : (
+                    <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 space-y-6">
+                        <div className="grid grid-cols-3 gap-4 text-center divide-x divide-slate-200">
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Monto Total</p>
+                                <p className="text-lg font-black text-slate-900 tracking-tighter">{formatCurrency(pedido.total || 0)}</p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Recaudado</p>
+                                <p className="text-lg font-black text-emerald-600 tracking-tighter">{formatCurrency(totalPagado)}</p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Pendiente</p>
+                                <p className={`text-lg font-black tracking-tighter ${saldoPendiente > 0 ? 'text-rose-600' : 'text-slate-900'}`}>
+                                    {formatCurrency(saldoPendiente)}
+                                </p>
+                            </div>
+                        </div>
 
-                    <div className="space-y-2">
-                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
-                            <span>Progreso de Pago</span>
-                            <span className={porcentajePagado >= 100 ? 'text-emerald-600' : ''}>{porcentajePagado}%</span>
-                        </div>
-                        <div className="h-3 w-full bg-slate-200 rounded-full overflow-hidden">
-                            <m.div 
-                                className={`h-full rounded-full ${porcentajePagado >= 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
-                                initial={{ width: 0 }}
-                                animate={{ width: `${porcentajePagado}%` }}
-                                transition={{ duration: 1, ease: "easeOut" }}
-                            />
+                        <div className="space-y-2">
+                            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                <span>Progreso de Pago</span>
+                                <span className={porcentajePagado >= 100 ? 'text-emerald-600' : ''}>{porcentajePagado}%</span>
+                            </div>
+                            <div className="h-3 w-full bg-slate-200 rounded-full overflow-hidden">
+                                <m.div 
+                                    className={`h-full rounded-full ${porcentajePagado >= 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${porcentajePagado}%` }}
+                                    transition={{ duration: 1, ease: "easeOut" }}
+                                />
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
                 
                 {/* Additional Info Row */}
                 <div className="flex justify-between items-center mt-4 px-2">

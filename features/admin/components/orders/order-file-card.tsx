@@ -1,8 +1,9 @@
 import Image from "next/image"
-import { Trash2, ExternalLink, FileUp, Eye, EyeOff, CheckCircle2, Loader2 } from "lucide-react"
+import { Trash2, ExternalLink, FileUp, Eye, EyeOff, CheckCircle2, Loader2, FileText } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
+import { PDFPreviewModal } from "../pdf-preview-modal"
 
 interface OrderFileCardProps {
     title: string
@@ -19,14 +20,15 @@ interface OrderFileCardProps {
 }
 
 const ACCENT_MAP = {
-    blue:   { zone: 'border-blue-100 bg-blue-50/50 hover:bg-blue-50',   icon: 'bg-blue-100 text-blue-600',   text: 'text-blue-600', dot: 'bg-blue-500'   },
-    green:  { zone: 'border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50', icon: 'bg-emerald-100 text-emerald-600', text: 'text-emerald-600', dot: 'bg-emerald-500' },
+    blue: { zone: 'border-blue-100 bg-blue-50/50 hover:bg-blue-50', icon: 'bg-blue-100 text-blue-600', text: 'text-blue-600', dot: 'bg-blue-500' },
+    green: { zone: 'border-emerald-100 bg-emerald-50/50 hover:bg-emerald-50', icon: 'bg-emerald-100 text-emerald-600', text: 'text-emerald-600', dot: 'bg-emerald-500' },
     purple: { zone: 'border-purple-100 bg-purple-50/50 hover:bg-purple-50', icon: 'bg-purple-100 text-purple-600', text: 'text-purple-600', dot: 'bg-purple-500' },
     orange: { zone: 'border-orange-100 bg-orange-50/50 hover:bg-orange-50', icon: 'bg-orange-100 text-orange-600', text: 'text-orange-600', dot: 'bg-orange-500' },
 }
 
 const inputId = (title: string) => `upload-${title.replace(/\s+/g, '-').toLowerCase()}`
 const isImage = (url: string) => /\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i.test(url)
+const isPdf = (url: string) => /\.pdf$/i.test(url)
 
 export function OrderFileCard({
     title,
@@ -43,6 +45,7 @@ export function OrderFileCard({
 }: OrderFileCardProps) {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
     const [showPreview, setShowPreview] = useState(true)
+    const [isPdfModalOpen, setIsPdfModalOpen] = useState(false)
 
     const a = ACCENT_MAP[accentColor] || ACCENT_MAP.blue
 
@@ -50,6 +53,8 @@ export function OrderFileCard({
         onDelete()
         setIsDeleteDialogOpen(false)
     }
+
+    const isUrlPdf = fileUrl ? isPdf(fileUrl) : false
 
     return (
         <div className="space-y-4">
@@ -59,7 +64,7 @@ export function OrderFileCard({
                     <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 group">
                         {/* Status Icon */}
                         <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${a.icon}`}>
-                            <CheckCircle2 size={20} strokeWidth={2.5} />
+                            {isUrlPdf ? <FileText size={20} strokeWidth={2.5} /> : <CheckCircle2 size={20} strokeWidth={2.5} />}
                         </div>
 
                         {/* Info */}
@@ -84,6 +89,15 @@ export function OrderFileCard({
                                     title={showPreview ? 'Ocultar' : 'Ver'}
                                 >
                                     {showPreview ? <EyeOff size={15} /> : <Eye size={15} />}
+                                </button>
+                            )}
+                            {isUrlPdf && (
+                                <button
+                                    onClick={() => setIsPdfModalOpen(true)}
+                                    className="h-9 w-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                                    title="Previsualizar PDF"
+                                >
+                                    <Eye size={15} />
                                 </button>
                             )}
                             <button
@@ -177,6 +191,14 @@ export function OrderFileCard({
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* PDF Preview Modal */}
+            <PDFPreviewModal
+                url={fileUrl}
+                isOpen={isPdfModalOpen}
+                onClose={() => setIsPdfModalOpen(false)}
+                title={`Visualizando: ${title}`}
+            />
         </div>
     )
 }

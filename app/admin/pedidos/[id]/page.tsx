@@ -27,7 +27,8 @@ import {
     ArrowLeft, User, Calendar, FileUp, Check, Save, 
     AlertCircle, Camera, Box, ChevronLeft, MapPin, 
     CreditCard, History, FileText, Settings2, Loader2,
-    CheckCircle2, ChevronRight, X, User2, MapPinned, FileSearch
+    CheckCircle2, ChevronRight, X, User2, MapPinned, FileSearch,
+    Send, Lock, Truck
 } from "lucide-react"
 import { toast } from "sonner"
 import { formatCurrency } from "@/lib/utils"
@@ -464,10 +465,10 @@ export default function PedidoDetallePage() {
             <m.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full bg-white border border-slate-100 rounded-[2.5rem] p-10 shadow-[0_8px_30px_rgb(0,0,0,0.03)]"
+                className="w-full bg-white border border-slate-100 rounded-[2rem] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.03)]"
             >
                 <div className="relative flex items-center justify-between w-full max-w-4xl mx-auto">
-                    <div className="absolute left-0 top-[22px] w-full h-[2px] bg-slate-100 -z-0"></div>
+                    <div className="absolute left-0 top-[16px] w-full h-[2px] bg-slate-100 -z-0"></div>
                     {['Pendiente', 'Confirmado', 'Enviado', 'Entregado'].map((stepStatus, index) => {
                         const allStatuses = ['Pendiente', 'Confirmado', 'Enviado', 'Entregado']
                         const currentIndex = allStatuses.indexOf(pedido.status)
@@ -476,15 +477,15 @@ export default function PedidoDetallePage() {
                         const isCancelled = pedido.status === 'Fallido' || pedido.status === 'Cancelado'
 
                         return (
-                            <div key={stepStatus} className="relative z-10 flex flex-col items-center gap-4 bg-white px-4">
-                                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-700 shadow-sm ${
+                            <div key={stepStatus} className="relative z-10 flex flex-col items-center gap-2 bg-white px-3">
+                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-700 shadow-sm ${
                                     isCancelled ? "bg-rose-50 text-rose-400 border border-rose-100" :
-                                    isCompleted ? "bg-slate-900 text-white shadow-xl shadow-slate-200" : 
+                                    isCompleted ? "bg-slate-900 text-white shadow-lg shadow-slate-200" : 
                                     "bg-white border-2 border-slate-100 text-slate-300"
                                 }`}>
-                                    {isCompleted && !isCancelled ? <Check className="w-5 h-5" strokeWidth={3} /> : <span className="font-black text-sm">{index + 1}</span>}
+                                    {isCompleted && !isCancelled ? <Check className="w-4 h-4" strokeWidth={3} /> : <span className="font-black text-xs">{index + 1}</span>}
                                 </div>
-                                <span className={`text-[10px] font-black uppercase tracking-widest ${isCompleted && !isCancelled ? 'text-slate-900' : 'text-slate-300'}`}>
+                                <span className={`text-[9px] font-black uppercase tracking-widest ${isCompleted && !isCancelled ? 'text-slate-900' : 'text-slate-300'}`}>
                                     {stepStatus}
                                 </span>
                             </div>
@@ -495,9 +496,9 @@ export default function PedidoDetallePage() {
                     <m.div 
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="mt-8 flex items-center justify-center gap-3 py-4 bg-rose-50 rounded-2xl border border-rose-100 text-rose-600 font-bold"
+                        className="mt-4 flex items-center justify-center gap-3 py-3 bg-rose-50 rounded-2xl border border-rose-100 text-rose-600 font-bold text-sm"
                     >
-                        <AlertCircle size={20} />
+                        <AlertCircle size={16} />
                         ORDEN CANCELADA O FALLIDA
                     </m.div>
                 )}
@@ -568,7 +569,8 @@ export default function PedidoDetallePage() {
                 </TabsContent>
 
                 <TabsContent value="logistica" className="space-y-8 outline-none">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                        {/* Columna izquierda: solo logística */}
                         <div className="space-y-8">
                             <OrderShippingCard
                                 pedido={pedido}
@@ -576,6 +578,9 @@ export default function PedidoDetallePage() {
                                 onLogAction={logAction}
                                 onRefresh={fetchPedido}
                             />
+                        </div>
+                        {/* Columna derecha: Guías Oficiales arriba, Confirmación Visual abajo */}
+                        <div className="space-y-8">
                             <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
                                 <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3 mb-6">
                                     <FileUp className="text-indigo-500" /> Guías Oficiales
@@ -594,8 +599,6 @@ export default function PedidoDetallePage() {
                                     accentColor="blue"
                                 />
                             </div>
-                        </div>
-                        <div className="space-y-8">
                             <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
                                 <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3 mb-6">
                                     <Camera className="text-blue-500" /> Confirmación Visual
@@ -616,6 +619,68 @@ export default function PedidoDetallePage() {
                             </div>
                         </div>
                     </div>
+
+                    {/* Fila completa: Notificar al Cliente (solo para pedidos de Provincia con datos de tracking) */}
+                    {['provincia', 'Provincia'].includes(pedido.metodo_envio || '') && pedido.shalom_orden && pedido.shalom_clave && (
+                        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-5 flex items-center gap-2">
+                                <Send size={16} className="text-sky-500" /> Notificar al Cliente
+                            </h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <button
+                                    onClick={() => {
+                                        const phone = pedido.telefono_contacto || pedido.clientes?.telefono
+                                        if (!phone) { toast.error('El cliente no tiene teléfono'); return }
+                                        const nombre = (pedido.nombre_contacto || pedido.clientes?.nombre || 'Cliente').split(' ')[0]
+                                        const orderId = pedido.id.toString().padStart(6, '0')
+                                        const msg = `Hola ${nombre}! 👋\nTu pedido #${orderId} ya fue enviado por Shalom.\n\n📦 Datos para rastreo:\nNº de Orden: ${pedido.shalom_orden}\nCódigo de Orden: ${pedido.shalom_clave}\n${pedido.agencia_origen ? `📍 Origen: ${pedido.agencia_origen}\n` : ''}${pedido.agencia_destino ? `📍 Destino: ${pedido.agencia_destino}\n` : ''}🔗 Rastrea aquí: https://rastrea.shalom.com.pe\n\nPara recibir tu clave de retiro, por favor cancela el saldo pendiente.\n¡Gracias por tu compra en Blama! 🛍️`
+                                        window.open(`https://wa.me/51${phone}?text=${encodeURIComponent(msg)}`, '_blank')
+                                    }}
+                                    className="flex items-center justify-between h-14 px-5 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-100 rounded-2xl transition-all haptic-scale group"
+                                >
+                                    <span className="flex items-center gap-3 font-black text-xs uppercase tracking-wider">
+                                        <Send size={16} className="group-hover:translate-x-0.5 transition-transform" />
+                                        Enviar Guía de Rastreo
+                                    </span>
+                                    <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 bg-sky-200 text-sky-800 rounded-lg">SIN PIN</span>
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        const isPaid = ['Pagado', 'Pagado Anticipado', 'Pagado al Recibir'].includes(pedido.pago_status || '')
+                                        if (!isPaid) return
+                                        const phone = pedido.telefono_contacto || pedido.clientes?.telefono
+                                        if (!phone) { toast.error('El cliente no tiene teléfono'); return }
+                                        const nombre = (pedido.nombre_contacto || pedido.clientes?.nombre || 'Cliente').split(' ')[0]
+                                        const orderId = pedido.id.toString().padStart(6, '0')
+                                        const msg = `Hola ${nombre}! ✅\n¡Tu pago ha sido confirmado! Aquí están tus datos para recoger tu pedido #${orderId} en Shalom:\n\n📦 Nº de Orden: ${pedido.shalom_orden}\n📦 Código de Orden: ${pedido.shalom_clave}\n${pedido.agencia_destino ? `📍 Agencia Destino: ${pedido.agencia_destino}\n` : ''}🔐 Clave de Retiro: ${pedido.shalom_pin}\n\nYa puedes recoger tu paquete en la agencia Shalom de tu ciudad.\n¡Gracias por tu compra en Blama! 🛍️`
+                                        window.open(`https://wa.me/51${phone}?text=${encodeURIComponent(msg)}`, '_blank')
+                                    }}
+                                    disabled={!['Pagado', 'Pagado Anticipado', 'Pagado al Recibir'].includes(pedido.pago_status || '')}
+                                    className={`flex items-center justify-between h-14 px-5 border rounded-2xl transition-all font-black text-xs uppercase tracking-wider group ${
+                                        ['Pagado', 'Pagado Anticipado', 'Pagado al Recibir'].includes(pedido.pago_status || '')
+                                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-lg shadow-emerald-100 haptic-scale'
+                                            : 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed'
+                                    }`}
+                                >
+                                    <span className="flex items-center gap-3">
+                                        <Lock size={16} /> Enviar PIN de Retiro
+                                    </span>
+                                    <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg ${
+                                        ['Pagado', 'Pagado Anticipado', 'Pagado al Recibir'].includes(pedido.pago_status || '') ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400'
+                                    }`}>
+                                        {['Pagado', 'Pagado Anticipado', 'Pagado al Recibir'].includes(pedido.pago_status || '') ? 'HABILITADO' : 'BLOQUEADO'}
+                                    </span>
+                                </button>
+                            </div>
+                            <button
+                                onClick={() => window.open('https://shalom.com.pe/rastrea', '_blank')}
+                                className="mt-4 w-full flex items-center justify-center gap-2 h-11 rounded-2xl border border-slate-100 text-slate-400 hover:text-indigo-600 hover:border-indigo-100 hover:bg-indigo-50 transition-all text-[10px] font-black uppercase tracking-widest"
+                            >
+                                <Truck size={14} /> Portal de Rastreo Shalom
+                            </button>
+                        </div>
+                    )}
                 </TabsContent>
 
                 <TabsContent value="finanzas" className="space-y-8 outline-none">
