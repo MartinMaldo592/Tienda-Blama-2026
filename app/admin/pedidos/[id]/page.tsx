@@ -262,7 +262,7 @@ export default function PedidoDetallePage() {
     const isLocked = (() => {
         if (!pedido || (userRole === 'admin' || userRole === 'superadmin')) return false
         const terminalStates = ['Entregado', 'Enviado', 'Fallido']
-        if (!terminalStates.includes(pedido.status)) return false
+        if (!terminalStates.includes(pedido.status || '')) return false
         const updateTime = new Date(pedido.updated_at || pedido.created_at).getTime()
         const now = Date.now()
         const threeDaysMs = 3 * 24 * 60 * 60 * 1000
@@ -405,7 +405,7 @@ export default function PedidoDetallePage() {
                             <h1 className="text-4xl font-black text-slate-900 tracking-tight">
                                 Orden <span className="text-blue-600">#{pedido.id.toString().padStart(6, '0')}</span>
                             </h1>
-                            <StatusBadge status={pedido.status} />
+                            <StatusBadge status={pedido.status || 'Pendiente'} />
                         </div>
                         <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">
                             Registrado el {new Date(pedido.created_at).toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -471,7 +471,7 @@ export default function PedidoDetallePage() {
                     <div className="absolute left-0 top-[16px] w-full h-[2px] bg-slate-100 -z-0"></div>
                     {['Pendiente', 'Confirmado', 'Enviado', 'Entregado'].map((stepStatus, index) => {
                         const allStatuses = ['Pendiente', 'Confirmado', 'Enviado', 'Entregado']
-                        const currentIndex = allStatuses.indexOf(pedido.status)
+                        const currentIndex = allStatuses.indexOf(pedido.status || '')
                         const stepIndex = allStatuses.indexOf(stepStatus)
                         const isCompleted = stepIndex <= currentIndex
                         const isCancelled = pedido.status === 'Fallido' || pedido.status === 'Cancelado'

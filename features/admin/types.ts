@@ -37,42 +37,12 @@ export interface AdminProduct extends Producto {
 
 export interface AdminPedidoItem extends PedidoItem {
   productos?: Pick<Producto, "nombre" | "precio" | "imagen_url"> | null
-  variante_nombre?: string | null // often joined or saved
-  cantidad_devuelta?: number | null
 }
 
 export interface AdminPedido extends Pedido {
   clientes?: Cliente | null
   items?: AdminPedidoItem[]
   asignado_perfil?: ProfileRow | null
-
-  // Fields potentially missing from generated types but present in DB/App logic
-  asignado_a?: string | null
-  fecha_asignacion?: string | null
-
-  // Legacy fields that seem to be used in UI but missing in simplified type definition?
-  // We include them as optional to avoid breaking existing code immediately, 
-  // but typed properly.
-  // Ideally these should be in the DB definition if they exist.
-  nombre_contacto?: string | null
-  dni_contacto?: string | null
-  telefono_contacto?: string | null
-  departamento?: string | null
-  provincia?: string | null
-  distrito?: string | null
-  direccion_calle?: string | null
-  referencia_direccion?: string | null
-  link_ubicacion?: string | null
-  guia_archivo_url?: string | null
-  comprobante_pago_url?: string[] | null
-  codigo_seguimiento?: string | null
-  shalom_orden?: string | null
-  shalom_clave?: string | null
-  evidencia_entrega_url?: string | null
-  shalom_pin?: string | null
-  agencia_origen?: string | null
-  agencia_destino?: string | null
-  culqi_charge_id?: string | null   // ID del cargo de Culqi (chr_live_...) — usado para validar la URL de éxito
   updated_at?: string | null
 }
 
