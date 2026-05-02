@@ -252,59 +252,6 @@ export function OrderShippingCard({ pedido, isLocked, onLogAction, onRefresh }: 
                                 GUARDAR TRACKING
                             </Button>
                         )}
-
-                        {/* WhatsApp Actions */}
-                        {shalomOrder && shalomPass && (
-                            <div className="space-y-3 pt-2 border-t border-slate-50">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Notificar al Cliente</p>
-                                <div className="space-y-3">
-                                    <button
-                                        onClick={() => sendWhatsApp('guia')}
-                                        className="w-full flex items-center justify-between h-14 px-5 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-100 rounded-2xl transition-all haptic-scale group"
-                                    >
-                                        <span className="flex items-center gap-3 font-black text-xs uppercase tracking-wider">
-                                            <Send size={16} className="group-hover:translate-x-0.5 transition-transform" />
-                                            Enviar Guía de Rastreo
-                                        </span>
-                                        <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 bg-sky-200 text-sky-800 rounded-lg">SIN PIN</span>
-                                    </button>
-
-                                    <button
-                                        onClick={() => isPaid && sendWhatsApp('pin')}
-                                        disabled={!isPaid}
-                                        className={`w-full flex items-center justify-between h-14 px-5 border rounded-2xl transition-all font-black text-xs uppercase tracking-wider group ${
-                                            isPaid
-                                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-lg shadow-emerald-100 haptic-scale'
-                                                : 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed'
-                                        }`}
-                                    >
-                                        <span className="flex items-center gap-3">
-                                            <Lock size={16} />
-                                            Enviar PIN de Retiro
-                                        </span>
-                                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg ${isPaid ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400'}`}>
-                                            {isPaid ? 'HABILITADO' : 'BLOQUEADO'}
-                                        </span>
-                                    </button>
-
-                                    {!isPaid && (
-                                        <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-2xl border border-amber-100">
-                                            <AlertCircle size={16} className="text-amber-500 shrink-0 mt-0.5" />
-                                            <p className="text-[10px] font-bold text-amber-800 leading-relaxed uppercase tracking-wide">
-                                                El envío del PIN queda desbloqueado automáticamente cuando el pedido esté marcado como pagado.
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        <button
-                            onClick={() => window.open('https://shalom.com.pe/rastrea', '_blank')}
-                            className="w-full flex items-center justify-center gap-2 h-11 rounded-2xl border border-slate-100 text-slate-400 hover:text-indigo-600 hover:border-indigo-100 hover:bg-indigo-50 transition-all text-[10px] font-black uppercase tracking-widest"
-                        >
-                            <Truck size={14} /> Portal de Rastreo Shalom
-                        </button>
                     </>
                 ) : (
                     /* Lima / Standard */
