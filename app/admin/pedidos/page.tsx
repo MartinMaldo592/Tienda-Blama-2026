@@ -748,7 +748,7 @@ function PedidosPageContent() {
                                                 </TableCell>
                                                 <TableCell>
                                                     <Select
-                                                        value={pedido.status}
+                                                        value={pedido.status || undefined}
                                                         onValueChange={(val) => statusMutation.mutate({
                                                             pedidoId: pedido.id,
                                                             nextStatus: val,

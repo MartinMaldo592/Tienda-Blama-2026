@@ -249,7 +249,7 @@ export function OrderPaymentCard({ pedido, isLocked, currentUser, userRole = 'wo
         }
     }
 
-    const currentStatusStyle = PAGO_STATUS_STYLES[estadoPagoCalculado] || PAGO_STATUS_STYLES['Pendiente']
+    const currentStatusStyle = PAGO_STATUS_STYLES[estadoPagoCalculado || 'Pendiente'] || PAGO_STATUS_STYLES['Pendiente']
 
     return (
         <div className="bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-slate-100 overflow-hidden">
