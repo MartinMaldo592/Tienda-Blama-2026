@@ -27,19 +27,12 @@ export type ProfileRow = {
 }
 
 // Extended Types for UI (Joins)
-export interface AdminProduct extends Producto {
-  categoria?: Categoria | null
-  variantes?: ProductoVariante[]
-  especificaciones?: ProductoEspecificacion[]
-  // Some UI specific fields that might be calculated
-  stockTotal?: number
-}
 
-export interface AdminPedidoItem extends PedidoItem {
+interface AdminPedidoItem extends PedidoItem {
   productos?: Pick<Producto, "nombre" | "precio" | "imagen_url"> | null
 }
 
-export interface AdminPedido extends Pedido {
+interface AdminPedido extends Pedido {
   clientes?: Cliente | null
   items?: AdminPedidoItem[]
   asignado_perfil?: ProfileRow | null
@@ -49,7 +42,7 @@ export interface AdminPedido extends Pedido {
 // Aliases for backward compatibility during refactor
 export type PedidoRow = AdminPedido
 export type PedidoItemRow = AdminPedidoItem
-export type ClienteRow = Cliente
+
 
 export type AdminDashboardStats = {
   totalVentasReales: number

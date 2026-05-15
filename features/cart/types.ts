@@ -1,10 +1,10 @@
 import type { Database } from "@/types/database.types"
 
-export type Product = Database["public"]["Tables"]["productos"]["Row"]
+type Product = Database["public"]["Tables"]["productos"]["Row"]
 
-export type ProductVariant = Database["public"]["Tables"]["producto_variantes"]["Row"]
+type ProductVariant = Database["public"]["Tables"]["producto_variantes"]["Row"]
 
-export type CartItem = Product & {
+type CartItem = Product & {
     quantity: number
     producto_variante_id?: number | null
     variante_nombre?: string | null

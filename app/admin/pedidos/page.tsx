@@ -5,19 +5,7 @@ import { m, AnimatePresence } from "framer-motion"
 import { createClient } from "@/lib/supabase.client"
 import { useRoleGuard } from "@/hooks/use-role-guard"
 import { AccessDenied } from "@/features/admin/components/access-denied"
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow
-} from "@/components/ui/table"
-import { 
-    RefreshCw, Search, Eye, Filter, Loader2, Calendar, 
-    User, UserPlus, ChevronLeft, ChevronRight, 
-    AlertCircle, CheckCircle2, Box, ArrowRight, Download, LayoutDashboard
-} from "lucide-react"
+import { RefreshCw, Box, Download, Eye, LayoutDashboard, Loader2 } from "lucide-react"
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query"
 import { 
     fetchPedidosForRole, 
@@ -27,20 +15,8 @@ import {
     fetchAdminWorkers
 } from "@/features/admin/services/pedidos.client"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
-import { formatCurrency } from "@/lib/utils"
 import { toast } from "sonner"
-import { PaymentStatusBadge } from "@/features/admin/components/orders/status-badges"
-import { OrderRowSkeleton } from "@/features/admin/components/skeleton-previews"
-import Link from "next/link"
-import { Skeleton } from "@/components/ui/skeleton"
+import { PedidoRow } from "@/features/admin/types"
 import { usePathname, useSearchParams, useRouter } from "next/navigation"
 import {
     Dialog,
@@ -50,13 +26,17 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { PedidoRow, ProfileRow } from "@/features/admin/types"
+import { AlertCircle, CheckCircle2 } from "lucide-react"
+
+// Nuevos componentes refactorizados
+import { OrdersFilterBar } from "@/features/admin/components/orders/orders-filter-bar"
+import { OrdersBulkActions } from "@/features/admin/components/orders/orders-bulk-actions"
+import { OrdersTable } from "@/features/admin/components/orders/orders-table"
 
 function PedidosPageContent() {
     const [exportDropdownOpen, setExportDropdownOpen] = useState(false)
     const exportDropdownRef = useRef<HTMLDivElement>(null)
 
-    // Close dropdown on outside click
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (exportDropdownRef.current && !exportDropdownRef.current.contains(event.target as Node)) {
@@ -76,13 +56,10 @@ function PedidosPageContent() {
     const [filterWorker, setFilterWorker] = useState<string>('all')
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
-
-    // Date Filters
     const [dateFilter, setDateFilter] = useState('all')
     const [customStartDate, setCustomStartDate] = useState('')
     const [customEndDate, setCustomEndDate] = useState('')
 
-    // Bulk selection state
     const [selectedIds, setSelectedIds] = useState<number[]>([])
     const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false)
     const [pendingBulkStatus, setPendingBulkStatus] = useState("")
@@ -92,19 +69,15 @@ function PedidosPageContent() {
     const [isExporting, setIsExporting] = useState(false)
     const [recentOrderIds, setRecentOrderIds] = useState<Set<number>>(new Set())
 
-    // Pagination state (Derived from URL to guarantee consistency)
     const currentPage = Number(searchParams.get("page")) || 1
     const itemsPerPage = 10
-    const [direction, setDirection] = useState(0) // -1 back, 1 forward
+    const [direction, setDirection] = useState(0)
 
     const handlePageChange = (newPage: number) => {
         setDirection(newPage > currentPage ? 1 : -1)
         const params = new URLSearchParams(searchParams.toString())
-        if (newPage > 1) {
-            params.set("page", newPage.toString())
-        } else {
-            params.delete("page")
-        }
+        if (newPage > 1) params.set("page", newPage.toString())
+        else params.delete("page")
         const query = params.toString()
         router.push(query ? `${pathname}?${query}` : pathname, { scroll: false })
     }
@@ -119,10 +92,7 @@ function PedidosPageContent() {
         })
     }, [])
 
-    // Track filter changes to reset page ONLY when user changes a filter,
-    // not on component mount/remount (safe with React Strict Mode)
     const prevFiltersRef = useRef({ searchTerm, statusFilter, dateFilter, filterWorker, customStartDate, customEndDate })
-
     useEffect(() => {
         const prev = prevFiltersRef.current
         const changed =
@@ -134,84 +104,55 @@ function PedidosPageContent() {
             prev.customEndDate !== customEndDate
 
         prevFiltersRef.current = { searchTerm, statusFilter, dateFilter, filterWorker, customStartDate, customEndDate }
-
         if (changed) handlePageChange(1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchTerm, statusFilter, dateFilter, filterWorker, customStartDate, customEndDate])
 
     useEffect(() => {
         if (!userId) return
-
         const supabase = createClient()
-        const channel = supabase
-            .channel('admin-pedidos-realtime')
-            .on(
-                'postgres_changes', 
-                { event: '*', schema: 'public', table: 'pedidos' }, 
-                (payload) => {
-                    queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
-                    queryClient.invalidateQueries({ queryKey: ["admin-dashboard-stats"] })
-                    
-                    if (payload.eventType === 'INSERT') {
-                        const newId = payload.new.id
-                        setRecentOrderIds(prev => new Set(prev).add(newId))
-                        setTimeout(() => {
-                            setRecentOrderIds(prev => {
-                                const next = new Set(prev)
-                                next.delete(newId)
-                                return next
-                            })
-                        }, 15000)
-                    }
+        const channel = supabase.channel('admin-pedidos-realtime')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'pedidos' }, (payload) => {
+                queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
+                queryClient.invalidateQueries({ queryKey: ["admin-dashboard-stats"] })
+                if (payload.eventType === 'INSERT') {
+                    const newId = payload.new.id
+                    setRecentOrderIds(prev => new Set(prev).add(newId))
+                    setTimeout(() => {
+                        setRecentOrderIds(prev => {
+                            const next = new Set(prev)
+                            next.delete(newId)
+                            return next
+                        })
+                    }, 15000)
                 }
-            )
-            .subscribe()
-
-        return () => {
-            supabase.removeChannel(channel)
-        }
+            }).subscribe()
+        return () => { supabase.removeChannel(channel) }
     }, [userId, queryClient])
 
     const { data: fetchResult, isLoading: loadingPedidos, isFetching } = useQuery({
         queryKey: ["adminPedidos", userRole, userId, currentPage, itemsPerPage, statusFilter, searchTerm, dateFilter, filterWorker, customStartDate, customEndDate],
         queryFn: () => fetchPedidosForRole({ 
-            role: userRole, 
-            currentUserId: userId,
-            page: currentPage,
-            itemsPerPage,
-            statusFilter,
-            searchTerm,
-            dateFilter,
-            filterWorker,
-            customStartDate,
-            customEndDate
+            role: userRole, currentUserId: userId, page: currentPage, itemsPerPage,
+            statusFilter, searchTerm, dateFilter, filterWorker, customStartDate, customEndDate
         }),
         enabled: !!userId && !guard.loading && !guard.accessDenied,
         placeholderData: keepPreviousData,
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        staleTime: 1000 * 60 * 5,
     })
 
     const paginatedPedidos = fetchResult?.data || []
     const totalItems = fetchResult?.count || 0
     const totalPages = Math.ceil(totalItems / itemsPerPage) || 1
 
-    // --- PREFETCHING NEXT PAGE FOR SMOOTH TRANSITION ---
     useEffect(() => {
         if (currentPage < totalPages) {
             const nextPage = currentPage + 1
             queryClient.prefetchQuery({
                 queryKey: ["adminPedidos", userRole, userId, nextPage, itemsPerPage, statusFilter, searchTerm, dateFilter, filterWorker, customStartDate, customEndDate],
                 queryFn: () => fetchPedidosForRole({ 
-                    role: userRole, 
-                    currentUserId: userId,
-                    page: nextPage,
-                    itemsPerPage,
-                    statusFilter,
-                    searchTerm,
-                    dateFilter,
-                    filterWorker,
-                    customStartDate,
-                    customEndDate
+                    role: userRole, currentUserId: userId, page: nextPage, itemsPerPage,
+                    statusFilter, searchTerm, dateFilter, filterWorker, customStartDate, customEndDate
                 }),
             })
         }
@@ -260,7 +201,7 @@ function PedidosPageContent() {
             return updatePedidoStatusWithStock({ pedidoId, nextStatus, stockDescontado })
         },
         onSuccess: () => toast.success("Estado de pedido actualizado satisfactoriamente"),
-        onError: (error: Error) => toast.error('Error al actualizar estado: ' + error.message),
+        onError: (error: Error) => toast.error('Error al actualizar: ' + error.message),
         onSettled: () => queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
     })
 
@@ -273,13 +214,13 @@ function PedidosPageContent() {
             }
         },
         onSuccess: () => {
-            toast.success(`${selectedIds.length} pedidos actualizados correctamente.`)
+            toast.success(`${selectedIds.length} pedidos actualizados.`)
             setSelectedIds([])
             setBulkConfirmOpen(false)
             setPendingBulkStatus("")
             queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })
         },
-        onError: (error: Error) => toast.error('Error en actualización masiva: ' + error.message)
+        onError: (error: Error) => toast.error('Error: ' + error.message)
     })
 
     async function handleBulkStatusRequest(status: string) {
@@ -314,8 +255,8 @@ function PedidosPageContent() {
     })
 
     function handleSelectAll() {
-        if (selectedIds.length === paginatedPedidos.length) { setSelectedIds([]) } 
-        else { setSelectedIds(paginatedPedidos.map((p: PedidoRow) => p.id)) }
+        if (selectedIds.length === paginatedPedidos.length) setSelectedIds([]) 
+        else setSelectedIds(paginatedPedidos.map((p: PedidoRow) => p.id))
     }
 
     function toggleSelection(id: number) {
@@ -327,7 +268,7 @@ function PedidosPageContent() {
         try {
             const ExcelJS = await import("exceljs")
             let dataToExport: PedidoRow[] = []
-            if (mode === 'page') { dataToExport = paginatedPedidos } 
+            if (mode === 'page') dataToExport = paginatedPedidos 
             else {
                 const result = await fetchPedidosForRole({
                     role: userRole, currentUserId: userId, page: 1, itemsPerPage: totalItems, 
@@ -337,23 +278,16 @@ function PedidosPageContent() {
             }
             if (dataToExport.length === 0) { toast.error("Sin datos"); return }
             const rows = dataToExport.map((p: PedidoRow) => ([
-                p.id,
-                new Date(p.created_at).toLocaleDateString(),
-                p.clientes?.nombre || p.nombre_contacto || '',
-                p.total,
-                p.status,
-                p.pago_status,
+                p.id, new Date(p.created_at).toLocaleDateString(),
+                p.clientes?.nombre || p.nombre_contacto || '', p.total, p.status, p.pago_status,
                 p.asignado_perfil?.nombre || p.asignado_a || '',
             ]))
             const workbook = new ExcelJS.Workbook()
             const worksheet = workbook.addWorksheet("Pedidos")
             worksheet.columns = [
-                { header: "ID", key: "id", width: 10 },
-                { header: "Fecha", key: "fecha", width: 15 },
-                { header: "Cliente", key: "cliente", width: 25 },
-                { header: "Total (S/)", key: "total", width: 15 },
-                { header: "Estado", key: "estado", width: 15 },
-                { header: "Pago", key: "pago", width: 15 },
+                { header: "ID", key: "id", width: 10 }, { header: "Fecha", key: "fecha", width: 15 },
+                { header: "Cliente", key: "cliente", width: 25 }, { header: "Total (S/)", key: "total", width: 15 },
+                { header: "Estado", key: "estado", width: 15 }, { header: "Pago", key: "pago", width: 15 },
                 { header: "Asignado", key: "asignado", width: 20 },
             ]
             rows.forEach(r => worksheet.addRow(r))
@@ -373,34 +307,8 @@ function PedidosPageContent() {
     if (guard.loading) {
         return (
             <div className="space-y-10 animate-in fade-in duration-500 max-w-[1600px] mx-auto pt-4">
-                <div className="flex justify-between items-end gap-6">
-                    <div className="space-y-3">
-                        <Skeleton className="h-14 w-64 rounded-2xl" />
-                        <Skeleton className="h-4 w-80 rounded-lg" />
-                    </div>
-                    <div className="flex gap-3">
-                        <Skeleton className="h-14 w-40 rounded-2xl" />
-                        <Skeleton className="h-14 w-40 rounded-2xl" />
-                    </div>
-                </div>
                 <div className="h-16 bg-slate-50 rounded-[2rem] border border-slate-100 animate-pulse" />
-                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-                    <Table>
-                        <TableHeader className="bg-slate-50/50">
-                            <TableRow className="h-16">
-                                <TableHead className="w-[60px] pl-8"></TableHead>
-                                <TableHead></TableHead>
-                                <TableHead></TableHead>
-                                <TableHead></TableHead>
-                                <TableHead></TableHead>
-                                <TableHead className="pr-8"></TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <OrderRowSkeleton count={10} />
-                        </TableBody>
-                    </Table>
-                </div>
+                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden h-[500px] animate-pulse" />
             </div>
         )
     }
@@ -411,11 +319,7 @@ function PedidosPageContent() {
         <div className="space-y-10 pb-20 max-w-[1600px] mx-auto animate-in fade-in duration-700">
             {/* --- HEADER --- */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 pt-4">
-                <m.div 
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="space-y-4"
-                >
+                <m.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
                     <div className="flex items-center gap-4">
                         <div className="h-14 w-14 bg-slate-900 rounded-[1.25rem] flex items-center justify-center text-white shadow-2xl shadow-slate-200">
                             <Box size={28} strokeWidth={1.5} />
@@ -426,11 +330,7 @@ function PedidosPageContent() {
                                     {(userRole === 'admin' || userRole === 'superadmin') ? 'Pedidos' : 'Mis Entregas'}
                                 </h1>
                                 {isFetching && !loadingPedidos && (
-                                    <m.div 
-                                        initial={{ opacity: 0, scale: 0.5 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        className="bg-blue-50 text-blue-600 p-2 rounded-xl"
-                                    >
+                                    <m.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="bg-blue-50 text-blue-600 p-2 rounded-xl">
                                         <RefreshCw className="h-4 w-4 animate-spin" />
                                     </m.div>
                                 )}
@@ -445,11 +345,7 @@ function PedidosPageContent() {
                     </div>
                 </m.div>
 
-                <m.div 
-                    initial={{ opacity: 0, x: 30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex flex-wrap gap-3 w-full lg:w-auto"
-                >
+                <m.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} className="flex flex-wrap gap-3 w-full lg:w-auto">
                     {(userRole === 'admin' || userRole === 'superadmin') && (
                         <div className="relative" ref={exportDropdownRef}>
                             <Button 
@@ -465,41 +361,20 @@ function PedidosPageContent() {
                             <AnimatePresence>
                                 {exportDropdownOpen && (
                                     <m.div
-                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }}
                                         className="absolute right-0 mt-3 w-72 bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100 p-3 z-[60] overflow-hidden"
                                     >
                                         <div className="p-4 border-b border-slate-50 mb-2">
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Formato Excel</p>
                                         </div>
                                         <div className="space-y-1">
-                                            <button
-                                                onClick={() => handleExportXlsx('page')}
-                                                disabled={isExporting}
-                                                className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group text-left"
-                                            >
-                                                <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
-                                                    <Eye size={18} />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <p className="text-xs font-black text-slate-900 uppercase">Página Actual</p>
-                                                    <p className="text-[10px] text-slate-400 font-bold">{paginatedPedidos.length} pedidos</p>
-                                                </div>
+                                            <button onClick={() => handleExportXlsx('page')} disabled={isExporting} className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group text-left">
+                                                <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all"><Eye size={18} /></div>
+                                                <div className="flex-1"><p className="text-xs font-black text-slate-900 uppercase">Página Actual</p><p className="text-[10px] text-slate-400 font-bold">{paginatedPedidos.length} pedidos</p></div>
                                             </button>
-
-                                            <button
-                                                onClick={() => handleExportXlsx('all')}
-                                                disabled={isExporting}
-                                                className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group text-left"
-                                            >
-                                                <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all">
-                                                    <LayoutDashboard size={18} />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <p className="text-xs font-black text-slate-900 uppercase">Todo el Universo</p>
-                                                    <p className="text-[10px] text-slate-400 font-bold">{totalItems} pedidos</p>
-                                                </div>
+                                            <button onClick={() => handleExportXlsx('all')} disabled={isExporting} className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group text-left">
+                                                <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all"><LayoutDashboard size={18} /></div>
+                                                <div className="flex-1"><p className="text-xs font-black text-slate-900 uppercase">Todo el Universo</p><p className="text-[10px] text-slate-400 font-bold">{totalItems} pedidos</p></div>
                                             </button>
                                         </div>
                                     </m.div>
@@ -509,377 +384,44 @@ function PedidosPageContent() {
                     )}
                     <Button
                         className="flex-1 md:flex-none gap-2 h-14 px-8 rounded-2xl bg-slate-900 text-white hover:bg-blue-600 font-black tracking-tight shadow-xl shadow-slate-200 hover:shadow-blue-200 transition-all haptic-scale"
-                        onClick={() => queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })}
-                        disabled={isFetching}
+                        onClick={() => queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })} disabled={isFetching}
                     >
-                        {isFetching ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />}
-                        SINCRONIZAR
+                        {isFetching ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />} SINCRONIZAR
                     </Button>
                 </m.div>
             </div>
 
-            {/* --- BULK ACTIONS --- */}
-            <AnimatePresence>
-                {selectedIds.length > 0 && (
-                    <m.div 
-                        initial={{ opacity: 0, y: -20, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                        className="bg-slate-900 text-white p-4 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl shadow-slate-300 ring-4 ring-white"
-                    >
-                        <div className="flex items-center gap-4 pl-4">
-                            <div className="h-10 w-10 bg-blue-500 rounded-xl flex items-center justify-center font-black">
-                                {selectedIds.length}
-                            </div>
-                            <div>
-                                <p className="font-black text-sm uppercase tracking-widest">Acciones Masivas</p>
-                                <p className="text-xs text-slate-400">Editando {selectedIds.length} pedidos simultáneamente</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-wrap justify-center gap-3 pr-2">
-                            <Select value={pendingBulkStatus || undefined} onValueChange={handleBulkStatusRequest}>
-                                <SelectTrigger className="w-[200px] h-12 bg-white/10 border-white/10 text-white rounded-xl font-bold cursor-pointer hover:bg-white/20 transition-all">
-                                    <SelectValue placeholder="Cambiar estado..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Confirmado">Marcar como Confirmado</SelectItem>
-                                    <SelectItem value="Preparando">Marcar como Preparando</SelectItem>
-                                    <SelectItem value="Enviado">Marcar como Enviado</SelectItem>
-                                    <SelectItem value="Entregado">Marcar como Entregado</SelectItem>
-                                </SelectContent>
-                            </Select>
+            <OrdersBulkActions 
+                selectedIds={selectedIds}
+                setSelectedIds={setSelectedIds}
+                pendingBulkStatus={pendingBulkStatus}
+                handleBulkStatusRequest={handleBulkStatusRequest}
+                userRole={userRole}
+                workers={workers}
+                onAssignWorker={(val) => bulkAssignMutation.mutate({ workerId: val })}
+            />
 
-                            {(userRole === 'admin' || userRole === 'superadmin') && (
-                                <Select onValueChange={(val) => bulkAssignMutation.mutate({ workerId: val })}>
-                                    <SelectTrigger className="w-[200px] h-12 bg-white/10 border-white/10 text-white rounded-xl font-bold cursor-pointer hover:bg-white/20 transition-all">
-                                        <SelectValue placeholder="Reasignar..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="unassigned">Quitar asignación</SelectItem>
-                                        {workers.map((w: ProfileRow) => (
-                                            <SelectItem key={w.id} value={w.id}>
-                                                {w.nombre?.split(' ')[0] || 'Trabajador'}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            )}
+            <OrdersFilterBar 
+                searchTerm={searchTerm} setSearchTerm={setSearchTerm}
+                statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+                userRole={userRole}
+                filterWorker={filterWorker} setFilterWorker={setFilterWorker}
+                workers={workers}
+                dateFilter={dateFilter} setDateFilter={setDateFilter}
+                customStartDate={customStartDate} setCustomStartDate={setCustomStartDate}
+                customEndDate={customEndDate} setCustomEndDate={setCustomEndDate}
+            />
 
-                            <Button variant="ghost" onClick={() => setSelectedIds([])} className="h-12 px-6 text-white hover:bg-white/10 rounded-xl font-bold">
-                                CANCELAR
-                            </Button>
-                        </div>
-                    </m.div>
-                )}
-            </AnimatePresence>
-
-            {/* --- FILTERS BAR --- */}
-            <m.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100"
-            >
-                <div className="relative group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 group-focus-within:text-slate-900 transition-colors" />
-                    <Input
-                        placeholder="Buscar cliente, DNI..."
-                        className="h-14 pl-12 bg-slate-50 border-none rounded-2xl font-medium focus:ring-4 focus:ring-slate-900/5 transition-all"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="h-14 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 px-6">
-                        <SelectValue placeholder="Estado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Todos los estados</SelectItem>
-                        <SelectItem value="Pendiente">Pendiente</SelectItem>
-                        <SelectItem value="Confirmado">Confirmado</SelectItem>
-                        <SelectItem value="Enviado">Enviado</SelectItem>
-                        <SelectItem value="Entregado">Entregado</SelectItem>
-                        <SelectItem value="Fallido">Fallido / Cancelado</SelectItem>
-                    </SelectContent>
-                </Select>
-
-                {(userRole === 'admin' || userRole === 'superadmin') && (
-                    <Select value={filterWorker} onValueChange={setFilterWorker}>
-                        <SelectTrigger className="h-14 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 px-6">
-                            <SelectValue placeholder="Trabajador" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Todo el equipo</SelectItem>
-                            <SelectItem value="unassigned">Sin asignar</SelectItem>
-                            {workers.map((w: ProfileRow) => (
-                                <SelectItem key={w.id} value={w.id}>
-                                    {w.nombre || 'Trabajador'}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                )}
-
-                <div className="flex gap-2">
-                    <Select value={dateFilter} onValueChange={setDateFilter}>
-                        <SelectTrigger className="h-14 flex-1 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 px-6">
-                            <div className="flex items-center gap-2">
-                                <Calendar className="w-4 h-4 text-slate-400" />
-                                <SelectValue placeholder="Fecha" />
-                            </div>
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Cualquier fecha</SelectItem>
-                            <SelectItem value="today">Hoy</SelectItem>
-                            <SelectItem value="7days">Últimos 7 días</SelectItem>
-                            <SelectItem value="thisMonth">Este mes</SelectItem>
-                            <SelectItem value="custom">Personalizado...</SelectItem>
-                        </SelectContent>
-                    </Select>
-
-                    {dateFilter === 'custom' && (
-                        <div className="flex gap-2 animate-in slide-in-from-right-4 duration-500">
-                            <Input type="date" className="h-14 w-36 rounded-2xl bg-slate-50 border-none text-xs" value={customStartDate} onChange={(e) => setCustomStartDate(e.target.value)} />
-                            <Input type="date" className="h-14 w-36 rounded-2xl bg-slate-50 border-none text-xs" value={customEndDate} onChange={(e) => setCustomEndDate(e.target.value)} />
-                        </div>
-                    )}
-                </div>
-            </m.div>
-
-            {/* --- TABLE --- */}
-            {((userRole === 'admin' || userRole === 'superadmin') || totalItems > 0) && (
-                <m.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden relative"
-                >
-                    {/* Top Loader Bar */}
-                    <AnimatePresence>
-                        {isFetching && !loadingPedidos && (
-                            <m.div 
-                                initial={{ scaleX: 0, opacity: 0 }}
-                                animate={{ scaleX: 1, opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 z-10 origin-left"
-                            />
-                        )}
-                    </AnimatePresence>
-
-                    <Table>
-                        <TableHeader className="bg-slate-50/50">
-                            <TableRow className="hover:bg-transparent border-slate-100">
-                                <TableHead className="w-[60px] pl-8 h-16">
-                                    <input
-                                        type="checkbox"
-                                        className="h-5 w-5 rounded-lg border-slate-300 text-slate-900 cursor-pointer transition-all focus:ring-offset-0 focus:ring-0"
-                                        checked={paginatedPedidos.length > 0 && selectedIds.length === paginatedPedidos.length}
-                                        onChange={handleSelectAll}
-                                    />
-                                </TableHead>
-                                <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">ID Orden</TableHead>
-                                <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Cliente & Contacto</TableHead>
-                                <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Fecha</TableHead>
-                                <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Inversión Total</TableHead>
-                                <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Estado Pago</TableHead>
-                                <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Estado Pedido</TableHead>
-                                {(userRole === 'admin' || userRole === 'superadmin') && <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Asignación</TableHead>}
-                                <TableHead className="text-right h-16 pr-8 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Detalle</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {loadingPedidos ? (
-                                <OrderRowSkeleton count={10} />
-                            ) : totalItems === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={(userRole === 'admin' || userRole === 'superadmin') ? 9 : 8} className="text-center py-20">
-                                        <div className="flex flex-col items-center gap-4 text-slate-300">
-                                            <Search size={48} strokeWidth={1} />
-                                            <p className="text-lg font-medium">No se encontraron pedidos con los filtros actuales.</p>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                <AnimatePresence mode="popLayout" initial={false}>
-                                    {paginatedPedidos.map((pedido: PedidoRow, index: number) => {
-                                        const isNew = recentOrderIds.has(pedido.id)
-                                        return (
-                                            <m.tr
-                                                key={pedido.id}
-                                                layout
-                                                initial={{ opacity: 0, x: direction * 30, filter: 'blur(4px)' }}
-                                                animate={{ 
-                                                    opacity: 1, 
-                                                    x: 0, 
-                                                    filter: 'blur(0px)',
-                                                    backgroundColor: isNew ? "rgba(34, 197, 94, 0.05)" : (selectedIds.includes(pedido.id) ? "rgba(15, 23, 42, 0.02)" : "transparent") 
-                                                }}
-                                                exit={{ opacity: 0, x: direction * -30, filter: 'blur(4px)' }}
-                                                transition={{ 
-                                                    type: "spring",
-                                                    stiffness: 400,
-                                                    damping: 35,
-                                                    delay: index * 0.015 
-                                                }}
-                                                className={`group border-slate-50 transition-colors ${selectedIds.includes(pedido.id) ? "bg-slate-50" : "hover:bg-slate-50/50"}`}
-                                            >
-                                                <TableCell className="pl-8 py-4">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="h-5 w-5 rounded-lg border-slate-300 text-slate-900 cursor-pointer transition-all"
-                                                        checked={selectedIds.includes(pedido.id)}
-                                                        onChange={() => toggleSelection(pedido.id)}
-                                                    />
-                                                </TableCell>
-                                                <TableCell className="font-mono font-bold text-slate-900 relative">
-                                                    #{pedido.id.toString().padStart(6, '0')}
-                                                    {isNew && (
-                                                        <span className="absolute -top-1 -left-1 flex h-3 w-3">
-                                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                                            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                                                        </span>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <div className="flex flex-col">
-                                                        <span className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                                                            {pedido.nombre_contacto || pedido.clientes?.nombre || 'Anónimo'}
-                                                        </span>
-                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                                            {pedido.telefono_contacto || pedido.clientes?.telefono || 'Sin teléfono'}
-                                                        </span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="text-slate-500 text-xs font-medium">
-                                                    {new Date(pedido.created_at).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <span className="text-base font-black text-slate-900 tracking-tight">
-                                                        {formatCurrency(pedido.total)}
-                                                    </span>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <PaymentStatusBadge status={pedido.pago_status} />
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Select
-                                                        value={pedido.status || undefined}
-                                                        onValueChange={(val) => statusMutation.mutate({
-                                                            pedidoId: pedido.id,
-                                                            nextStatus: val,
-                                                            stockDescontado: pedido.stock_descontado || false
-                                                        })}
-                                                        disabled={statusMutation.isPending}
-                                                    >
-                                                        <SelectTrigger
-                                                            className={`h-9 px-4 text-[10px] font-black uppercase tracking-widest border-none shadow-none focus:ring-0 rounded-full transition-all ${
-                                                                pedido.status === 'Pendiente' ? 'bg-amber-100 text-amber-700' :
-                                                                pedido.status === 'Confirmado' ? 'bg-sky-100 text-sky-700' :
-                                                                pedido.status === 'Preparando' ? 'bg-orange-100 text-orange-700' :
-                                                                pedido.status === 'Enviado' ? 'bg-indigo-100 text-indigo-700' :
-                                                                pedido.status === 'Entregado' ? 'bg-emerald-100 text-emerald-700' :
-                                                                'bg-rose-100 text-rose-700'
-                                                            }`}
-                                                        >
-                                                            <SelectValue />
-                                                        </SelectTrigger>
-                                                        <SelectContent className="rounded-2xl border-slate-100 shadow-2xl">
-                                                            {['Pendiente', 'Confirmado', 'Preparando', 'Enviado', 'Entregado', 'Devuelto', 'Fallido'].map(s => (
-                                                                <SelectItem key={s} value={s} className="text-xs font-bold py-3 rounded-xl">{s}</SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                </TableCell>
-                                                {(userRole === 'admin' || userRole === 'superadmin') && (
-                                                    <TableCell>
-                                                        <Select
-                                                            value={pedido.asignado_a || 'unassigned'}
-                                                            onValueChange={(val) => assignMutation.mutate({ pedidoId: pedido.id, workerId: val })}
-                                                            disabled={assignMutation.isPending}
-                                                        >
-                                                            <SelectTrigger className="h-9 bg-slate-50 border-none rounded-xl text-[10px] font-bold text-slate-600 hover:bg-slate-100 transition-all">
-                                                                <SelectValue>
-                                                                    {pedido.asignado_perfil?.nombre?.split(' ')[0] || (
-                                                                        <span className="flex items-center gap-1.5 opacity-60 italic">
-                                                                            <UserPlus size={12} /> Libre
-                                                                        </span>
-                                                                    )}
-                                                                </SelectValue>
-                                                            </SelectTrigger>
-                                                            <SelectContent className="rounded-2xl border-slate-100 shadow-2xl">
-                                                                <SelectItem value="unassigned" className="text-xs font-bold py-3">Libre / Sin asignar</SelectItem>
-                                                                {workers.map((w: ProfileRow) => (
-                                                                    <SelectItem key={w.id} value={w.id} className="text-xs font-bold py-3">
-                                                                        {w.nombre || 'Trabajador'}
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </TableCell>
-                                                )}
-                                                <TableCell className="text-right pr-8">
-                                                    <Link href={`/admin/pedidos/${pedido.id}`}>
-                                                        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl hover:bg-blue-50 text-slate-400 hover:text-blue-600 transition-all group/btn">
-                                                            <Eye className="h-5 w-5" />
-                                                            <ArrowRight className="absolute h-4 w-4 opacity-0 group-hover/btn:opacity-100 translate-x-[-10px] group-hover/btn:translate-x-[15px] transition-all" />
-                                                        </Button>
-                                                    </Link>
-                                                </TableCell>
-                                            </m.tr>
-                                        )
-                                    })}
-                                </AnimatePresence>
-                            )}
-                        </TableBody>
-                    </Table>
-
-                    {/* --- PAGINATION --- */}
-                    {totalPages > 1 && (
-                        <div className="flex items-center justify-between px-8 py-6 border-t border-slate-50 bg-slate-50/30">
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                                Mostrando <span className="text-slate-900">{startIndexDisplay}-{endIndexDisplay}</span> de <span className="text-slate-900">{totalItems}</span> órdenes
-                            </p>
-                            <div className="flex items-center gap-2">
-                                <Button
-                                    variant="outline"
-                                    className="h-10 w-10 p-0 rounded-xl border-slate-200"
-                                    onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
-                                    disabled={currentPage === 1}
-                                >
-                                    <ChevronLeft size={16} />
-                                </Button>
-
-                                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
-                                    {getPageNumbers().map((page, idx) => (
-                                        typeof page === 'number' ? (
-                                            <Button
-                                                key={idx}
-                                                variant={currentPage === page ? "default" : "ghost"}
-                                                className={`h-8 min-w-[32px] px-2 rounded-lg text-xs font-black ${currentPage === page ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500'}`}
-                                                onClick={() => handlePageChange(page)}
-                                            >
-                                                {page}
-                                            </Button>
-                                        ) : (
-                                            <span key={idx} className="px-1 text-slate-300 text-[10px]">•••</span>
-                                        )
-                                    ))}
-                                </div>
-
-                                <Button
-                                    variant="outline"
-                                    className="h-10 w-10 p-0 rounded-xl border-slate-200"
-                                    onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
-                                    disabled={currentPage === totalPages}
-                                >
-                                    <ChevronRight size={16} />
-                                </Button>
-                            </div>
-                        </div>
-                    )}
-                </m.div>
-            )}
+            <OrdersTable 
+                userRole={userRole}
+                totalItems={totalItems} loadingPedidos={loadingPedidos} isFetching={isFetching}
+                paginatedPedidos={paginatedPedidos}
+                selectedIds={selectedIds} handleSelectAll={handleSelectAll} toggleSelection={toggleSelection}
+                recentOrderIds={recentOrderIds} direction={direction}
+                statusMutation={statusMutation} assignMutation={assignMutation} workers={workers}
+                currentPage={currentPage} totalPages={totalPages} handlePageChange={handlePageChange}
+                getPageNumbers={getPageNumbers} startIndexDisplay={startIndexDisplay} endIndexDisplay={endIndexDisplay}
+            />
 
             {/* --- DIALOGS --- */}
             <Dialog open={bulkConfirmOpen} onOpenChange={setBulkConfirmOpen}>
@@ -939,8 +481,6 @@ function PedidosPageContent() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-
-            {/* --- EXPORT DIALOG REMOVED --- */}
         </div>
     )
 }
@@ -949,12 +489,6 @@ export default function PedidosPage() {
     return (
         <Suspense fallback={
             <div className="space-y-10 animate-in fade-in duration-500 max-w-[1600px] mx-auto pt-4">
-                <div className="flex justify-between items-end gap-6">
-                    <div className="space-y-3">
-                        <div className="h-14 w-64 bg-slate-100 animate-pulse rounded-2xl" />
-                        <div className="h-4 w-80 bg-slate-100 animate-pulse rounded-lg" />
-                    </div>
-                </div>
                 <div className="h-16 bg-slate-50 rounded-[2rem] border border-slate-100 animate-pulse" />
                 <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden h-[500px] animate-pulse" />
             </div>
@@ -963,4 +497,3 @@ export default function PedidosPage() {
         </Suspense>
     )
 }
-
