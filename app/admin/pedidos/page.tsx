@@ -325,7 +325,7 @@ function PedidosPageContent() {
     async function handleExportXlsx(mode: 'page' | 'all') {
         setIsExporting(true)
         try {
-            const XLSX = await import("xlsx")
+            const ExcelJS = await import("exceljs")
             let dataToExport: PedidoRow[] = []
             if (mode === 'page') { dataToExport = paginatedPedidos } 
             else {
@@ -336,19 +336,35 @@ function PedidosPageContent() {
                 dataToExport = result.data
             }
             if (dataToExport.length === 0) { toast.error("Sin datos"); return }
-            const rows = dataToExport.map((p: PedidoRow) => ({
-                "ID": p.id,
-                "Fecha": new Date(p.created_at).toLocaleDateString(),
-                "Cliente": p.clientes?.nombre || p.nombre_contacto || '',
-                "Total (S/)": p.total,
-                "Estado": p.status,
-                "Pago": p.pago_status,
-                "Asignado": p.asignado_perfil?.nombre || p.asignado_a || '',
-            }))
-            const worksheet = XLSX.utils.json_to_sheet(rows)
-            const workbook = XLSX.utils.book_new()
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Pedidos")
-            XLSX.writeFile(workbook, `Pedidos_Blama_${new Date().toISOString().slice(0, 10)}.xlsx`)
+            const rows = dataToExport.map((p: PedidoRow) => ([
+                p.id,
+                new Date(p.created_at).toLocaleDateString(),
+                p.clientes?.nombre || p.nombre_contacto || '',
+                p.total,
+                p.status,
+                p.pago_status,
+                p.asignado_perfil?.nombre || p.asignado_a || '',
+            ]))
+            const workbook = new ExcelJS.Workbook()
+            const worksheet = workbook.addWorksheet("Pedidos")
+            worksheet.columns = [
+                { header: "ID", key: "id", width: 10 },
+                { header: "Fecha", key: "fecha", width: 15 },
+                { header: "Cliente", key: "cliente", width: 25 },
+                { header: "Total (S/)", key: "total", width: 15 },
+                { header: "Estado", key: "estado", width: 15 },
+                { header: "Pago", key: "pago", width: 15 },
+                { header: "Asignado", key: "asignado", width: 20 },
+            ]
+            rows.forEach(r => worksheet.addRow(r))
+            const buffer = await workbook.xlsx.writeBuffer()
+            const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement("a")
+            a.href = url
+            a.download = `Pedidos_Blama_${new Date().toISOString().slice(0, 10)}.xlsx`
+            a.click()
+            URL.revokeObjectURL(url)
             setExportDropdownOpen(false)
             toast.success("Exportado correctamente")
         } catch (error) { toast.error("Error al exportar") } finally { setIsExporting(false) }
