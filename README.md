@@ -1,46 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
+  <h1>🛍️ Tienda Blama 2026</h1>
+  <p><strong>Plataforma E-Commerce B2C con Sistema CRM Logístico Integrado</strong></p>
 
-## Getting Started
+  [![Next.js](https://img.shields.io/badge/Next.js_16-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+  [![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+  [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+</div>
 
-First, run the development server:
+<br />
+
+Tienda Blama es una plataforma de comercio electrónico diseñada para alto rendimiento y escalabilidad (Grado Enterprise). Construida sobre una arquitectura Serverless, no solo actúa como un punto de venta (Frontend), sino que cuenta con un robusto CRM administrativo para la gestión atómica de inventarios, roles de trabajadores y procesamiento de órdenes logísticas.
+
+---
+
+## 📚 Índice de Documentación
+
+Para mantener la raíz del proyecto limpia, toda la documentación oficial se ha modularizado dentro de la carpeta `docs/`. Selecciona la guía que necesites:
+
+| Rol / Enfoque | Documento | Descripción |
+| --- | --- | --- |
+| 🧑‍💻 **Desarrolladores** | [Guía de Desarrollo (DEVELOPMENT_GUIDE.md)](./docs/DEVELOPMENT_GUIDE.md) | Guía de instalación local, estándares de código, uso de React Query y Git Workflow. |
+| 🏗️ **Arquitectos** | [Arquitectura (ARCHITECTURE.md)](./docs/ARCHITECTURE.md) | Topología Serverless, diagrama de flujo técnico (Next.js + Supabase) y estructura de carpetas. |
+| 📈 **Analistas** | [Lógica de Negocio (BUSINESS_LOGIC.md)](./docs/BUSINESS_LOGIC.md) | Diagramas de estado logístico, seguridad Zero-Trust en el carrito y lógica transaccional. |
+| 👷 **Administradores** | [Manual de Uso (USER_MANUAL.md)](./docs/USER_MANUAL.md) | Guía paso a paso sobre cómo gestionar pedidos diarios, envíos Shalom y devoluciones. |
+| ⚙️ **DevOps** | [Integraciones (INTEGRATIONS.md)](./docs/INTEGRATIONS.md) | Variables de entorno necesarias y activación de APIs externas (Google Maps, WhatsApp). |
+
+---
+
+## 🚀 Quick Start (Inicio Rápido)
+
+Si eres desarrollador y necesitas levantar este proyecto en 2 minutos:
 
 ```bash
+# 1. Instala las dependencias
+npm install
+
+# 2. Clona el archivo de entorno (Asegúrate de llenar las credenciales leyendo INTEGRATIONS.md)
+cp .env.example .env.local
+
+# 3. Arranca el servidor de desarrollo en modo rápido (Turbopack)
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visita `http://localhost:3000` para ver la tienda o entra a `http://localhost:3000/admin` para acceder al CRM Logístico.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-
-## Environment Variables
-
-This project requires the following environment variables to be set in your `.env.local` file (for local development) and in your Vercel project settings (for deployment):
-
-- `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase Project URL.
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase Anonymous Key.
-
-<!-- Deployment Trigger: 2026-02-10 v1 (Supabase Fix) -->
+<div align="center">
+  <small><em>Desarrollado para la visión 2026. Auditado para alto rendimiento.</em></small>
+</div>
