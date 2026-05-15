@@ -241,7 +241,7 @@ export function OrderConfirmationEmail({
     )
 }
 
-export default OrderConfirmationEmail
+
 
 // ── Styles ──
 
