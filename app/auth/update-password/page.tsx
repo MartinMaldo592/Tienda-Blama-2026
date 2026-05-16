@@ -6,44 +6,92 @@ import { createClient } from "@/lib/supabase.client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Lock, Loader2 } from "lucide-react"
+import { Lock, Loader2, CheckCircle2, ShieldAlert } from "lucide-react"
 
 export default function UpdatePasswordPage() {
     const supabase = createClient()
     const router = useRouter()
     const [password, setPassword] = useState("")
+    const [confirmPassword, setConfirmPassword] = useState("")
     const [loading, setLoading] = useState(false)
-    const [session, setSession] = useState<any>(null)
+    const [checking, setChecking] = useState(true)
+    const [success, setSuccess] = useState(false)
+    const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data }) => {
             if (!data.session) {
                 router.push("/auth/login")
             } else {
-                setSession(data.session)
+                setChecking(false)
             }
         })
     }, [router])
 
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!password) return
+        setError(null)
+
+        if (!password || !confirmPassword) return
+
+        if (password !== confirmPassword) {
+            setError("Las contraseñas no coinciden.")
+            return
+        }
+
+        if (password.length < 6) {
+            setError("La contraseña debe tener al menos 6 caracteres.")
+            return
+        }
 
         try {
             setLoading(true)
-            const { error } = await supabase.auth.updateUser({ password })
-            if (error) throw error
 
-            alert("Contraseña actualizada correctamente.")
-            router.push("/admin/dashboard")
+            // 1. Actualizar la contraseña
+            const { error: updateError } = await supabase.auth.updateUser({ password })
+            if (updateError) throw updateError
+
+            // 2. Cerrar sesión para invalidar el token de recuperación
+            //    Esto previene que alguien reutilice el enlace del correo
+            await supabase.auth.signOut()
+
+            // 3. Mostrar éxito y redirigir a login
+            setSuccess(true)
+            setTimeout(() => router.push("/auth/login"), 3000)
         } catch (err: any) {
-            alert(err.message || "Error al actualizar")
+            setError(err.message || "Error al actualizar la contraseña")
         } finally {
             setLoading(false)
         }
     }
 
-    if (!session) return <div className="p-10 text-center">Verificando sesión...</div>
+    if (checking) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-background">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+        )
+    }
+
+    if (success) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-background px-4">
+                <div className="w-full max-w-sm bg-card p-8 rounded-xl shadow-lg border border-border text-center">
+                    <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-green-100 text-green-600 mb-4">
+                        <CheckCircle2 className="h-6 w-6" />
+                    </div>
+                    <h1 className="text-2xl font-bold text-foreground mb-2">¡Contraseña Actualizada!</h1>
+                    <p className="text-muted-foreground text-sm mb-4">
+                        Tu contraseña se cambió correctamente. Serás redirigido al inicio de sesión.
+                    </p>
+                    <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Redirigiendo...
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-background px-4">
@@ -74,11 +122,36 @@ export default function UpdatePasswordPage() {
                         </div>
                     </div>
 
+                    <div className="space-y-2">
+                        <Label htmlFor="confirm-pass">Confirmar Contraseña</Label>
+                        <div className="relative">
+                            <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                id="confirm-pass"
+                                type="password"
+                                placeholder="••••••••"
+                                className="pl-9"
+                                required
+                                minLength={6}
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    {error && (
+                        <div className="flex items-start gap-2 p-3 text-xs rounded-md border bg-red-50 text-red-600 border-red-100">
+                            <ShieldAlert className="h-4 w-4 mt-0.5 shrink-0" />
+                            {error}
+                        </div>
+                    )}
+
                     <Button type="submit" className="w-full" disabled={loading}>
-                        {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...</> : "Actualizar y Entrar"}
+                        {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...</> : "Actualizar Contraseña"}
                     </Button>
                 </form>
             </div>
         </div>
     )
 }
+
