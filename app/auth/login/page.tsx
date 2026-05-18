@@ -46,6 +46,9 @@ export default function LoginPage() {
         } finally {
             setLoadingNext(false)
             setStep(2)
+        }
+    }
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
