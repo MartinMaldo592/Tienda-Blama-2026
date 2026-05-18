@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Lock, Mail, Loader2, ArrowRight, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { m, AnimatePresence } from "framer-motion"
+import { loginWithLockout } from "../actions"
 
 export default function LoginPage() {
     const supabase = createClient()
@@ -45,29 +46,22 @@ export default function LoginPage() {
         } finally {
             setLoadingNext(false)
             setStep(2)
-        }
-    }
-
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
         setErrorMsg("")
 
         try {
-            const { error } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            })
+            const result = await loginWithLockout(email, password)
 
-            if (error) {
-                throw error
+            if (result.error) {
+                setErrorMsg(result.error)
+            } else if (result.success) {
+                // Login exitoso
+                router.push("/admin/dashboard") 
             }
-
-            // Login exitoso
-            router.push("/admin/dashboard") 
-
         } catch (error: any) {
-            setErrorMsg("Credenciales incorrectas. Inténtalo de nuevo.")
+            setErrorMsg("Error interno procesando el inicio de sesión.")
         } finally {
             setLoading(false)
         }
