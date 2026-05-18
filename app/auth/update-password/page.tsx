@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Lock, Loader2, CheckCircle2, ShieldAlert } from "lucide-react"
+import { clearLockout } from "../actions"
 
 export default function UpdatePasswordPage() {
     const supabase = createClient()
@@ -51,11 +52,14 @@ export default function UpdatePasswordPage() {
             const { error: updateError } = await supabase.auth.updateUser({ password })
             if (updateError) throw updateError
 
-            // 2. Cerrar sesión para invalidar el token de recuperación
+            // 2. Limpiar el historial de bloqueos del usuario
+            await clearLockout()
+
+            // 3. Cerrar sesión para invalidar el token de recuperación
             //    Esto previene que alguien reutilice el enlace del correo
             await supabase.auth.signOut()
 
-            // 3. Mostrar éxito y redirigir a login
+            // 4. Mostrar éxito y redirigir a login
             setSuccess(true)
             setTimeout(() => router.push("/auth/login"), 3000)
         } catch (err: any) {
