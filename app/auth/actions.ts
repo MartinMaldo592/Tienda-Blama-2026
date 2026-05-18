@@ -16,13 +16,19 @@ export async function loginWithLockout(email: string, password: string) {
         const supabaseAdmin = getAdminClient()
 
         // 1. Verificamos si la cuenta está bloqueada ANTES de intentar login
-        const { data: usuario, error: userError } = await supabaseAdmin
+        const { data: usuarios, error: userError } = await supabaseAdmin
             .from('usuarios')
             .select('intentos_fallidos, bloqueado_hasta')
             .eq('email', email)
-            .single()
+            .limit(1)
 
-        if (!userError && usuario) {
+        const usuario = usuarios && usuarios.length > 0 ? usuarios[0] : null
+
+        if (userError) {
+            console.error("Error consultando usuario:", userError)
+        }
+
+        if (usuario) {
             if (usuario.bloqueado_hasta && new Date(usuario.bloqueado_hasta) > new Date()) {
                 const minutosRestantes = Math.ceil((new Date(usuario.bloqueado_hasta).getTime() - new Date().getTime()) / 60000)
                 return { 
@@ -40,8 +46,10 @@ export async function loginWithLockout(email: string, password: string) {
         })
 
         if (error) {
+            console.log("Error de Supabase Auth:", error.message, "Usuario encontrado:", !!usuario)
+            
             // Si el error es de credenciales, registramos el fallo
-            if (error.message.includes("Invalid login credentials") && (!userError && usuario)) {
+            if (error.message.includes("Invalid login credentials") && usuario) {
                 const nuevosIntentos = (usuario.intentos_fallidos || 0) + 1
                 let nuevoBloqueo = null
                 
@@ -72,7 +80,7 @@ export async function loginWithLockout(email: string, password: string) {
         }
 
         // 3. Login exitoso -> Limpiamos el historial de fallos
-        if (!userError && usuario && usuario.intentos_fallidos > 0) {
+        if (usuario && usuario.intentos_fallidos > 0) {
             await supabaseAdmin
                 .from('usuarios')
                 .update({ 
