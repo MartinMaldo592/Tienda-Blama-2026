@@ -138,7 +138,12 @@ export function buildWhatsAppFinalMessage(input: {
 }
 
 export function buildWhatsAppUrl(phone: string, text: string) {
-    return `https://api.whatsapp.com/send/?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(text)}&type=phone_number&app_absent=0`
+    let cleanPhone = String(phone || "").replace(/\D/g, "")
+    // Prepend '51' country code if the number has 9 digits and starts with 9 (Peru)
+    if (cleanPhone.length === 9 && cleanPhone.startsWith("9")) {
+        cleanPhone = "51" + cleanPhone
+    }
+    return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`
 }
 
 export function buildPreOpenUrl(phone: string, text: string) {
