@@ -7,6 +7,7 @@ import { ShoppingBag, MessageCircle, Package, Truck, CheckCircle2, Clock, MapPin
 import React, { useEffect, useState, useRef } from "react"
 import { createClient } from "@/lib/supabase.client"
 import { formatCurrency } from "@/lib/utils"
+import { buildWhatsAppFinalMessage, buildWhatsAppUrl } from "@/features/checkout"
 
 // ─── Animated Checkmark (CSS/SVG – no external libs) ────────────────────────
 function SuccessCheckmark() {
@@ -144,6 +145,7 @@ export default function SuccessPage({
     const [loading, setLoading] = useState(!!orderId)
 
     const [accessDenied, setAccessDenied] = useState(false)
+    const [redirected, setRedirected] = useState(false)
 
     // Email: only send once per page load
     const emailSentRef = useRef(false)
@@ -156,7 +158,24 @@ export default function SuccessPage({
 
                 const [secRes, orderRes, itemsRes] = await Promise.all([
                     supabase.from("pedidos").select("culqi_charge_id").eq("id", Number(orderId)).single(),
-                    supabase.from("pedidos").select("id, nombre_contacto, metodo_envio, subtotal, descuento, total, status").eq("id", Number(orderId)).single(),
+                    supabase.from("pedidos").select(`
+                        id, 
+                        nombre_contacto, 
+                        dni_contacto, 
+                        telefono_contacto, 
+                        metodo_envio, 
+                        departamento, 
+                        provincia, 
+                        distrito, 
+                        direccion_calle, 
+                        referencia_direccion, 
+                        link_ubicacion, 
+                        email_contacto, 
+                        subtotal, 
+                        descuento, 
+                        total, 
+                        status
+                    `).eq("id", Number(orderId)).single(),
                     supabase.from("pedido_items").select("producto_nombre, variante_nombre, cantidad, precio_unitario, producto_id").eq("pedido_id", Number(orderId))
                 ])
 
@@ -194,13 +213,80 @@ export default function SuccessPage({
                 setOrder(orderData)
                 setItems(enrichedItems)
             } catch (e) {
-                // silently fail — fallback to basic view
+                console.error("❌ [WhatsApp Redirect Debug] Error in loadOrder:", e)
             } finally {
                 setLoading(false)
             }
         }
         loadOrder()
     }, [orderId, transactionId])
+
+    const getWhatsAppUrl = () => {
+        if (!order) return "#"
+        const whatsappNumber = (process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "51958279604").replace(/\D/g, "")
+        if (isWhatsApp) {
+            const msg = buildWhatsAppFinalMessage({
+                orderIdFormatted: String(order.id).padStart(6, '0'),
+                name: order.nombre_contacto || "Cliente",
+                dni: order.dni_contacto || "",
+                phone: order.telefono_contacto || "",
+                address: order.direccion_calle || "",
+                department: order.departamento || "",
+                province: order.provincia || "",
+                district: order.distrito || "",
+                reference: order.referencia_direccion || "",
+                locationLink: order.link_ubicacion || "",
+                items: items.map((item: any) => ({
+                    id: item.producto_id || 0,
+                    quantity: item.cantidad || 1,
+                    precio: item.precio_unitario || 0,
+                    nombre: item.producto_nombre || "",
+                    variante_nombre: item.variante_nombre || null
+                })),
+                subtotal: order.subtotal || 0,
+                discount: order.descuento || 0,
+                total: order.total || 0,
+                couponCode: order.cupon_codigo || null,
+                shippingMethod: order.metodo_envio || "",
+                email: order.email_contacto || ""
+            })
+            return buildWhatsAppUrl(whatsappNumber, msg)
+        } else {
+            return `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodeURIComponent(`¡Hola! Acabo de pagar mi pedido #${String(orderId).padStart(6, '0')} con tarjeta. ¿Me confirman? 🛍️`)}`
+        }
+    }
+
+    useEffect(() => {
+        console.log("🔍 [WhatsApp Redirect Debug] useEffect fired:", {
+            hasOrder: !!order,
+            orderId: order?.id,
+            itemsLength: items.length,
+            isWhatsApp,
+            loading,
+            redirected,
+            transactionId
+        })
+
+        if (!order || items.length === 0 || !isWhatsApp || loading || redirected) {
+            console.log("🚫 [WhatsApp Redirect Debug] Redirect skipped. Conditions not met.")
+            return
+        }
+
+        console.log("⏱️ [WhatsApp Redirect Debug] Conditions met. Setting timer for 2s...")
+        const timer = setTimeout(() => {
+            const url = getWhatsAppUrl()
+            console.log("🔗 [WhatsApp Redirect Debug] Generated WhatsApp URL:", url)
+            if (url && url !== "#") {
+                setRedirected(true)
+                console.log("🚀 [WhatsApp Redirect Debug] Navigating window.location.href to:", url)
+                window.location.href = url
+            } else {
+                console.log("⚠️ [WhatsApp Redirect Debug] URL was '#' or empty, redirect skipped.")
+            }
+        }, 2000)
+
+        return () => clearTimeout(timer)
+    }, [order, items, isWhatsApp, loading, redirected])
 
     // Confirmation email is now handled server-side in the checkout API
     // for maximum reliability and to prevent duplicate emails.
@@ -250,6 +336,22 @@ export default function SuccessPage({
 
             {/* ── Delivery Steps ── */}
             <DeliverySteps />
+
+            {/* ── Redirection Banner (Premium Custom Design) ── */}
+            {isWhatsApp && order && (
+                <div className="w-full max-w-sm bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200/80 rounded-xl p-4 flex flex-col items-center gap-2 shadow-sm">
+                    <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        Redirigiéndote a WhatsApp para confirmar...
+                    </div>
+                    <p className="text-[11px] text-emerald-600/90 leading-tight">
+                        Por favor no cierres esta ventana. Si no se abre en unos segundos, presiona el botón verde de abajo.
+                    </p>
+                </div>
+            )}
 
             {/* ── Order Info Card ── */}
             <div className="bg-gray-50 border rounded-xl p-4 w-full max-w-sm shadow-sm text-left space-y-3">
@@ -374,10 +476,7 @@ export default function SuccessPage({
                     </Button>
                 </Link>
                 <Link
-                    href={isWhatsApp
-                        ? `https://api.whatsapp.com/send?phone=51958279604&text=Hola,%20acabo%20de%20realizar%20un%20pedido%20%23${orderId}%20contraentrega.%20Adjunto%20mis%20datos.`
-                        : `https://api.whatsapp.com/send?phone=51958279604&text=Hola,%20acabo%20de%20pagar%20mi%20pedido%20%23${orderId}%20con%20tarjeta.%20%C2%BFMe%20confirman?`
-                    }
+                    href={getWhatsAppUrl()}
                     target="_blank"
                     className="w-full"
                 >

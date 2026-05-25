@@ -36,9 +36,12 @@ export function buildWhatsAppPreviewMessage(input: {
         couponCode, shippingMethod, email
     } = input
 
-    let message = `¡Hola! Soy ${name || "Cliente"}. Quiero confirmar mi pedido: 🛍️\n`
-    message += `*DATOS DE ENVÍO*:\n`
-    if (shippingMethod) message += `Método Envío: ${shippingMethod === 'lima' ? 'Lima' : 'Provincia'}\n`
+    let message = `¡Hola! Soy *${name || "Cliente"}*. Quiero confirmar mi pedido: 🛍️\n`
+    message += `*DATOS DE ENVÍO:*\n`
+    if (shippingMethod) {
+        const methodLabel = shippingMethod.toLowerCase() === 'lima' ? 'Lima' : 'Provincia'
+        message += `Método Envío: ${methodLabel}\n`
+    }
     message += `Cliente: ${name}\n`
     message += `DNI: ${dni}\n`
     message += `Teléfono: ${phone}\n`
@@ -51,10 +54,16 @@ export function buildWhatsAppPreviewMessage(input: {
     message += `Dirección: ${address || ""}\n`
     if (reference) message += `Referencia: ${reference}\n`
     if (locationLink) message += `Ubicación: ${locationLink}\n`
+
     message += `\n*DETALLE DEL PEDIDO:*\n`
     items.forEach((item) => {
-        message += `• ${item.quantity} x ${item.nombre} - ${formatCurrency(item.precio * item.quantity)}\n`
+        const qty = item.quantity ?? (item as any).cantidad ?? 1
+        const price = item.precio ?? (item as any).precio_unitario ?? 0
+        const nameVal = item.nombre ?? (item as any).producto_nombre ?? ""
+        const vName = item.variante_nombre ? ` (${String(item.variante_nombre)})` : ""
+        message += `* ${qty} x ${nameVal}${vName} - ${formatCurrency(qty * price)}\n`
     })
+
     if (discount > 0 && couponCode) {
         message += `\n*SUBTOTAL: ${formatCurrency(subtotal)}*`
         message += `\n*CUPÓN (${couponCode}): -${formatCurrency(discount)}*`
@@ -91,35 +100,39 @@ export function buildWhatsAppFinalMessage(input: {
         couponCode, shippingMethod, email
     } = input
 
-    let message = `¡Hola! Soy ${name}. Quiero confirmar mi pedido: 🛍️\n`
-    message += `📋 *Pedido #${orderIdFormatted}*\n\n`
-    message += `*DATOS DE ENVÍO* 📦\n`
-    if (shippingMethod) message += `🚚 *Método:* ${shippingMethod === 'lima' ? 'Lima' : 'Provincia'}\n`
-    message += `👤 *Cliente:* ${name}\n`
-    message += `🪪 *DNI:* ${dni}\n`
-    message += `📱 *Teléfono:* ${phone}\n`
-    if (email) message += `✉️ *Email:* ${email}\n`
-
-    if (department) message += `🏢 *Departamento:* ${department}\n`
-    if (province) message += `🏙️ *Provincia:* ${province}\n`
-    if (district) message += `🏘️ *Distrito:* ${district}\n`
-
-    message += `📍 *Dirección:* ${address}\n`
-    if (reference) message += `🏠 *Referencia:* ${reference}\n`
-    if (locationLink) message += `🗺️ *Ubicación:* ${locationLink}\n`
-
-    message += `\n--------------------------------\n\n`
-    message += `*DETALLE DEL PEDIDO:*\n`
-    items.forEach((item) => {
-        const vName = item.variante_nombre ? ` (${String(item.variante_nombre)})` : ""
-        message += `• ${item.quantity} x ${item.nombre}${vName}\n   Sub: ${formatCurrency(item.precio * item.quantity)}\n`
-    })
-    message += `\n--------------------------------\n`
-    if (discount > 0 && couponCode) {
-        message += `💵 *SUBTOTAL: ${formatCurrency(subtotal)}*\n`
-        message += `🏷️ *CUPÓN (${couponCode}): -${formatCurrency(discount)}*\n`
+    let message = `¡Hola! Soy *${name}*. Quiero confirmar mi pedido: 🛍️\n`
+    message += `*DATOS DE ENVÍO:*\n`
+    if (shippingMethod) {
+        const methodLabel = shippingMethod.toLowerCase() === 'lima' ? 'Lima' : 'Provincia'
+        message += `Método Envío: ${methodLabel}\n`
     }
-    message += `💰 *TOTAL A PAGAR: ${formatCurrency(total)}*`
+    message += `Cliente: ${name}\n`
+    message += `DNI: ${dni}\n`
+    message += `Teléfono: ${phone}\n`
+    if (email) message += `Email: ${email}\n`
+
+    if (department) message += `Departamento: ${department}\n`
+    if (province) message += `Provincia: ${province}\n`
+    if (district) message += `Distrito: ${district}\n`
+
+    message += `Dirección: ${address}\n`
+    if (reference) message += `Referencia: ${reference}\n`
+    if (locationLink) message += `Ubicación: ${locationLink}\n`
+
+    message += `\n*DETALLE DEL PEDIDO:*\n`
+    items.forEach((item) => {
+        const qty = item.quantity ?? (item as any).cantidad ?? 1
+        const price = item.precio ?? (item as any).precio_unitario ?? 0
+        const nameVal = item.nombre ?? (item as any).producto_nombre ?? ""
+        const vName = item.variante_nombre ? ` (${String(item.variante_nombre)})` : ""
+        message += `* ${qty} x ${nameVal}${vName} - ${formatCurrency(qty * price)}\n`
+    })
+
+    if (discount > 0 && couponCode) {
+        message += `\n*SUBTOTAL: ${formatCurrency(subtotal)}*`
+        message += `\n*CUPÓN (${couponCode}): -${formatCurrency(discount)}*`
+    }
+    message += `\n\n*TOTAL: ${formatCurrency(total)}*`
 
     return message
 }
