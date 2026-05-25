@@ -188,6 +188,7 @@ export async function POST(req: Request) {
       status: "Pendiente",
       pago_status: "Pendiente",
       metodo_envio: shippingMethod,
+      culqi_charge_id: "whatsapp",
     }
 
     const insertPedidoFull = async () => {
