@@ -9,11 +9,11 @@ export async function fetchAdminProductos(): Promise<Producto[]> {
   return (data as Producto[]) || []
 }
 
-export async function fetchAdminProductoById(id: number): Promise<Producto> {
+export async function fetchAdminProductoById(id: number): Promise<Producto | null> {
   const supabase = createClient()
-  const { data, error } = await supabase.from("productos").select("*").eq("id", id).single()
+  const { data, error } = await supabase.from("productos").select("*").eq("id", id).maybeSingle()
   if (error) throw error
-  return data as Producto
+  return data as Producto | null
 }
 
 export async function fetchAdminCategorias(): Promise<Categoria[]> {

@@ -164,6 +164,34 @@ export default function PedidoDetallePage() {
         getUserName()
     }, [id])
 
+    useEffect(() => {
+        if (!id) return
+
+        const supabase = createClient()
+        const channel = supabase
+            .channel(`pedido-cambio-${id}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'pedidos',
+                    filter: `id=eq.${id}`
+                },
+                (payload: any) => {
+                    console.log('Realtime update received:', payload)
+                    toast.info(`🔔 Este pedido ha sido modificado en tiempo real por otro usuario. Los datos se actualizaron automáticamente.`)
+                    fetchPedido()
+                    fetchLogs()
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [id, fetchPedido])
+
     async function getUserName() {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
@@ -310,6 +338,29 @@ export default function PedidoDetallePage() {
 
     async function handleUpdateStatus() {
         if (!pedido) return
+
+        // Validación y Confirmación Visual para envíos a provincia por Agencia Shalom
+        if (status === 'Enviado' && ['provincia', 'Provincia'].includes(pedido.metodo_envio || '')) {
+            const pinVal = (pedido.shalom_pin || '').trim()
+            const orderVal = (pedido.shalom_orden || '').trim()
+            const passVal = (pedido.shalom_clave || '').trim()
+            
+            if (!orderVal || !passVal) {
+                toast.error("⚠️ Para cambiar a 'Enviado', debes ingresar primero el Nº Orden y Código de Orden en la pestaña de LOGÍSTICA.")
+                return
+            }
+
+            const confirmed = window.confirm(
+                `🛡️ CONFIRMACIÓN DE ENVÍO POR AGENCIA SHALOM\n\n` +
+                `Por favor, verifica minuciosamente que los datos ingresados coincidan exactamente con la guía física de Shalom para evitar pérdidas:\n\n` +
+                `• Nº Orden Shalom: ${orderVal}\n` +
+                `• Código de Orden: ${passVal}\n` +
+                `• PIN de Retiro: ${pinVal ? pinVal : '⚠️ SIN PIN (Asegúrate de que no requiera PIN o ingresarlo si está pagado)'}\n\n` +
+                `¿Confirmas que toda la información es correcta y deseas proceder con el envío de notificaciones automáticas?`
+            )
+            if (!confirmed) return
+        }
+
         setUpdating(true)
         const oldStatus = pedido.status
         try {

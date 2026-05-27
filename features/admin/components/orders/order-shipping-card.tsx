@@ -55,17 +55,23 @@ export function OrderShippingCard({ pedido, isLocked, onLogAction, onRefresh }: 
     }
 
     const handleSaveTracking = async () => {
+        const pinTrimmed = shalomPin.trim()
+        if (isProvincia && pinTrimmed && !/^\d{4}$/.test(pinTrimmed)) {
+            toast.error("El PIN de retiro de Shalom debe ser un número de exactamente 4 dígitos.")
+            return
+        }
+
         setSavingTracking(true)
         try {
             const updatePayload = {
-                shalom_orden: shalomOrder,
-                shalom_clave: shalomPass,
-                shalom_pin: shalomPin,
-                agencia_origen: agenciaOrigen,
-                agencia_destino: agenciaDestino,
-                codigo_seguimiento: `${shalomOrder}|${shalomPass}`
+                shalom_orden: shalomOrder.trim(),
+                shalom_clave: shalomPass.trim(),
+                shalom_pin: pinTrimmed,
+                agencia_origen: agenciaOrigen.trim(),
+                agencia_destino: agenciaDestino.trim(),
+                codigo_seguimiento: shalomOrder.trim() && shalomPass.trim() ? `${shalomOrder.trim()}|${shalomPass.trim()}` : null
             }
-            const logMsg = `Tracking: Orden ${shalomOrder}, Código ${shalomPass}, PIN ${shalomPin}`
+            const logMsg = `Tracking: Orden ${shalomOrder}, Código ${shalomPass}, PIN ${pinTrimmed}`
             const supabase = createClient()
             const { error } = await supabase.from('pedidos').update(updatePayload).eq('id', pedido.id)
             if (error) throw error

@@ -51,10 +51,68 @@ type RateLimitResult = {
  * @param identifier - Generalmente la IP del cliente
  * @param config - Configuración del rate limit
  */
-export function checkRateLimit(
+export async function checkRateLimit(
     identifier: string,
     config: RateLimitConfig
-): RateLimitResult {
+): Promise<RateLimitResult> {
+    const redisUrl = process.env.UPSTASH_REDIS_REST_URL
+    const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN
+
+    if (redisUrl && redisToken) {
+        try {
+            const { maxRequests, windowSeconds, prefix = "rl" } = config
+            const key = `${prefix}:${identifier}`
+
+            const res = await fetch(`${redisUrl}/pipeline`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${redisToken}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify([
+                    ["INCR", key],
+                    ["TTL", key]
+                ])
+            })
+
+            const pipelineRes = await res.json()
+            if (Array.isArray(pipelineRes)) {
+                const count = Number(pipelineRes[0]?.[1] ?? 0)
+                let ttl = Number(pipelineRes[1]?.[1] ?? -1)
+
+                if (count === 1 || ttl === -1) {
+                    await fetch(`${redisUrl}/EXPIRE/${key}/${windowSeconds}`, {
+                        method: "POST",
+                        headers: { Authorization: `Bearer ${redisToken}` }
+                    }).catch(() => {})
+                    ttl = windowSeconds
+                }
+
+                const remaining = Math.max(0, maxRequests - count)
+                const resetIn = ttl > 0 ? ttl : windowSeconds
+
+                if (count > maxRequests) {
+                    return {
+                        success: false,
+                        remaining: 0,
+                        resetIn,
+                        headers: buildHeaders(maxRequests, 0, resetIn),
+                    }
+                }
+
+                return {
+                    success: true,
+                    remaining,
+                    resetIn,
+                    headers: buildHeaders(maxRequests, remaining, resetIn),
+                }
+            }
+        } catch (error) {
+            console.error("Upstash Redis Rate Limit Error (falling back to memory):", error)
+        }
+    }
+
+    // ── FALLBACK: In-Memory Rate Limiting ──
     cleanupExpired()
 
     const { maxRequests, windowSeconds, prefix = "rl" } = config

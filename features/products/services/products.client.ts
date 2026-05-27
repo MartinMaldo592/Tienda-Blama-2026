@@ -215,7 +215,7 @@ export async function getProductDetail(identifier: string | number): Promise<Pro
             .from("productos")
             .select(`*, categorias (id, nombre, slug)`)
             .eq("id", identifier)
-            .single()
+            .maybeSingle()
         producto = data as ProductWithCategory
         error = err
     } else {
@@ -223,7 +223,7 @@ export async function getProductDetail(identifier: string | number): Promise<Pro
             .from("productos")
             .select(`*, categorias (id, nombre, slug)`)
             .eq("slug", identifier) // Requires 'slug' column migration
-            .single()
+            .maybeSingle()
         producto = data as ProductWithCategory
         error = err
     }

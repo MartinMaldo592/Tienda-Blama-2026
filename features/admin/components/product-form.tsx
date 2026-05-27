@@ -69,7 +69,7 @@ export function ProductForm({ productToEdit, categories = DEFAULT_CATEGORIES, on
         } as any
     })
 
-    const { register, control, handleSubmit, reset, setValue, formState: { errors } } = form
+    const { register, control, handleSubmit, reset, setValue, getValues, formState: { errors } } = form
 
     useEffect(() => {
         const init = async () => {
@@ -267,7 +267,7 @@ export function ProductForm({ productToEdit, categories = DEFAULT_CATEGORIES, on
                                 </div>
                                 <div className="space-y-4 pt-6 border-t border-slate-50">
                                     <h2 className="text-2xl font-black text-slate-900">Variantes del Producto</h2>
-                                    <VariantsEditor control={control} register={register} isEditing={!!productToEdit} />
+                                    <VariantsEditor control={control} register={register} isEditing={!!productToEdit} getValues={getValues} />
                                 </div>
                                 <div className="flex justify-end pt-4">
                                     <Button type="button" onClick={() => setActiveTab('media')} className="gap-2 rounded-xl bg-slate-50 text-slate-900 hover:bg-slate-100 font-bold border-slate-200 border shadow-none transition-all haptic-scale">

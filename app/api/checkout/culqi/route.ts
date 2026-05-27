@@ -61,7 +61,7 @@ export async function POST(req: Request) {
     try {
         // 1. Rate Limiting (Seguridad básica)
         const clientIP = getClientIP(req)
-        const rateCheck = checkRateLimit(clientIP, { maxRequests: 5, windowSeconds: 60, prefix: "checkout_culqi" })
+        const rateCheck = await checkRateLimit(clientIP, { maxRequests: 5, windowSeconds: 60, prefix: "checkout_culqi" })
 
         if (!rateCheck.success) {
             return NextResponse.json(

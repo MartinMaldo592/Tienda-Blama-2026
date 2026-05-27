@@ -83,7 +83,7 @@ export async function POST(req: Request) {
             const { data: currentPedido } = await supabase.from("pedidos")
                 .select("stock_descontado")
                 .eq("id", pedidoId)
-                .single()
+                .maybeSingle()
 
             await supabase.from("pedidos").update({
                 status: "Confirmado",
@@ -95,38 +95,15 @@ export async function POST(req: Request) {
             // ──────────────────────────────────────────────────────────────────────────
             if (!currentPedido?.stock_descontado) {
                 console.log(`📦 Webhook Culqi: Descontando stock faltante para el pedido #${pedidoId}...`)
-                const { data: itemsForStock } = await supabase
-                    .from("pedido_items")
-                    .select("producto_id, producto_variante_id, cantidad")
-                    .eq("pedido_id", pedidoId)
-
-                const safeItems = (itemsForStock || []).filter(
-                    (it): it is { producto_id: number; producto_variante_id: number | null; cantidad: number } =>
-                        Boolean(it.producto_id)
-                )
-
-                // Descontar en paralelo
-                await Promise.allSettled(safeItems.map(async (it) => {
-                    const productoId = Number(it.producto_id)
-                    const varianteId = it.producto_variante_id != null ? Number(it.producto_variante_id) : null
-                    const qty = Number(it.cantidad || 0)
-                    if (!productoId || qty <= 0) return
-
-                    if (varianteId) {
-                        const { data: variante } = await supabase
-                            .from("producto_variantes").select("stock").eq("id", varianteId).single()
-                        const newStock = Math.max(0, Number((variante as any)?.stock ?? 0) - qty)
-                        await supabase.from("producto_variantes").update({ stock: newStock }).eq("id", varianteId)
-                    } else {
-                        const { data: producto } = await supabase
-                            .from("productos").select("stock").eq("id", productoId).single()
-                        const newStock = Math.max(0, Number((producto as any)?.stock ?? 0) - qty)
-                        await supabase.from("productos").update({ stock: newStock }).eq("id", productoId)
-                    }
-                }))
-
-                // Marcar que el webhook ya procesó el stock
-                await supabase.from("pedidos").update({ stock_descontado: true }).eq("id", pedidoId)
+                const { error: rpcError } = await supabase.rpc('admin_procesar_descuento_stock', {
+                    p_pedido_id: pedidoId,
+                    p_revertir: false
+                })
+                if (rpcError) {
+                    console.error(`⚠️ Webhook Culqi: Error al descontar stock del pedido #${pedidoId}:`, rpcError.message)
+                } else {
+                    console.log(`📦 Webhook Culqi: Stock descontado automáticamente (RPC) para el pedido #${pedidoId}`)
+                }
             }
 
             // 2. Verificar si el Log de Finanzas ya está registrado (Si el celular del cliente sí logró guardar en BD a tiempo)
@@ -134,7 +111,7 @@ export async function POST(req: Request) {
                 .select("id")
                 .eq("pedido_id", pedidoId)
                 .ilike("nota", `%${cargoOficial.id}%`) // Buscamos si en la nota está apuntado este ID Transacción
-                .single()
+                .maybeSingle()
 
             // 3. Crear Registro de Pagos e inyectar nota únicamente si el Front-End falló en crearlo
             if (!existingPayment) {

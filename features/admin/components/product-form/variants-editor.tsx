@@ -9,9 +9,10 @@ interface VariantsEditorProps {
     control: Control<ProductFormValues>
     register: UseFormRegister<ProductFormValues>
     isEditing?: boolean
+    getValues: any
 }
 
-export function VariantsEditor({ control, register, isEditing }: VariantsEditorProps) {
+export function VariantsEditor({ control, register, isEditing, getValues }: VariantsEditorProps) {
     const { fields, append, remove } = useFieldArray({
         control,
         name: "variantes"
@@ -80,7 +81,7 @@ export function VariantsEditor({ control, register, isEditing }: VariantsEditorP
                                 <Label className="text-xs">Stock</Label>
                                 <Input
                                     type="number"
-                                    disabled={isEditing}
+                                    disabled={isEditing && !!getValues(`variantes.${index}.id`)}
                                     {...register(`variantes.${index}.stock`)}
                                     placeholder="0"
                                 />

@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js"
-import { sendOrderConfirmationEmail } from "./email"
+import { sendOrderConfirmationEmail, sendOrderStatusEmail } from "./email"
 
 export async function triggerOrderConfirmationEmail(orderId: number, transactionId: string) {
     const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -106,4 +106,70 @@ export async function triggerOrderConfirmationEmail(orderId: number, transaction
     // Rollback claim if sending failed so it can be retried
     await supabase.from("pedidos").update({ email_confirmacion_enviado: false }).eq("id", pedido.id)
     return { success: false, error: result.error }
+}
+
+export async function triggerOrderStatusEmail(orderId: number) {
+    const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+    const service = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!url || !service) {
+        console.error("❌ Error de configuración para envío de correo de estado (Server env missing)")
+        return { success: false, error: "Configuración incompleta" }
+    }
+
+    const supabase = createClient(url, service)
+
+    const { data: pedido, error } = await supabase
+        .from("pedidos")
+        .select(`
+            id, 
+            nombre_contacto, 
+            status, 
+            pago_status,
+            metodo_envio, 
+            direccion_calle, 
+            email_contacto,
+            shalom_orden,
+            shalom_clave,
+            shalom_pin,
+            codigo_seguimiento,
+            clientes ( email )
+        `)
+        .eq("id", Number(orderId))
+        .maybeSingle()
+
+    if (error || !pedido) {
+        console.error(`❌ [OrderStatusEmail] Pedido #${orderId} no encontrado.`)
+        return { success: false, error: "Pedido no encontrado" }
+    }
+
+    const recipientEmail = (pedido.email_contacto?.trim()) || (pedido.clientes as any)?.email?.trim()
+
+    if (!recipientEmail) {
+        console.log(`ℹ [OrderStatusEmail] Pedido #${orderId} sin correo.`)
+        return { success: true, noEmail: true }
+    }
+
+    // Usamos shalom_orden o codigo_seguimiento como tracking code principal
+    const trackingCode = pedido.shalom_orden || pedido.codigo_seguimiento || null
+    // Usamos shalom_pin o shalom_clave como PIN de recojo
+    const keyRecojo = pedido.shalom_pin || pedido.shalom_clave || null
+
+    // Verificar si el pago está 100% liquidado antes de enviar la clave de recojo
+    const pagosConfirmados = ["pagado", "pagado anticipado", "confirmado"]
+    const estaPagado = pagosConfirmados.includes(String(pedido.pago_status || "").toLowerCase())
+
+    const result = await sendOrderStatusEmail({
+        to: recipientEmail,
+        clienteNombre: pedido.nombre_contacto || "Cliente",
+        pedidoId: pedido.id,
+        status: pedido.status,
+        trackingCode: trackingCode,
+        keyRecojo: keyRecojo,
+        metodoEnvio: pedido.metodo_envio,
+        direccion: pedido.direccion_calle,
+        estaPagado: estaPagado,
+    })
+
+    return result
 }
