@@ -19,7 +19,7 @@ interface QuickCustomerProps {
 }
 
 export function QuickCustomer({ name, setName, phone, setPhone, dni, setDni, email, setEmail, disabled }: QuickCustomerProps) {
-    const [showEmail, setShowEmail] = useState(!!email)
+    const [showEmail, setShowEmail] = useState(true)
     const isNameValid = name.length > 5
     const isDniValid = dni.length === 8
     const isPhoneValid = phone.replace(/\D/g, '').length === 9
@@ -134,20 +134,23 @@ export function QuickCustomer({ name, setName, phone, setPhone, dni, setDni, ema
                 </div>
             </div>
 
-            {!showEmail ? (
-                <button
-                    type="button"
-                    onClick={() => setShowEmail(true)}
-                    className="text-xs font-bold text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5 py-1 w-fit group"
-                >
-                    <Mail className="h-3.5 w-3.5 group-hover:scale-110 transition-transform" />
-                    <span>+ Agregar correo electrónico (Opcional)</span>
-                </button>
-            ) : (
+            <label className="flex items-center gap-2.5 cursor-pointer select-none text-xs font-bold text-slate-600 hover:text-slate-900 mt-2 bg-slate-50 border border-slate-100 p-3 rounded-lg w-full">
+                <input
+                    type="checkbox"
+                    checked={showEmail}
+                    onChange={(e) => {
+                        setShowEmail(e.target.checked)
+                    }}
+                    className="h-4 w-4 rounded accent-primary cursor-pointer"
+                />
+                <span>Recibir alertas de mi envío gratis, código Shalom y alertas por correo</span>
+            </label>
+
+            {showEmail && (
                 <div className="space-y-1.5 pt-2 animate-in fade-in slide-in-from-top-2 duration-300">
                     <Label className="flex items-center gap-2 text-sm font-bold text-foreground">
                         <span>Correo Electrónico</span>
-                        <span className="text-[10px] uppercase tracking-wider text-amber-600 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-950/30 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">Opcional</span>
+                        <span className="text-[10px] uppercase tracking-wider text-amber-600 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-950/30 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">Muy Recomendado</span>
                     </Label>
                     <div className="relative group">
                         <div className={cn(

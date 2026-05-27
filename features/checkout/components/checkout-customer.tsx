@@ -18,7 +18,7 @@ export function CheckoutCustomer({
     const phoneValue = watch("phone")
     const dniValue = watch("dni")
     const emailValue = watch("email")
-    const [showEmail, setShowEmail] = useState(!!emailValue)
+    const [showEmail, setShowEmail] = useState(true)
 
     const isValid = (name: string, value: string) => {
         if (name === 'email') {
@@ -127,20 +127,23 @@ export function CheckoutCustomer({
                     {errors.dni && <p className="text-xs text-destructive font-medium animate-in fade-in slide-in-from-top-1">{errors.dni.message}</p>}
                 </div>
 
-                {!showEmail ? (
-                    <button
-                        type="button"
-                        onClick={() => setShowEmail(true)}
-                        className="text-xs font-bold text-primary hover:text-primary/80 transition-colors flex items-center gap-1.5 py-1 w-fit mt-1 group"
-                    >
-                        <Mail className="h-3.5 w-3.5 group-hover:scale-110 transition-transform" />
-                        <span>+ Agregar correo electrónico (Opcional)</span>
-                    </button>
-                ) : (
+                <label className="flex items-center gap-2.5 cursor-pointer select-none text-xs font-bold text-slate-600 hover:text-slate-900 mt-2 bg-slate-50 border border-slate-100 p-3 rounded-lg w-full">
+                    <input
+                        type="checkbox"
+                        checked={showEmail}
+                        onChange={(e) => {
+                            setShowEmail(e.target.checked)
+                        }}
+                        className="h-4 w-4 rounded accent-primary cursor-pointer"
+                    />
+                    <span>Recibir alertas de mi envío gratis, código Shalom y alertas por correo</span>
+                </label>
+
+                {showEmail && (
                     <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
                         <Label htmlFor="email" className="flex items-center gap-2 text-sm font-bold text-foreground">
                             <span>Correo Electrónico</span>
-                            <span className="text-[10px] uppercase tracking-wider text-amber-600 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-950/30 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">Opcional</span>
+                            <span className="text-[10px] uppercase tracking-wider text-amber-600 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-950/30 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">Muy Recomendado</span>
                         </Label>
                         <div className="relative group">
                             <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">

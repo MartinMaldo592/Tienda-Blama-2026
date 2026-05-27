@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     try {
         // ── Rate Limiting: 30 uploads/minuto por IP ──
         const clientIP = getClientIP(req)
-        const rateCheck = checkRateLimit(clientIP, {
+        const rateCheck = await checkRateLimit(clientIP, {
             maxRequests: 30,
             windowSeconds: 60,
             prefix: "upload",

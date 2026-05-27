@@ -157,7 +157,7 @@ export default function SuccessPage({
                 const supabase = createClient()
 
                 const [secRes, orderRes, itemsRes] = await Promise.all([
-                    supabase.from("pedidos").select("culqi_charge_id").eq("id", Number(orderId)).single(),
+                    supabase.from("pedidos").select("culqi_charge_id").eq("id", Number(orderId)).maybeSingle(),
                     supabase.from("pedidos").select(`
                         id, 
                         nombre_contacto, 
@@ -175,13 +175,19 @@ export default function SuccessPage({
                         descuento, 
                         total, 
                         status
-                    `).eq("id", Number(orderId)).single(),
+                    `).eq("id", Number(orderId)).maybeSingle(),
                     supabase.from("pedido_items").select("producto_nombre, variante_nombre, cantidad, precio_unitario, producto_id").eq("pedido_id", Number(orderId))
                 ])
 
                 const secCheck = secRes.data
                 const orderData = orderRes.data
                 const itemsData = itemsRes.data
+
+                if (!orderData) {
+                    setAccessDenied(true)
+                    setLoading(false)
+                    return
+                }
 
                 // If the transaction_id in the URL doesn't match what we stored → block access
                 const storedToken = secCheck?.culqi_charge_id || ""

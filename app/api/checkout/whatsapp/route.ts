@@ -65,7 +65,7 @@ export async function POST(req: Request) {
   try {
     // ── Rate Limiting: 5 pedidos/minuto por IP ──
     const clientIP = getClientIP(req)
-    const rateCheck = checkRateLimit(clientIP, {
+    const rateCheck = await checkRateLimit(clientIP, {
       maxRequests: 5,
       windowSeconds: 60,
       prefix: "checkout",

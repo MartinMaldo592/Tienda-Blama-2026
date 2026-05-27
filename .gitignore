@@ -1,39 +1,71 @@
+# =====================================================================
+# 🛡️ Tienda Blama 2026 - Configuración de Gitignore Profesional
+# =====================================================================
 
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
+# 📦 Dependencias y Paquetes
+node_modules/
+.pnp
 .pnp.js
+jspm_packages/
+web_modules/
 
-# testing
-/coverage
+# 🛠️ Entorno de Construcción Next.js y Turbo
+.next/
+out/
+build/
+dist/
 
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# local env files
+# 🔒 Claves de Seguridad y Variables de Entorno locales
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 .env*.local
+*.env
+*.pem
+*.key
+*.cert
 
-# vercel
-.vercel
+# 🧪 Suites de Pruebas y Reportes (Playwright / Jest)
+coverage/
+playwright-report/
+test-results/
+.playwright/
+playwright/.cache/
 
-# typescript
+# 💻 Archivos de Compilación de TypeScript
 *.tsbuildinfo
 next-env.d.ts
 
-# backups
+# 💻 Configuraciones de Editores e IDEs
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.eslintcache
+.stylelintcache
+
+# 🍏 / 🪟 Archivos del Sistema Operativo
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# 🗃️ Archivos Temporales y Caché de Base de Datos (Supabase)
+supabase/.temp/
+.temp/
+*.tmp
+*.bak
 next_backup_to_delete/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

@@ -337,6 +337,16 @@ export async function updatePedidoStatusWithStock(args: { pedidoId: number; next
   // but nextStatus is string. If it's a valid enum value it works.
   const { error } = await supabase.from("pedidos").update({ status: nextStatus as any }).eq("id", pedidoId)
   if (error) throw error
+
+  // 4. Trigger Status Update Email (in background securely)
+  const notifyStatuses = ["Preparando", "Enviado", "Entregado"]
+  if (notifyStatuses.includes(nextStatus)) {
+    fetch("/api/admin/pedidos/send-status-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId: pedidoId })
+    }).catch(err => console.error("Error triggering status email:", err))
+  }
 }
 
 export interface BulkStockError {
