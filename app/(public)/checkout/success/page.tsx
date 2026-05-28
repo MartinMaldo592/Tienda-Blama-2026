@@ -7,7 +7,7 @@ import { ShoppingBag, MessageCircle, Package, Truck, CheckCircle2, Clock, MapPin
 import React, { useEffect, useState, useRef } from "react"
 import { createClient } from "@/lib/supabase.client"
 import { formatCurrency } from "@/lib/utils"
-import { buildWhatsAppFinalMessage, buildWhatsAppUrl } from "@/features/checkout"
+import { buildWhatsAppFinalMessage, buildWhatsAppUrl, isMobileDevice } from "@/features/checkout"
 
 // ─── Animated Checkmark (CSS/SVG – no external libs) ────────────────────────
 function SuccessCheckmark() {
@@ -284,8 +284,13 @@ export default function SuccessPage({
             console.log("🔗 [WhatsApp Redirect Debug] Generated WhatsApp URL:", url)
             if (url && url !== "#") {
                 setRedirected(true)
-                console.log("🚀 [WhatsApp Redirect Debug] Navigating window.location.href to:", url)
-                window.location.href = url
+                if (isMobileDevice()) {
+                    console.log("🚀 [WhatsApp Redirect Debug] Mobile detected. Navigating window.location.href to:", url)
+                    window.location.href = url
+                } else {
+                    console.log("🚀 [WhatsApp Redirect Debug] Desktop detected. Opening in new tab via window.open to:", url)
+                    window.open(url, "_blank")
+                }
             } else {
                 console.log("⚠️ [WhatsApp Redirect Debug] URL was '#' or empty, redirect skipped.")
             }
