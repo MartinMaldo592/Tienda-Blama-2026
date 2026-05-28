@@ -53,6 +53,8 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 *   **Salvaguarda Comercial de Seguridad (PIN de Shalom)**:
     *   **Pedido Completamente Pagado** (estados `"Pagado"`, `"Pagado Anticipado"` o `"Confirmado"`): El cliente recibe un correo premium interactivo que incluye directamente el **Código de Guía**, el **PIN de Shalom (4 dígitos)** de retiro y un botón de contacto directo por WhatsApp.
     *   **Saldo Pendiente de Cobro** (pago parcial o contraentrega provincial): El correo despliega una alerta ámbar destacada instando al cliente a realizar el pago del saldo restante y enviar el comprobante para desbloquear su PIN de Shalom. El PIN se mantiene oculto y encriptado en backend, previniendo fraudes o retiros de paquetes sin haber completado la transacción.
+*   **Asuntos Dinámicos (Independencia de Hilos)**:
+    *   Configuramos el asunto (`subject`) de cada correo de estado para que varíe dinámicamente según el paso actual de la compra (`Confirmado ✓`, `Preparando 📦`, `Enviado 🚚`, `Entregado 🎉`, etc.). Esto rompe el criterio de agrupamiento automático de gestores como Gmail y Outlook, asegurando que el usuario reciba cada actualización logística como un **correo individual separado** en su bandeja de entrada.
 
 ---
 
