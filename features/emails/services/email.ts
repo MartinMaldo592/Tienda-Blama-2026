@@ -101,10 +101,30 @@ export async function sendOrderStatusEmail(params: SendOrderStatusParams) {
             })
         )
 
+        // Mapeo dinámico de asuntos según el estado del pedido para evitar hilos agrupados
+        let subject = `Actualización de tu pedido ${pedidoFormateado} - Blama Shop ✓`
+        const statusClean = params.status.toLowerCase().trim()
+
+        if (statusClean === "confirmado") {
+            subject = `¡Tu pedido ${pedidoFormateado} ha sido confirmado! ✓ - Blama Shop`
+        } else if (statusClean === "preparando") {
+            subject = `Estamos preparando tu pedido ${pedidoFormateado} 📦 - Blama Shop`
+        } else if (statusClean === "enviado") {
+            subject = `¡Tu pedido ${pedidoFormateado} está en camino! 🚚 - Blama Shop`
+        } else if (statusClean === "entregado") {
+            subject = `¡Tu pedido ${pedidoFormateado} ha sido entregado! 🎉 - Blama Shop`
+        } else if (statusClean === "fallido") {
+            subject = `Hubo un inconveniente con tu pedido ${pedidoFormateado} ⚠️ - Blama Shop`
+        } else if (statusClean === "devuelto") {
+            subject = `Tu pedido ${pedidoFormateado} ha sido devuelto 🔄 - Blama Shop`
+        } else if (statusClean === "cancelado") {
+            subject = `Tu pedido ${pedidoFormateado} ha sido cancelado ✕ - Blama Shop`
+        }
+
         const { data, error } = await getResend().emails.send({
             from: "Tienda Blama Shop <pedidos@blama.shop>",
             to: params.to,
-            subject: `Actualización de tu pedido ${pedidoFormateado} - Blama Shop ✓`,
+            subject: subject,
             html: emailHtml,
         })
 
