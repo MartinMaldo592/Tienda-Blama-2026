@@ -111,6 +111,8 @@ export async function sendOrderStatusEmail(params: SendOrderStatusParams) {
             subject = `Estamos preparando tu pedido ${pedidoFormateado} 📦 - Blama Shop`
         } else if (statusClean === "enviado") {
             subject = `¡Tu pedido ${pedidoFormateado} está en camino! 🚚 - Blama Shop`
+        } else if (statusClean === "llegó a agencia" || statusClean === "llego a agencia") {
+            subject = `¡Tu pedido ${pedidoFormateado} ya está listo para retirar en la agencia! 📦 - Blama Shop ✓`
         } else if (statusClean === "entregado") {
             subject = `¡Tu pedido ${pedidoFormateado} ha sido entregado! 🎉 - Blama Shop`
         } else if (statusClean === "fallido") {

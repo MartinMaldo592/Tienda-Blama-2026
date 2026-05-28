@@ -109,7 +109,15 @@ export const CheckoutSummary = memo(function CheckoutSummary({
                 </div>
                 <div className="flex justify-between items-center text-muted-foreground">
                     <span>Envío:</span>
-                    <span>{(shippingMethod === 'Provincia' || shippingMethod === 'provincia') ? 'Precio a calcular' : 'Gratis'}</span>
+                    <span>
+                        {(shippingMethod === 'Provincia' || shippingMethod === 'provincia') ? (
+                            <span className="bg-slate-100 text-slate-800 text-[10px] font-extrabold px-2.5 py-1 rounded-md border border-slate-250 animate-in fade-in duration-300">
+                                Flete por Pagar en Destino (Agencia)
+                            </span>
+                        ) : (
+                            'Gratis'
+                        )}
+                    </span>
                 </div>
                 {discount > 0 && (
                     <div className="flex justify-between items-center text-green-600 font-semibold">

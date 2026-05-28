@@ -116,6 +116,7 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
     // ── Selectores específicos (evita re-render total en cada keystroke) ──────
     const paymentMethod = watch("paymentMethod")
     const shippingMethod = watch("shippingMethod")
+    const department = watch("department")
     const [locationLink, setLocationLink] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [couponCode, setCouponCode] = useState("")
@@ -171,6 +172,24 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
         }, 500) // Debounce 500ms
         return () => clearTimeout(timeout)
     }, [paymentMethod, shippingMethod, value, loaded, saveDraft, getValues])
+
+    // Auto-ajustar a Provincia si el departamento no es Lima o Callao (Prevención de Lima-Falso)
+    useEffect(() => {
+        if (!loaded) return
+        const deptClean = (department || "").trim().toLowerCase()
+        if (deptClean.length > 2) {
+            const isLimaOrCallao = deptClean.includes("lima") || deptClean.includes("callao")
+            const currentShipping = getValues("shippingMethod")
+
+            if (!isLimaOrCallao && currentShipping === "Lima") {
+                setFormValue("shippingMethod", "Provincia", { shouldValidate: true })
+                toast.info("Ajuste de Cobertura", {
+                    description: `Detectamos que tu dirección está en ${department}. El método de envío se ha configurado automáticamente a Provincia.`,
+                    duration: 6000
+                })
+            }
+        }
+    }, [department, loaded, setFormValue, getValues])
 
     // Removed unused geoProvince, geoDistrict
 
@@ -562,6 +581,7 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                                     value={field.value}
                                     onChange={field.onChange}
                                     disabled={isSubmitting}
+                                    shippingMethod={shippingMethod}
                                 />
                             )}
                         />

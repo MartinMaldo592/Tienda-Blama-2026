@@ -180,7 +180,8 @@ export function OrderShippingCard({ pedido, isLocked, onLogAction, onRefresh }: 
                                         className={`w-full h-14 text-center font-black text-3xl tracking-[0.4em] rounded-2xl border-none focus:ring-4 focus:ring-emerald-500/10 outline-none ${shalomPin ? 'bg-white text-emerald-700' : 'bg-white/60 text-slate-300'}`}
                                         placeholder="—"
                                         value={shalomPin}
-                                        readOnly
+                                        onChange={(e) => setShalomPin(e.target.value)}
+                                        readOnly={!isEditing}
                                     />
                                     {shalomPin && (
                                         <button

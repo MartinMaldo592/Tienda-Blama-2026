@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS public.pedidos (
     subtotal numeric,
     descuento numeric DEFAULT 0,
     cupon_codigo text,
-    status text DEFAULT 'Pendiente'::text CHECK (status = ANY (ARRAY['Pendiente'::text, 'Confirmado'::text, 'Preparando'::text, 'Enviado'::text, 'Entregado'::text, 'Fallido'::text, 'Devuelto'::text, 'Cancelado'::text])),
+    status text DEFAULT 'Pendiente'::text CHECK (status = ANY (ARRAY['Pendiente'::text, 'Confirmado'::text, 'Preparando'::text, 'Enviado'::text, 'Llegó a Agencia'::text, 'Entregado'::text, 'Fallido'::text, 'Devuelto'::text, 'Cancelado'::text])),
     pago_status text DEFAULT 'Pendiente'::text CHECK (pago_status = ANY (ARRAY['Pendiente'::text, 'Pago Parcial'::text, 'Pagado'::text, 'Pago Contraentrega'::text, 'Pagado Anticipado'::text, 'Pagado al Recibir'::text, 'Fallido'::text])),
     stock_descontado boolean DEFAULT false NOT NULL,
     metodo_envio text,

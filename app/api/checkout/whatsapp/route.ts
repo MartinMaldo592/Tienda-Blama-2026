@@ -172,6 +172,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No se pudo crear cliente para el pedido" }, { status: 500 })
     }
 
+    // Generar un PIN aleatorio único de 4 dígitos por defecto para envíos de Shalom / Provincia
+    const generatedShalomPin = (shippingMethod?.toLowerCase() === "provincia")
+      ? Math.floor(1000 + Math.random() * 9000).toString()
+      : null
+
     // B. Pedido
     const commonPedidoData = {
       cliente_id: clienteId,
@@ -189,6 +194,7 @@ export async function POST(req: Request) {
       pago_status: "Pendiente",
       metodo_envio: shippingMethod,
       culqi_charge_id: "whatsapp",
+      shalom_pin: generatedShalomPin,
     }
 
     const insertPedidoFull = async () => {

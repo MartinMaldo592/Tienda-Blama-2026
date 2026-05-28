@@ -10,6 +10,7 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 *   [Fase 2: Escalabilidad, Media y Correos Transaccionales (Enterprise)](#fase-2-escalabilidad-media-y-correos-transaccionales-enterprise)
 *   [Fase 3: Mitigación de Riesgos y Control de Fallos Operativos (AMFE)](#fase-3-mitigacion-de-riesgos-y-control-de-fallos-operativos-amfe)
 *   [Fase 4: Consolidación, Mapeo y Seguridad de Base de Datos (Supabase)](#fase-4-consolidacion-mapeo-y-seguridad-de-base-de-datos-supabase)
+*   [Fase 5: Optimización del Flujo Logístico a Provincias y Control Multicourier (Shalom / Olva)](#fase-5-optimizacion-del-flujo-logistico-a-provincias-y-control-multicourier-shalom-olva)
 
 ---
 
@@ -99,6 +100,28 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 
 ### 3. Archivo del Historial y Limpieza de Raíz
 *   **Solución**: Creamos la carpeta `supabase/.archive/` y trasladamos allí **14 scripts SQL antiguos y obsoletos** que saturaban la raíz. Esto deja una estructura de control de versiones sumamente limpia de cara a futuras migraciones mediante Supabase CLI.
+
+---
+
+## Fase 5: Optimización del Flujo Logístico a Provincias y Control Multicourier (Shalom / Olva)
+
+### 1. Robustez de Base de Datos y Sincronización Remota (DEV & PROD)
+*   **Alineación de Restricciones**: Actualizamos de manera directa la restricción de verificación `pedidos_status_check` en las bases de datos de desarrollo y producción de Supabase para soportar de manera nativa los estados `"Llegó a Agencia"` y `"Cancelado"`, previniendo errores de sistema al registrar cambios de estado desde el CRM.
+*   **Pre-generación Automática de PIN Shalom**: Implementamos la autogeneración aleatoria de un PIN de 4 dígitos único (`1000` - `9999`) al insertar un pedido con método `"Provincia"`, evitando demoras al despachador físico en la ventanilla de envío de Shalom.
+
+### 2. Checkout Adaptativo de Alta Conversión (Sin Fricción)
+*   **Banners Informativos Claros**: Mantuvimos las etiquetas y placeholders normales de dirección domiciliaria en el Checkout y el Modal de Compra Rápida para no crear fricciones de compra, pero desplegamos una alerta interactiva amigable informando que todos los envíos a provincia se recogen en la oficina principal de Shalom.
+*   **Badge de Resumen Financiero**: Reemplazamos la leyenda `"Precio a calcular"` en el resumen de compra (`CheckoutSummary`) por un badge premium destacado: **`"Flete por Pagar en Destino (Agencia)"`**, transparentando el cobro que hace Shalom en ventanilla.
+*   **Escudo de Evasión Tarifaria ("Lima-Falso")**: Programamos un validador en tiempo real en `CheckoutForm` que re-ajusta de inmediato el método de envío a "Provincia" si el departamento ingresado no es "Lima" o "Callao", disparando una alerta Toast explicativa.
+
+### 3. Ficha CRM Logística Flexible e Interactiva
+*   **PIN Editable en CRM**: El PIN generado por el sistema se muestra de forma visible al despachador en el panel administrativo (`order-shipping-card.tsx`). Modificamos el campo para que sea editable (`readOnly={!isEditing}`) y cuente con botón de regeneración aleatoria (`RotateCcw`), permitiendo un control administrativo sumamente versátil.
+*   **Stepper Dinámico de Progreso**: La barra de pasos en el detalle de pedidos de administración ahora discrimina el método de envío: muestra **5 pasos** (incluyendo `"Llegó a Agencia"`) si es envío por agencia, y **4 pasos** tradicionales si es entrega domiciliaria local.
+
+### 4. Emails Transaccionales Adaptativos (Alta Fidelidad)
+*   **Zero-Trust PIN (Blindaje de Cobranza)**: Si el pedido tiene un saldo pendiente de pago (ej: contraentrega provincial), el PIN de recojo se mantiene enmascarado como **`🔒 Clave de Retiro Protegida (Saldo Pendiente)`** e invita al cliente a completar el abono por WhatsApp. El PIN solo se devela y formatea en un bloque verde destacado en el Gmail del cliente una vez que el estado de pago pasa a `"Pagado"`.
+*   **Soporte Multicourier Inteligente**: Si se asigna otro courier en el panel (ej: Olva Courier), el correo de estado oculta dinámicamente el bloque del PIN Shalom para evitar confusiones y renderiza un enlace de rastreo directo a domicilio.
+*   **Alerta de Custodia y Almacenaje**: Los correos con destino Shalom integran un recordatorio destacado en rojo indicando un plazo máximo de **5 días hábiles** para retirar la mercadería de la agencia y prevenir cargos de almacenaje por parte del courier.
 
 ---
 

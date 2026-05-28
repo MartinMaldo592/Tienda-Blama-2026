@@ -68,7 +68,12 @@ export function buildWhatsAppPreviewMessage(input: {
         message += `\n*SUBTOTAL: ${formatCurrency(subtotal)}*`
         message += `\n*CUPÓN (${couponCode}): -${formatCurrency(discount)}*`
     }
-    message += `\n*TOTAL: ${formatCurrency(total)}*`
+    message += `\n*TOTAL PRODUCTOS: ${formatCurrency(total)}*`
+
+    if (shippingMethod?.toLowerCase() === 'provincia') {
+        message += `\n*Envío:* Flete por Pagar en Destino (Agencia)\n`
+        message += `\n_💡 Nota: El costo del envío lo cobra la agencia al retirar. Un asesor se comunicará contigo para definir si prefieres pago total por adelantado, adelanto de flete o contraentrega en Shalom Recaudo._`
+    }
 
     return message
 }
@@ -132,7 +137,12 @@ export function buildWhatsAppFinalMessage(input: {
         message += `\n*SUBTOTAL: ${formatCurrency(subtotal)}*`
         message += `\n*CUPÓN (${couponCode}): -${formatCurrency(discount)}*`
     }
-    message += `\n\n*TOTAL: ${formatCurrency(total)}*`
+    message += `\n\n*TOTAL PRODUCTOS: ${formatCurrency(total)}*`
+
+    if (shippingMethod?.toLowerCase() === 'provincia') {
+        message += `\n*Envío:* Flete por Pagar en Destino (Agencia)\n`
+        message += `\n_💡 Nota: El costo del envío lo cobra la agencia al retirar. Un asesor se comunicará contigo para definir si prefieres pago total por adelantado, adelanto de flete o contraentrega en Shalom Recaudo._`
+    }
 
     return message
 }
