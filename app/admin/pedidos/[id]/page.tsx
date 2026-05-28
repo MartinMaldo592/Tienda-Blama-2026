@@ -488,13 +488,14 @@ export default function PedidoDetallePage() {
                                 status === 'Pendiente' ? 'bg-amber-400 text-amber-950' :
                                 status === 'Confirmado' ? 'bg-sky-400 text-sky-950' :
                                 status === 'Enviado' ? 'bg-indigo-400 text-indigo-950' :
+                                status === 'Llegó a Agencia' ? 'bg-teal-400 text-teal-950' :
                                 status === 'Entregado' ? 'bg-emerald-400 text-emerald-950' :
                                 'bg-rose-400 text-rose-950'
                             }`}>
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="rounded-2xl shadow-2xl border-slate-100">
-                                {['Pendiente', 'Confirmado', 'Enviado', 'Entregado', 'Fallido', 'Cancelado'].map(s => (
+                                {['Pendiente', 'Confirmado', 'Enviado', 'Llegó a Agencia', 'Entregado', 'Fallido', 'Cancelado'].map(s => (
                                     <SelectItem key={s} value={s} className="font-bold text-xs py-3">{s}</SelectItem>
                                 ))}
                             </SelectContent>
@@ -520,28 +521,34 @@ export default function PedidoDetallePage() {
             >
                 <div className="relative flex items-center justify-between w-full max-w-4xl mx-auto">
                     <div className="absolute left-0 top-[16px] w-full h-[2px] bg-slate-100 -z-0"></div>
-                    {['Pendiente', 'Confirmado', 'Enviado', 'Entregado'].map((stepStatus, index) => {
-                        const allStatuses = ['Pendiente', 'Confirmado', 'Enviado', 'Entregado']
-                        const currentIndex = allStatuses.indexOf(pedido.status || '')
-                        const stepIndex = allStatuses.indexOf(stepStatus)
-                        const isCompleted = stepIndex <= currentIndex
-                        const isCancelled = pedido.status === 'Fallido' || pedido.status === 'Cancelado'
+                    {(() => {
+                        const isAgencia = ['provincia', 'Provincia'].includes(pedido.metodo_envio || '') || String(pedido.metodo_envio || '').toLowerCase().includes('shalom')
+                        const allStatuses = isAgencia
+                            ? ['Pendiente', 'Confirmado', 'Enviado', 'Llegó a Agencia', 'Entregado']
+                            : ['Pendiente', 'Confirmado', 'Enviado', 'Entregado']
 
-                        return (
-                            <div key={stepStatus} className="relative z-10 flex flex-col items-center gap-2 bg-white px-3">
-                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-700 shadow-sm ${
-                                    isCancelled ? "bg-rose-50 text-rose-400 border border-rose-100" :
-                                    isCompleted ? "bg-slate-900 text-white shadow-lg shadow-slate-200" : 
-                                    "bg-white border-2 border-slate-100 text-slate-300"
-                                }`}>
-                                    {isCompleted && !isCancelled ? <Check className="w-4 h-4" strokeWidth={3} /> : <span className="font-black text-xs">{index + 1}</span>}
+                        return allStatuses.map((stepStatus, index) => {
+                            const currentIndex = allStatuses.indexOf(pedido.status || '')
+                            const stepIndex = allStatuses.indexOf(stepStatus)
+                            const isCompleted = stepIndex <= currentIndex
+                            const isCancelled = pedido.status === 'Fallido' || pedido.status === 'Cancelado'
+
+                            return (
+                                <div key={stepStatus} className="relative z-10 flex flex-col items-center gap-2 bg-white px-3">
+                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-700 shadow-sm ${
+                                        isCancelled ? "bg-rose-50 text-rose-400 border border-rose-100" :
+                                        isCompleted ? "bg-slate-900 text-white shadow-lg shadow-slate-200" : 
+                                        "bg-white border-2 border-slate-100 text-slate-300"
+                                    }`}>
+                                        {isCompleted && !isCancelled ? <Check className="w-4 h-4" strokeWidth={3} /> : <span className="font-black text-xs">{index + 1}</span>}
+                                    </div>
+                                    <span className={`text-[9px] font-black uppercase tracking-widest ${isCompleted && !isCancelled ? 'text-slate-900' : 'text-slate-300'}`}>
+                                        {stepStatus}
+                                    </span>
                                 </div>
-                                <span className={`text-[9px] font-black uppercase tracking-widest ${isCompleted && !isCancelled ? 'text-slate-900' : 'text-slate-300'}`}>
-                                    {stepStatus}
-                                </span>
-                            </div>
-                        )
-                    })}
+                            )
+                        })
+                    })()}
                 </div>
                 {(pedido.status === 'Fallido' || pedido.status === 'Cancelado') && (
                     <m.div 
@@ -845,6 +852,7 @@ function StatusBadge({ status }: { status: string }) {
         'Pendiente': 'bg-amber-50 text-amber-700 border-amber-100 shadow-[0_2px_10px_-3px_rgba(251,191,36,0.2)]',
         'Confirmado': 'bg-sky-50 text-sky-700 border-sky-100 shadow-[0_2px_10px_-3px_rgba(14,165,233,0.2)]',
         'Enviado': 'bg-indigo-50 text-indigo-700 border-indigo-100 shadow-[0_2px_10px_-3px_rgba(79,70,229,0.2)]',
+        'Llegó a Agencia': 'bg-teal-50 text-teal-700 border-teal-100 shadow-[0_2px_10px_-3px_rgba(13,148,136,0.2)]',
         'Entregado': 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-[0_2px_10px_-3px_rgba(16,185,129,0.2)]',
         'Cancelado': 'bg-rose-50 text-rose-700 border-rose-100 shadow-[0_2px_10px_-3px_rgba(244,63,94,0.2)]',
         'Fallido': 'bg-rose-50 text-rose-700 border-rose-100 shadow-[0_2px_10px_-3px_rgba(244,63,94,0.2)]',

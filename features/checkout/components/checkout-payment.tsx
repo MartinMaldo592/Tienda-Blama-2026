@@ -6,9 +6,10 @@ interface CheckoutPaymentProps {
     value: string
     onChange: (value: string) => void
     disabled?: boolean
+    shippingMethod?: string // <-- Prop opcional
 }
 
-export function CheckoutPayment({ value, onChange, disabled }: CheckoutPaymentProps) {
+export function CheckoutPayment({ value, onChange, disabled, shippingMethod }: CheckoutPaymentProps) {
     const handleValueChange = (val: string) => {
         onChange(val);
         // Espera un milisegundo a que React actualice los estilos visuales (borde azul) 
@@ -72,6 +73,20 @@ export function CheckoutPayment({ value, onChange, disabled }: CheckoutPaymentPr
                 </label>
 
             </RadioGroup>
+
+            {/* Alerta dinámica para provincia con pagos flexibles */}
+            {['provincia', 'Provincia'].includes(shippingMethod || '') && (
+                <div className="bg-slate-50 border border-slate-200 text-slate-700 rounded-xl p-4 text-xs space-y-2 mt-4 animate-in fade-in duration-300">
+                    <p className="font-bold flex items-center gap-1.5 text-slate-800">
+                        <span>💡</span> Información de Envío a Provincia
+                    </p>
+                    <ul className="list-disc pl-4 space-y-1 text-slate-650 font-medium">
+                        <li><strong>Entrega:</strong> Retiro en la oficina o agencia principal de Shalom de tu distrito o ciudad.</li>
+                        <li><strong>Pagos Flexibles:</strong> Puedes pagar por adelantado, dar un adelanto, o pagar el total contraentrega en la ventanilla de Shalom al recoger tu paquete.</li>
+                        <li><strong>Coordinación:</strong> Tras finalizar el pedido, un asesor comercial te escribirá por WhatsApp para definir contigo las condiciones de pago que prefieras.</li>
+                    </ul>
+                </div>
+            )}
         </div>
     )
 }

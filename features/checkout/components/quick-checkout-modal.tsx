@@ -326,6 +326,14 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                 disabled={isSubmitting}
             />
 
+            {/* Alerta de envíos a provincia */}
+            {['provincia', 'Provincia'].includes(shippingMethod || '') && (
+                <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-3.5 text-xs font-semibold flex items-start gap-2.5 animate-in slide-in-from-top-2 duration-300">
+                    <span className="text-sm shrink-0">💡</span>
+                    <span>Envíos a Provincia: Todos los paquetes se envían para retiro en la oficina o agencia principal de Shalom de tu distrito o ciudad.</span>
+                </div>
+            )}
+
             <QuickAddress
                 department={department} setDepartment={setDepartment}
                 province={province} setProvince={setProvince}

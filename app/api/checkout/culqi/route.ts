@@ -133,6 +133,11 @@ export async function POST(req: Request) {
 
         if (!clienteId) throw new Error("No se pudo obtener el ID del cliente tras la operación")
 
+        // Generar un PIN aleatorio único de 4 dígitos por defecto para envíos de Shalom / Provincia
+        const generatedShalomPin = (data.shippingMethod?.toLowerCase() === "provincia")
+            ? Math.floor(1000 + Math.random() * 9000).toString()
+            : null
+
         // B. Crear Pedido Pendiente
         const { data: pedido, error: pedidoError } = await supabase.from("pedidos").insert({
             cliente_id: clienteId,
@@ -153,6 +158,7 @@ export async function POST(req: Request) {
             total: total,
             status: "Pendiente", // Nace como pendiente
             pago_status: "Pendiente", // Pendiente de pago
+            shalom_pin: generatedShalomPin,
         }).select().single()
 
         if (pedidoError || !pedido) {

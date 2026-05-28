@@ -29,6 +29,7 @@ export function CheckoutAddress({
     const departmentValue = watch("department")
     const provinceValue = watch("province")
     const districtValue = watch("district")
+    const shippingMethod = watch("shippingMethod")
 
     const isValid = (name: string, value: string) => {
         return value && value.length >= 2 && !errors[name]
@@ -39,6 +40,14 @@ export function CheckoutAddress({
     return (
         <div className="space-y-4 bg-card rounded-xl p-4 sm:p-5 border shadow-sm transition-all duration-300">
             <h4 className="font-bold text-lg mb-2">Dirección de Envío</h4>
+
+            {/* Alerta de envíos a provincia */}
+            {['provincia', 'Provincia'].includes(shippingMethod || '') && (
+                <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-xl p-3.5 text-xs font-semibold flex items-start gap-2.5 animate-in slide-in-from-top-2 duration-300">
+                    <span className="text-sm shrink-0">💡</span>
+                    <span>Envíos a Provincia: Todos los paquetes se envían para retiro en la oficina o agencia principal de Shalom de tu distrito o ciudad.</span>
+                </div>
+            )}
 
             {/* Google Maps Address */}
             <div className="space-y-1.5 relative">
