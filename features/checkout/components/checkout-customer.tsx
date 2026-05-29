@@ -18,7 +18,7 @@ export function CheckoutCustomer({
     const phoneValue = watch("phone")
     const dniValue = watch("dni")
     const emailValue = watch("email")
-    const [showEmail, setShowEmail] = useState(true)
+    const [showEmail, setShowEmail] = useState(false)
 
     const isValid = (name: string, value: string) => {
         if (name === 'email') {

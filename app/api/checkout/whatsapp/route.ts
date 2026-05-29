@@ -173,7 +173,11 @@ export async function POST(req: Request) {
     }
 
     // Generar un PIN aleatorio único de 4 dígitos por defecto para envíos de Shalom / Provincia
-    const generatedShalomPin = (shippingMethod?.toLowerCase() === "provincia")
+    const generatedShalomPin = (
+      shippingMethod?.toLowerCase() === "provincia" ||
+      shippingMethod?.toLowerCase().includes("provincia") ||
+      shippingMethod?.toLowerCase().includes("shalom")
+    )
       ? Math.floor(1000 + Math.random() * 9000).toString()
       : null
 

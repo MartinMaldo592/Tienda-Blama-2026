@@ -103,7 +103,7 @@ export async function sendOrderStatusEmail(params: SendOrderStatusParams) {
 
         // Mapeo dinámico de asuntos según el estado del pedido para evitar hilos agrupados
         let subject = `Actualización de tu pedido ${pedidoFormateado} - Blama Shop ✓`
-        const statusClean = params.status.toLowerCase().trim()
+        const statusClean = String(params.status || "").toLowerCase().trim()
 
         if (statusClean === "confirmado") {
             subject = `¡Tu pedido ${pedidoFormateado} ha sido confirmado! ✓ - Blama Shop`

@@ -32,7 +32,9 @@ export function OrderShippingCard({ pedido, isLocked, onLogAction, onRefresh }: 
     const [isEditing, setIsEditing] = useState(false)
 
     const isPaid = ['Pagado', 'Pagado Anticipado', 'Pagado al Recibir'].includes(pedido.pago_status || '')
-    const isProvincia = ['provincia', 'Provincia'].includes(pedido.metodo_envio || '')
+    const isProvincia = ['provincia', 'Provincia'].includes(pedido.metodo_envio || '') || 
+                        String(pedido.metodo_envio || '').toLowerCase().includes('provincia') ||
+                        String(pedido.metodo_envio || '').toLowerCase().includes('shalom')
 
     const resetFields = () => {
         if (pedido) {

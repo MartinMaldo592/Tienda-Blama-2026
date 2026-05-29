@@ -191,6 +191,22 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
         return () => clearTimeout(timeout)
     }, [name, phone, dni, department, province, district, reference, shippingMethod, email, value, address, loaded, saveDraft])
 
+    // Auto-ajustar a Provincia si el departamento no es Lima o Callao (Prevención de Lima-Falso)
+    useEffect(() => {
+        if (!loaded) return
+        const deptClean = (department || "").trim().toLowerCase()
+        if (deptClean.length > 2) {
+            const isLimaOrCallao = deptClean.includes("lima") || deptClean.includes("callao")
+            if (!isLimaOrCallao && (shippingMethod === "Lima" || shippingMethod.includes("Lima"))) {
+                setShippingMethod("Provincia")
+                toast.info("Ajuste de Cobertura", {
+                    description: `Detectamos que tu dirección está en ${department}. El método de envío se ha configurado automáticamente a Provincia.`,
+                    duration: 6000
+                })
+            }
+        }
+    }, [department, loaded, shippingMethod])
+
     const handleAddressSelect = async (addr: string) => {
         setValue(addr, false)
         clearSuggestions()
