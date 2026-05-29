@@ -263,6 +263,23 @@ export default function PedidoDetallePage() {
     async function handleSaveClientData() {
         try {
             const supabase = createClient()
+            
+            // Si el método de envío cambia a 'Provincia' (o Shalom) y no tiene PIN asignado, autogenerar uno
+            let newPin = pedido?.shalom_pin
+            const wasProv = ['provincia', 'Provincia'].includes(pedido?.metodo_envio || '') || 
+                          String(pedido?.metodo_envio || '').toLowerCase().includes('provincia') ||
+                          String(pedido?.metodo_envio || '').toLowerCase().includes('shalom')
+            const isProv = ['provincia', 'Provincia'].includes(clientForm.metodo_envio || '') || 
+                         String(clientForm.metodo_envio || '').toLowerCase().includes('provincia') ||
+                         String(clientForm.metodo_envio || '').toLowerCase().includes('shalom')
+
+            if (isProv && !wasProv && !pedido?.shalom_pin) {
+                newPin = Math.floor(1000 + Math.random() * 9000).toString()
+                toast.info(`Envío cambiado a Provincia. Se autogeneró el PIN Shalom de retiro: ${newPin}`, {
+                    duration: 6000
+                })
+            }
+
             const { error } = await supabase
                 .from('pedidos')
                 .update({
@@ -274,11 +291,12 @@ export default function PedidoDetallePage() {
                     provincia: clientForm.provincia,
                     departamento: clientForm.departamento,
                     referencia_direccion: clientForm.referencia,
-                    metodo_envio: clientForm.metodo_envio
+                    metodo_envio: clientForm.metodo_envio,
+                    shalom_pin: newPin
                 })
                 .eq('id', id)
             if (error) throw error
-            await logAction('Datos Cliente Editados', `Se actualizaron datos de entrega/contacto`)
+            await logAction('Datos Cliente Editados', `Se actualizaron datos de entrega/contacto y envío`)
             toast.success("Datos actualizados correctamente")
             setIsEditClientOpen(false)
             fetchPedido()
@@ -340,7 +358,10 @@ export default function PedidoDetallePage() {
         if (!pedido) return
 
         // Validación y Confirmación Visual para envíos a provincia por Agencia Shalom
-        if (status === 'Enviado' && ['provincia', 'Provincia'].includes(pedido.metodo_envio || '')) {
+        const isProv = ['provincia', 'Provincia'].includes(pedido.metodo_envio || '') || 
+                     String(pedido.metodo_envio || '').toLowerCase().includes('provincia') ||
+                     String(pedido.metodo_envio || '').toLowerCase().includes('shalom')
+        if (status === 'Enviado' && isProv) {
             const pinVal = (pedido.shalom_pin || '').trim()
             const orderVal = (pedido.shalom_orden || '').trim()
             const passVal = (pedido.shalom_clave || '').trim()
@@ -487,15 +508,18 @@ export default function PedidoDetallePage() {
                             <SelectTrigger className={`w-[160px] h-10 border-none shadow-none focus:ring-0 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all ${
                                 status === 'Pendiente' ? 'bg-amber-400 text-amber-950' :
                                 status === 'Confirmado' ? 'bg-sky-400 text-sky-950' :
+                                status === 'Preparando' ? 'bg-orange-400 text-orange-950' :
                                 status === 'Enviado' ? 'bg-indigo-400 text-indigo-950' :
                                 status === 'Llegó a Agencia' ? 'bg-teal-400 text-teal-950' :
                                 status === 'Entregado' ? 'bg-emerald-400 text-emerald-950' :
-                                'bg-rose-400 text-rose-950'
+                                status === 'Devuelto' ? 'bg-purple-400 text-purple-950' :
+                                status === 'Fallido' ? 'bg-red-400 text-red-950' :
+                                'bg-slate-400 text-slate-950'
                             }`}>
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="rounded-2xl shadow-2xl border-slate-100">
-                                {['Pendiente', 'Confirmado', 'Enviado', 'Llegó a Agencia', 'Entregado', 'Fallido', 'Cancelado'].map(s => (
+                                {['Pendiente', 'Confirmado', 'Preparando', 'Enviado', 'Llegó a Agencia', 'Entregado', 'Devuelto', 'Fallido', 'Cancelado'].map(s => (
                                     <SelectItem key={s} value={s} className="font-bold text-xs py-3">{s}</SelectItem>
                                 ))}
                             </SelectContent>

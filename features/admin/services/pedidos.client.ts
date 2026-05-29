@@ -339,13 +339,32 @@ export async function updatePedidoStatusWithStock(args: { pedidoId: number; next
   if (error) throw error
 
   // 4. Trigger Status Update Email (in background securely)
-  const notifyStatuses = ["Preparando", "Enviado", "Entregado"]
+  const notifyStatuses = [
+    "Confirmado", 
+    "Preparando", 
+    "Enviado", 
+    "Llegó a Agencia", 
+    "Entregado", 
+    "Fallido", 
+    "Devuelto", 
+    "Cancelado"
+  ]
   if (notifyStatuses.includes(nextStatus)) {
-    fetch("/api/admin/pedidos/send-status-email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orderId: pedidoId })
-    }).catch(err => console.error("Error triggering status email:", err))
+    try {
+      const response = await fetch("/api/admin/pedidos/send-status-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId: pedidoId })
+      })
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        console.error("Error triggering status email:", errorData)
+        throw new Error(errorData.error || `Error del servidor de correo (${response.status})`)
+      }
+    } catch (err: any) {
+      console.error("Error sending status email:", err)
+      throw new Error(`Pedido actualizado, pero la notificación por correo falló: ${err.message}`)
+    }
   }
 }
 

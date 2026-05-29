@@ -134,7 +134,11 @@ export async function POST(req: Request) {
         if (!clienteId) throw new Error("No se pudo obtener el ID del cliente tras la operación")
 
         // Generar un PIN aleatorio único de 4 dígitos por defecto para envíos de Shalom / Provincia
-        const generatedShalomPin = (data.shippingMethod?.toLowerCase() === "provincia")
+        const generatedShalomPin = (
+            data.shippingMethod?.toLowerCase() === "provincia" ||
+            data.shippingMethod?.toLowerCase().includes("provincia") ||
+            data.shippingMethod?.toLowerCase().includes("shalom")
+        )
             ? Math.floor(1000 + Math.random() * 9000).toString()
             : null
 

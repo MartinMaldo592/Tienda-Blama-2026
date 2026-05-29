@@ -79,15 +79,16 @@ export function OrderCustomerCard({ pedido, isLocked, isEditOpen, onEditOpenChan
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Método de Envío</Label>
                                 <Select
-                                    value={form.metodo_envio === 'lima' ? 'Lima' : form.metodo_envio === 'provincia' ? 'Provincia' : form.metodo_envio}
+                                    value={form.metodo_envio}
                                     onValueChange={(val) => setForm({ ...form, metodo_envio: val })}
                                 >
                                     <SelectTrigger className="h-14 bg-slate-50 border-none rounded-2xl font-bold">
                                         <SelectValue placeholder="Seleccionar método" />
                                     </SelectTrigger>
                                     <SelectContent className="rounded-2xl shadow-2xl border-slate-100">
-                                        <SelectItem value="Lima" className="font-bold py-3">Lima</SelectItem>
-                                        <SelectItem value="Provincia" className="font-bold py-3">Provincia</SelectItem>
+                                        <SelectItem value="Lima (Entrega a Domicilio)" className="font-bold py-3">🛵 Lima (Entrega a Domicilio)</SelectItem>
+                                        <SelectItem value="Lima (Retiro en Agencia Shalom)" className="font-bold py-3">📦 Lima (Retiro en Agencia Shalom)</SelectItem>
+                                        <SelectItem value="Provincia" className="font-bold py-3">🚚 Provincia (Agencia Shalom)</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

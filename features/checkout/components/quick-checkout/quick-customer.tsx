@@ -19,7 +19,7 @@ interface QuickCustomerProps {
 }
 
 export function QuickCustomer({ name, setName, phone, setPhone, dni, setDni, email, setEmail, disabled }: QuickCustomerProps) {
-    const [showEmail, setShowEmail] = useState(true)
+    const [showEmail, setShowEmail] = useState(false)
     const isNameValid = name.length > 5
     const isDniValid = dni.length === 8
     const isPhoneValid = phone.replace(/\D/g, '').length === 9

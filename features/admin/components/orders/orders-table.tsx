@@ -207,7 +207,7 @@ export function OrdersTable({
                                                     <SelectValue />
                                                 </SelectTrigger>
                                                 <SelectContent className="rounded-2xl border-slate-100 shadow-2xl">
-                                                    {['Pendiente', 'Confirmado', 'Preparando', 'Enviado', 'Llegó a Agencia', 'Entregado', 'Devuelto', 'Fallido'].map(s => (
+                                                    {['Pendiente', 'Confirmado', 'Preparando', 'Enviado', 'Llegó a Agencia', 'Entregado', 'Devuelto', 'Fallido', 'Cancelado'].map(s => (
                                                         <SelectItem key={s} value={s} className="text-xs font-bold py-3 rounded-xl">{s}</SelectItem>
                                                     ))}
                                                 </SelectContent>

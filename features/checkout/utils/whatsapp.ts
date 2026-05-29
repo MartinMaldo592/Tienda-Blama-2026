@@ -39,7 +39,7 @@ export function buildWhatsAppPreviewMessage(input: {
     let message = `¡Hola! Soy *${name || "Cliente"}*. Quiero confirmar mi pedido: 🛍️\n`
     message += `*DATOS DE ENVÍO:*\n`
     if (shippingMethod) {
-        const methodLabel = shippingMethod.toLowerCase() === 'lima' ? 'Lima' : 'Provincia'
+        const methodLabel = shippingMethod.toLowerCase().includes('lima') ? 'Lima' : 'Provincia'
         message += `Método Envío: ${methodLabel}\n`
     }
     message += `Cliente: ${name}\n`
@@ -70,7 +70,10 @@ export function buildWhatsAppPreviewMessage(input: {
     }
     message += `\n*TOTAL PRODUCTOS: ${formatCurrency(total)}*`
 
-    if (shippingMethod?.toLowerCase() === 'provincia') {
+    const isProv = shippingMethod?.toLowerCase() === 'provincia' || 
+                   shippingMethod?.toLowerCase().includes('provincia') || 
+                   shippingMethod?.toLowerCase().includes('shalom')
+    if (isProv) {
         message += `\n*Envío:* Flete por Pagar en Destino (Agencia)\n`
         message += `\n_💡 Nota: El costo del envío lo cobra la agencia al retirar. Un asesor se comunicará contigo para definir si prefieres pago total por adelantado, adelanto de flete o contraentrega en Shalom Recaudo._`
     }
@@ -108,7 +111,7 @@ export function buildWhatsAppFinalMessage(input: {
     let message = `¡Hola! Soy *${name}*. Quiero confirmar mi pedido: 🛍️\n`
     message += `*DATOS DE ENVÍO:*\n`
     if (shippingMethod) {
-        const methodLabel = shippingMethod.toLowerCase() === 'lima' ? 'Lima' : 'Provincia'
+        const methodLabel = shippingMethod.toLowerCase().includes('lima') ? 'Lima' : 'Provincia'
         message += `Método Envío: ${methodLabel}\n`
     }
     message += `Cliente: ${name}\n`
@@ -139,7 +142,10 @@ export function buildWhatsAppFinalMessage(input: {
     }
     message += `\n\n*TOTAL PRODUCTOS: ${formatCurrency(total)}*`
 
-    if (shippingMethod?.toLowerCase() === 'provincia') {
+    const isProv = shippingMethod?.toLowerCase() === 'provincia' || 
+                   shippingMethod?.toLowerCase().includes('provincia') || 
+                   shippingMethod?.toLowerCase().includes('shalom')
+    if (isProv) {
         message += `\n*Envío:* Flete por Pagar en Destino (Agencia)\n`
         message += `\n_💡 Nota: El costo del envío lo cobra la agencia al retirar. Un asesor se comunicará contigo para definir si prefieres pago total por adelantado, adelanto de flete o contraentrega en Shalom Recaudo._`
     }
