@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState, useTransition } from "react"
@@ -11,7 +10,8 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
-import { Filter, Search, X, Loader2, Grid2X2, SlidersHorizontal, ChevronRight } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Filter, Search, X, Loader2, Grid2X2, SlidersHorizontal, ChevronRight, Tag } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import type { Category, Product, SortValue } from "@/features/products/types"
 import { ProductCard } from "@/components/product-card"
@@ -54,9 +54,20 @@ export function ProductosClient({
     const [searchQuery, setSearchQuery] = useState(initialParams.q)
     const [activeFilter, setActiveFilter] = useState<string | null>(null)
 
+    const [localMin, setLocalMin] = useState(initialParams.min)
+    const [localMax, setLocalMax] = useState(initialParams.max)
+
     useEffect(() => {
         setSearchQuery(initialParams.q)
     }, [initialParams.q])
+
+    useEffect(() => {
+        setLocalMin(initialParams.min)
+    }, [initialParams.min])
+
+    useEffect(() => {
+        setLocalMax(initialParams.max)
+    }, [initialParams.max])
 
     const updateUrl = (next: Record<string, string | undefined>, mode: 'push' | 'replace' = 'replace') => {
         const params = new URLSearchParams(searchParams?.toString())
@@ -152,12 +163,141 @@ export function ProductosClient({
                                         <SlidersHorizontal size={16} /> Filtros
                                     </Button>
                                 </SheetTrigger>
-                                <SheetContent side="right" className="w-full sm:max-w-md rounded-l-[3rem] p-8 border-none shadow-2xl">
-                                    <SheetHeader className="mb-8">
-                                        <SheetTitle className="text-3xl font-black text-slate-900 tracking-tight">Refinar Búsqueda</SheetTitle>
-                                        <SheetDescription className="font-medium">Personaliza tu experiencia de navegación.</SheetDescription>
-                                    </SheetHeader>
-                                    {/* ... mobile filter content (simplified for brevity or reused logic) ... */}
+                                <SheetContent side="right" className="w-full sm:max-w-md rounded-l-[3rem] p-8 border-none shadow-2xl flex flex-col justify-between overflow-y-auto">
+                                    <div>
+                                        <SheetHeader className="mb-8">
+                                            <SheetTitle className="text-3xl font-black text-slate-900 tracking-tight">Refinar Búsqueda</SheetTitle>
+                                            <SheetDescription className="font-medium">Personaliza tu experiencia de navegación.</SheetDescription>
+                                        </SheetHeader>
+
+                                        <div className="space-y-6">
+                                            {/* Categories list in Mobile */}
+                                            <div className="space-y-3">
+                                                <h4 className="text-sm font-extrabold uppercase tracking-widest text-slate-400">Categorías</h4>
+                                                <div className="flex flex-wrap gap-2">
+                                                    <Button
+                                                        variant={selectedCategory === 'all' ? 'default' : 'outline'}
+                                                        onClick={() => updateUrl({ cat: undefined, subcat: undefined, page: undefined }, 'replace')}
+                                                        className="rounded-full text-xs font-bold transition-all"
+                                                        size="sm"
+                                                    >
+                                                        Todas
+                                                    </Button>
+                                                    {initialCategories.filter(c => !c.parent_id).map((cat) => {
+                                                        const isSelected = selectedCategory === String(cat.id) || selectedCategory === cat.slug
+                                                        return (
+                                                            <Button
+                                                                key={cat.id}
+                                                                variant={isSelected ? 'default' : 'outline'}
+                                                                onClick={() => updateUrl({ cat: cat.slug, subcat: undefined, page: undefined }, 'replace')}
+                                                                className="rounded-full text-xs font-bold transition-all"
+                                                                size="sm"
+                                                            >
+                                                                {cat.nombre}
+                                                            </Button>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </div>
+
+                                            {/* Subcategories list in Mobile */}
+                                            {(() => {
+                                                const parentCat = initialCategories.find(c => String(c.id) === selectedCategory || c.slug === selectedCategory)
+                                                if (!parentCat) return null
+                                                const subcategories = initialCategories.filter(c => c.parent_id === parentCat.id)
+                                                if (subcategories.length === 0) return null
+                                                return (
+                                                    <div className="space-y-3 pt-4 border-t border-slate-100">
+                                                        <h4 className="text-sm font-extrabold uppercase tracking-widest text-slate-400">Subcategorías de {parentCat.nombre}</h4>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            <Button
+                                                                variant={selectedSubcategory === 'all' ? 'secondary' : 'outline'}
+                                                                onClick={() => updateUrl({ subcat: undefined, page: undefined }, 'replace')}
+                                                                className="rounded-full text-xs font-bold transition-all"
+                                                                size="sm"
+                                                            >
+                                                                Ver Todo
+                                                            </Button>
+                                                            {subcategories.map((sub) => {
+                                                                const isSubSelected = selectedSubcategory === String(sub.id) || selectedSubcategory === sub.slug
+                                                                return (
+                                                                    <Button
+                                                                        key={sub.id}
+                                                                        variant={isSubSelected ? 'secondary' : 'outline'}
+                                                                        onClick={() => updateUrl({ subcat: sub.slug, page: undefined }, 'replace')}
+                                                                        className="rounded-full text-xs font-bold transition-all"
+                                                                        size="sm"
+                                                                    >
+                                                                        {sub.nombre}
+                                                                    </Button>
+                                                                )
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })()}
+
+                                            {/* Stock Filter in Mobile */}
+                                            <div className="space-y-3 pt-4 border-t border-slate-100">
+                                                <h4 className="text-sm font-extrabold uppercase tracking-widest text-slate-400">Disponibilidad</h4>
+                                                <Button
+                                                    variant={onlyInStock ? 'default' : 'outline'}
+                                                    onClick={() => updateUrl({ stock: onlyInStock ? undefined : '1', page: undefined }, 'replace')}
+                                                    className="w-full justify-between rounded-xl font-bold h-12"
+                                                >
+                                                    <span>Solo productos en stock</span>
+                                                    <span className={`h-2.5 w-2.5 rounded-full ${onlyInStock ? 'bg-white' : 'bg-slate-300'}`} />
+                                                </Button>
+                                            </div>
+
+                                            {/* Price Range Filter in Mobile */}
+                                            <div className="space-y-3 pt-4 border-t border-slate-100">
+                                                <h4 className="text-sm font-extrabold uppercase tracking-widest text-slate-400">Rango de Precio (S/.)</h4>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="Mínimo"
+                                                        className="h-12 rounded-xl"
+                                                        value={localMin}
+                                                        onChange={(e) => setLocalMin(e.target.value)}
+                                                    />
+                                                    <Input
+                                                        type="number"
+                                                        placeholder="Máximo"
+                                                        className="h-12 rounded-xl"
+                                                        value={localMax}
+                                                        onChange={(e) => setLocalMax(e.target.value)}
+                                                    />
+                                                </div>
+                                                <Button
+                                                    className="w-full h-12 rounded-xl font-bold"
+                                                    onClick={() => updateUrl({ min: localMin || undefined, max: localMax || undefined, page: undefined }, 'replace')}
+                                                >
+                                                    Aplicar Rango
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Footer Actions in Mobile */}
+                                    <div className="mt-8 pt-4 border-t border-slate-100 flex gap-2">
+                                        <Button
+                                            variant="outline"
+                                            className="w-1/2 h-12 rounded-xl font-bold"
+                                            onClick={() => {
+                                                setLocalMin("")
+                                                setLocalMax("")
+                                                updateUrl({ cat: undefined, subcat: undefined, q: undefined, stock: undefined, min: undefined, max: undefined, page: undefined }, 'replace')
+                                            }}
+                                        >
+                                            Limpiar Todo
+                                        </Button>
+                                        <SheetTrigger asChild>
+                                            <Button className="w-1/2 h-12 rounded-xl font-bold">
+                                                Listo
+                                            </Button>
+                                        </SheetTrigger>
+                                    </div>
                                 </SheetContent>
                             </Sheet>
 
@@ -169,7 +309,6 @@ export function ProductosClient({
                                 >
                                     <Grid2X2 size={16} /> Categorías
                                 </Button>
-                                {/* Add more filters as elegant dropdowns or buttons */}
                             </div>
 
                             <div className="h-8 w-px bg-slate-200 mx-2 hidden lg:block" />
@@ -193,6 +332,103 @@ export function ProductosClient({
                     </div>
                 </div>
 
+                {/* --- DESKTOP CATEGORIES PANEL --- */}
+                <AnimatePresence>
+                    {activeFilter === 'cat' && (
+                        <m.div
+                            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                            animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
+                            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                            className="overflow-hidden hidden lg:block"
+                        >
+                            <div className="bg-white border border-slate-200/60 rounded-[2.5rem] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.02)]">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">Filtrar por Categoría</h4>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                            updateUrl({ cat: undefined, subcat: undefined, page: undefined }, 'replace')
+                                            setActiveFilter(null)
+                                        }}
+                                        className="h-8 rounded-full text-xs font-bold text-slate-500 hover:text-slate-900"
+                                    >
+                                        Limpiar Categoría
+                                    </Button>
+                                </div>
+                                <div className="flex flex-wrap gap-2.5">
+                                    <Button
+                                        variant={selectedCategory === 'all' ? 'default' : 'outline'}
+                                        onClick={() => {
+                                            updateUrl({ cat: undefined, subcat: undefined, page: undefined }, 'replace')
+                                            setActiveFilter(null)
+                                        }}
+                                        className="rounded-full font-bold transition-all h-10 px-5 text-xs uppercase tracking-wider"
+                                    >
+                                        Todas las Categorías
+                                    </Button>
+                                    {initialCategories.filter(c => !c.parent_id).map((cat) => {
+                                        const isSelected = selectedCategory === String(cat.id) || selectedCategory === cat.slug
+                                        return (
+                                            <Button
+                                                key={cat.id}
+                                                variant={isSelected ? 'default' : 'outline'}
+                                                onClick={() => {
+                                                    updateUrl({ cat: cat.slug, subcat: undefined, page: undefined }, 'replace')
+                                                    setActiveFilter(null)
+                                                }}
+                                                className="rounded-full font-bold transition-all h-10 px-5 text-xs uppercase tracking-wider"
+                                            >
+                                                {cat.nombre}
+                                            </Button>
+                                        )
+                                    })}
+                                </div>
+
+                                {/* Dynamic Subcategories */}
+                                {(() => {
+                                    const parentCat = initialCategories.find(c => String(c.id) === selectedCategory || c.slug === selectedCategory)
+                                    if (!parentCat) return null
+                                    const subcategories = initialCategories.filter(c => c.parent_id === parentCat.id)
+                                    if (subcategories.length === 0) return null
+                                    return (
+                                        <div className="w-full mt-5 pt-4 border-t border-slate-100/80">
+                                            <div className="flex items-center gap-1.5 mb-3">
+                                                <Tag className="w-3.5 h-3.5 text-slate-400" />
+                                                <h5 className="text-[10px] font-black uppercase tracking-wider text-slate-400">Subcategorías de {parentCat.nombre}:</h5>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                <Button
+                                                    variant={selectedSubcategory === 'all' ? 'secondary' : 'outline'}
+                                                    size="sm"
+                                                    onClick={() => updateUrl({ subcat: undefined, page: undefined }, 'replace')}
+                                                    className="rounded-full text-xs font-bold transition-all px-4"
+                                                >
+                                                    Ver Todo
+                                                </Button>
+                                                {subcategories.map((sub) => {
+                                                    const isSubSelected = selectedSubcategory === String(sub.id) || selectedSubcategory === sub.slug
+                                                    return (
+                                                        <Button
+                                                            key={sub.id}
+                                                            variant={isSubSelected ? 'secondary' : 'outline'}
+                                                            size="sm"
+                                                            onClick={() => updateUrl({ subcat: sub.slug, page: undefined }, 'replace')}
+                                                            className="rounded-full text-xs font-bold transition-all px-4"
+                                                        >
+                                                            {sub.nombre}
+                                                        </Button>
+                                                    )
+                                                })}
+                                            </div>
+                                        </div>
+                                    )
+                                })()}
+                            </div>
+                        </m.div>
+                    )}
+                </AnimatePresence>
+
                 {/* --- ACTIVE BADGES --- */}
                 <AnimatePresence>
                     {(selectedCategory !== "all" || onlyInStock || minPrice || maxPrice || initialParams.q) && (
@@ -200,15 +436,68 @@ export function ProductosClient({
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="flex flex-wrap items-center gap-2 mb-8 overflow-hidden"
+                            className="flex flex-wrap items-center gap-2 mb-8 overflow-hidden pb-1"
                         >
                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mr-2">Filtros Activos:</span>
-                            {/* Filter badges ... */}
+                            
+                            {/* Individual Filter Badges */}
+                            {initialParams.q && (
+                                <Badge className="h-8 rounded-full px-4 text-xs font-bold gap-1 bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100 transition-all cursor-pointer" onClick={() => {
+                                    setSearchQuery("")
+                                    updateUrl({ q: undefined, page: undefined }, 'replace')
+                                }}>
+                                    Búsqueda: {initialParams.q} <X size={12} className="shrink-0" />
+                                </Badge>
+                            )}
+
+                            {(() => {
+                                if (selectedCategory === 'all') return null
+                                const catRow = initialCategories.find(c => String(c.id) === selectedCategory || c.slug === selectedCategory)
+                                if (!catRow) return null
+                                return (
+                                    <Badge className="h-8 rounded-full px-4 text-xs font-bold gap-1 bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100 transition-all cursor-pointer" onClick={() => updateUrl({ cat: undefined, subcat: undefined, page: undefined }, 'replace')}>
+                                        Categoría: {catRow.nombre} <X size={12} className="shrink-0" />
+                                    </Badge>
+                                )
+                            })()}
+
+                            {(() => {
+                                if (selectedSubcategory === 'all') return null
+                                const subRow = initialCategories.find(c => String(c.id) === selectedSubcategory || c.slug === selectedSubcategory)
+                                if (!subRow) return null
+                                return (
+                                    <Badge className="h-8 rounded-full px-4 text-xs font-bold gap-1 bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100 transition-all cursor-pointer" onClick={() => updateUrl({ subcat: undefined, page: undefined }, 'replace')}>
+                                        Subcategoría: {subRow.nombre} <X size={12} className="shrink-0" />
+                                    </Badge>
+                                )
+                            })()}
+
+                            {(minPrice || maxPrice) && (
+                                <Badge className="h-8 rounded-full px-4 text-xs font-bold gap-1 bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100 transition-all cursor-pointer" onClick={() => {
+                                    setLocalMin("")
+                                    setLocalMax("")
+                                    updateUrl({ min: undefined, max: undefined, page: undefined }, 'replace')
+                                }}>
+                                    Precio: {minPrice ? `S/. ${minPrice}` : 'S/. 0'} - {maxPrice ? `S/. ${maxPrice}` : 'Máx'} <X size={12} className="shrink-0" />
+                                </Badge>
+                            )}
+
+                            {onlyInStock && (
+                                <Badge className="h-8 rounded-full px-4 text-xs font-bold gap-1 bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100 transition-all cursor-pointer" onClick={() => updateUrl({ stock: undefined, page: undefined }, 'replace')}>
+                                    En Stock <X size={12} className="shrink-0" />
+                                </Badge>
+                            )}
+
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 className="h-8 rounded-full text-[10px] font-black uppercase tracking-widest text-blue-600 hover:bg-blue-50"
-                                onClick={() => updateUrl({ cat: undefined, subcat: undefined, q: undefined, stock: undefined, min: undefined, max: undefined, page: undefined }, 'replace')}
+                                onClick={() => {
+                                    setLocalMin("")
+                                    setLocalMax("")
+                                    setSearchQuery("")
+                                    updateUrl({ cat: undefined, subcat: undefined, q: undefined, stock: undefined, min: undefined, max: undefined, page: undefined }, 'replace')
+                                }}
                             >
                                 Limpiar Todo
                             </Button>
