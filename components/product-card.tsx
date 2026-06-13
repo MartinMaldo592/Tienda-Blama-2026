@@ -131,8 +131,7 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
 
                     {/* Action Button */}
                     <Link href={productHref} className="block w-full">
-                        <button className="w-full bg-black text-white py-3.5 rounded-full font-black text-[13px] uppercase tracking-wider flex items-center justify-center gap-3 transition-transform hover:scale-[1.02] active:scale-95">
-                            <div className="h-3.5 w-3.5 bg-white rounded-full"></div>
+                        <button className="w-full bg-black text-white py-3.5 rounded-full font-black text-[13px] uppercase tracking-wider flex items-center justify-center transition-transform hover:scale-[1.02] active:scale-95">
                             Ver Producto
                         </button>
                     </Link>
