@@ -39,7 +39,7 @@ export function MinimalHero() {
                         </Link>
                     </Button>
                     <Button asChild variant="outline" size="default" className="w-full sm:w-auto rounded-full px-8 h-10 sm:h-12 text-sm sm:text-base font-semibold bg-white/50 backdrop-blur-sm border-2 hover:bg-white/80 dark:bg-black/20 dark:hover:bg-black/40 dark:text-white transition-all">
-                        <Link href="/ofertas">
+                        <Link href="/productos">
                             Ver Ofertas <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                     </Button>

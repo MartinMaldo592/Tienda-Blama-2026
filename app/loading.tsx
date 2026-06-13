@@ -17,13 +17,15 @@ export default function Loading() {
             </section>
 
             {/* Category Grid Skeleton */}
-            <section className="py-6 md:py-10 px-4 space-y-6">
-                <Skeleton className="h-8 w-48 rounded-md" />
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 h-80">
-                    <Skeleton className="col-span-2 row-span-2 md:col-span-2 md:row-span-1 lg:col-span-1 lg:row-span-1 rounded-xl h-full" />
-                    <Skeleton className="rounded-xl h-full hidden md:block" />
-                    <Skeleton className="rounded-xl h-full hidden md:block" />
-                    <Skeleton className="rounded-xl h-full hidden md:block" />
+            <section className="py-8 px-4 max-w-7xl mx-auto space-y-6">
+                <div className="flex items-center gap-2">
+                    <Skeleton className="h-5 w-5 rounded" />
+                    <Skeleton className="h-8 w-48 rounded-md" />
+                </div>
+                <div className="flex overflow-x-auto gap-4 py-4 -mx-4 px-4 no-scrollbar">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                        <Skeleton key={i} className="h-12 w-36 rounded-full shrink-0" />
+                    ))}
                 </div>
             </section>
 
