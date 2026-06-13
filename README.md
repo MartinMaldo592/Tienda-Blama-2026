@@ -40,7 +40,7 @@ npm install
 # 2. Clona el archivo de entorno (Asegúrate de llenar las credenciales leyendo INTEGRATIONS.md)
 cp .env.example .env.local
 
-# 3. Arranca el servidor de desarrollo en modo rápido (Turbopack)
+# 3. Arranca el servidor de desarrollo (Webpack habilitado de forma predeterminada para soporte completo de subrutas)
 npm run dev
 ```
 
@@ -48,6 +48,18 @@ Visita `http://localhost:3000` para ver la tienda o entra a `http://localhost:30
 
 ---
 
+## 🌀 Scroll Suave con Lenis
+
+La plataforma utiliza **Lenis** para mejorar la experiencia de usuario con un comportamiento de scroll premium y fluido en todo el catálogo y vistas de la tienda.
+
+### Características e Integridad:
+* **Accesibilidad Native Fallback:** Si el usuario tiene habilitada la preferencia del sistema operativo `prefers-reduced-motion: reduce`, Lenis se desactiva de forma automática y se utiliza el scroll nativo clásico del navegador.
+* **Integración con Next.js Routing:** Cada navegación de ruta (ej. cambiar entre productos o entrar a colecciones) limpia y restablece instantáneamente la posición de scroll en la cabecera (coordenada `0,0`) sin parpadeos visuales.
+* **Limpieza de Recursos:** Utiliza `requestAnimationFrame` asíncrono y se destruye correctamente la instancia mediante `.destroy()` al desmontar el componente para evitar fugas de memoria.
+
+---
+
 <div align="center">
   <small><em>Desarrollado para la visión 2026. Auditado para alto rendimiento.</em></small>
 </div>
+

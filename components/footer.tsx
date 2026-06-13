@@ -65,7 +65,15 @@ export function Footer() {
                     .eq('active', true)
                     .order('orden', { ascending: true })
 
-                if (data) setSocialLinks(data)
+                if (data) {
+                    setSocialLinks(data.map(item => ({
+                        id: item.id,
+                        platform: item.platform,
+                        url: item.url,
+                        active: item.active ?? false,
+                        orden: item.orden ?? 0
+                    })))
+                }
             } catch (err) {
                 console.error("Error fetching social links:", err)
             } finally {

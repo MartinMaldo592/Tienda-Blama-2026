@@ -7,6 +7,7 @@ import { LayoutShell } from "@/components/layout-shell";
 import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/sonner";
 import { createClient } from "@supabase/supabase-js";
+import { SmoothScroll } from "@/components/smooth-scroll";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -131,7 +132,9 @@ export default async function RootLayout({
           />
         </noscript>
         <Providers>
-          <LayoutShell announcementData={announcementData}>{children}</LayoutShell>
+          <SmoothScroll>
+            <LayoutShell announcementData={announcementData}>{children}</LayoutShell>
+          </SmoothScroll>
         </Providers>
         <SpeedInsights />
         <Toaster position="top-center" visibleToasts={5} expand={true} />

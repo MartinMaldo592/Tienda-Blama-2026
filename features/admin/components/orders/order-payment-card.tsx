@@ -89,8 +89,22 @@ export function OrderPaymentCard({ pedido, isLocked, currentUser, userRole = 'wo
                 .select('*')
                 .eq('pedido_id', pedido.id)
                 .order('created_at', { ascending: false })
-            if (error) throw error
-            setPagos(data || [])
+            if (data) {
+                const mapped: PedidoPago[] = data.map(p => ({
+                    id: p.id,
+                    pedido_id: p.pedido_id,
+                    monto: p.monto,
+                    metodo_pago: (p.metodo_pago === 'Efectivo' || p.metodo_pago === 'Yape' || p.metodo_pago === 'Plin' || p.metodo_pago === 'Transferencia BCP' || p.metodo_pago === 'Transferencia Interbank' || p.metodo_pago === 'Tarjeta' || p.metodo_pago === 'Pasarela Culqi') ? p.metodo_pago : 'Otro',
+                    tipo_pago: (p.tipo_pago === 'Adelanto' || p.tipo_pago === 'Abono' || p.tipo_pago === 'Pago Final' || p.tipo_pago === 'Reembolso') ? p.tipo_pago : 'Adelanto',
+                    comprobante_url: p.comprobante_url,
+                    nota: p.nota,
+                    registrado_por: p.registrado_por,
+                    created_at: p.created_at
+                }))
+                setPagos(mapped)
+            } else {
+                setPagos([])
+            }
         } catch (err: any) {
             console.error("Error fetching pagos:", err)
             setPagos([])

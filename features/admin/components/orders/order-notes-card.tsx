@@ -77,7 +77,17 @@ export function OrderNotesCard({
             .eq('pedido_id', pedidoId)
             .order('created_at', { ascending: false })
 
-        if (!error) setNotes(data || [])
+        if (!error) {
+            setNotes(
+                (data || []).map(note => ({
+                    id: note.id,
+                    autor_nombre: note.autor_nombre,
+                    contenido: note.contenido,
+                    tipo: (note.tipo === 'alerta' || note.tipo === 'urgente') ? note.tipo : 'info',
+                    created_at: note.created_at
+                }))
+            )
+        }
         setRefreshing(false)
     }
 

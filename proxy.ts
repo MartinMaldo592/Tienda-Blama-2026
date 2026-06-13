@@ -8,49 +8,47 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          response = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
+  const { pathname, searchParams } = request.nextUrl;
 
-  // IMPORTANT: Supabase SSR requires calling getUser to refresh the session
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Protection logic: only check Supabase session for admin paths
+  if (pathname.startsWith("/admin")) {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) =>
+              request.cookies.set(name, value)
+            );
+            response = NextResponse.next({
+              request,
+            });
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options)
+            );
+          },
+        },
+      }
+    );
 
-  // Protection logic
-  if (request.nextUrl.pathname.startsWith("/admin")) {
+    // IMPORTANT: Supabase SSR requires calling getUser to refresh the session
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     // If no user, redirect to login
     if (!user) {
       const url = request.nextUrl.clone()
       url.pathname = "/auth/login"
       return NextResponse.redirect(url)
     }
-
-    // Optional: If you want to strictly check DB role here, you can.
-    // But usually role check happens in the layout or page.
   }
 
   // SEO Headers Logic
-  const { pathname, searchParams } = request.nextUrl;
   const isHome = pathname === "/" || pathname === "";
   const isProductos = pathname === "/productos" || pathname === "/productos/";
 
