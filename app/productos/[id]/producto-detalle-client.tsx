@@ -422,7 +422,7 @@ export default function ProductoDetalleClient() {
     }
 
     return (
-        <div className="space-y-6 max-w-5xl mx-auto pb-12 md:pb-0">
+        <div className="space-y-6 max-w-5xl mx-auto pb-12 md:pb-0 px-4 sm:px-6">
             <QuickCheckoutModal
                 isOpen={quickBuyOpen}
                 onClose={() => setQuickBuyOpen(false)}
