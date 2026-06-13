@@ -44,10 +44,10 @@ export function Header() {
 
     return (
         <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md shadow-sm border-b">
-            <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+            <div className="container mx-auto px-4 h-16 flex items-center justify-between relative">
 
-                {/* Mobile Menu Trigger & Logo */}
-                <div className="flex items-center gap-2 md:gap-4">
+                {/* Left Area: Mobile Menu Trigger & Desktop Nav Links */}
+                <div className="flex items-center justify-start gap-4 md:w-1/3">
                     <button
                         type="button"
                         className="md:hidden relative z-50 h-10 w-10 rounded-full border border-border bg-background/70 backdrop-blur shadow-sm hover:shadow-md active:scale-95 transition-all inline-flex items-center justify-center touch-manipulation"
@@ -57,7 +57,18 @@ export function Header() {
                         <Menu className="h-6 w-6" />
                     </button>
 
-                    <Link href="/" className="text-2xl font-black uppercase tracking-widest text-primary">
+                    {/* Desktop Navigation */}
+                    <nav className="hidden md:flex gap-6 text-sm font-semibold text-muted-foreground">
+                        <Link href="/" className="hover:text-primary transition-colors">Inicio</Link>
+                        <Link href="/productos" className="hover:text-primary transition-colors">Catálogo</Link>
+                        <Link href="/nosotros" className="hover:text-primary transition-colors">Quiénes Somos</Link>
+                        <Link href="/contacto" className="hover:text-primary transition-colors">Contacto</Link>
+                    </nav>
+                </div>
+
+                {/* Center Area: Logo */}
+                <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center">
+                    <Link href="/" className="text-xl md:text-2xl font-black uppercase tracking-widest text-primary whitespace-nowrap select-none hover:opacity-90 transition-opacity">
                         BLAMA SHOP
                     </Link>
                 </div>
@@ -114,30 +125,22 @@ export function Header() {
                     ) : null
                 )}
 
-                {/* Desktop Navigation */}
-                <nav className="hidden md:flex gap-6 text-sm font-medium text-muted-foreground">
-                    <Link href="/" className="hover:text-primary transition-colors">Inicio</Link>
-                    <Link href="/productos" className="hover:text-primary transition-colors">Catálogo</Link>
-                    <Link href="/nosotros" className="hover:text-primary transition-colors">Quiénes Somos</Link>
-                    <Link href="/contacto" className="hover:text-primary transition-colors">Contacto</Link>
-                </nav>
-
-                {/* Cart Action */}
-                <div className="flex items-center gap-2">
-                    {/* Peru Flag (Visible on all devices) */}
-                    <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700">
+                {/* Right Area: Actions (Search, Flag, Cart) */}
+                <div className="flex items-center justify-end gap-2 md:w-1/3 z-10">
+                    {/* Peru Flag (Hidden on mobile to save space) */}
+                    <div className="hidden sm:flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 shrink-0 select-none">
                         <PeruFlag className="h-3 w-4 rounded-[1px] shadow-sm object-cover" />
                         <span className="text-[10px] font-bold text-gray-600 dark:text-gray-300">PERÚ</span>
                     </div>
 
-                    {/* Search (Visible on all devices) */}
-                    <div className="flex items-center">
-                        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showDesktopSearch ? 'w-40 md:w-64 opacity-100 mr-2' : 'w-0 opacity-0'}`}>
+                    {/* Search */}
+                    <div className="flex items-center relative">
+                        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showDesktopSearch ? 'w-28 sm:w-40 md:w-48 lg:w-64 opacity-100 mr-2' : 'w-0 opacity-0'}`}>
                             <form onSubmit={handleSearch}>
                                 <Input
                                     type="search"
                                     placeholder="Buscar..."
-                                    className="h-9 text-sm"
+                                    className="h-9 text-xs sm:text-sm"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
@@ -146,20 +149,21 @@ export function Header() {
                         <button
                             type="button"
                             onClick={() => setShowDesktopSearch(!showDesktopSearch)}
-                            className="p-2 hover:bg-accent rounded-full text-foreground transition-colors"
+                            className="p-2 hover:bg-accent rounded-full text-foreground transition-colors shrink-0"
                             aria-label="Buscar"
                         >
                             <Search className="h-5 w-5" />
                         </button>
                     </div>
 
-
-
-                    {mounted ? (
-                        <CartButton />
-                    ) : (
-                        <div className="h-10 w-24 rounded-full border border-border bg-muted/40 animate-pulse" />
-                    )}
+                    {/* Cart Button */}
+                    <div className="shrink-0">
+                        {mounted ? (
+                            <CartButton />
+                        ) : (
+                            <div className="h-10 w-20 sm:w-24 rounded-full border border-border bg-muted/40 animate-pulse" />
+                        )}
+                    </div>
                 </div>
             </div>
         </header>
