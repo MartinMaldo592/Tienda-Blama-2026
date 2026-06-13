@@ -46,16 +46,22 @@ export function Header() {
         <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md shadow-sm border-b">
             <div className="container mx-auto px-4 h-16 flex items-center justify-between relative">
 
-                {/* Left Area: Mobile Menu Trigger & Desktop Nav Links */}
-                <div className="flex items-center justify-start gap-4 md:w-1/3">
+                {/* Left Area: Mobile Menu Trigger, Mobile Peru Flag & Desktop Nav Links */}
+                <div className="flex items-center justify-start gap-1.5 sm:gap-4 md:w-1/3">
                     <button
                         type="button"
-                        className="md:hidden relative z-50 h-10 w-10 rounded-full border border-border bg-background/70 backdrop-blur shadow-sm hover:shadow-md active:scale-95 transition-all inline-flex items-center justify-center touch-manipulation"
+                        className="md:hidden relative z-50 p-2 text-foreground hover:text-primary active:scale-95 transition-all inline-flex items-center justify-center touch-manipulation"
                         aria-label="Abrir menú"
                         onClick={() => setMobileMenuOpen(true)}
                     >
                         <Menu className="h-6 w-6" />
                     </button>
+
+                    {/* Peru Flag (Visible only on mobile next to hamburger, hidden on desktop nav) */}
+                    <div className="flex md:hidden items-center gap-1.5 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full border border-gray-200 dark:border-gray-700 shrink-0 select-none">
+                        <PeruFlag className="h-2.5 w-3.5 rounded-[1px] shadow-sm object-cover" />
+                        <span className="text-[8px] font-black text-gray-600 dark:text-gray-300">PERÚ</span>
+                    </div>
 
                     {/* Desktop Navigation */}
                     <nav className="hidden md:flex gap-6 text-sm font-semibold text-muted-foreground">
@@ -125,17 +131,17 @@ export function Header() {
                     ) : null
                 )}
 
-                {/* Right Area: Actions (Search, Flag, Cart) */}
-                <div className="flex items-center justify-end gap-2 md:w-1/3 z-10">
-                    {/* Peru Flag (Hidden on mobile to save space) */}
-                    <div className="hidden sm:flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 shrink-0 select-none">
+                {/* Right Area: Actions (Search, Flag on desktop/tablet, Cart) */}
+                <div className="flex items-center justify-end gap-1 px-1 sm:gap-2 md:w-1/3 z-10">
+                    {/* Peru Flag (Visible only on desktop/tablet, hidden on mobile) */}
+                    <div className="hidden md:flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 shrink-0 select-none">
                         <PeruFlag className="h-3 w-4 rounded-[1px] shadow-sm object-cover" />
                         <span className="text-[10px] font-bold text-gray-600 dark:text-gray-300">PERÚ</span>
                     </div>
 
                     {/* Search */}
                     <div className="flex items-center relative">
-                        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showDesktopSearch ? 'w-28 sm:w-40 md:w-48 lg:w-64 opacity-100 mr-2' : 'w-0 opacity-0'}`}>
+                        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showDesktopSearch ? 'w-24 sm:w-40 md:w-48 lg:w-64 opacity-100 mr-2' : 'w-0 opacity-0'}`}>
                             <form onSubmit={handleSearch}>
                                 <Input
                                     type="search"
@@ -161,7 +167,7 @@ export function Header() {
                         {mounted ? (
                             <CartButton />
                         ) : (
-                            <div className="h-10 w-20 sm:w-24 rounded-full border border-border bg-muted/40 animate-pulse" />
+                            <div className="h-10 w-16 sm:w-24 rounded-full border border-border bg-muted/40 animate-pulse" />
                         )}
                     </div>
                 </div>

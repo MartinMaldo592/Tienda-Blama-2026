@@ -182,7 +182,7 @@ export function CartButton() {
 
             <Sheet open={isCartOpen} onOpenChange={handleOpenChange} modal={view !== 'checkout'}>
                 <SheetTrigger asChild>
-                    <Button variant="ghost" className={`relative hover:bg-popover flex items-center gap-2 px-3 h-10 rounded-full border border-border shadow-sm transition-all hover:shadow-md active:scale-95 ${isBumping ? 'scale-110 bg-green-50/50 ring-2 ring-green-500 duration-100' : 'duration-300'}`}>
+                    <Button variant="ghost" className={`relative hover:bg-popover flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 h-10 rounded-full border border-border shadow-sm transition-all hover:shadow-md active:scale-95 ${isBumping ? 'scale-110 bg-green-50/50 ring-2 ring-green-500 duration-100' : 'duration-300'}`}>
                         <div className="relative flex items-center justify-center p-1" ref={(el) => registerCartButton(el as any)}>
                             <ShoppingCart className={`h-5 w-5 transition-colors ${isBumping ? 'text-green-600 animate-[bounce_0.2s_ease-in-out_2]' : (totalItems > 0 ? 'text-foreground animate-[bounce_2s_infinite]' : 'text-foreground')}`} />
                             {totalItems > 0 && (
@@ -191,7 +191,7 @@ export function CartButton() {
                                 </span>
                             )}
                         </div>
-                        <span className={`font-bold text-sm mr-1 transition-colors ${isBumping ? 'text-green-700' : 'text-foreground'}`}>Carrito</span>
+                        <span className={`font-bold text-sm mr-1 transition-colors hidden md:inline ${isBumping ? 'text-green-700' : 'text-foreground'}`}>Carrito</span>
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="right" className="w-full sm:max-w-[400px] flex flex-col p-0">
