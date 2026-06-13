@@ -68,7 +68,7 @@ export type PedidoPago = {
   id: number
   pedido_id: number
   monto: number
-  metodo_pago: 'Efectivo' | 'Yape' | 'Plin' | 'Transferencia BCP' | 'Transferencia Interbank' | 'Otro'
+  metodo_pago: 'Efectivo' | 'Yape' | 'Plin' | 'Transferencia BCP' | 'Transferencia Interbank' | 'Tarjeta' | 'Pasarela Culqi' | 'Otro'
   tipo_pago: 'Adelanto' | 'Abono' | 'Pago Final' | 'Reembolso'
   comprobante_url: string | null
   nota: string | null

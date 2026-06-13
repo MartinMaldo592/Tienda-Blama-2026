@@ -206,9 +206,17 @@ export default function PedidoDetallePage() {
         const { data } = await supabase
             .from('pedido_logs')
             .select('*')
-            .eq('pedido_id', id)
+            .eq('pedido_id', Number(id))
             .order('created_at', { ascending: false })
-        if (data) setLogs(data)
+        if (data) {
+            setLogs(
+                data.map((log) => ({
+                    ...log,
+                    usuario_nombre: log.usuario_nombre || "Sistema",
+                    detalles: log.detalles || "",
+                }))
+            )
+        }
     }
 
     async function logAction(accion: string, detalles: string) {
@@ -294,7 +302,7 @@ export default function PedidoDetallePage() {
                     metodo_envio: clientForm.metodo_envio,
                     shalom_pin: newPin
                 })
-                .eq('id', id)
+                .eq('id', Number(id))
             if (error) throw error
             await logAction('Datos Cliente Editados', `Se actualizaron datos de entrega/contacto y envío`)
             toast.success("Datos actualizados correctamente")
@@ -404,13 +412,13 @@ export default function PedidoDetallePage() {
         bucketName: 'guias',
         onUploadComplete: async (url) => {
             const supabase = createClient()
-            const { error } = await supabase.from('pedidos').update({ guia_archivo_url: url }).eq('id', id)
+            const { error } = await supabase.from('pedidos').update({ guia_archivo_url: url }).eq('id', Number(id))
             if (error) throw error
             fetchPedido()
         },
         onDeleteComplete: async () => {
             const supabase = createClient()
-            const { error } = await supabase.from('pedidos').update({ guia_archivo_url: null }).eq('id', id)
+            const { error } = await supabase.from('pedidos').update({ guia_archivo_url: null }).eq('id', Number(id))
             if (error) throw error
             fetchPedido()
         }
@@ -420,13 +428,13 @@ export default function PedidoDetallePage() {
         bucketName: 'guias',
         onUploadComplete: async (url) => {
             const supabase = createClient()
-            const { error } = await supabase.from('pedidos').update({ evidencia_entrega_url: url }).eq('id', id)
+            const { error } = await supabase.from('pedidos').update({ evidencia_entrega_url: url }).eq('id', Number(id))
             if (error) throw error
             fetchPedido()
         },
         onDeleteComplete: async () => {
             const supabase = createClient()
-            const { error } = await supabase.from('pedidos').update({ evidencia_entrega_url: null }).eq('id', id)
+            const { error } = await supabase.from('pedidos').update({ evidencia_entrega_url: null }).eq('id', Number(id))
             if (error) throw error
             fetchPedido()
         }

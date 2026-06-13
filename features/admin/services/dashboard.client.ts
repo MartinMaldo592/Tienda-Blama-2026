@@ -8,7 +8,7 @@ export async function fetchAdminDashboardStats(args: { role: AdminRole | string;
 
   // Llamada a la función RPC optimizada
   const { data, error } = await supabase.rpc("get_admin_dashboard_stats", {
-    p_user_id: currentUserId || null
+    p_user_id: currentUserId || undefined
   })
 
   if (error) {
@@ -26,16 +26,17 @@ export async function fetchAdminDashboardStats(args: { role: AdminRole | string;
     }
   }
 
+  const stats = data as any
   // Mapeo directo del JSON devuelto por la RPC
   return {
-    totalVentasReales: Number(data.totalVentasReales) || 0,
-    ventasHoy: Number(data.ventasHoy) || 0,
-    pedidosPendientes: Number(data.pedidosPendientes) || 0,
-    pedidosEnProceso: Number(data.pedidosEnProceso) || 0,
-    pedidosEntregados: Number(data.pedidosEntregados) || 0,
-    pedidosAsignados: Number(data.pedidosAsignados) || 0,
-    totalClientes: Number(data.totalClientes) || 0,
-    productosLowStock: Number(data.productosLowStock) || 0,
+    totalVentasReales: Number(stats?.totalVentasReales) || 0,
+    ventasHoy: Number(stats?.ventasHoy) || 0,
+    pedidosPendientes: Number(stats?.pedidosPendientes) || 0,
+    pedidosEnProceso: Number(stats?.pedidosEnProceso) || 0,
+    pedidosEntregados: Number(stats?.pedidosEntregados) || 0,
+    pedidosAsignados: Number(stats?.pedidosAsignados) || 0,
+    totalClientes: Number(stats?.totalClientes) || 0,
+    productosLowStock: Number(stats?.productosLowStock) || 0,
   }
 }
 

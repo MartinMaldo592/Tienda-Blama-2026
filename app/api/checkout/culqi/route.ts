@@ -58,6 +58,9 @@ function getEnv() {
 }
 
 export async function POST(req: Request) {
+    let wasStockDeducted = false
+    let createdPedidoId: number | null = null
+
     try {
         // 1. Rate Limiting (Seguridad básica)
         const clientIP = getClientIP(req)
@@ -170,6 +173,8 @@ export async function POST(req: Request) {
             throw new Error(`Error creando el pre-pedido en base de datos. Detalles: ${pedidoError?.message || "Desconocido"}. Intente nuevamente.`)
         }
 
+        createdPedidoId = pedido.id
+
         // C. Guardar Items
         const itemsToInsert = data.items.map(it => ({
             pedido_id: pedido.id,
@@ -182,6 +187,33 @@ export async function POST(req: Request) {
         }))
 
         await supabase.from("pedido_items").insert(itemsToInsert)
+
+        // --- 📦 RESERVAR STOCK (DESCUENTO PREVIO) ---
+        // Descontamos stock antes de la transacción de pago para garantizar la existencia de stock.
+        const { data: stockDeductedRes, error: stockDeductedError } = await supabase.rpc('admin_procesar_descuento_stock', {
+            p_pedido_id: pedido.id,
+            p_revertir: false
+        })
+
+        if (stockDeductedError || !stockDeductedRes) {
+            console.error("❌ Error al reservar stock en base de datos:", stockDeductedError)
+            // Marcar pedido como fallido por falta de stock
+            await supabase.from("pedidos").update({
+                status: "Fallido",
+                pago_status: "Fallido"
+            }).eq("id", pedido.id)
+            
+            await supabase.from("pedido_notas").insert({
+                pedido_id: pedido.id,
+                autor_id: "00000000-0000-0000-0000-000000000000",
+                autor_nombre: "Sistema Inteligente",
+                contenido: `Reserva de stock fallida: ${stockDeductedError?.message || "Stock insuficiente en base de datos"}`,
+                tipo: "alerta"
+            })
+            
+            return NextResponse.json({ error: "No hay stock suficiente para procesar tu pedido." }, { status: 400 })
+        }
+        wasStockDeducted = true
 
         // 5. Procesar el cargo con Culqi
         console.log(`🔌 Procesando pago Culqi para: ${data.email} por S/ ${total} (Pedido ID: ${pedido.id})`)
@@ -221,6 +253,19 @@ export async function POST(req: Request) {
 
         if (!culqiRes.ok) {
             console.error("❌ Error Culqi:", culqiData)
+            
+            // Revertir el stock de forma inmediata
+            try {
+                await supabase.rpc('admin_procesar_descuento_stock', {
+                    p_pedido_id: pedido.id,
+                    p_revertir: true
+                })
+                wasStockDeducted = false
+                console.log(`📦 Stock revertido con éxito para el pedido fallido #${pedido.id}`)
+            } catch (revertErr) {
+                console.error("🚨 Error grave al revertir stock tras fallo de Culqi:", revertErr)
+            }
+
             // Marcar pedido como fallido para tener trazabilidad
             await supabase.from("pedidos").update({
                 status: "Fallido",
@@ -250,19 +295,7 @@ export async function POST(req: Request) {
             culqi_charge_id: culqiData.id
         }).eq("id", pedido.id)
 
-        // ── Función auxiliar: descuenta stock de todos los items en PARALELO ──────
-        const deductStock = async (): Promise<void> => {
-            const { error: rpcError } = await supabase.rpc('admin_procesar_descuento_stock', {
-                p_pedido_id: pedido.id,
-                p_revertir: false
-            })
-
-            if (rpcError) throw rpcError
-            console.log(`📦 Stock descontado automáticamente (RPC) para el pedido #${pedido.id}`)
-        }
-        // ──────────────────────────────────────────────────────────────────────────
-
-        // D + E + F: registrar pago, descontar stock y agregar nota en PARALELO
+        // D + F: registrar pago y agregar nota en PARALELO
         // Errores en stock/nota no bloquean la respuesta — el pago ya fue procesado.
         await Promise.allSettled([
             // D. Registrar pago financiero
@@ -274,11 +307,6 @@ export async function POST(req: Request) {
                 nota: `Culqi ID: ${culqiData.id} - Tarjeta ${culqiData.source?.iin?.card_brand || 'Desconocida'}`,
                 registrado_por: "Sistema (Web)",
             }),
-
-            // E. Descuento de stock en paralelo por producto
-            deductStock().catch((err: any) =>
-                console.error(`⚠️ Error al descontar stock del pedido #${pedido.id}:`, err?.message || err)
-            ),
 
             // F. Nota de auditoría en el panel admin
             supabase.from("pedido_notas").insert({
@@ -306,6 +334,21 @@ export async function POST(req: Request) {
 
     } catch (error: any) {
         console.error("Error General Checkout:", error)
+        if (wasStockDeducted && createdPedidoId) {
+            try {
+                const { url, service } = getEnv()
+                if (url && service) {
+                    const supabase = createClient(url, service)
+                    await supabase.rpc('admin_procesar_descuento_stock', {
+                        p_pedido_id: createdPedidoId,
+                        p_revertir: true
+                    })
+                    console.log(`📦 Stock revertido con éxito tras excepción general para el pedido #${createdPedidoId}`)
+                }
+            } catch (revertErr) {
+                console.error("🚨 Error crítico al intentar revertir stock tras excepción:", revertErr)
+            }
+        }
         return NextResponse.json({ error: error.message || "Error interno del servidor" }, { status: 500 })
     }
 }

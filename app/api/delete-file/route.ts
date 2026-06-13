@@ -15,13 +15,17 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Configuration Error" }, { status: 500 })
         }
 
-        // Extract Key from URL
-        // Example URL: https://tienda-blama-assets.xxxxx.r2.dev/1738222-image.jpg
-        // or https://custom-domain.com/1738222-image.jpg
-        const key = fileUrl.split('/').pop()
+        // Extract Key from URL safely
+        let key = ""
+        try {
+            const urlObj = new URL(fileUrl)
+            key = decodeURIComponent(urlObj.pathname.substring(1))
+        } catch {
+            return NextResponse.json({ error: "Invalid URL format" }, { status: 400 })
+        }
 
         if (!key) {
-            return NextResponse.json({ error: "Invalid URL format" }, { status: 400 })
+            return NextResponse.json({ error: "Invalid URL format: key is empty" }, { status: 400 })
         }
 
         const command = new DeleteObjectCommand({
