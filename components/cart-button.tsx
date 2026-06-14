@@ -303,14 +303,18 @@ export function CartButton() {
                                                             <Minus className="h-3 w-3" />
                                                         </Button>
                                                         <span className="text-xs font-medium w-4 text-center">{item.quantity}</span>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-6 w-6"
-                                                            onClick={() => updateQuantity(item.id, item.quantity + 1, item.producto_variante_id ?? null)}
-                                                        >
-                                                            <Plus className="h-3 w-3" />
-                                                        </Button>
+                                                        {item.quantity < 5 ? (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-6 w-6"
+                                                                onClick={() => updateQuantity(item.id, item.quantity + 1, item.producto_variante_id ?? null)}
+                                                            >
+                                                                <Plus className="h-3 w-3" />
+                                                            </Button>
+                                                        ) : (
+                                                            <div className="w-6 h-6" />
+                                                        )}
                                                     </div>
 
                                                     <Button

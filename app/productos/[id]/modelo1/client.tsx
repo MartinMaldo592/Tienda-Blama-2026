@@ -738,14 +738,18 @@ export default function ProductoDetalleClient() {
                                                 <div className="text-xs text-muted-foreground">Cantidad</div>
                                                 <div className="text-lg font-bold">{quantity}</div>
                                             </div>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-10 w-10"
-                                                onClick={() => updateQuantity(Number(producto.id), quantity + 1, selectedVarianteId ?? null)}
-                                            >
-                                                <Plus className="h-4 w-4" />
-                                            </Button>
+                                            {quantity < 5 ? (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-10 w-10"
+                                                    onClick={() => updateQuantity(Number(producto.id), quantity + 1, selectedVarianteId ?? null)}
+                                                >
+                                                    <Plus className="h-4 w-4" />
+                                                </Button>
+                                            ) : (
+                                                <div className="w-10 h-10" />
+                                            )}
                                         </div>
                                     )
                                 ) : (
@@ -1043,7 +1047,7 @@ export default function ProductoDetalleClient() {
                             variant="outline"
                             size="icon"
                             className="h-12 w-12 rounded-2xl border-2 border-primary/20 text-primary hover:bg-primary/10 transition-colors"
-                            disabled={!inStock}
+                            disabled={!inStock || quantity >= 5}
                             onClick={() => {
                                 addItem(producto, selectedVariante)
                                 triggerBump()
