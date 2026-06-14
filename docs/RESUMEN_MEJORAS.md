@@ -157,6 +157,19 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 *   **Solución**: Se aplicó el mismo diseño de tamaño y comportamiento premium a los selectores de videos de productos.
 *   **Resultado**: Los antiguos botones de texto plano (`Video 1`, `Video 2`) se reemplazaron por miniaturas que cargan en segundo plano el primer fotograma del video real (`<video preload="metadata" muted playsInline />`), combinándose con un filtro translúcido, un ícono de reproducción `PlayCircle` en el centro y etiquetas numeradas legibles.
 
+### 6. Reubicación de la Etiqueta '¡LO MÁS VENDIDO!' en la Tarjeta de Producto
+*   **Ubicación**: [product-card.tsx](file:///c:/Users/Administrador/Desktop/PROYECTOS/Tienda-Blama-2026/components/product-card.tsx)
+*   **Solución**: Se extrajo la etiqueta `"¡LO MÁS VENDIDO!"` que antes se superponía en la esquina superior izquierda de la imagen y se colocó como un elemento de bloque de ancho ajustado (`w-fit`) dentro de la sección de detalles, directamente arriba del nombre del producto.
+*   **Resultado**: Esto evita que la etiqueta oculte detalles clave de la foto de los productos, logrando una presentación mucho más limpia y equilibrada.
+
+### 7. Buscador con Animación Overlay Premium (Evita Solapamiento de Marca)
+*   **Ubicación**: [header.tsx](file:///c:/Users/Administrador/Desktop/PROYECTOS/Tienda-Blama-2026/components/header.tsx)
+*   **Solución**: Se eliminó el input de búsqueda expandible dentro de la cabecera que solapaba al logotipo central de la marca (`BLAMA SHOP`). En su lugar, se implementó un panel de búsqueda de ancho completo (Overlay) que se desliza y desvanece suavemente desde arriba sobre la cabecera al hacer clic en la lupa.
+*   **Detalles Técnicos**:
+    *   **Autofocus**: Usa `useRef` para enfocar automáticamente el campo de entrada cuando se activa.
+    *   **Cancelación**: Añade un botón interactivo de "Cancelar" que cierra y reinicia el estado de búsqueda.
+    *   **Responsive**: Funciona de forma adaptativa cubriendo la cabecera completa en resoluciones móviles, de tablet y de escritorio, optimizando el espacio al 100% sin jank o saltos de diseño.
+
 ---
 
 <div align="center">

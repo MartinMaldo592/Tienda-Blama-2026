@@ -56,13 +56,7 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
     return (
         <div className="group relative flex flex-col h-full bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm transition-all hover:shadow-md">
             
-            {/* --- BADGE --- */}
-            <div className="absolute top-4 left-4 z-20">
-                <div className="bg-black text-white text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full flex items-center gap-1.5">
-                    <Flame size={12} className="text-white" fill="currentColor" />
-                    ¡LO MÁS VENDIDO!
-                </div>
-            </div>
+
 
             {/* --- IMAGE SECTION --- */}
             <Link href={productHref} className="relative block w-full aspect-[4/5] bg-slate-100 overflow-hidden">
@@ -89,6 +83,11 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
 
             {/* --- CONTENT --- */}
             <div className="p-5 flex flex-col flex-grow">
+                {/* Badge */}
+                <div className="bg-black text-white text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full flex items-center gap-1.5 w-fit mb-2.5">
+                    <Flame size={12} className="text-white" fill="currentColor" />
+                    ¡LO MÁS VENDIDO!
+                </div>
                 <Link href={productHref} className="mb-2 block">
                     <h3 className="text-[17px] font-black text-slate-900 leading-tight line-clamp-2 hover:text-blue-600 transition-colors">
                         {product.nombre}
