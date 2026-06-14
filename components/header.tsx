@@ -3,11 +3,14 @@
 import Link from 'next/link'
 import { CartButton } from "@/components/cart-button"
 import { Menu, Search, X } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { createPortal } from "react-dom"
 import { Input } from "@/components/ui/input"
 import { PeruFlag } from "@/components/ui/peru-flag"
+import { getAutocompleteResults } from "@/features/products/services/products.client"
+import { formatCurrency, slugify } from "@/lib/utils"
+import Image from "next/image"
 
 export function Header() {
     const pathname = usePathname()
@@ -15,7 +18,47 @@ export function Header() {
     const [mounted, setMounted] = useState(false)
     const [searchQuery, setSearchQuery] = useState("")
     const [showDesktopSearch, setShowDesktopSearch] = useState(false)
+    const [autocompleteResults, setAutocompleteResults] = useState<any[]>([])
+    const [isSearching, setIsSearching] = useState(false)
+    const searchInputRef = useRef<HTMLInputElement>(null)
     const router = useRouter()
+
+    useEffect(() => {
+        if (showDesktopSearch) {
+            const timer = setTimeout(() => {
+                searchInputRef.current?.focus()
+            }, 80)
+            return () => clearTimeout(timer)
+        }
+    }, [showDesktopSearch])
+
+    useEffect(() => {
+        const queryStr = searchQuery.trim()
+        if (queryStr.length < 2) {
+            setAutocompleteResults([])
+            return
+        }
+
+        setIsSearching(true)
+        const delayDebounceFn = setTimeout(async () => {
+            try {
+                const results = await getAutocompleteResults(queryStr)
+                setAutocompleteResults(results)
+            } catch (err) {
+                console.error(err)
+            } finally {
+                setIsSearching(false)
+            }
+        }, 250)
+
+        return () => clearTimeout(delayDebounceFn)
+    }, [searchQuery])
+
+    const getProductHref = (p: any) => {
+        return p.slug
+            ? `/productos/${p.slug}`
+            : `/productos/${slugify(p.nombre)}-${p.id}`
+    }
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()
@@ -27,6 +70,7 @@ export function Header() {
 
     useEffect(() => {
         setMobileMenuOpen(false)
+        setShowDesktopSearch(false)
     }, [pathname])
 
     useEffect(() => {
@@ -58,9 +102,8 @@ export function Header() {
                     </button>
 
                     {/* Peru Flag (Visible only on mobile next to hamburger, hidden on desktop nav) */}
-                    <div className="flex md:hidden items-center gap-1.5 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full border border-gray-200 dark:border-gray-700 shrink-0 select-none">
-                        <PeruFlag className="h-2.5 w-3.5 rounded-[1px] shadow-sm object-cover" />
-                        <span className="text-[8px] font-black text-gray-600 dark:text-gray-300">PERÚ</span>
+                    <div className="flex md:hidden items-center shrink-0 select-none">
+                        <PeruFlag className="h-5.5 w-8 rounded-[2px] shadow-sm object-cover border border-black/10 dark:border-white/10" />
                     </div>
 
                     {/* Desktop Navigation */}
@@ -134,33 +177,19 @@ export function Header() {
                 {/* Right Area: Actions (Search, Flag on desktop/tablet, Cart) */}
                 <div className="flex items-center justify-end gap-1 px-1 sm:gap-2 md:w-1/3 z-10">
                     {/* Peru Flag (Visible only on desktop/tablet, hidden on mobile) */}
-                    <div className="hidden md:flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 shrink-0 select-none">
-                        <PeruFlag className="h-3 w-4 rounded-[1px] shadow-sm object-cover" />
-                        <span className="text-[10px] font-bold text-gray-600 dark:text-gray-300">PERÚ</span>
+                    <div className="hidden md:flex items-center shrink-0 select-none">
+                        <PeruFlag className="h-6.5 w-9.5 rounded-[2px] shadow-sm object-cover border border-black/10 dark:border-white/10" />
                     </div>
 
                     {/* Search */}
-                    <div className="flex items-center relative">
-                        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showDesktopSearch ? 'w-24 sm:w-40 md:w-48 lg:w-64 opacity-100 mr-2' : 'w-0 opacity-0'}`}>
-                            <form onSubmit={handleSearch}>
-                                <Input
-                                    type="search"
-                                    placeholder="Buscar..."
-                                    className="h-9 text-xs sm:text-sm"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                            </form>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => setShowDesktopSearch(!showDesktopSearch)}
-                            className="p-2 hover:bg-accent rounded-full text-foreground transition-colors shrink-0"
-                            aria-label="Buscar"
-                        >
-                            <Search className="h-5 w-5" />
-                        </button>
-                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setShowDesktopSearch(true)}
+                        className="p-2 hover:bg-accent rounded-full text-foreground transition-colors shrink-0 active:scale-95"
+                        aria-label="Buscar"
+                    >
+                        <Search className="h-5 w-5" />
+                    </button>
 
                     {/* Cart Button */}
                     <div className="shrink-0">
@@ -168,6 +197,116 @@ export function Header() {
                             <CartButton />
                         ) : (
                             <div className="h-10 w-16 sm:w-24 rounded-full border border-border bg-muted/40 animate-pulse" />
+                        )}
+                    </div>
+                </div>
+
+                {/* Search Overlay Bar — Premium Zara/Apple style */}
+                <div
+                    className={`absolute inset-x-0 top-0 h-16 bg-background px-4 flex items-center justify-between transition-all duration-300 z-[60] ${
+                        showDesktopSearch
+                            ? "opacity-100 translate-y-0 pointer-events-auto"
+                            : "opacity-0 -translate-y-2 pointer-events-none"
+                    }`}
+                >
+                    <div className="w-full max-w-3xl mx-auto relative flex items-center h-full">
+                        <form onSubmit={handleSearch} className="w-full flex items-center gap-3">
+                            <Search className="h-5 w-5 text-muted-foreground shrink-0" />
+                            <Input
+                                ref={searchInputRef}
+                                type="search"
+                                placeholder="Buscar productos, marcas y más..."
+                                className="flex-grow h-12 border-0 bg-transparent text-base focus-visible:ring-0 focus-visible:ring-offset-0 px-0 placeholder:text-muted-foreground/50"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowDesktopSearch(false)
+                                    setSearchQuery("")
+                                }}
+                                className="text-sm font-bold text-muted-foreground hover:text-foreground active:scale-95 transition-all px-3 py-2 rounded-lg hover:bg-muted"
+                            >
+                                Cancelar
+                            </button>
+                        </form>
+
+                        {/* Autocomplete Dropdown List */}
+                        {showDesktopSearch && searchQuery.trim().length >= 2 && (
+                            <div className="absolute top-[calc(100%-4px)] left-0 w-full bg-popover text-popover-foreground rounded-2xl border border-border shadow-2xl overflow-hidden mt-1 z-[70] animate-in fade-in slide-in-from-top-2 duration-200">
+                                {isSearching ? (
+                                    <div className="p-4 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
+                                        <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                        Buscando productos relacionados...
+                                    </div>
+                                ) : autocompleteResults.length > 0 ? (
+                                    <div className="p-2 divide-y divide-border">
+                                        <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                                            Productos sugeridos
+                                        </div>
+                                        <div className="py-1">
+                                            {autocompleteResults.map((p) => {
+                                                const pImages = Array.isArray(p.imagenes) ? p.imagenes : []
+                                                const pImgSrc = pImages[0] || p.imagen_url || "/placeholder-product.png"
+                                                const currentPrice = Number(p.precio ?? 0)
+                                                const beforePrice = Number(p.precio_antes ?? 0)
+                                                const hasSale = beforePrice > 0 && beforePrice > currentPrice
+
+                                                return (
+                                                    <Link
+                                                        key={p.id}
+                                                        href={getProductHref(p)}
+                                                        onClick={() => {
+                                                            setShowDesktopSearch(false)
+                                                            setSearchQuery("")
+                                                        }}
+                                                        className="flex items-center gap-3.5 p-2.5 rounded-xl hover:bg-muted transition-colors group"
+                                                    >
+                                                        <div className="relative h-12 w-12 rounded-lg overflow-hidden border border-border shrink-0 bg-muted">
+                                                            <Image
+                                                                src={pImgSrc}
+                                                                alt={p.nombre}
+                                                                fill
+                                                                className="object-cover group-hover:scale-105 transition-transform duration-200 animate-in fade-in"
+                                                                sizes="48px"
+                                                                quality={50}
+                                                            />
+                                                        </div>
+                                                        <div className="flex-grow min-w-0 text-left">
+                                                            <span className="block text-sm font-bold text-foreground leading-tight line-clamp-1 group-hover:text-primary transition-colors">
+                                                                {p.nombre}
+                                                            </span>
+                                                            <div className="flex items-center gap-1.5 mt-0.5">
+                                                                <span className="text-sm font-black text-primary">
+                                                                    {formatCurrency(currentPrice)}
+                                                                </span>
+                                                                {hasSale && (
+                                                                    <span className="text-[11px] text-muted-foreground line-through">
+                                                                        {formatCurrency(beforePrice)}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </Link>
+                                                )
+                                            })}
+                                        </div>
+                                        <button
+                                            type="submit"
+                                            onClick={handleSearch}
+                                            className="w-full text-center py-3 text-xs font-black text-primary hover:bg-muted transition-colors flex items-center justify-center gap-1.5 uppercase tracking-wider"
+                                        >
+                                            Ver todos los resultados para "{searchQuery}"
+                                            <Search className="h-3.5 w-3.5" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="p-6 text-center text-sm text-muted-foreground">
+                                        No se encontraron resultados relacionados con "{searchQuery}"
+                                    </div>
+                                )}
+                            </div>
                         )}
                     </div>
                 </div>

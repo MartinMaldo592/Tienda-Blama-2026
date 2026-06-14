@@ -293,3 +293,19 @@ export async function getRecommendedProducts(excludeId: number): Promise<any[]> 
         return []
     }
 }
+
+export async function getAutocompleteResults(q: string): Promise<any[]> {
+    const supabase = createClient()
+    const queryStr = (q || "").trim()
+    if (!queryStr) return []
+    const { data, error } = await supabase
+        .from("productos")
+        .select("id, nombre, precio, precio_antes, imagenes, imagen_url")
+        .ilike("nombre", `%${queryStr}%`)
+        .limit(5)
+    if (error) {
+        console.error("Autocomplete search error:", error)
+        return []
+    }
+    return data || []
+}
