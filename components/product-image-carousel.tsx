@@ -17,6 +17,10 @@ interface ProductImageCarouselProps {
   sizes?: string
   quality?: number
   imageFit?: "cover" | "contain"
+  /** Controlled index from parent */
+  selectedIndex?: number
+  /** Callback when index changes (swipe, click, etc.) */
+  onIndexChange?: (index: number) => void
 }
 
 export function ProductImageCarousel({
@@ -30,6 +34,8 @@ export function ProductImageCarousel({
   sizes,
   quality,
   imageFit = "contain",
+  selectedIndex,
+  onIndexChange,
 }: ProductImageCarouselProps) {
   const isLikelyImageUrl = (url: string) => {
     const u = String(url || "").trim().toLowerCase()
@@ -57,7 +63,17 @@ export function ProductImageCarousel({
     return unique
   }, [images])
 
-  const [index, setIndex] = useState(0)
+  const [internalIndex, setInternalIndex] = useState(0)
+
+  // Semi-controlled: use external index if provided, otherwise internal
+  const isControlled = selectedIndex !== undefined
+  const index = isControlled ? selectedIndex : internalIndex
+
+  const setIndex = (valOrFn: number | ((prev: number) => number)) => {
+    const newVal = typeof valOrFn === 'function' ? valOrFn(index) : valOrFn
+    if (!isControlled) setInternalIndex(newVal)
+    onIndexChange?.(newVal)
+  }
 
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [isDragging, setIsDragging] = useState(false)

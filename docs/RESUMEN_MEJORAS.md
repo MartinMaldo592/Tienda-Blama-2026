@@ -11,6 +11,7 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 *   [Fase 3: Mitigación de Riesgos y Control de Fallos Operativos (AMFE)](#fase-3-mitigacion-de-riesgos-y-control-de-fallos-operativos-amfe)
 *   [Fase 4: Consolidación, Mapeo y Seguridad de Base de Datos (Supabase)](#fase-4-consolidacion-mapeo-y-seguridad-de-base-de-datos-supabase)
 *   [Fase 5: Optimización del Flujo Logístico a Provincias y Control Multicourier (Shalom / Olva)](#fase-5-optimizacion-del-flujo-logistico-a-provincias-y-control-multicourier-shalom-olva)
+*   [Fase 6: Optimización de Cabecera, Navegación Móvil y Carruseles Interactivos Premium (UX/UI)](#fase-6-optimizacion-de-cabecera-navegacion-movil-y-carruseles-interactivos-premium-uxui)
 
 ---
 
@@ -122,6 +123,39 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 *   **Zero-Trust PIN (Blindaje de Cobranza)**: Si el pedido tiene un saldo pendiente de pago (ej: contraentrega provincial), el PIN de recojo se mantiene enmascarado como **`🔒 Clave de Retiro Protegida (Saldo Pendiente)`** e invita al cliente a completar el abono por WhatsApp. El PIN solo se devela y formatea en un bloque verde destacado en el Gmail del cliente una vez que el estado de pago pasa a `"Pagado"`.
 *   **Soporte Multicourier Inteligente**: Si se asigna otro courier en el panel (ej: Olva Courier), el correo de estado oculta dinámicamente el bloque del PIN Shalom para evitar confusiones y renderiza un enlace de rastreo directo a domicilio.
 *   **Alerta de Custodia y Almacenaje**: Los correos con destino Shalom integran un recordatorio destacado en rojo indicando un plazo máximo de **5 días hábiles** para retirar la mercadería de la agencia y prevenir cargos de almacenaje por parte del courier.
+
+---
+
+## Fase 6: Optimización de Cabecera, Navegación Móvil y Carruseles Interactivos Premium (UX/UI)
+
+### 1. Centrado Absoluto del Logotipo y Limpieza de Cabecera
+*   **Ubicación**: [header.tsx](file:///c:/Users/Administrador/Desktop/PROYECTOS/Tienda-Blama-2026/components/header.tsx)
+*   **Solución**: Se reestructuró la cuadrícula y distribución de flexbox en la barra de navegación para garantizar que el logotipo de la marca (`BLAMA SHOP`) permanezca centrado de forma absoluta en móviles y pantallas grandes sin colisionar con otros elementos.
+*   **Resultado**: Una presentación estética simétrica e impecable que respeta las pautas de diseño modernas de alta gama.
+
+### 2. Optimización Móvil y del Menú Hamburguesa
+*   **Ubicación**: [header.tsx](file:///c:/Users/Administrador/Desktop/PROYECTOS/Tienda-Blama-2026/components/header.tsx) y [cart-button.tsx](file:///c:/Users/Administrador/Desktop/PROYECTOS/Tienda-Blama-2026/components/cart-button.tsx)
+*   **Solución**:
+    *   Se eliminó el círculo de fondo del icono del menú hamburguesa, dejándolo únicamente con sus tres líneas minimalistas.
+    *   Se reubicó la bandera de Perú y el selector de país para renderizarse a la derecha del menú hamburguesa, reduciendo el ruido visual del lado derecho.
+    *   En dispositivos móviles, se configuró el botón del carrito para ocultar el texto informativo "Carrito", dejando únicamente el ícono del carrito para evitar que se desborde el espacio horizontal disponible.
+
+### 3. Mitigación de Desbordamiento Horizontal (Horizontal Scroll Overflow)
+*   **Ubicación**: [globals.css](file:///c:/Users/Administrador/Desktop/PROYECTOS/Tienda-Blama-2026/app/globals.css) y [producto-detalle-client.tsx](file:///c:/Users/Administrador/Desktop/PROYECTOS/Tienda-Blama-2026/app/productos/[id]/producto-detalle-client.tsx)
+*   **Solución**: Se identificó un error donde la vista del producto permitía un desplazamiento horizontal indeseado a la izquierda/derecha.
+*   **Resultado**: Se corrigió agregando la propiedad `overflow-x-hidden` a los contenedores principales y controlando los anchos fijos de los componentes internos, asegurando que la navegación vertical sea completamente vertical y sin holguras horizontales rotas.
+
+### 4. Carrusel Controlado y Tira de Miniaturas Premium (Estilo Razor Bill)
+*   **Ubicación**: [product-image-carousel.tsx](file:///c:/Users/Administrador/Desktop/PROYECTOS/Tienda-Blama-2026/components/product-image-carousel.tsx) y [producto-detalle-client.tsx](file:///c:/Users/Administrador/Desktop/PROYECTOS/Tienda-Blama-2026/app/productos/[id]/producto-detalle-client.tsx)
+*   **Solución**:
+    *   Se rediseñó el componente `ProductImageCarousel` para admitir las propiedades controladas `selectedIndex` y `onIndexChange`.
+    *   Se integró una tira horizontal de miniaturas debajo de la imagen del producto, escalada dinámicamente con `w-[22.5%] aspect-square` en móviles para asegurar que se muestren entre 3 y 4 imágenes simultáneamente con scrolling suave de tipo `snap-start`.
+    *   Se programó un efecto `useEffect` en el contenedor para realizar un scroll automático (scroll-into-view) y centrar la miniatura activa en el listado cuando el usuario hace swipe sobre el carrusel de imágenes grande.
+
+### 5. Miniaturas Interactivas con Previsualizaciones de Video en Vivo
+*   **Ubicación**: [producto-detalle-client.tsx](file:///c:/Users/Administrador/Desktop/PROYECTOS/Tienda-Blama-2026/app/productos/[id]/producto-detalle-client.tsx)
+*   **Solución**: Se aplicó el mismo diseño de tamaño y comportamiento premium a los selectores de videos de productos.
+*   **Resultado**: Los antiguos botones de texto plano (`Video 1`, `Video 2`) se reemplazaron por miniaturas que cargan en segundo plano el primer fotograma del video real (`<video preload="metadata" muted playsInline />`), combinándose con un filtro translúcido, un ícono de reproducción `PlayCircle` en el centro y etiquetas numeradas legibles.
 
 ---
 
