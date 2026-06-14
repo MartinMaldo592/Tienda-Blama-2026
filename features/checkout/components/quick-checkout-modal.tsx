@@ -268,8 +268,8 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
             return
         }
         const dniClean = dni.replace(/\D/g, "")
-        if (dniClean.length !== 8) {
-            toast.error("El DNI debe tener 8 dígitos")
+        if (dniClean.length > 0 && dniClean.length !== 8) {
+            toast.error("El DNI debe tener exactamente 8 dígitos si se completa")
             setIsSubmitting(false)
             return
         }
