@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
+import { toast } from "sonner"
 
 import type { CartState } from "@/features/cart/types"
 
@@ -21,11 +22,18 @@ export const useCartStore = create<CartState>()(
                     const varianteNombre = variant?.etiqueta ?? null
 
                     const nextItems = existingItem
-                        ? items.map((item) =>
-                              item.id === product.id && (item.producto_variante_id ?? null) === variantId
-                                  ? { ...item, quantity: item.quantity + 1 }
-                                  : item
-                          )
+                        ? items.map((item) => {
+                              if (item.id === product.id && (item.producto_variante_id ?? null) === variantId) {
+                                  if (item.quantity >= 5) {
+                                      toast.warning("Límite alcanzado", {
+                                          description: "Solo puedes agregar hasta 5 unidades de este artículo."
+                                      })
+                                      return item
+                                  }
+                                  return { ...item, quantity: item.quantity + 1 }
+                              }
+                              return item
+                          })
                         : [
                               ...items,
                               {
@@ -58,10 +66,16 @@ export const useCartStore = create<CartState>()(
                     get().removeItem(productId, v)
                     return
                 }
+                const finalQuantity = Math.min(quantity, 5)
+                if (quantity > 5) {
+                    toast.warning("Límite alcanzado", {
+                        description: "Solo puedes comprar hasta 5 unidades de este artículo."
+                    })
+                }
                 set((state) => {
                     const nextItems = state.items.map((item) =>
                         item.id === productId && (item.producto_variante_id ?? null) === v
-                            ? { ...item, quantity }
+                            ? { ...item, quantity: finalQuantity }
                             : item
                     )
                     const total = nextItems.reduce((sum, item) => sum + item.precio * item.quantity, 0)
