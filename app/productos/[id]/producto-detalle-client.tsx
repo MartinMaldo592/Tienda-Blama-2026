@@ -544,18 +544,34 @@ export default function ProductoDetalleClient() {
                     )}
 
                     {showVideo && videos.length > 1 && (
-                        <div className="flex flex-wrap gap-2">
+                        <div
+                            className="flex gap-2.5 overflow-x-auto scrollbar-hide py-2 px-0.5 snap-x snap-mandatory"
+                        >
                             {videos.map((v, i) => (
                                 <button
                                     key={v}
                                     type="button"
+                                    aria-label={`Ver video ${i + 1}`}
                                     onClick={() => setActiveVideo(v)}
-                                    className={
-                                        "rounded-lg border px-3 py-2 text-xs font-semibold transition-colors " +
-                                        (activeVideo === v ? "border-primary bg-primary/10" : "border-border hover:bg-popover")
-                                    }
+                                    className={`relative shrink-0 w-[22.5%] aspect-square md:w-24 md:h-24 rounded-xl overflow-hidden border-2 transition-all duration-200 snap-start active:scale-95 ${
+                                        activeVideo === v
+                                            ? 'border-primary ring-2 ring-primary/20 shadow-md scale-[1.03]'
+                                            : 'border-transparent opacity-60 hover:opacity-90 hover:border-border'
+                                    }`}
                                 >
-                                    Video {i + 1}
+                                    <video
+                                        src={v}
+                                        className="w-full h-full object-cover bg-black"
+                                        preload="metadata"
+                                        muted
+                                        playsInline
+                                    />
+                                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                                        <PlayCircle className="h-7 w-7 text-white drop-shadow-md" />
+                                    </div>
+                                    <span className="absolute bottom-1.5 right-1.5 bg-black/60 text-[9px] text-white px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
+                                        Video {i + 1}
+                                    </span>
                                 </button>
                             ))}
                         </div>
