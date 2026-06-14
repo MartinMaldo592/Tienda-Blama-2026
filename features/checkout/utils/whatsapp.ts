@@ -36,46 +36,53 @@ export function buildWhatsAppPreviewMessage(input: {
         couponCode, shippingMethod, email
     } = input
 
-    let message = `¡Hola! Soy *${name || "Cliente"}*. Quiero confirmar mi pedido: 🛍️\n`
-    message += `*DATOS DE ENVÍO:*\n`
+    let message = `*✨ ¡NUEVO PEDIDO REGISTRADO! ✨*\n`
+    message += `*BLAMA SHOP* 🛍️\n\n`
+    message += `Hola, quiero confirmar mi compra con los siguientes datos:\n\n`
+    
+    message += `👤 *DATOS PERSONALES:*\n`
+    message += `• *Cliente:* ${name || "(Por completar)"}\n`
+    message += `• *Teléfono:* ${phone || "(Por completar)"}\n`
+    message += `• *DNI:* ${dni && dni.trim() !== "" ? dni : "No especificado"}\n`
+    if (email) message += `• *Email:* ${email}\n`
+    message += `\n`
+
+    message += `📍 *DATOS DE ENVÍO:*\n`
     if (shippingMethod) {
-        const methodLabel = shippingMethod.toLowerCase().includes('lima') ? 'Lima' : 'Provincia'
-        message += `Método Envío: ${methodLabel}\n`
+        const methodLabel = shippingMethod.toLowerCase().includes('lima') ? '🚚 Contraentrega (Lima/Callao)' : '📦 Agencia de Envío (Provincias)'
+        message += `• *Método:* ${methodLabel}\n`
     }
-    message += `Cliente: ${name}\n`
-    message += `DNI: ${dni}\n`
-    message += `Teléfono: ${phone}\n`
-    if (email) message += `Email: ${email}\n`
+    if (department) message += `• *Departamento:* ${department}\n`
+    if (province) message += `• *Provincia:* ${province}\n`
+    if (district) message += `• *Distrito:* ${district}\n`
+    message += `• *Dirección:* ${address || "(Por completar)"}\n`
+    if (reference) message += `• *Referencia:* ${reference}\n`
+    if (locationLink) message += `• *Ubicación GPS:* ${locationLink}\n`
+    message += `\n`
 
-    if (department) message += `Departamento: ${department}\n`
-    if (province) message += `Provincia: ${province}\n`
-    if (district) message += `Distrito: ${district}\n`
-
-    message += `Dirección: ${address || ""}\n`
-    if (reference) message += `Referencia: ${reference}\n`
-    if (locationLink) message += `Ubicación: ${locationLink}\n`
-
-    message += `\n*DETALLE DEL PEDIDO:*\n`
+    message += `🛒 *DETALLE DEL PEDIDO:*\n`
     items.forEach((item) => {
         const qty = item.quantity ?? (item as any).cantidad ?? 1
         const price = item.precio ?? (item as any).precio_unitario ?? 0
         const nameVal = item.nombre ?? (item as any).producto_nombre ?? ""
         const vName = item.variante_nombre ? ` (${String(item.variante_nombre)})` : ""
-        message += `* ${qty} x ${nameVal}${vName} - ${formatCurrency(qty * price)}\n`
+        message += `• ${qty}x *${nameVal}${vName}* - ${formatCurrency(qty * price)}\n`
     })
+    message += `\n`
 
     if (discount > 0 && couponCode) {
-        message += `\n*SUBTOTAL: ${formatCurrency(subtotal)}*`
-        message += `\n*CUPÓN (${couponCode}): -${formatCurrency(discount)}*`
+        message += `• *Subtotal:* ${formatCurrency(subtotal)}\n`
+        message += `• *Cupón (${couponCode}):* -${formatCurrency(discount)}\n`
     }
-    message += `\n*TOTAL PRODUCTOS: ${formatCurrency(total)}*`
+    
+    message += `💰 *TOTAL A PAGAR:* *${formatCurrency(total)}*\n`
 
     const isProv = shippingMethod?.toLowerCase() === 'provincia' || 
                    shippingMethod?.toLowerCase().includes('provincia') || 
                    shippingMethod?.toLowerCase().includes('shalom')
     if (isProv) {
         message += `\n*Envío:* Flete por Pagar en Destino (Agencia)\n`
-        message += `\n_💡 Nota: El costo del envío lo cobra la agencia al retirar. Un asesor se comunicará contigo para definir si prefieres pago total por adelantado, adelanto de flete o contraentrega en Shalom Recaudo._`
+        message += `\n_💡 Nota: El costo del envío lo cobra la agencia al retirar. Un asesor se comunicará contigo para definir los detalles de tu envío._`
     }
 
     return message
@@ -108,46 +115,55 @@ export function buildWhatsAppFinalMessage(input: {
         couponCode, shippingMethod, email
     } = input
 
-    let message = `¡Hola! Soy *${name}*. Quiero confirmar mi pedido: 🛍️\n`
-    message += `*DATOS DE ENVÍO:*\n`
+    let message = `*✨ ¡NUEVO PEDIDO REGISTRADO! ✨*\n`
+    message += `*BLAMA SHOP* 🛍️\n\n`
+    message += `Hola, quiero confirmar mi compra con los siguientes datos:\n\n`
+    
+    message += `🆔 *CÓDIGO DE PEDIDO:* \`#${orderIdFormatted}\`\n\n`
+    
+    message += `👤 *DATOS PERSONALES:*\n`
+    message += `• *Cliente:* ${name}\n`
+    message += `• *Teléfono:* ${phone}\n`
+    message += `• *DNI:* ${dni && dni.trim() !== "" ? dni : "No especificado"}\n`
+    if (email) message += `• *Email:* ${email}\n`
+    message += `\n`
+
+    message += `📍 *DATOS DE ENVÍO:*\n`
     if (shippingMethod) {
-        const methodLabel = shippingMethod.toLowerCase().includes('lima') ? 'Lima' : 'Provincia'
-        message += `Método Envío: ${methodLabel}\n`
+        const methodLabel = shippingMethod.toLowerCase().includes('lima') ? '🚚 Contraentrega (Lima/Callao)' : '📦 Agencia de Envío (Provincias)'
+        message += `• *Método:* ${methodLabel}\n`
     }
-    message += `Cliente: ${name}\n`
-    message += `DNI: ${dni}\n`
-    message += `Teléfono: ${phone}\n`
-    if (email) message += `Email: ${email}\n`
+    if (department) message += `• *Departamento:* ${department}\n`
+    if (province) message += `• *Provincia:* ${province}\n`
+    if (district) message += `• *Distrito:* ${district}\n`
+    message += `• *Dirección:* ${address}\n`
+    if (reference) message += `• *Referencia:* ${reference}\n`
+    if (locationLink) message += `• *Ubicación GPS:* ${locationLink}\n`
+    message += `\n`
 
-    if (department) message += `Departamento: ${department}\n`
-    if (province) message += `Provincia: ${province}\n`
-    if (district) message += `Distrito: ${district}\n`
-
-    message += `Dirección: ${address}\n`
-    if (reference) message += `Referencia: ${reference}\n`
-    if (locationLink) message += `Ubicación: ${locationLink}\n`
-
-    message += `\n*DETALLE DEL PEDIDO:*\n`
+    message += `🛒 *DETALLE DEL PEDIDO:*\n`
     items.forEach((item) => {
         const qty = item.quantity ?? (item as any).cantidad ?? 1
         const price = item.precio ?? (item as any).precio_unitario ?? 0
         const nameVal = item.nombre ?? (item as any).producto_nombre ?? ""
         const vName = item.variante_nombre ? ` (${String(item.variante_nombre)})` : ""
-        message += `* ${qty} x ${nameVal}${vName} - ${formatCurrency(qty * price)}\n`
+        message += `• ${qty}x *${nameVal}${vName}* - ${formatCurrency(qty * price)}\n`
     })
+    message += `\n`
 
     if (discount > 0 && couponCode) {
-        message += `\n*SUBTOTAL: ${formatCurrency(subtotal)}*`
-        message += `\n*CUPÓN (${couponCode}): -${formatCurrency(discount)}*`
+        message += `• *Subtotal:* ${formatCurrency(subtotal)}\n`
+        message += `• *Cupón (${couponCode}):* -${formatCurrency(discount)}\n`
     }
-    message += `\n\n*TOTAL PRODUCTOS: ${formatCurrency(total)}*`
+    
+    message += `💰 *TOTAL A PAGAR:* *${formatCurrency(total)}*\n`
 
     const isProv = shippingMethod?.toLowerCase() === 'provincia' || 
                    shippingMethod?.toLowerCase().includes('provincia') || 
                    shippingMethod?.toLowerCase().includes('shalom')
     if (isProv) {
-        message += `\n*Envío:* Flete por Pagar en Destino (Agencia)\n`
-        message += `\n_💡 Nota: El costo del envío lo cobra la agencia al retirar. Un asesor se comunicará contigo para definir si prefieres pago total por adelantado, adelanto de flete o contraentrega en Shalom Recaudo._`
+        message += `\n🚛 *Costo de Envío:* Flete por Pagar en Destino (Agencia)\n`
+        message += `\n_💡 Nota: El costo del envío lo cobra la agencia al retirar. Un asesor se comunicará contigo para definir los detalles de tu envío._`
     }
 
     return message
