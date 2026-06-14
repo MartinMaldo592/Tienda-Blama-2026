@@ -64,40 +64,6 @@ export function QuickCustomer({ name, setName, phone, setPhone, dni, setDni, ema
             <div className="space-y-4">
                 <div className="space-y-1.5">
                     <Label className="text-sm font-bold text-foreground">
-                        DNI <span className="text-destructive">*</span>
-                    </Label>
-                    <div className="relative group">
-                        <div className={cn(
-                            "absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none transition-colors",
-                            isDniValid ? "text-green-500" : "text-muted-foreground group-focus-within:text-primary"
-                        )}>
-                            <CreditCard className="h-5 w-5" />
-                        </div>
-                        <Input
-                            required
-                            placeholder="8 dígitos"
-                            minLength={8}
-                            maxLength={8}
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            value={dni}
-                            onChange={(e) => setDni(e.target.value.replace(/\D/g, ''))}
-                            disabled={disabled}
-                            className={cn(
-                                "pl-11 pr-10 h-12 bg-background border-border transition-all rounded-lg font-medium text-foreground",
-                                isDniValid ? "border-green-500/50 focus-visible:ring-green-500/20" : "focus-visible:border-primary"
-                            )}
-                        />
-                        {isDniValid && (
-                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 animate-in zoom-in duration-300">
-                                <CheckCircle2 className="h-5 w-5 text-green-500" />
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="space-y-1.5">
-                    <Label className="text-sm font-bold text-foreground">
                         Celular <span className="text-destructive">*</span>
                     </Label>
                     <div className="relative group">
@@ -126,6 +92,39 @@ export function QuickCustomer({ name, setName, phone, setPhone, dni, setDni, ema
                             )}
                         />
                         {isPhoneValid && (
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 animate-in zoom-in duration-300">
+                                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="space-y-1.5">
+                    <Label className="text-sm font-bold text-foreground">
+                        DNI <span className="text-muted-foreground font-normal text-xs">(Opcional)</span>
+                    </Label>
+                    <div className="relative group">
+                        <div className={cn(
+                            "absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none transition-colors",
+                            isDniValid ? "text-green-500" : "text-muted-foreground group-focus-within:text-primary"
+                        )}>
+                            <CreditCard className="h-5 w-5" />
+                        </div>
+                        <Input
+                            placeholder="8 dígitos"
+                            minLength={8}
+                            maxLength={8}
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            value={dni}
+                            onChange={(e) => setDni(e.target.value.replace(/\D/g, ''))}
+                            disabled={disabled}
+                            className={cn(
+                                "pl-11 pr-10 h-12 bg-background border-border transition-all rounded-lg font-medium text-foreground",
+                                isDniValid ? "border-green-500/50 focus-visible:ring-green-500/20" : "focus-visible:border-primary"
+                            )}
+                        />
+                        {isDniValid && (
                             <div className="absolute inset-y-0 right-0 flex items-center pr-3 animate-in zoom-in duration-300">
                                 <CheckCircle2 className="h-5 w-5 text-green-500" />
                             </div>

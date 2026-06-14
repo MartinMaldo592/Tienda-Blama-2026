@@ -30,7 +30,7 @@ import { identitySchema, checkoutBaseFields } from "@/features/checkout"
 const CheckoutBodySchema = z.object({
   name: identitySchema.name,
   phone: identitySchema.phone,
-  dni: identitySchema.document,
+  dni: identitySchema.document.optional().or(z.literal("")).or(z.null()),
   address: checkoutBaseFields.address,
   reference: checkoutBaseFields.reference,
   locationLink: z.string().url("Link de ubicación inválido").optional().or(z.literal("")),
@@ -102,7 +102,7 @@ export async function POST(req: Request) {
 
     const name = body.name.trim()
     const phone = body.phone.trim()
-    const dni = body.dni
+    const dni = body.dni?.trim() || null
     const email = body.email?.trim() || null
     const address = body.address.trim()
     const reference = body.reference?.trim() || ""
