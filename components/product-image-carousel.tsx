@@ -69,6 +69,11 @@ export function ProductImageCarousel({
   const isControlled = selectedIndex !== undefined
   const index = isControlled ? selectedIndex : internalIndex
 
+  const indexRef = useRef(index)
+  useEffect(() => {
+    indexRef.current = index
+  }, [index])
+
   const setIndex = (valOrFn: number | ((prev: number) => number)) => {
     const newVal = typeof valOrFn === 'function' ? valOrFn(index) : valOrFn
     if (!isControlled) setInternalIndex(newVal)
@@ -99,10 +104,8 @@ export function ProductImageCarousel({
     if (isDragging) return
 
     const id = window.setInterval(() => {
-      setIndex((prev) => {
-        if (prev >= cleanImages.length - 1) return 0
-        return prev + 1
-      })
+      const nextIndex = (indexRef.current + 1) % cleanImages.length
+      setIndex(nextIndex)
     }, intervalMs)
 
     return () => window.clearInterval(id)
@@ -122,12 +125,12 @@ export function ProductImageCarousel({
 
   const prev = () => {
     setDragX(0)
-    setIndex((i) => Math.max(0, i - 1))
+    setIndex((i) => (i === 0 ? lastIndex : i - 1))
   }
 
   const next = () => {
     setDragX(0)
-    setIndex((i) => Math.min(lastIndex, i + 1))
+    setIndex((i) => (i === lastIndex ? 0 : i + 1))
   }
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
