@@ -103,12 +103,12 @@ export default function ProductoDetalleClient() {
             ([entry]) => {
                 // Solo activamos la barra cuando el sensor NO es visible 
                 // Y además el sensor ha quedado cerca de entrar a la zona superior (top < 450)
-                const isAbove = entry.boundingClientRect.top < 450
+                const isAbove = entry.boundingClientRect.top < 650
                 setShowStickyBar(!entry.isIntersecting && isAbove)
             },
             {
                 threshold: 0,
-                rootMargin: '-450px 0px 0px 0px' // Se activa casi de inmediato al iniciar el scroll
+                rootMargin: '-650px 0px 0px 0px' // Se activa un poco antes al hacer scroll
             }
         )
 

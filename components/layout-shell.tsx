@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useEffect, useRef, useState, useMemo, useCallback } from "react"
 import { usePathname } from "next/navigation"
 import { useWhatsAppStore } from "@/features/checkout"
 
@@ -26,6 +26,67 @@ export function LayoutShell({ children, announcementData }: LayoutShellProps) {
   const isAuth = pathname?.startsWith("/auth")
   const isOpenWa = pathname?.startsWith("/open-wa")
 
+  const [visible, setVisible] = useState(true)
+  const [headerHeight, setHeaderHeight] = useState(0)
+  const headerRef = useRef<HTMLDivElement>(null)
+  const prevScrollY = useRef(0)
+  const ticking = useRef(false)
+
+  // Medir la altura real del header para crear el spacer
+  useEffect(() => {
+    if (!headerRef.current || isAdmin || isAuth) return
+
+    const measure = () => {
+      if (headerRef.current) {
+        setHeaderHeight(headerRef.current.offsetHeight)
+      }
+    }
+
+    measure()
+
+    // Re-medir si la ventana cambia de tamaño
+    window.addEventListener("resize", measure)
+    return () => window.removeEventListener("resize", measure)
+  }, [isAdmin, isAuth])
+
+  // Lógica de scroll: compatible con Lenis
+  useEffect(() => {
+    if (isAdmin || isAuth) return
+
+    const onScroll = () => {
+      if (ticking.current) return
+      ticking.current = true
+
+      requestAnimationFrame(() => {
+        // Lenis actualiza window.scrollY / document.documentElement.scrollTop
+        const y = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0)
+
+        // Si estamos cerca del top, siempre mostrar
+        if (y < 60) {
+          setVisible(true)
+          prevScrollY.current = y
+          ticking.current = false
+          return
+        }
+
+        const delta = y - prevScrollY.current
+
+        // Umbral de 5px para filtrar micro-movimientos
+        if (delta > 5) {
+          setVisible(false) // Scroll abajo → ocultar
+        } else if (delta < -5) {
+          setVisible(true) // Scroll arriba → mostrar
+        }
+
+        prevScrollY.current = y
+        ticking.current = false
+      })
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [isAdmin, isAuth])
+
   if (isAdmin || isAuth) {
     return <>{children}</>
   }
@@ -41,15 +102,28 @@ export function LayoutShell({ children, announcementData }: LayoutShellProps) {
 
   return (
     <>
-      <Header />
+      {/* Header FIJO — position fixed para compatibilidad con Lenis */}
+      <div
+        ref={headerRef}
+        className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ease-in-out ${
+          visible ? "translate-y-0" : "-translate-y-full"
+        }`}
+        {...(!visible ? { inert: true } : {})}
+      >
+        <Header />
 
-      {shouldShowAnnouncement && announcementData && (
-        <AnnouncementBar
-          className="sticky top-16 z-40"
-          intervalMs={announcementData.intervalMs}
-          messages={announcementData.messages}
-        />
-      )}
+        {shouldShowAnnouncement && announcementData && (
+          <AnnouncementBar
+            className="z-40"
+            intervalMs={announcementData.intervalMs}
+            messages={announcementData.messages}
+          />
+        )}
+      </div>
+
+      {/* Espaciador para compensar la altura del header fijo */}
+      <div style={{ height: headerHeight }} aria-hidden="true" />
+
       <div className="flex-1">{children}</div>
       <Footer />
 
@@ -83,3 +157,4 @@ export function LayoutShell({ children, announcementData }: LayoutShellProps) {
     </>
   )
 }
+

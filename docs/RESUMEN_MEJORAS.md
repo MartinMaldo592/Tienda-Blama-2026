@@ -170,8 +170,22 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
     *   **Cancelación**: Añade un botón interactivo de "Cancelar" que cierra y reinicia el estado de búsqueda.
     *   **Responsive**: Funciona de forma adaptativa cubriendo la cabecera completa en resoluciones móviles, de tablet y de escritorio, optimizando el espacio al 100% sin jank o saltos de diseño.
 
+### 8. Cabecera Auto-ocultable Inteligente al hacer Scroll (Header Fijo Dinámico)
+*   **Ubicación**: [layout-shell.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA WEB/Tienda-Blama-2026/components/layout-shell.tsx) y [header.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA WEB/Tienda-Blama-2026/components/header.tsx)
+*   **Solución**: 
+    *   Se reemplazó la propiedad nativa de `sticky top-0` del componente Header por una envoltura de tipo fixed (`fixed top-0 left-0 right-0 z-50`) controlada por estado en el contenedor principal LayoutShell.
+    *   Se implementó un controlador de eventos de scroll compatible con la biblioteca de scroll Lenis. Si el usuario se desplaza hacia abajo, la cabecera se oculta suavemente desplazándose hacia arriba (`-translate-y-full`); si se desplaza hacia arriba con un delta superior a 5px, se despliega de inmediato (`translate-y-0`).
+    *   Se añadió un espaciador de altura dinámica para compensar la posición fija y evitar el parpadeo o saltos en la carga (Layout Shift).
+*   **Resultado**: Aumenta el área útil de lectura en dispositivos móviles durante la exploración del catálogo y conserva una accesibilidad inmediata a la navegación al menor indicio de retorno del usuario.
+
+### 9. Ajuste de Activación Temprana de Barra de Compra Flotante en Detalle de Producto
+*   **Ubicación**: [producto-detalle-client.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA WEB/Tienda-Blama-2026/app/productos/[id]/producto-detalle-client.tsx)
+*   **Solución**: Se recalibró el sensor de visibilidad (IntersectionObserver) para la barra flotante inferior en dispositivos móviles, elevando el umbral de activación (tanto en `rootMargin` como en la lógica de evaluación `boundingClientRect.top`) de **450px** a **650px**.
+*   **Resultado**: La barra flotante aparece antes al avanzar en el detalle de la página de producto, acelerando la posibilidad de que el cliente inicie el flujo de compra rápida.
+
 ---
 
 <div align="center">
   <small><em>Tienda Blama 2026 - Manual Técnico de Cambios & Resiliencia.</em></small>
 </div>
+
