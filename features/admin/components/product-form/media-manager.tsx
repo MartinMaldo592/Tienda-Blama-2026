@@ -21,6 +21,15 @@ interface MediaManagerProps {
     setLoading: (loading: boolean) => void
 }
 
+interface UploadProgressInfo {
+    id: string
+    fileName: string
+    progress: number
+    status: "uploading" | "success" | "error"
+    stepText: string
+    isImage: boolean
+}
+
 export function MediaManager({
     imageUrl,
     setImageUrl,
@@ -34,7 +43,7 @@ export function MediaManager({
     setUploading,
     setLoading
 }: MediaManagerProps) {
-    const [uploadStatus, setUploadStatus] = useState<string>("")
+    const [activeUploads, setActiveUploads] = useState<UploadProgressInfo[]>([])
 
     function normalizeImages(input: string[]) {
         const unique: string[] = []
@@ -59,9 +68,7 @@ export function MediaManager({
     }
 
     async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-        if (!e.target.files || e.target.files.length === 0) return;
-
-        setUploading(true)
+        if (!e.target.files || e.target.files.length === 0) return
 
         const files = Array.from(e.target.files).filter((f) => {
             const t = String(f?.type || '').toLowerCase()
@@ -74,22 +81,42 @@ export function MediaManager({
         const toUpload = files.slice(0, remainingSlots)
 
         if (toUpload.length === 0) {
-            alert("No se pueden seleccionar más imágenes (límite alcanzado o formato incorrecto).")
-            setUploading(false)
-            setUploadStatus("")
+            toast.error("No se pueden seleccionar más imágenes (límite de 10 alcanzado o formato incorrecto).")
             e.target.value = ''
             return
         }
 
-        setUploadStatus(`Subiendo ${toUpload.length} imágenes...`)
+        setUploading(true)
+
+        // Inicializar el estado de progreso para cada archivo
+        const newUploads = toUpload.map(file => ({
+            id: `${file.name}-${Date.now()}-${Math.random()}`,
+            fileName: file.name,
+            progress: 0,
+            status: "uploading" as const,
+            stepText: "Preparando subida...",
+            isImage: true
+        }))
+        setActiveUploads(prev => [...newUploads, ...prev])
 
         try {
-            // Subida en paralelo para mayor velocidad en imágenes
-            const uploadPromises = toUpload.map(async (file) => {
+            const uploadPromises = toUpload.map(async (file, idx) => {
+                const uploadId = newUploads[idx].id
                 try {
-                    return await uploadToR2(file)
-                } catch (err) {
+                    const url = await uploadToR2(file, (percent, step) => {
+                        setActiveUploads(prev => prev.map(up => up.id === uploadId ? { ...up, progress: percent, stepText: step } : up))
+                    })
+
+                    if (url) {
+                        setActiveUploads(prev => prev.map(up => up.id === uploadId ? { ...up, progress: 100, status: "success", stepText: "¡Imagen subida con éxito!" } : up))
+                        return url
+                    } else {
+                        setActiveUploads(prev => prev.map(up => up.id === uploadId ? { ...up, status: "error", stepText: "Fallo al procesar o guardar la imagen." } : up))
+                        return null
+                    }
+                } catch (err: any) {
                     console.error(`Falló subida de ${file.name}`, err)
+                    setActiveUploads(prev => prev.map(up => up.id === uploadId ? { ...up, status: "error", stepText: err.message || "Error al subir la imagen." } : up))
                     return null
                 }
             })
@@ -104,21 +131,19 @@ export function MediaManager({
                 if (!imageUrl && next.length > 0) {
                     setImageUrl(next[0])
                 }
+                toast.success(`Se subieron correctamente ${successfulUrls.length} imagen(es).`)
             }
 
             const failedCount = toUpload.length - successfulUrls.length
-            setUploadStatus(failedCount === 0
-                ? "¡Imágenes subidas correctamente!"
-                : `Se subieron ${successfulUrls.length} de ${toUpload.length} imágenes.`)
+            if (failedCount > 0) {
+                toast.error(`No se pudieron subir ${failedCount} de ${toUpload.length} imágenes.`)
+            }
 
         } catch (error: any) {
             console.error("Error exception al subir imágenes:", error)
-            alert(`Error crítico al subir imágenes: ${error.message}`)
+            toast.error(`Error crítico al subir imágenes: ${error.message}`)
         } finally {
-            setTimeout(() => {
-                setUploading(false)
-                setUploadStatus("")
-            }, 1500)
+            setUploading(false)
             e.target.value = ''
         }
     }
@@ -126,55 +151,62 @@ export function MediaManager({
     async function handleVideoUpload(e: React.ChangeEvent<HTMLInputElement>) {
         if (!e.target.files || e.target.files.length === 0) return
 
-        setUploading(true)
-        setUploadStatus("Iniciando subida de videos...")
-
         const files = Array.from(e.target.files)
         const remainingSlots = Math.max(0, 6 - videos.length)
         const toUpload = files.slice(0, remainingSlots)
 
         if (toUpload.length === 0) {
-            alert("No se pueden subir más videos (límite de 6 alcanzado).")
-            setUploading(false)
-            setUploadStatus("")
+            toast.error("No se pueden subir más videos (límite de 6 alcanzado).")
             e.target.value = ''
             return
         }
+
+        setUploading(true)
+
+        // Inicializar el estado de progreso para cada archivo
+        const newUploads = toUpload.map(file => ({
+            id: `${file.name}-${Date.now()}-${Math.random()}`,
+            fileName: file.name,
+            progress: 0,
+            status: "uploading" as const,
+            stepText: "En cola para subir...",
+            isImage: false
+        }))
+        setActiveUploads(prev => [...newUploads, ...prev])
 
         let successCount = 0
         let currentVideos = [...videos]
 
         for (let i = 0; i < toUpload.length; i++) {
             const file = toUpload[i]
-            setUploadStatus(`Subiendo video ${i + 1} de ${toUpload.length}: ${file.name}...`)
+            const uploadId = newUploads[i].id
 
             try {
-                // Subida secuencial para evitar saturación y mejor feedback
-                const url = await uploadToR2(file)
+                const url = await uploadToR2(file, (percent, step) => {
+                    setActiveUploads(prev => prev.map(up => up.id === uploadId ? { ...up, progress: percent, stepText: step } : up))
+                })
 
                 if (url) {
                     currentVideos = normalizeVideos([...currentVideos, url])
                     setVideos(currentVideos)
                     successCount++
+                    setActiveUploads(prev => prev.map(up => up.id === uploadId ? { ...up, progress: 100, status: "success", stepText: "¡Video subido con éxito!" } : up))
                 } else {
-                    console.error(`Error al subir video ${file.name}`)
-                    alert(`Error al subir el video: ${file.name}. Verifica tu conexión o intenta con un archivo más ligero.`)
+                    setActiveUploads(prev => prev.map(up => up.id === uploadId ? { ...up, status: "error", stepText: "Error al guardar video en la nube." } : up))
                 }
             } catch (error: any) {
                 console.error(`Error exception video ${file.name}:`, error)
-                alert(`Error crítico al subir video ${file.name}: ${error.message}`)
+                setActiveUploads(prev => prev.map(up => up.id === uploadId ? { ...up, status: "error", stepText: error.message || "Error al subir video." } : up))
             }
         }
 
-        setUploadStatus(successCount === toUpload.length
-            ? "¡Todos los videos se subieron correctamente!"
-            : `Se subieron ${successCount} de ${toUpload.length} videos.`)
+        if (successCount === toUpload.length) {
+            toast.success("¡Todos los videos se subieron correctamente!")
+        } else {
+            toast.warning(`Se subieron ${successCount} de ${toUpload.length} videos correctamente.`)
+        }
 
-        setTimeout(() => {
-            setUploading(false)
-            setUploadStatus("")
-        }, 1500)
-
+        setUploading(false)
         e.target.value = ''
     }
 
@@ -267,11 +299,85 @@ export function MediaManager({
                     />
                 </div>
 
-                {/* Feedback de estado de subida */}
-                {uploadStatus && (
-                    <div className="mt-2 p-3 bg-blue-50 text-blue-700 text-sm rounded-md border border-blue-100 flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>{uploadStatus}</span>
+                {/* Panel de Subidas Activas y Recientes (Premium) */}
+                {activeUploads.length > 0 && (
+                    <div className="mt-4 border rounded-xl bg-card text-card-foreground shadow-sm overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="flex items-center justify-between border-b px-4 py-3 bg-muted/40">
+                            <div className="flex items-center gap-2">
+                                <UploadCloud className="h-4 w-4 text-primary" />
+                                <h4 className="font-bold text-xs">Progreso de Carga de Archivos</h4>
+                            </div>
+                            {activeUploads.every(up => up.status !== "uploading") && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    type="button"
+                                    className="h-6 px-2 text-[10px] text-muted-foreground hover:text-foreground"
+                                    onClick={() => setActiveUploads([])}
+                                >
+                                    Limpiar historial
+                                </Button>
+                            )}
+                        </div>
+                        <div className="divide-y max-h-60 overflow-y-auto">
+                            {activeUploads.map((up) => {
+                                const isUploading = up.status === "uploading"
+                                const isSuccess = up.status === "success"
+                                const isError = up.status === "error"
+
+                                return (
+                                    <div key={up.id} className="p-3 space-y-2 hover:bg-muted/10 transition-colors">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className={`text-[9px] uppercase font-black px-1.5 py-0.5 rounded ${up.isImage ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400'}`}>
+                                                        {up.isImage ? "Imagen" : "Video"}
+                                                    </span>
+                                                    <p className="text-xs font-bold truncate text-foreground leading-tight" title={up.fileName}>
+                                                        {up.fileName}
+                                                    </p>
+                                                </div>
+                                                <p className={`text-[10px] mt-1 ${isError ? 'text-red-600 font-semibold' : 'text-muted-foreground'}`}>
+                                                    {up.stepText}
+                                                </p>
+                                            </div>
+
+                                            <div className="flex-shrink-0 text-right">
+                                                {isUploading && (
+                                                    <span className="text-[10px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full animate-pulse">
+                                                        {up.progress}%
+                                                    </span>
+                                                )}
+                                                {isSuccess && (
+                                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-50 dark:bg-green-950/20 px-2 py-0.5 rounded-full border border-green-200/40">
+                                                        <CheckCircle2 className="h-2.5 w-2.5" /> Éxito
+                                                    </span>
+                                                )}
+                                                {isError && (
+                                                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-600 bg-red-50 dark:bg-red-950/20 px-2 py-0.5 rounded-full border border-red-200/40">
+                                                        <AlertCircle className="h-2.5 w-2.5" /> Error
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Barra de Progreso */}
+                                        <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden relative">
+                                            <div
+                                                className={`h-full transition-all duration-300 rounded-full ${
+                                                    isSuccess
+                                                        ? "bg-green-500"
+                                                        : isError
+                                                        ? "bg-red-500"
+                                                        : "bg-primary"
+                                                }`}
+                                                style={{ width: `${up.progress}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
                     </div>
                 )}
 
