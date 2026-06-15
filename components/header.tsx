@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { CartButton } from "@/components/cart-button"
-import { Menu, Search, X } from "lucide-react"
+import { Menu, Search, X, ShoppingCart } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { createPortal } from "react-dom"
@@ -196,7 +196,10 @@ export function Header() {
                         {mounted ? (
                             <CartButton />
                         ) : (
-                            <div className="h-10 w-16 sm:w-24 rounded-full border border-border bg-muted/40 animate-pulse" />
+                            <div className="h-10 w-10 md:w-24 rounded-full border border-border bg-background flex items-center justify-center gap-1.5 px-2.5 md:px-3 text-muted-foreground/25 select-none">
+                                <ShoppingCart className="h-5 w-5" />
+                                <span className="font-bold text-sm mr-1 hidden md:inline">Carrito</span>
+                            </div>
                         )}
                     </div>
                 </div>
