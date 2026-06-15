@@ -12,6 +12,7 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 *   [Fase 4: Consolidación, Mapeo y Seguridad de Base de Datos (Supabase)](#fase-4-consolidacion-mapeo-y-seguridad-de-base-de-datos-supabase)
 *   [Fase 5: Optimización del Flujo Logístico a Provincias y Control Multicourier (Shalom / Olva)](#fase-5-optimizacion-del-flujo-logistico-a-provincias-y-control-multicourier-shalom-olva)
 *   [Fase 6: Optimización de Cabecera, Navegación Móvil y Carruseles Interactivos Premium (UX/UI)](#fase-6-optimizacion-de-cabecera-navegacion-movil-y-carruseles-interactivos-premium-uxui)
+*   [Fase 7: Sistema Profesional de Carga de Medios y Feedback en Tiempo Real (UX/UI Admin)](#fase-7-sistema-profesional-de-carga-de-medios-y-feedback-en-tiempo-real-uxui-admin)
 
 ---
 
@@ -191,6 +192,20 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
     *   **En las demás páginas**: Se reubica más abajo (`bottom-6` en móviles) y se agranda significativamente (`h-16 w-16 md:h-[72px] md:w-[72px]`) para mayor comodidad táctil, aplicando un degradado dinámico (`bg-gradient-to-tr from-green-600 via-green-500 to-emerald-400`), bordes pulidos de cristal y sombras de profundidad premium.
     *   El ícono SVG y el efecto visual de onda se escalan proporcionalmente en base a las dimensiones del contenedor (`h-[52%] w-[52%]`).
 *   **Resultado**: Una interacción de ayuda directa mucho más visible y accesible en las páginas generales, sin interferir con los flujos de compra transaccional en el detalle de producto.
+
+---
+
+## Fase 7: Sistema Profesional de Carga de Medios y Feedback en Tiempo Real (UX/UI Admin)
+
+### 1. Seguimiento Dinámico de Porcentaje (XHR Native)
+*   **Ubicación**: [storage.client.ts](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/admin/services/storage.client.ts)
+*   **Solución**: Sustituimos las subidas de archivos mediante `fetch` opaco por peticiones basadas en `XMLHttpRequest` nativo. Vinculamos el evento `xhr.upload.onprogress` para calcular el porcentaje real de subida de 0% a 100%. Esto aplica tanto para la subida directa a R2 vía presigned URL (para videos y archivos pesados) como a través del proxy de compresión de imágenes.
+*   **Mensajes Dinámicos por Pasos**: Diseñamos callbacks interactivos que informan del paso exacto al usuario (ej: *"Preparando archivo..."*, *"Transfiriendo imagen..."*, *"Comprimiendo y optimizando con Sharp..."*, *"¡Subida exitosa!"*).
+
+### 2. Panel Multitarea de Progreso en Panel de Administración
+*   **Ubicación**: [media-manager.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/admin/components/product-form/media-manager.tsx)
+*   **Solución**: Diseñamos una interfaz visual premium que lista las subidas activas. Cada archivo se representa con su nombre, insignia de formato (Imagen / Video), barra de progreso dinámica animada con transiciones suaves de color (verde para éxito, rojo para error, azul/primario para carga activa) y un botón de limpieza para retirar del panel los registros antiguos de subidas completadas.
+*   **Resultado**: Eliminación de la incertidumbre operativa en el panel al subir imágenes de alta resolución o videos grandes, facilitando diagnosticar de manera inmediata fallas de formato, peso de archivo o inestabilidad de red.
 
 ---
 
