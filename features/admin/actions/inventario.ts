@@ -1,8 +1,6 @@
 "use server"
 
-import { createClient as createAdminClient } from "@supabase/supabase-js"
-import { createClient as createServerClient } from "@/lib/supabase.server"
-import { getSupabaseEnv } from "@/features/admin/services/admin.server"
+import { validateAdminAction } from "@/features/admin/services/admin.server"
 import { revalidateTag, revalidatePath } from "next/cache"
 
 export type MovimientoInventarioPayload = {
@@ -16,32 +14,9 @@ export type MovimientoInventarioPayload = {
   notas?: string | null
 }
 
-async function validateAdmin() {
-    const supabase = await createServerClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-    if (authError || !user) throw new Error("No autenticado")
-
-    const { url, service } = getSupabaseEnv()
-    if (!url || !service) throw new Error("Error de configuración del servidor")
-
-    const supabaseAdmin = createAdminClient(url, service)
-    const { data: profile } = await supabaseAdmin
-        .from("usuarios")
-        .select("role")
-        .eq("id", user.id)
-        .maybeSingle()
-
-    if (String(profile?.role || "").toLowerCase() !== "admin") {
-        throw new Error("No tienes permisos de administrador")
-    }
-
-    return { supabaseAdmin, user }
-}
-
 export async function registrarMovimientoAction(payload: MovimientoInventarioPayload) {
   try {
-    const { supabaseAdmin, user } = await validateAdmin()
+    const { supabaseAdmin, user } = await validateAdminAction()
 
     // Validate
     if (!payload.producto_id) throw new Error("ID de producto requerido")

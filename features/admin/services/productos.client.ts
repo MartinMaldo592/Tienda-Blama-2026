@@ -68,3 +68,26 @@ export async function uploadProductVideos(args: { files: File[] }) {
 
   return uploadedUrls
 }
+
+export async function fetchAdminProductosPaginated(args: { page: number; limit: number; search?: string }): Promise<{ productos: Producto[]; totalCount: number }> {
+  const supabase = createClient()
+  const from = (args.page - 1) * args.limit
+  const to = from + args.limit - 1
+
+  let query = supabase.from("productos").select("*", { count: "exact" })
+
+  if (args.search && args.search.trim()) {
+    query = query.ilike("nombre", `%${args.search.trim()}%`)
+  }
+
+  const { data, error, count } = await query
+    .order("id", { ascending: true })
+    .range(from, to)
+
+  if (error) throw error
+
+  return {
+    productos: (data as Producto[]) || [],
+    totalCount: count || 0
+  }
+}

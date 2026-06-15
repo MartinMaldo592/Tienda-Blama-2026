@@ -3,9 +3,28 @@ import { NextRequest, NextResponse } from "next/server"
 import { PutObjectCommand } from "@aws-sdk/client-s3"
 import { r2Client, R2_BUCKET_NAME, R2_PUBLIC_DOMAIN } from "@/lib/r2"
 import sharp from "sharp"
+import { createClient } from "@/lib/supabase.server"
 
 export async function POST(req: NextRequest) {
     try {
+        // Validar sesión y permisos del usuario (staff o admin)
+        const supabase = await createClient()
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+        if (authError || !user) {
+            return NextResponse.json({ error: "No autorizado. Inicia sesión." }, { status: 401 })
+        }
+
+        const { data: profile } = await supabase
+            .from("usuarios")
+            .select("role")
+            .eq("id", user.id)
+            .maybeSingle()
+
+        if (!profile || !["admin", "superadmin", "worker"].includes(profile.role)) {
+            return NextResponse.json({ error: "Acceso denegado. Rol no autorizado." }, { status: 403 })
+        }
+
         const formData = await req.formData()
         const file = formData.get("file") as File | null
 

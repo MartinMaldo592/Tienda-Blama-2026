@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { m, AnimatePresence } from "framer-motion"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase.client"
-import { fetchAuditLogs, AuditLog } from "@/features/admin/services/audit.client"
+import { fetchAuditLogsPaginated, AuditLog } from "@/features/admin/services/audit.client"
 import { useRoleGuard } from "@/hooks/use-role-guard"
 import { AccessDenied } from "@/features/admin/components/access-denied"
 import { AdminPageHeader } from "@/features/admin/components/page-header"
@@ -18,13 +19,27 @@ import { es } from "date-fns/locale"
 
 export default function AuditPage() {
     const qc = useQueryClient()
+    const router = useRouter()
+    const searchParams = useSearchParams()
+    const pathname = usePathname()
+
     const guard = useRoleGuard({ allowedRoles: ['superadmin', 'admin'] })
     const [isLive, setIsLive] = useState(true)
 
-    const { data: logs = [], isLoading, isFetching } = useQuery({
-        queryKey: ["auditLogs"], queryFn: fetchAuditLogs,
+    const currentPage = Number(searchParams.get("page")) || 1
+    const itemsPerPage = 10
+
+    const { data: queryResult, isLoading, isFetching } = useQuery({
+        queryKey: ["auditLogs", currentPage],
+        queryFn: () => fetchAuditLogsPaginated({ page: currentPage, limit: itemsPerPage }),
+        enabled: !guard.loading && !guard.accessDenied,
         refetchInterval: isLive ? 10000 : false,
+        placeholderData: keepPreviousData
     })
+
+    const logs = queryResult?.logs || []
+    const totalItems = queryResult?.totalCount || 0
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1
 
     useEffect(() => {
         if (!isLive) return
@@ -32,6 +47,36 @@ export default function AuditPage() {
         const channel = supabase.channel('system_audit_logs_changes').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'system_audit_logs' }, () => { qc.invalidateQueries({ queryKey: ["auditLogs"] }) }).subscribe()
         return () => { supabase.removeChannel(channel) }
     }, [isLive, qc])
+
+    const handlePageChange = (newPage: number) => {
+        const params = new URLSearchParams(searchParams.toString())
+        if (newPage > 1) params.set("page", newPage.toString())
+        else params.delete("page")
+        const query = params.toString()
+        router.push(query ? `${pathname}?${query}` : pathname, { scroll: false })
+    }
+
+    const getPageNumbers = () => {
+        const pages = []
+        const maxVisible = 5
+        if (totalPages <= maxVisible) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i)
+        } else {
+            pages.push(1)
+            let start = Math.max(2, currentPage - 1)
+            let end = Math.min(totalPages - 1, currentPage + 1)
+            if (currentPage <= 3) { start = 2; end = 4 }
+            else if (currentPage >= totalPages - 2) { start = totalPages - 3; end = totalPages - 1 }
+            if (start > 2) pages.push('...')
+            for (let i = start; i <= end; i++) pages.push(i)
+            if (end < totalPages - 1) pages.push('...')
+            pages.push(totalPages)
+        }
+        return pages
+    }
+
+    const startIndexDisplay = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1
+    const endIndexDisplay = Math.min(totalItems, currentPage * itemsPerPage)
 
     if (guard.accessDenied) return <AccessDenied />
     if (guard.loading || isLoading) return <AdminPageSkeleton hasStats={0} tableColumns={5} tableRows={10} />
@@ -47,7 +92,7 @@ export default function AuditPage() {
 
     return (
         <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="space-y-10 max-w-[1600px] mx-auto">
-            <AdminPageHeader icon={<ShieldAlert size={28} strokeWidth={1.5} />} iconColor="bg-slate-800" iconShadow="shadow-slate-300" title="Auditoría" subtitle="Monitoreo de actividad del sistema en tiempo real" isFetching={isFetching} dotColor={isLive ? "bg-emerald-500" : "bg-slate-300"}
+            <AdminPageHeader icon={<ShieldAlert size={28} strokeWidth={1.5} />} iconColor="bg-slate-800" iconShadow="shadow-slate-300" title="Auditoría" subtitle="Monitoreo de actividad del sistema en tiempo real" totalItems={totalItems} totalLabel="logs totales" isFetching={isFetching} dotColor={isLive ? "bg-emerald-500" : "bg-slate-300"}
                 actions={<>
                     <Button variant={isLive ? "default" : "outline"} className={`gap-2 haptic-scale rounded-2xl h-14 px-6 font-bold ${isLive ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg' : ''}`} onClick={() => setIsLive(!isLive)}>
                         <Activity className={`h-4 w-4 ${isLive ? 'animate-pulse' : ''}`} />{isLive ? 'Live ON' : 'Live OFF'}
@@ -73,7 +118,7 @@ export default function AuditPage() {
                                 <TableRow><TableCell colSpan={5} className="text-center py-20 text-slate-400 italic">No se han registrado acciones aún.</TableCell></TableRow>
                             ) : (
                                 logs.map((log) => (
-                                    <m.tr key={log.id} layout initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="h-[72px] hover:bg-slate-50/80 transition-colors border-slate-50">
+                                    <m.tr key={log.id} layout initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className="h-[72px] hover:bg-slate-50/80 transition-colors border-slate-50 group">
                                         <TableCell className="pl-8">
                                             <div className="flex items-center gap-2">
                                                 <Clock className="h-3.5 w-3.5 text-slate-300" />
@@ -106,8 +151,54 @@ export default function AuditPage() {
                         </AnimatePresence>
                     </TableBody>
                 </Table>
+
+                {/* Controles de Paginación */}
+                {totalPages > 1 && (
+                    <div className="px-8 py-5 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
+                            Mostrando {startIndexDisplay}-{endIndexDisplay} de {totalItems} logs
+                        </p>
+                        <div className="flex items-center gap-1.5">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-9 rounded-xl font-bold text-xs"
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
+                            >
+                                Anterior
+                            </Button>
+                            {getPageNumbers().map((p, idx) => (
+                                <Button
+                                    key={idx}
+                                    variant={p === currentPage ? "default" : "outline"}
+                                    size="sm"
+                                    className={`h-9 w-9 rounded-xl font-bold text-xs ${p === '...' ? 'pointer-events-none border-none' : ''}`}
+                                    onClick={() => typeof p === 'number' && handlePageChange(p)}
+                                >
+                                    {p}
+                                </Button>
+                            ))}
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-9 rounded-xl font-bold text-xs"
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                            >
+                                Siguiente
+                            </Button>
+                        </div>
+                    </div>
+                )}
+                {logs.length > 0 && totalPages <= 1 && (
+                    <div className="px-8 py-5 bg-slate-50/50 border-t border-slate-100">
+                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
+                            Mostrando {logs.length} de {totalItems} logs
+                        </p>
+                    </div>
+                )}
             </m.div>
         </m.div>
     )
 }
-

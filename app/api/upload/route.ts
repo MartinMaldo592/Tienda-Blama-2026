@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
             .eq("id", user.id)
             .single()
 
-        if (!usuario || !["admin", "worker"].includes(usuario.role)) {
+        if (!usuario || !["admin", "worker", "superadmin"].includes(usuario.role)) {
             return NextResponse.json(
                 { error: "Acceso denegado. Solo el personal puede subir archivos." },
                 { status: 403 }
