@@ -183,6 +183,15 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 *   **Solución**: Se recalibró el sensor de visibilidad (IntersectionObserver) para la barra flotante inferior en dispositivos móviles, elevando el umbral de activación (tanto en `rootMargin` como en la lógica de evaluación `boundingClientRect.top`) de **450px** a **650px**.
 *   **Resultado**: La barra flotante aparece antes al avanzar en el detalle de la página de producto, acelerando la posibilidad de que el cliente inicie el flujo de compra rápida.
 
+### 10. Botón de WhatsApp Flotante Adaptativo e Interactivo Premium
+*   **Ubicación**: [layout-shell.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA WEB/Tienda-Blama-2026/components/layout-shell.tsx)
+*   **Solución**:
+    *   Se implementó una evaluación condicional basada en rutas para alternar las dimensiones, el diseño y el posicionamiento del botón de WhatsApp.
+    *   **En la página de detalle de producto**: Se mantiene en su posición superior (`bottom-24` en móviles) y tamaño estándar (`h-14 w-14`) para evitar el solapamiento con la barra inferior de compra rápida móvil (`bottom-4`).
+    *   **En las demás páginas**: Se reubica más abajo (`bottom-6` en móviles) y se agranda significativamente (`h-16 w-16 md:h-[72px] md:w-[72px]`) para mayor comodidad táctil, aplicando un degradado dinámico (`bg-gradient-to-tr from-green-600 via-green-500 to-emerald-400`), bordes pulidos de cristal y sombras de profundidad premium.
+    *   El ícono SVG y el efecto visual de onda se escalan proporcionalmente en base a las dimensiones del contenedor (`h-[52%] w-[52%]`).
+*   **Resultado**: Una interacción de ayuda directa mucho más visible y accesible en las páginas generales, sin interferir con los flujos de compra transaccional en el detalle de producto.
+
 ---
 
 <div align="center">
