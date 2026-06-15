@@ -29,3 +29,24 @@ export async function fetchAuditLogs(): Promise<AuditLog[]> {
     if (error) throw error
     return (data as any[]) || []
 }
+
+export async function fetchAuditLogsPaginated(args: { page: number; limit: number }): Promise<{ logs: AuditLog[]; totalCount: number }> {
+    const supabase = createClient()
+    const from = (args.page - 1) * args.limit
+    const to = from + args.limit - 1
+
+    const { data, error, count } = await supabase
+        .from("system_audit_logs")
+        .select(`
+            *,
+            usuario:usuarios(nombre, email)
+        `, { count: "exact" })
+        .order("changed_at", { ascending: false })
+        .range(from, to)
+
+    if (error) throw error
+    return {
+        logs: (data as any[]) || [],
+        totalCount: count || 0
+    }
+}

@@ -1,6 +1,7 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { useRoleGuard } from "@/hooks/use-role-guard"
 import { AccessDenied } from "@/features/admin/components/access-denied"
 import { AdminPageHeader } from "@/features/admin/components/page-header"
@@ -10,8 +11,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Check, RefreshCw, Trash2, X, Star, TrendingUp, Clock } from "lucide-react"
-import { deleteReview, fetchAdminReviews, setReviewApproved } from "@/features/admin"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { deleteReview, fetchAdminReviewsPaginated, setReviewApproved } from "@/features/admin"
+import { createClient } from "@/lib/supabase.client"
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { m, AnimatePresence } from "framer-motion"
 
@@ -24,40 +26,113 @@ type ReviewRow = {
 export default function AdminResenasPage() {
   const guard = useRoleGuard({ allowedRoles: ["superadmin", "admin"] })
   const qc = useQueryClient()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+
   const [search, setSearch] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
   const [busyId, setBusyId] = useState<number|null>(null)
 
-  const { data: items = [], isLoading, isFetching } = useQuery({
-    queryKey: ["adminResenas"], queryFn: fetchAdminReviews,
+  const currentPage = Number(searchParams.get("page")) || 1
+  const itemsPerPage = 10
+
+  // Debounce del input de búsqueda
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search)
+    }, 300)
+    return () => clearTimeout(handler)
+  }, [search])
+
+  // Reiniciar página a 1 al buscar
+  useEffect(() => {
+    handlePageChange(1)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch])
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString())
+    if (newPage > 1) params.set("page", newPage.toString())
+    else params.delete("page")
+    const query = params.toString()
+    router.push(query ? `${pathname}?${query}` : pathname, { scroll: false })
+  }
+
+  // Petición paginada al servidor
+  const { data: queryResult, isLoading, isFetching } = useQuery({
+    queryKey: ["adminResenas", currentPage, debouncedSearch],
+    queryFn: () => fetchAdminReviewsPaginated({ page: currentPage, limit: itemsPerPage, search: debouncedSearch }),
     enabled: !guard.loading && !guard.accessDenied,
-    select: (d) => ((d as any[]) || []) as ReviewRow[],
+    placeholderData: keepPreviousData,
+    select: (d) => ({
+      reviews: (d?.reviews || []) as ReviewRow[],
+      totalCount: d?.totalCount || 0
+    })
+  })
+
+  const reviews = queryResult?.reviews || []
+  const totalItems = queryResult?.totalCount || 0
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1
+
+  // Consulta global de estadísticas del negocio (conteo y rating promedio acumulado)
+  const { data: stats = { total: 0, pendientes: 0, avgRating: "0" } } = useQuery({
+    queryKey: ["adminResenasStats"],
+    queryFn: async () => {
+      const supabase = createClient()
+      const { data, error } = await supabase.from("product_reviews").select("rating, approved")
+      if (error) throw error
+      const total = data.length
+      const pendientes = data.filter(r => !r.approved).length
+      const avgRating = total ? (data.reduce((s, r) => s + r.rating, 0) / total).toFixed(1) : "0"
+      return { total, pendientes, avgRating }
+    },
+    enabled: !guard.loading && !guard.accessDenied,
   })
 
   const approveMut = useMutation({
     mutationFn: async ({id,approved}:{id:number,approved:boolean}) => { setBusyId(id); return setReviewApproved({id,approved}) },
-    onSuccess: (_,{approved}) => { toast.success(approved?"Reseña publicada":"Reseña despublicada"); qc.invalidateQueries({queryKey:["adminResenas"]}) },
+    onSuccess: (_,{approved}) => { 
+      toast.success(approved?"Reseña publicada":"Reseña despublicada")
+      qc.invalidateQueries({queryKey:["adminResenas"]}) 
+      qc.invalidateQueries({queryKey:["adminResenasStats"]}) 
+    },
     onError: (e:any) => toast.error(e?.message||"Error"),
     onSettled: () => setBusyId(null),
   })
 
   const deleteMut = useMutation({
     mutationFn: async (id:number) => { setBusyId(id); return deleteReview(id) },
-    onSuccess: () => { toast.success("Reseña eliminada"); qc.invalidateQueries({queryKey:["adminResenas"]}) },
+    onSuccess: () => { 
+      toast.success("Reseña eliminada")
+      qc.invalidateQueries({queryKey:["adminResenas"]}) 
+      qc.invalidateQueries({queryKey:["adminResenasStats"]}) 
+    },
     onError: (e:any) => toast.error(e?.message||"Error"),
     onSettled: () => setBusyId(null),
   })
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    if (!q) return items
-    return items.filter(r => [r.customer_name,r.customer_city,r.title,r.body,r.productos?.nombre].some(v=>String(v||"").toLowerCase().includes(q)))
-  }, [items, search])
+  const getPageNumbers = () => {
+    const pages = []
+    const maxVisible = 5
+    if (totalPages <= maxVisible) {
+        for (let i = 1; i <= totalPages; i++) pages.push(i)
+    } else {
+        pages.push(1)
+        let start = Math.max(2, currentPage - 1)
+        let end = Math.min(totalPages - 1, currentPage + 1)
+        if (currentPage <= 3) { start = 2; end = 4 }
+        else if (currentPage >= totalPages - 2) { start = totalPages - 3; end = totalPages - 1 }
+        if (start > 2) pages.push('...')
+        for (let i = start; i <= end; i++) pages.push(i)
+        if (end < totalPages - 1) pages.push('...')
+        pages.push(totalPages)
+    }
+    return pages
+  }
 
-  const stats = useMemo(() => ({
-    total: items.length,
-    pendientes: items.filter(r=>!r.approved).length,
-    avgRating: items.length ? (items.reduce((s,r)=>s+r.rating,0)/items.length).toFixed(1) : "0",
-  }), [items])
+  const startIndexDisplay = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1
+  const endIndexDisplay = Math.min(totalItems, currentPage * itemsPerPage)
 
   if (guard.loading || isLoading) return <AdminPageSkeleton hasStats={3} tableColumns={5} tableRows={8} />
   if (guard.accessDenied) return <AccessDenied message="Solo administradores." />
@@ -65,7 +140,7 @@ export default function AdminResenasPage() {
   return (
     <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:0.4}} className="space-y-10 max-w-[1600px] mx-auto">
       <AdminPageHeader icon={<Star size={28} strokeWidth={1.5}/>} iconColor="bg-yellow-500" iconShadow="shadow-yellow-200" title="Reseñas" totalItems={stats.total} totalLabel="reseñas totales" isFetching={isFetching} dotColor="bg-yellow-500"
-        actions={<Button variant="outline" className="gap-2 haptic-scale shadow-sm rounded-2xl h-14 px-6 font-bold" onClick={()=>qc.invalidateQueries({queryKey:["adminResenas"]})} disabled={isFetching}><RefreshCw className={`h-4 w-4 ${isFetching?'animate-spin':''}`}/>Sincronizar</Button>}
+        actions={<Button variant="outline" className="gap-2 haptic-scale shadow-sm rounded-2xl h-14 px-6 font-bold" onClick={()=>{qc.invalidateQueries({queryKey:["adminResenas"]}); qc.invalidateQueries({queryKey:["adminResenasStats"]})}} disabled={isFetching}><RefreshCw className={`h-4 w-4 ${isFetching?'animate-spin':''}`}/>Sincronizar</Button>}
       />
 
       <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.1}} className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -94,7 +169,7 @@ export default function AdminResenasPage() {
           </TableHeader>
           <TableBody>
             <AnimatePresence mode="popLayout">
-              {filtered.map((r,i)=>{
+              {reviews.map((r,i)=>{
                 const dis = busyId===r.id
                 return (
                   <m.tr key={r.id} initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} exit={{opacity:0,scale:0.95}} transition={{delay:i*0.03}} className="h-[72px] hover:bg-slate-50/80 transition-colors border-slate-50 group">
@@ -130,9 +205,56 @@ export default function AdminResenasPage() {
                 )
               })}
             </AnimatePresence>
-            {filtered.length===0&&<TableRow><TableCell colSpan={5} className="text-center py-20 text-slate-400">No hay reseñas.</TableCell></TableRow>}
+            {reviews.length===0&&<TableRow><TableCell colSpan={5} className="text-center py-20 text-slate-400">No hay reseñas.</TableCell></TableRow>}
           </TableBody>
         </Table>
+
+        {/* Sección de Paginación */}
+        {totalPages > 1 && (
+            <div className="px-8 py-5 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
+                    Mostrando {startIndexDisplay}-{endIndexDisplay} de {totalItems} reseñas
+                </p>
+                <div className="flex items-center gap-1.5">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 rounded-xl font-bold text-xs"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                    >
+                        Anterior
+                    </Button>
+                    {getPageNumbers().map((p, idx) => (
+                        <Button
+                            key={idx}
+                            variant={p === currentPage ? "default" : "outline"}
+                            size="sm"
+                            className={`h-9 w-9 rounded-xl font-bold text-xs ${p === '...' ? 'pointer-events-none border-none' : ''}`}
+                            onClick={() => typeof p === 'number' && handlePageChange(p)}
+                        >
+                            {p}
+                        </Button>
+                    ))}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 rounded-xl font-bold text-xs"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                    >
+                        Siguiente
+                    </Button>
+                </div>
+            </div>
+        )}
+        {reviews.length > 0 && totalPages <= 1 && (
+            <div className="px-8 py-5 bg-slate-50/50 border-t border-slate-100">
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
+                    Mostrando {reviews.length} de {totalItems} reseñas
+                </p>
+            </div>
+        )}
       </m.div>
     </m.div>
   )
