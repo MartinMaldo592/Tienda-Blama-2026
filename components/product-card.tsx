@@ -89,7 +89,7 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
                     ¡LO MÁS VENDIDO!
                 </div>
                 <Link href={productHref} className="mb-2 block">
-                    <h3 className="text-[17px] font-black text-slate-900 leading-tight line-clamp-2 hover:text-blue-600 transition-colors">
+                    <h3 className="text-[17px] font-black text-slate-900 leading-tight line-clamp-2 h-[42px] overflow-hidden hover:text-blue-600 transition-colors">
                         {product.nombre}
                     </h3>
                 </Link>
@@ -113,9 +113,9 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
                         )}
                     </div>
 
-                    {/* Timer Box */}
-                    {hasSale && (
-                        <div className="flex items-center justify-between bg-[#f4f8fe] border border-[#e2e8f0] rounded-2xl p-3">
+                    {/* Timer Box / Stock Availability Box (Uniform height h-[58px]) */}
+                    {hasSale ? (
+                        <div className="flex items-center justify-between bg-[#f4f8fe] border border-[#e2e8f0] rounded-2xl p-3 h-[58px]">
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest leading-none mb-1">Oferta</span>
                                 <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest leading-none">Expira en :</span>
@@ -124,6 +124,16 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
                                 <span>{timeLeft.m < 10 ? `0${timeLeft.m}` : timeLeft.m}</span>
                                 <span className="animate-pulse">:</span>
                                 <span>{timeLeft.s < 10 ? `0${timeLeft.s}` : timeLeft.s}</span>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex items-center justify-between bg-[#fcfcfc] border border-slate-100 rounded-2xl p-3 h-[58px] opacity-90">
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Disponibilidad</span>
+                                <span className="text-[10px] font-black text-green-600 uppercase tracking-widest leading-none">¡Stock Disponible!</span>
+                            </div>
+                            <div className="text-slate-400 font-bold text-[11px] tracking-wide uppercase">
+                                Envío inmediato
                             </div>
                         </div>
                     )}
