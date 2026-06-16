@@ -16,6 +16,8 @@ interface OrdersFilterBarProps {
     setSearchTerm: (val: string) => void
     statusFilter: string
     setStatusFilter: (val: string) => void
+    pagoStatusFilter: string
+    setPagoStatusFilter: (val: string) => void
     userRole: string
     filterWorker: string
     setFilterWorker: (val: string) => void
@@ -31,6 +33,7 @@ interface OrdersFilterBarProps {
 export function OrdersFilterBar({
     searchTerm, setSearchTerm,
     statusFilter, setStatusFilter,
+    pagoStatusFilter, setPagoStatusFilter,
     userRole,
     filterWorker, setFilterWorker,
     workers,
@@ -40,9 +43,11 @@ export function OrdersFilterBar({
 }: OrdersFilterBarProps) {
     const [statusOpen, setStatusOpen] = useState(false)
     const [workerOpen, setWorkerOpen] = useState(false)
+    const [pagoStatusOpen, setPagoStatusOpen] = useState(false)
 
     const statusRef = useRef<HTMLDivElement>(null)
     const workerRef = useRef<HTMLDivElement>(null)
+    const pagoStatusRef = useRef<HTMLDivElement>(null)
 
     // Cerrar los dropdowns al hacer clic fuera del componente
     useEffect(() => {
@@ -52,6 +57,9 @@ export function OrdersFilterBar({
             }
             if (workerRef.current && !workerRef.current.contains(event.target as Node)) {
                 setWorkerOpen(false)
+            }
+            if (pagoStatusRef.current && !pagoStatusRef.current.contains(event.target as Node)) {
+                setPagoStatusOpen(false)
             }
         }
         document.addEventListener("mousedown", handleClickOutside)
@@ -70,8 +78,19 @@ export function OrdersFilterBar({
         { value: "Cancelado", label: "Cancelado" },
     ]
 
+    const allPagoStatuses = [
+        { value: "Pendiente", label: "Pendiente" },
+        { value: "Pago Parcial", label: "Pago Parcial" },
+        { value: "Pagado", label: "Pagado" },
+        { value: "Pago Contraentrega", label: "Pago Contraentrega" },
+        { value: "Pagado Anticipado", label: "Pagado Anticipado" },
+        { value: "Pagado al Recibir", label: "Pagado al Recibir" },
+        { value: "Fallido", label: "Fallido" },
+    ]
+
     const selectedStatuses = statusFilter === "all" ? [] : statusFilter.split(",").filter(Boolean)
     const selectedWorkers = filterWorker === "all" ? [] : filterWorker.split(",").filter(Boolean)
+    const selectedPagoStatuses = pagoStatusFilter === "all" ? [] : pagoStatusFilter.split(",").filter(Boolean)
 
     const toggleStatus = (status: string) => {
         const next = selectedStatuses.includes(status)
@@ -87,11 +106,18 @@ export function OrdersFilterBar({
         setFilterWorker(next.length === 0 ? "all" : next.join(","))
     }
 
+    const togglePagoStatus = (pagoStatus: string) => {
+        const next = selectedPagoStatuses.includes(pagoStatus)
+            ? selectedPagoStatuses.filter(s => s !== pagoStatus)
+            : [...selectedPagoStatuses, pagoStatus]
+        setPagoStatusFilter(next.length === 0 ? "all" : next.join(","))
+    }
+
     // Texto dinámico y contextual para los botones
     const getStatusButtonText = () => {
         if (selectedStatuses.length === 0) return "Todos los estados"
         if (selectedStatuses.length <= 2) return selectedStatuses.join(", ")
-        return `${selectedStatuses.length} estados seleccionados`
+        return `${selectedStatuses.length} estados sel.`
     }
 
     const getWorkerButtonText = () => {
@@ -107,12 +133,18 @@ export function OrdersFilterBar({
         return `${names.length} asignados`
     }
 
+    const getPagoStatusButtonText = () => {
+        if (selectedPagoStatuses.length === 0) return "Todos los pagos"
+        if (selectedPagoStatuses.length <= 2) return selectedPagoStatuses.join(", ")
+        return `${selectedPagoStatuses.length} pagos sel.`
+    }
+
     return (
         <m.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 p-6 bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100"
         >
             {/* Campo de búsqueda */}
             <div className="relative group">
@@ -132,6 +164,7 @@ export function OrdersFilterBar({
                     onClick={() => {
                         setStatusOpen(!statusOpen)
                         setWorkerOpen(false)
+                        setPagoStatusOpen(false)
                     }}
                     className="h-14 w-full flex items-center justify-between bg-slate-50 border-none rounded-2xl font-bold text-slate-900 px-6 cursor-pointer focus:outline-none hover:bg-slate-100/70 transition-all text-left"
                 >
@@ -182,6 +215,7 @@ export function OrdersFilterBar({
                         onClick={() => {
                             setWorkerOpen(!workerOpen)
                             setStatusOpen(false)
+                            setPagoStatusOpen(false)
                         }}
                         className="h-14 w-full flex items-center justify-between bg-slate-50 border-none rounded-2xl font-bold text-slate-900 px-6 cursor-pointer focus:outline-none hover:bg-slate-100/70 transition-all text-left"
                     >
@@ -237,6 +271,56 @@ export function OrdersFilterBar({
                     )}
                 </div>
             )}
+
+            {/* Filtro Multiselección de Estado de Pago */}
+            <div ref={pagoStatusRef} className="relative">
+                <button
+                    type="button"
+                    onClick={() => {
+                        setPagoStatusOpen(!pagoStatusOpen)
+                        setStatusOpen(false)
+                        setWorkerOpen(false)
+                    }}
+                    className="h-14 w-full flex items-center justify-between bg-slate-50 border-none rounded-2xl font-bold text-slate-900 px-6 cursor-pointer focus:outline-none hover:bg-slate-100/70 transition-all text-left"
+                >
+                    <span className="truncate pr-2">{getPagoStatusButtonText()}</span>
+                    <ChevronDown className={`h-5 w-5 text-slate-400 shrink-0 transition-transform duration-200 ${pagoStatusOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {pagoStatusOpen && (
+                    <div className="absolute top-full left-0 right-0 z-50 mt-2 rounded-2xl bg-white border border-slate-100 shadow-[0_10px_40px_rgba(0,0,0,0.12)] p-3 space-y-1 max-h-80 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between border-b pb-2 mb-2 px-1">
+                            <span className="text-[10px] uppercase font-black text-muted-foreground">Pago Estado</span>
+                            {selectedPagoStatuses.length > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={() => setPagoStatusFilter("all")}
+                                    className="text-[10px] font-bold text-primary hover:underline cursor-pointer"
+                                >
+                                    Limpiar
+                                </button>
+                            )}
+                        </div>
+                        {allPagoStatuses.map((pst) => {
+                            const isChecked = selectedPagoStatuses.includes(pst.value)
+                            return (
+                                <label
+                                    key={pst.value}
+                                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer select-none"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={isChecked}
+                                        onChange={() => togglePagoStatus(pst.value)}
+                                        className="h-5 w-5 rounded border-slate-200 text-slate-900 focus:ring-slate-900/5 focus:ring-offset-0 focus:ring-2 accent-slate-900 cursor-pointer"
+                                    />
+                                    <span className="text-xs font-bold text-slate-800">{pst.label}</span>
+                                </label>
+                            )
+                        })}
+                    </div>
+                )}
+            </div>
 
             {/* Filtro de Rango de Fechas */}
             <div className="flex gap-2">

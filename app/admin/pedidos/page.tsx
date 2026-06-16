@@ -56,6 +56,7 @@ function PedidosPageContent() {
     const [filterWorker, setFilterWorker] = useState<string>('all')
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
+    const [pagoStatusFilter, setPagoStatusFilter] = useState('all')
     const [dateFilter, setDateFilter] = useState('all')
     const [customStartDate, setCustomStartDate] = useState('')
     const [customEndDate, setCustomEndDate] = useState('')
@@ -92,21 +93,22 @@ function PedidosPageContent() {
         })
     }, [])
 
-    const prevFiltersRef = useRef({ searchTerm, statusFilter, dateFilter, filterWorker, customStartDate, customEndDate })
+    const prevFiltersRef = useRef({ searchTerm, statusFilter, pagoStatusFilter, dateFilter, filterWorker, customStartDate, customEndDate })
     useEffect(() => {
         const prev = prevFiltersRef.current
         const changed =
             prev.searchTerm !== searchTerm ||
             prev.statusFilter !== statusFilter ||
+            prev.pagoStatusFilter !== pagoStatusFilter ||
             prev.dateFilter !== dateFilter ||
             prev.filterWorker !== filterWorker ||
             prev.customStartDate !== customStartDate ||
             prev.customEndDate !== customEndDate
 
-        prevFiltersRef.current = { searchTerm, statusFilter, dateFilter, filterWorker, customStartDate, customEndDate }
+        prevFiltersRef.current = { searchTerm, statusFilter, pagoStatusFilter, dateFilter, filterWorker, customStartDate, customEndDate }
         if (changed) handlePageChange(1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchTerm, statusFilter, dateFilter, filterWorker, customStartDate, customEndDate])
+    }, [searchTerm, statusFilter, pagoStatusFilter, dateFilter, filterWorker, customStartDate, customEndDate])
 
     useEffect(() => {
         if (!userId) return
@@ -131,10 +133,11 @@ function PedidosPageContent() {
     }, [userId, queryClient])
 
     const { data: fetchResult, isLoading: loadingPedidos, isFetching } = useQuery({
-        queryKey: ["adminPedidos", userRole, userId, currentPage, itemsPerPage, statusFilter, searchTerm, dateFilter, filterWorker, customStartDate, customEndDate],
+        queryKey: ["adminPedidos", userRole, userId, currentPage, itemsPerPage, statusFilter, pagoStatusFilter, searchTerm, dateFilter, filterWorker, customStartDate, customEndDate],
         queryFn: () => fetchPedidosForRole({ 
             role: userRole, currentUserId: userId, page: currentPage, itemsPerPage,
-            statusFilter, searchTerm, dateFilter, filterWorker, customStartDate, customEndDate
+            statusFilter, searchTerm, dateFilter, filterWorker, customStartDate, customEndDate,
+            pagoStatusFilter
         }),
         enabled: !!userId && !guard.loading && !guard.accessDenied,
         placeholderData: keepPreviousData,
@@ -149,14 +152,15 @@ function PedidosPageContent() {
         if (currentPage < totalPages) {
             const nextPage = currentPage + 1
             queryClient.prefetchQuery({
-                queryKey: ["adminPedidos", userRole, userId, nextPage, itemsPerPage, statusFilter, searchTerm, dateFilter, filterWorker, customStartDate, customEndDate],
+                queryKey: ["adminPedidos", userRole, userId, nextPage, itemsPerPage, statusFilter, pagoStatusFilter, searchTerm, dateFilter, filterWorker, customStartDate, customEndDate],
                 queryFn: () => fetchPedidosForRole({ 
                     role: userRole, currentUserId: userId, page: nextPage, itemsPerPage,
-                    statusFilter, searchTerm, dateFilter, filterWorker, customStartDate, customEndDate
+                    statusFilter, searchTerm, dateFilter, filterWorker, customStartDate, customEndDate,
+                    pagoStatusFilter
                 }),
             })
         }
-    }, [currentPage, totalPages, queryClient, userRole, userId, itemsPerPage, statusFilter, searchTerm, dateFilter, filterWorker, customStartDate, customEndDate])
+    }, [currentPage, totalPages, queryClient, userRole, userId, itemsPerPage, statusFilter, pagoStatusFilter, searchTerm, dateFilter, filterWorker, customStartDate, customEndDate])
 
     const { data: workers = [] } = useQuery({
         queryKey: ["adminWorkers"],
@@ -404,6 +408,7 @@ function PedidosPageContent() {
             <OrdersFilterBar 
                 searchTerm={searchTerm} setSearchTerm={setSearchTerm}
                 statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+                pagoStatusFilter={pagoStatusFilter} setPagoStatusFilter={setPagoStatusFilter}
                 userRole={userRole}
                 filterWorker={filterWorker} setFilterWorker={setFilterWorker}
                 workers={workers}
