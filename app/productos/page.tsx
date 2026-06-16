@@ -2,6 +2,7 @@ import { Suspense } from "react"
 import { listCategories, listProducts } from "@/features/products/services/products.server"
 import type { SortValue } from "@/features/products/types"
 import { ProductosClient } from "@/features/products/components/ProductosClient"
+import Loading from "./loading"
 
 export const metadata = {
     title: 'Colección Exclusiva | Blama Shop',
@@ -51,7 +52,7 @@ export default async function ProductosPage({ searchParams }: PageProps) {
         ])
 
         return (
-            <Suspense fallback={<div className="p-6 text-center text-muted-foreground min-h-screen">Cargando catálogo...</div>}>
+            <Suspense fallback={<Loading />}>
                 <ProductosClient 
                     initialProducts={productsData.productos}
                     initialTotalCount={productsData.totalCount}
