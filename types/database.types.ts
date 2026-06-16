@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
@@ -20,69 +20,69 @@ export type Database = {
           created_at: string | null
           direccion: string | null
           id: number
-          nombre: string | null
+          nombre: string
         }
         Insert: {
           activo?: boolean | null
           created_at?: string | null
           direccion?: string | null
           id?: number
-          nombre?: string | null
+          nombre: string
         }
         Update: {
           activo?: boolean | null
           created_at?: string | null
           direccion?: string | null
           id?: number
-          nombre?: string | null
+          nombre?: string
         }
         Relationships: []
       }
       announcement_bar: {
         Row: {
-          enabled: boolean | null
+          enabled: boolean
           id: number
-          interval_ms: number | null
-          messages: string[] | null
-          updated_at: string | null
+          interval_ms: number
+          messages: string[]
+          updated_at: string
         }
         Insert: {
-          enabled?: boolean | null
+          enabled?: boolean
           id: number
-          interval_ms?: number | null
-          messages?: string[] | null
-          updated_at?: string | null
+          interval_ms?: number
+          messages?: string[]
+          updated_at?: string
         }
         Update: {
-          enabled?: boolean | null
+          enabled?: boolean
           id?: number
-          interval_ms?: number | null
-          messages?: string[] | null
-          updated_at?: string | null
+          interval_ms?: number
+          messages?: string[]
+          updated_at?: string
         }
         Relationships: []
       }
       categorias: {
         Row: {
-          created_at: string | null
+          created_at: string
           id: number
-          nombre: string | null
+          nombre: string
           parent_id: number | null
-          slug: string | null
+          slug: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           id?: number
-          nombre?: string | null
+          nombre: string
           parent_id?: number | null
-          slug?: string | null
+          slug: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           id?: number
-          nombre?: string | null
+          nombre?: string
           parent_id?: number | null
-          slug?: string | null
+          slug?: string
         }
         Relationships: [
           {
@@ -96,7 +96,7 @@ export type Database = {
       }
       clientes: {
         Row: {
-          created_at: string | null
+          created_at: string
           departamento: string | null
           direccion: string | null
           distrito: string | null
@@ -105,14 +105,14 @@ export type Database = {
           es_problematico: boolean | null
           id: number
           link_ubicacion: string | null
-          nombre: string | null
+          nombre: string
           provincia: string | null
           referencia: string | null
           telefono: string | null
           updated_at: string | null
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           departamento?: string | null
           direccion?: string | null
           distrito?: string | null
@@ -121,14 +121,14 @@ export type Database = {
           es_problematico?: boolean | null
           id?: number
           link_ubicacion?: string | null
-          nombre?: string | null
+          nombre: string
           provincia?: string | null
           referencia?: string | null
           telefono?: string | null
           updated_at?: string | null
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           departamento?: string | null
           direccion?: string | null
           distrito?: string | null
@@ -137,7 +137,7 @@ export type Database = {
           es_problematico?: boolean | null
           id?: number
           link_ubicacion?: string | null
-          nombre?: string | null
+          nombre?: string
           provincia?: string | null
           referencia?: string | null
           telefono?: string | null
@@ -147,77 +147,77 @@ export type Database = {
       }
       cupones: {
         Row: {
-          activo: boolean | null
-          codigo: string | null
-          created_at: string | null
+          activo: boolean
+          codigo: string
+          created_at: string
           expires_at: string | null
           id: number
           max_usos: number | null
-          min_total: number | null
+          min_total: number
           starts_at: string | null
-          tipo: string | null
-          usos: number | null
-          valor: number | null
+          tipo: string
+          usos: number
+          valor: number
         }
         Insert: {
-          activo?: boolean | null
-          codigo?: string | null
-          created_at?: string | null
+          activo?: boolean
+          codigo: string
+          created_at?: string
           expires_at?: string | null
           id?: number
           max_usos?: number | null
-          min_total?: number | null
+          min_total?: number
           starts_at?: string | null
-          tipo?: string | null
-          usos?: number | null
-          valor?: number | null
+          tipo?: string
+          usos?: number
+          valor: number
         }
         Update: {
-          activo?: boolean | null
-          codigo?: string | null
-          created_at?: string | null
+          activo?: boolean
+          codigo?: string
+          created_at?: string
           expires_at?: string | null
           id?: number
           max_usos?: number | null
-          min_total?: number | null
+          min_total?: number
           starts_at?: string | null
-          tipo?: string | null
-          usos?: number | null
-          valor?: number | null
+          tipo?: string
+          usos?: number
+          valor?: number
         }
         Relationships: []
       }
       home_banners: {
         Row: {
-          activo: boolean | null
+          activo: boolean
           countdown_end: string | null
-          created_at: string | null
+          created_at: string
           cta: string | null
-          href: string | null
+          href: string
           id: number
-          orden: number | null
+          orden: number
           subtitle: string | null
           title: string | null
         }
         Insert: {
-          activo?: boolean | null
+          activo?: boolean
           countdown_end?: string | null
-          created_at?: string | null
+          created_at?: string
           cta?: string | null
-          href?: string | null
+          href: string
           id?: number
-          orden?: number | null
+          orden?: number
           subtitle?: string | null
           title?: string | null
         }
         Update: {
-          activo?: boolean | null
+          activo?: boolean
           countdown_end?: string | null
-          created_at?: string | null
+          created_at?: string
           cta?: string | null
-          href?: string | null
+          href?: string
           id?: number
-          orden?: number | null
+          orden?: number
           subtitle?: string | null
           title?: string | null
         }
@@ -226,7 +226,7 @@ export type Database = {
       incidencias: {
         Row: {
           comentario: string | null
-          created_at: string | null
+          created_at: string
           foto: string | null
           id: number
           pedido_id: number | null
@@ -234,7 +234,7 @@ export type Database = {
         }
         Insert: {
           comentario?: string | null
-          created_at?: string | null
+          created_at?: string
           foto?: string | null
           id?: number
           pedido_id?: number | null
@@ -242,7 +242,7 @@ export type Database = {
         }
         Update: {
           comentario?: string | null
-          created_at?: string | null
+          created_at?: string
           foto?: string | null
           id?: number
           pedido_id?: number | null
@@ -261,41 +261,41 @@ export type Database = {
       inventario_movimientos: {
         Row: {
           almacen_id: number | null
-          cantidad: number | null
-          costo_unitario: number | null
+          cantidad: number
+          costo_unitario: number
           created_at: string | null
           created_by: string | null
           id: number
           notas: string | null
-          producto_id: number | null
+          producto_id: number
           referencia: string | null
-          tipo_movimiento: string | null
+          tipo_movimiento: string
           variante_id: number | null
         }
         Insert: {
           almacen_id?: number | null
-          cantidad?: number | null
-          costo_unitario?: number | null
+          cantidad: number
+          costo_unitario?: number
           created_at?: string | null
           created_by?: string | null
           id?: number
           notas?: string | null
-          producto_id?: number | null
+          producto_id: number
           referencia?: string | null
-          tipo_movimiento?: string | null
+          tipo_movimiento: string
           variante_id?: number | null
         }
         Update: {
           almacen_id?: number | null
-          cantidad?: number | null
-          costo_unitario?: number | null
+          cantidad?: number
+          costo_unitario?: number
           created_at?: string | null
           created_by?: string | null
           id?: number
           notas?: string | null
-          producto_id?: number | null
+          producto_id?: number
           referencia?: string | null
-          tipo_movimiento?: string | null
+          tipo_movimiento?: string
           variante_id?: number | null
         }
         Relationships: [
@@ -331,88 +331,88 @@ export type Database = {
       }
       libro_reclamaciones: {
         Row: {
-          apellidos: string | null
+          apellidos: string
           apoderado_dni: string | null
           apoderado_nombres: string | null
           archivo_adjunto: string | null
-          codigo: string | null
+          codigo: string
           created_at: string | null
           departamento: string | null
           descripcion_bien: string | null
-          detalle_reclamo: string | null
-          direccion: string | null
+          detalle_reclamo: string
+          direccion: string
           distrito: string | null
-          email: string | null
+          email: string
           estado: string | null
           fecha_respuesta: string | null
           id: string
           menor_edad: boolean | null
           monto_reclamado: number | null
-          nombres: string | null
-          numero_documento: string | null
+          nombres: string
+          numero_documento: string
           observaciones_proveedor: string | null
           pedido_relacionado: string | null
           provincia: string | null
-          telefono: string | null
-          tipo_bien: string | null
+          telefono: string
+          tipo_bien: string
           tipo_documento: string | null
-          tipo_reclamo: string | null
+          tipo_reclamo: string
         }
         Insert: {
-          apellidos?: string | null
+          apellidos: string
           apoderado_dni?: string | null
           apoderado_nombres?: string | null
           archivo_adjunto?: string | null
-          codigo?: string | null
+          codigo?: string
           created_at?: string | null
           departamento?: string | null
           descripcion_bien?: string | null
-          detalle_reclamo?: string | null
-          direccion?: string | null
+          detalle_reclamo: string
+          direccion: string
           distrito?: string | null
-          email?: string | null
+          email: string
           estado?: string | null
           fecha_respuesta?: string | null
           id?: string
           menor_edad?: boolean | null
           monto_reclamado?: number | null
-          nombres?: string | null
-          numero_documento?: string | null
+          nombres: string
+          numero_documento: string
           observaciones_proveedor?: string | null
           pedido_relacionado?: string | null
           provincia?: string | null
-          telefono?: string | null
-          tipo_bien?: string | null
+          telefono: string
+          tipo_bien: string
           tipo_documento?: string | null
-          tipo_reclamo?: string | null
+          tipo_reclamo: string
         }
         Update: {
-          apellidos?: string | null
+          apellidos?: string
           apoderado_dni?: string | null
           apoderado_nombres?: string | null
           archivo_adjunto?: string | null
-          codigo?: string | null
+          codigo?: string
           created_at?: string | null
           departamento?: string | null
           descripcion_bien?: string | null
-          detalle_reclamo?: string | null
-          direccion?: string | null
+          detalle_reclamo?: string
+          direccion?: string
           distrito?: string | null
-          email?: string | null
+          email?: string
           estado?: string | null
           fecha_respuesta?: string | null
           id?: string
           menor_edad?: boolean | null
           monto_reclamado?: number | null
-          nombres?: string | null
-          numero_documento?: string | null
+          nombres?: string
+          numero_documento?: string
           observaciones_proveedor?: string | null
           pedido_relacionado?: string | null
           provincia?: string | null
-          telefono?: string | null
-          tipo_bien?: string | null
+          telefono?: string
+          tipo_bien?: string
           tipo_documento?: string | null
-          tipo_reclamo?: string | null
+          tipo_reclamo?: string
         }
         Relationships: []
       }
@@ -447,7 +447,7 @@ export type Database = {
       }
       pedido_items: {
         Row: {
-          cantidad: number | null
+          cantidad: number
           cantidad_devuelta: number | null
           id: number
           pedido_id: number | null
@@ -458,7 +458,7 @@ export type Database = {
           variante_nombre: string | null
         }
         Insert: {
-          cantidad?: number | null
+          cantidad: number
           cantidad_devuelta?: number | null
           id?: number
           pedido_id?: number | null
@@ -469,7 +469,7 @@ export type Database = {
           variante_nombre?: string | null
         }
         Update: {
-          cantidad?: number | null
+          cantidad?: number
           cantidad_devuelta?: number | null
           id?: number
           pedido_id?: number | null
@@ -505,27 +505,27 @@ export type Database = {
       }
       pedido_logs: {
         Row: {
-          accion: string | null
-          created_at: string | null
+          accion: string
+          created_at: string
           detalles: string | null
           id: number
-          pedido_id: number | null
+          pedido_id: number
           usuario_nombre: string | null
         }
         Insert: {
-          accion?: string | null
-          created_at?: string | null
+          accion: string
+          created_at?: string
           detalles?: string | null
           id?: number
-          pedido_id?: number | null
+          pedido_id: number
           usuario_nombre?: string | null
         }
         Update: {
-          accion?: string | null
-          created_at?: string | null
+          accion?: string
+          created_at?: string
           detalles?: string | null
           id?: number
-          pedido_id?: number | null
+          pedido_id?: number
           usuario_nombre?: string | null
         }
         Relationships: [
@@ -541,34 +541,34 @@ export type Database = {
       pedido_notas: {
         Row: {
           autor_id: string | null
-          autor_nombre: string | null
-          contenido: string | null
-          created_at: string | null
+          autor_nombre: string
+          contenido: string
+          created_at: string
           id: number
-          pedido_id: number | null
+          pedido_id: number
           tipo: string | null
         }
         Insert: {
           autor_id?: string | null
-          autor_nombre?: string | null
-          contenido?: string | null
-          created_at?: string | null
+          autor_nombre: string
+          contenido: string
+          created_at?: string
           id?: number
-          pedido_id?: number | null
+          pedido_id: number
           tipo?: string | null
         }
         Update: {
           autor_id?: string | null
-          autor_nombre?: string | null
-          contenido?: string | null
-          created_at?: string | null
+          autor_nombre?: string
+          contenido?: string
+          created_at?: string
           id?: number
-          pedido_id?: number | null
+          pedido_id?: number
           tipo?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "pedido_notas_autor_id_fkey"
+            foreignKeyName: "fk_pedido_notas_autor"
             columns: ["autor_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
@@ -586,39 +586,39 @@ export type Database = {
       pedido_pagos: {
         Row: {
           comprobante_url: string | null
-          created_at: string | null
+          created_at: string
           id: number
-          metodo_pago: string | null
-          monto: number | null
+          metodo_pago: string
+          monto: number
           nota: string | null
-          pedido_id: number | null
-          registrado_por: string | null
+          pedido_id: number
+          registrado_por: string
           registrado_por_id: string | null
-          tipo_pago: string | null
+          tipo_pago: string
         }
         Insert: {
           comprobante_url?: string | null
-          created_at?: string | null
+          created_at?: string
           id?: number
-          metodo_pago?: string | null
-          monto?: number | null
+          metodo_pago: string
+          monto: number
           nota?: string | null
-          pedido_id?: number | null
-          registrado_por?: string | null
+          pedido_id: number
+          registrado_por?: string
           registrado_por_id?: string | null
-          tipo_pago?: string | null
+          tipo_pago: string
         }
         Update: {
           comprobante_url?: string | null
-          created_at?: string | null
+          created_at?: string
           id?: number
-          metodo_pago?: string | null
-          monto?: number | null
+          metodo_pago?: string
+          monto?: number
           nota?: string | null
-          pedido_id?: number | null
-          registrado_por?: string | null
+          pedido_id?: number
+          registrado_por?: string
           registrado_por_id?: string | null
-          tipo_pago?: string | null
+          tipo_pago?: string
         }
         Relationships: [
           {
@@ -645,7 +645,7 @@ export type Database = {
           cliente_id: number | null
           codigo_seguimiento: string | null
           comprobante_pago_url: string[] | null
-          created_at: string | null
+          created_at: string
           culqi_charge_id: string | null
           cupon_codigo: string | null
           departamento: string | null
@@ -669,10 +669,10 @@ export type Database = {
           shalom_orden: string | null
           shalom_pin: string | null
           status: string | null
-          stock_descontado: boolean | null
+          stock_descontado: boolean
           subtotal: number | null
           telefono_contacto: string | null
-          total: number | null
+          total: number
           voucher_url: string | null
         }
         Insert: {
@@ -682,7 +682,7 @@ export type Database = {
           cliente_id?: number | null
           codigo_seguimiento?: string | null
           comprobante_pago_url?: string[] | null
-          created_at?: string | null
+          created_at?: string
           culqi_charge_id?: string | null
           cupon_codigo?: string | null
           departamento?: string | null
@@ -706,10 +706,10 @@ export type Database = {
           shalom_orden?: string | null
           shalom_pin?: string | null
           status?: string | null
-          stock_descontado?: boolean | null
+          stock_descontado?: boolean
           subtotal?: number | null
           telefono_contacto?: string | null
-          total?: number | null
+          total: number
           voucher_url?: string | null
         }
         Update: {
@@ -719,7 +719,7 @@ export type Database = {
           cliente_id?: number | null
           codigo_seguimiento?: string | null
           comprobante_pago_url?: string[] | null
-          created_at?: string | null
+          created_at?: string
           culqi_charge_id?: string | null
           cupon_codigo?: string | null
           departamento?: string | null
@@ -743,10 +743,10 @@ export type Database = {
           shalom_orden?: string | null
           shalom_pin?: string | null
           status?: string | null
-          stock_descontado?: boolean | null
+          stock_descontado?: boolean
           subtotal?: number | null
           telefono_contacto?: string | null
-          total?: number | null
+          total?: number
           voucher_url?: string | null
         }
         Relationships: [
@@ -761,28 +761,28 @@ export type Database = {
       }
       product_answers: {
         Row: {
-          answer: string | null
+          answer: string
           answered_by: string | null
-          created_at: string | null
+          created_at: string
           id: number
-          published: boolean | null
-          question_id: number | null
+          published: boolean
+          question_id: number
         }
         Insert: {
-          answer?: string | null
+          answer: string
           answered_by?: string | null
-          created_at?: string | null
+          created_at?: string
           id?: number
-          published?: boolean | null
-          question_id?: number | null
+          published?: boolean
+          question_id: number
         }
         Update: {
-          answer?: string | null
+          answer?: string
           answered_by?: string | null
-          created_at?: string | null
+          created_at?: string
           id?: number
-          published?: boolean | null
-          question_id?: number | null
+          published?: boolean
+          question_id?: number
         }
         Relationships: [
           {
@@ -798,29 +798,29 @@ export type Database = {
         Row: {
           asker_name: string | null
           asker_phone: string | null
-          created_at: string | null
+          created_at: string
           id: number
-          product_id: number | null
-          published: boolean | null
-          question: string | null
+          product_id: number
+          published: boolean
+          question: string
         }
         Insert: {
           asker_name?: string | null
           asker_phone?: string | null
-          created_at?: string | null
+          created_at?: string
           id?: number
-          product_id?: number | null
-          published?: boolean | null
-          question?: string | null
+          product_id: number
+          published?: boolean
+          question: string
         }
         Update: {
           asker_name?: string | null
           asker_phone?: string | null
-          created_at?: string | null
+          created_at?: string
           id?: number
-          product_id?: number | null
-          published?: boolean | null
-          question?: string | null
+          product_id?: number
+          published?: boolean
+          question?: string
         }
         Relationships: [
           {
@@ -834,46 +834,46 @@ export type Database = {
       }
       product_reviews: {
         Row: {
-          approved: boolean | null
-          body: string | null
-          created_at: string | null
+          approved: boolean
+          body: string
+          created_at: string
           customer_city: string | null
           customer_name: string | null
           id: number
           order_id: number | null
           photo_urls: string[] | null
-          product_id: number | null
-          rating: number | null
+          product_id: number
+          rating: number
           title: string | null
-          verified: boolean | null
+          verified: boolean
         }
         Insert: {
-          approved?: boolean | null
-          body?: string | null
-          created_at?: string | null
+          approved?: boolean
+          body: string
+          created_at?: string
           customer_city?: string | null
           customer_name?: string | null
           id?: number
           order_id?: number | null
           photo_urls?: string[] | null
-          product_id?: number | null
-          rating?: number | null
+          product_id: number
+          rating: number
           title?: string | null
-          verified?: boolean | null
+          verified?: boolean
         }
         Update: {
-          approved?: boolean | null
-          body?: string | null
-          created_at?: string | null
+          approved?: boolean
+          body?: string
+          created_at?: string
           customer_city?: string | null
           customer_name?: string | null
           id?: number
           order_id?: number | null
           photo_urls?: string[] | null
-          product_id?: number | null
-          rating?: number | null
+          product_id?: number
+          rating?: number
           title?: string | null
-          verified?: boolean | null
+          verified?: boolean
         }
         Relationships: [
           {
@@ -894,27 +894,27 @@ export type Database = {
       }
       producto_especificaciones: {
         Row: {
-          clave: string | null
-          created_at: string | null
+          clave: string
+          created_at: string
           id: number
-          orden: number | null
-          producto_id: number | null
+          orden: number
+          producto_id: number
           valor: string | null
         }
         Insert: {
-          clave?: string | null
-          created_at?: string | null
+          clave: string
+          created_at?: string
           id?: number
-          orden?: number | null
-          producto_id?: number | null
+          orden?: number
+          producto_id: number
           valor?: string | null
         }
         Update: {
-          clave?: string | null
-          created_at?: string | null
+          clave?: string
+          created_at?: string
           id?: number
-          orden?: number | null
-          producto_id?: number | null
+          orden?: number
+          producto_id?: number
           valor?: string | null
         }
         Relationships: [
@@ -929,42 +929,42 @@ export type Database = {
       }
       producto_variantes: {
         Row: {
-          activo: boolean | null
+          activo: boolean
           color: string | null
-          created_at: string | null
-          etiqueta: string | null
+          created_at: string
+          etiqueta: string
           id: number
           modelo: string | null
           precio: number | null
           precio_antes: number | null
-          producto_id: number | null
-          stock: number | null
+          producto_id: number
+          stock: number
           talla: string | null
         }
         Insert: {
-          activo?: boolean | null
+          activo?: boolean
           color?: string | null
-          created_at?: string | null
-          etiqueta?: string | null
+          created_at?: string
+          etiqueta: string
           id?: number
           modelo?: string | null
           precio?: number | null
           precio_antes?: number | null
-          producto_id?: number | null
-          stock?: number | null
+          producto_id: number
+          stock?: number
           talla?: string | null
         }
         Update: {
-          activo?: boolean | null
+          activo?: boolean
           color?: string | null
-          created_at?: string | null
-          etiqueta?: string | null
+          created_at?: string
+          etiqueta?: string
           id?: number
           modelo?: string | null
           precio?: number | null
           precio_antes?: number | null
-          producto_id?: number | null
-          stock?: number | null
+          producto_id?: number
+          stock?: number
           talla?: string | null
         }
         Relationships: [
@@ -982,7 +982,7 @@ export type Database = {
           calificacion: number | null
           categoria_id: number | null
           color: string | null
-          created_at: string | null
+          created_at: string
           cuidados: string | null
           descripcion: string | null
           fts: unknown
@@ -990,11 +990,11 @@ export type Database = {
           imagen_url: string | null
           imagenes: string[] | null
           materiales: string | null
-          nombre: string | null
-          precio: number | null
+          nombre: string
+          precio: number
           precio_antes: number | null
           slug: string | null
-          stock: number | null
+          stock: number
           tamano: string | null
           uso: string | null
           videos: string[] | null
@@ -1003,7 +1003,7 @@ export type Database = {
           calificacion?: number | null
           categoria_id?: number | null
           color?: string | null
-          created_at?: string | null
+          created_at?: string
           cuidados?: string | null
           descripcion?: string | null
           fts?: unknown
@@ -1011,11 +1011,11 @@ export type Database = {
           imagen_url?: string | null
           imagenes?: string[] | null
           materiales?: string | null
-          nombre?: string | null
-          precio?: number | null
+          nombre: string
+          precio: number
           precio_antes?: number | null
           slug?: string | null
-          stock?: number | null
+          stock?: number
           tamano?: string | null
           uso?: string | null
           videos?: string[] | null
@@ -1024,7 +1024,7 @@ export type Database = {
           calificacion?: number | null
           categoria_id?: number | null
           color?: string | null
-          created_at?: string | null
+          created_at?: string
           cuidados?: string | null
           descripcion?: string | null
           fts?: unknown
@@ -1032,11 +1032,11 @@ export type Database = {
           imagen_url?: string | null
           imagenes?: string[] | null
           materiales?: string | null
-          nombre?: string | null
-          precio?: number | null
+          nombre?: string
+          precio?: number
           precio_antes?: number | null
           slug?: string | null
-          stock?: number | null
+          stock?: number
           tamano?: string | null
           uso?: string | null
           videos?: string[] | null
@@ -1057,57 +1057,57 @@ export type Database = {
           created_at: string | null
           id: number
           orden: number | null
-          platform: string | null
-          url: string | null
+          platform: string
+          url: string
         }
         Insert: {
           active?: boolean | null
           created_at?: string | null
           id?: number
           orden?: number | null
-          platform?: string | null
-          url?: string | null
+          platform: string
+          url: string
         }
         Update: {
           active?: boolean | null
           created_at?: string | null
           id?: number
           orden?: number | null
-          platform?: string | null
-          url?: string | null
+          platform?: string
+          url?: string
         }
         Relationships: []
       }
       system_audit_logs: {
         Row: {
-          action: string | null
+          action: string
           changed_at: string | null
           changed_by: string | null
           id: number
           new_data: Json | null
           old_data: Json | null
-          record_id: string | null
-          table_name: string | null
+          record_id: string
+          table_name: string
         }
         Insert: {
-          action?: string | null
+          action: string
           changed_at?: string | null
           changed_by?: string | null
           id?: number
           new_data?: Json | null
           old_data?: Json | null
-          record_id?: string | null
-          table_name?: string | null
+          record_id: string
+          table_name: string
         }
         Update: {
-          action?: string | null
+          action?: string
           changed_at?: string | null
           changed_by?: string | null
           id?: number
           new_data?: Json | null
           old_data?: Json | null
-          record_id?: string | null
-          table_name?: string | null
+          record_id?: string
+          table_name?: string
         }
         Relationships: []
       }
@@ -1149,7 +1149,60 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      kardex_valorizado_view: {
+        Row: {
+          almacen_id: number | null
+          almacen_nombre: string | null
+          cantidad: number | null
+          costo_unitario: number | null
+          created_at: string | null
+          created_by: string | null
+          entradas: number | null
+          id: number | null
+          notas: string | null
+          producto_id: number | null
+          producto_nombre: string | null
+          referencia: string | null
+          saldo_cantidad: number | null
+          salidas: number | null
+          tipo_movimiento: string | null
+          usuario_email: string | null
+          usuario_nombre: string | null
+          valor_total: number | null
+          variante_id: number | null
+          variante_nombre: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventario_movimientos_almacen_id_fkey"
+            columns: ["almacen_id"]
+            isOneToOne: false
+            referencedRelation: "almacenes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventario_movimientos_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventario_movimientos_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "productos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventario_movimientos_variante_id_fkey"
+            columns: ["variante_id"]
+            isOneToOne: false
+            referencedRelation: "producto_variantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       admin_procesar_descuento_stock: {
@@ -1186,7 +1239,7 @@ export type Database = {
           calificacion: number | null
           categoria_id: number | null
           color: string | null
-          created_at: string | null
+          created_at: string
           cuidados: string | null
           descripcion: string | null
           fts: unknown
@@ -1194,11 +1247,11 @@ export type Database = {
           imagen_url: string | null
           imagenes: string[] | null
           materiales: string | null
-          nombre: string | null
-          precio: number | null
+          nombre: string
+          precio: number
           precio_antes: number | null
           slug: string | null
-          stock: number | null
+          stock: number
           tamano: string | null
           uso: string | null
           videos: string[] | null
