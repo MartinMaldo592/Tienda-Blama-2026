@@ -213,6 +213,11 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 *   **Solución**: Se reemplazó el uso del icono de red de nodos (`Share2`) por el icono de una flecha curva saliendo de un contenedor (`Share`) de la biblioteca `lucide-react`.
 *   **Resultado**: Un aspecto mucho más intuitivo y familiar para los clientes a la hora de compartir enlaces de productos desde dispositivos móviles y de escritorio.
 
+### 14. Modificación de Título de Newsletter (Suscripción)
+*   **Ubicación**: [newsletter-section.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/components/newsletter-section.tsx)
+*   **Solución**: Se actualizó el título principal de la sección de `"Únete al Club Premium"` a `"Únete a nuestro newsletter"`.
+*   **Resultado**: Un enfoque de comunicación más directo y claro sobre el propósito de la caja de suscripción para los usuarios que navegan en la tienda.
+
 ---
 
 ## Fase 7: Sistema Profesional de Carga de Medios y Feedback en Tiempo Real (UX/UI Admin)
@@ -252,7 +257,38 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 
 ---
 
+## Fase 9: Sistema de Suscripción al Newsletter con Generación de Cupones Únicos y No Transferibles
+
+### 1. Base de Datos & Seguridad (Supabase)
+*   **Tabla Creada**: `newsletter_subscriptions` con las columnas `id` (bigint, primaria), `email` (text, única), `cupon_codigo` (text, relacionada con la tabla `cupones.codigo`) y `created_at` (timestamptz).
+*   **Seguridad RLS**: Habilitamos Row Level Security (RLS) en la nueva tabla. Configuramos políticas restrictivas para que el público general no pueda leer los datos de suscripción de otros clientes, mientras que la lógica de backend interactúa de manera segura mediante el cliente de rol de servicio (`SUPABASE_SERVICE_ROLE_KEY`).
+
+### 2. Plantilla de Correo de Bienvenida Premium (React-Email & Resend)
+*   **Ubicación**: [newsletter-welcome.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/emails/components/newsletter-welcome.tsx) y [email.ts](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/emails/services/email.ts)
+*   **Solución**: Diseñamos una plantilla de correo interactiva con estética oscura en la cabecera (igual a la confirmación de compras de la marca), un contenedor de cupón estilizado con bordes discontinuos, tipografía de código monoespaciada para facilitar la lectura del código, y un botón de llamada a la acción (CTA) directo a `/productos`.
+*   **Servicio de Envío**: Expusimos la función `sendNewsletterWelcomeEmail` integrada con el cliente de Resend para despachar automáticamente los correos transaccionales de bienvenida con su respectivo cupón.
+
+### 3. Endpoint de Registro & Prevención de Spam
+*   **Ubicación**: [route.ts](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/api/newsletter/subscribe/route.ts)
+*   **Solución**: Implementamos una ruta de API en Next.js (`POST /api/newsletter/subscribe`) que realiza validación de datos mediante Zod, comprueba la existencia previa del correo para evitar registros repetidos, genera un código alfanumérico único (`WELCOME-XXXXXXXX`), inserta el cupón en la base de datos (10% de descuento, activo, 1 uso máximo, validez por 30 días) y registra la suscripción en una sola secuencia, enviando el correo de bienvenida.
+*   **Rate Limiting**: Añadimos limitación de peticiones (Rate Limiting) de hasta 5 intentos por minuto por dirección IP pública para mitigar ataques de denegación de servicio o spam en el endpoint.
+
+### 4. Componente de UI Frontend
+*   **Ubicación**: [newsletter-section.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/components/newsletter-section.tsx)
+*   **Solución**: Conectamos el formulario estático para admitir llamadas asíncronas con estados de carga (`isLoading`), deshabilitación de inputs y feedback inmediato a través de notificaciones Sonner Toast (`toast.success` / `toast.error`).
+*   **Persistencia**: Guardamos la clave `hasSubscribedNewsletter` en el `localStorage` una vez que la suscripción finaliza exitosamente, modificando la interfaz para renderizar un mensaje de agradecimiento persistente y evitar el spam visual del formulario.
+
+### 5. Validación de Propiedad del Cupón en Checkout (No Transferencia)
+*   **Ubicación**: [coupons.client.ts](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/checkout/services/coupons.client.ts), [checkout-form.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/checkout/components/checkout-form.tsx), [totals.ts](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/checkout/utils/totals.ts), y los endpoints de checkout de [WhatsApp](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/api/checkout/whatsapp/route.ts) y [Culqi](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/api/checkout/culqi/route.ts)
+*   **Solución (Alternativa 2)**:
+    *   **Cliente**: Modificamos `validateCoupon` para recibir el correo del cliente. Si el código ingresado corresponde a un registro de bienvenida en la tabla `newsletter_subscriptions`, valida de forma estricta (case-insensitive) que coincida con el correo ingresado en los datos de facturación del checkout; de lo contrario, rechaza su aplicación.
+    *   **Servidor**: Extendimos `validateAndCalculateTotals` para recibir y verificar el correo, realizando la misma consulta segura sobre la tabla `newsletter_subscriptions` con Supabase Admin antes de procesar el subtotal y descuento final. Se adaptaron los endpoints de pago con Culqi y mensajería de WhatsApp para pasar este parámetro en la validación server-side.
+*   **Resultado**: Aseguramos de manera robusta que los cupones de bienvenida generados dinámicamente sean intransferibles y utilizables una sola vez por el destinatario legítimo del boletín, evitando el abuso de cupones masivos.
+
+---
+
 <div align="center">
   <small><em>Tienda Blama 2026 - Manual Técnico de Cambios & Resiliencia.</em></small>
 </div>
+
 

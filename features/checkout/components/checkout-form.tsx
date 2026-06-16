@@ -247,7 +247,8 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
         setCouponApplying(true)
         setCouponApplied(false)
         try {
-            const res = await validateCoupon(couponCode, subtotalAmount)
+            const currentEmail = getValues("email")?.trim() || null
+            const res = await validateCoupon(couponCode, subtotalAmount, currentEmail)
             setCouponDiscount(res.descuento)
             setCouponApplied(res.descuento > 0)
         } catch (err: any) {
@@ -276,7 +277,8 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
 
         if (couponCode.trim()) {
             try {
-                await validateCoupon(couponCode, subtotalAmount)
+                const currentEmail = getValues("email")?.trim() || null
+                await validateCoupon(couponCode, subtotalAmount, currentEmail)
             } catch (err: any) {
                 setCouponError(err?.message || 'Cupón inválido')
                 return false
@@ -296,7 +298,7 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
 
         if (couponCode.trim()) {
             try {
-                const res = await validateCoupon(couponCode, subtotalAmount)
+                const res = await validateCoupon(couponCode, subtotalAmount, data.email?.trim() || null)
                 appliedCouponCode = res.codigo
                 appliedDiscount = res.descuento
             } catch (err) {
@@ -373,7 +375,7 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
 
         if (couponCode.trim()) {
             try {
-                await validateCoupon(couponCode, subtotalAmount)
+                await validateCoupon(couponCode, subtotalAmount, data.email?.trim() || null)
             } catch (err: any) {
                 setCouponError(err?.message || 'Cupón inválido')
                 setIsSubmitting(false)

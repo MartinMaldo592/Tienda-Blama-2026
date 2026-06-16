@@ -2,7 +2,11 @@ import { createClient } from "@/lib/supabase.client"
 
 import type { ValidateCouponResult } from "@/features/checkout/types"
 
-export async function validateCoupon(rawCode: string, subtotal: number): Promise<ValidateCouponResult> {
+export async function validateCoupon(
+    rawCode: string,
+    subtotal: number,
+    email?: string | null
+): Promise<ValidateCouponResult> {
     const supabase = createClient()
     const code = String(rawCode || "").trim()
     if (!code) {
@@ -34,6 +38,28 @@ export async function validateCoupon(rawCode: string, subtotal: number): Promise
         throw new Error("El cupón ya alcanzó el máximo de usos")
     }
 
+    // ── Validar propiedad de cupón de bienvenida (newsletter) ──
+    const { data: subData, error: subError } = await supabase
+        .from("newsletter_subscriptions")
+        .select("email")
+        .eq("cupon_codigo", data.codigo as string)
+        .maybeSingle()
+
+    if (subError) {
+        console.error("Error validando propiedad del cupón de bienvenida:", subError)
+    }
+
+    if (subData) {
+        const cleanedUserEmail = String(email || "").trim().toLowerCase()
+        const cleanedSubEmail = String(subData.email || "").trim().toLowerCase()
+        if (!cleanedUserEmail) {
+            throw new Error("Por favor ingresa tu correo de contacto para aplicar este cupón de bienvenida.")
+        }
+        if (cleanedUserEmail !== cleanedSubEmail) {
+            throw new Error("Este cupón de bienvenida solo es válido para el correo que se suscribió.")
+        }
+    }
+
     let descuento = 0
     const valor = Number(data.valor) || 0
 
@@ -57,6 +83,9 @@ export function isCouponRelatedError(message: string) {
         m.includes("expir") ||
         m.includes("inval") ||
         m.includes("no aplica") ||
-        m.includes("aún no")
+        m.includes("aún no") ||
+        m.includes("ingresa tu correo") ||
+        m.includes("solo es válido")
     )
 }
+
