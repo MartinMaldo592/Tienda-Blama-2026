@@ -223,6 +223,14 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 *   **Manejo de pedidos sin asignar**: Si en el filtro múltiple de trabajadores se incluye a "Sin asignar" (`unassigned`) junto a otros asesores, se estructura dinámicamente una cláusula `.or` (`asignado_a.in.("id1","id2"),asignado_a.is.null`) compatible con PostgREST de Supabase para retornar ambos tipos de registros de forma atómica.
 *   **Resultado**: Los administradores pueden analizar, buscar y gestionar múltiples estados de pedidos o repartidores simultáneamente, optimizando en más de un 40% los tiempos de revisión y control interno.
 
+### 3. Filtro de Estado de Pago del Pedido (`pago_status`)
+*   **Ubicación**: [orders-filter-bar.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/admin/components/orders/orders-filter-bar.tsx), [page.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/admin/pedidos/page.tsx) y [pedidos.client.ts](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/admin/services/pedidos.client.ts)
+*   **Solución**: 
+    *   Añadimos soporte para el filtro `pagoStatusFilter` a través de consultas `.in("pago_status", pagoStatuses)` en Supabase en `pedidos.client.ts` para los métodos de cuenta y selección de pedidos.
+    *   Registramos el estado `pagoStatusFilter` en la vista de pedidos de administración (`app/admin/pedidos/page.tsx`), integrándolo al caché de react-query, refrescos dinámicos al cambiar de página y prefetching.
+    *   Diseñamos e integramos un menú desplegable multiselección personalizado para **Estado de Pago** en `orders-filter-bar.tsx` con opciones para checkboxes (`Pendiente`, `Pago Parcial`, `Pagado`, `Pago Contraentrega`, `Pagado Anticipado`, `Pagado al Recibir`, `Fallido`) y limpieza rápida.
+    *   Rediseñamos la cuadrícula de la barra de filtros a una versión adaptativa fluida (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5`) que reacomoda elegantemente todos los filtros de manera balanceada en dispositivos de cualquier resolución.
+
 ---
 
 <div align="center">

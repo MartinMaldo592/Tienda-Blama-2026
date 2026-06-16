@@ -18,6 +18,7 @@ export interface FetchPedidosArgs {
   searchTerm: string;
   dateFilter: string;
   filterWorker: string;
+  pagoStatusFilter?: string;
   customStartDate?: string;
   customEndDate?: string;
 }
@@ -57,6 +58,14 @@ export async function fetchPedidosForRole(args: FetchPedidosArgs): Promise<{ dat
     const statuses = args.statusFilter.split(',').map(s => s.trim()).filter(Boolean)
     if (statuses.length > 0) {
       query = query.in("status", statuses)
+    }
+  }
+
+  // Apply Pago Status Filter
+  if (args.pagoStatusFilter && args.pagoStatusFilter !== 'all') {
+    const pagoStatuses = args.pagoStatusFilter.split(',').map(s => s.trim()).filter(Boolean)
+    if (pagoStatuses.length > 0) {
+      query = query.in("pago_status", pagoStatuses)
     }
   }
 
@@ -177,6 +186,14 @@ export async function fetchPedidosForRole(args: FetchPedidosArgs): Promise<{ dat
     const statuses = args.statusFilter.split(',').map(s => s.trim()).filter(Boolean)
     if (statuses.length > 0) {
       dataQuery = dataQuery.in("status", statuses)
+    }
+  }
+
+  // Re-apply Pago Status Filter
+  if (args.pagoStatusFilter && args.pagoStatusFilter !== 'all') {
+    const pagoStatuses = args.pagoStatusFilter.split(',').map(s => s.trim()).filter(Boolean)
+    if (pagoStatuses.length > 0) {
+      dataQuery = dataQuery.in("pago_status", pagoStatuses)
     }
   }
 
