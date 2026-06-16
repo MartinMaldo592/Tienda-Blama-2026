@@ -105,6 +105,7 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                     <div
                         className="h-full overflow-y-auto p-4 space-y-6 scroll-smooth pb-8"
                         style={{ scrollbarWidth: 'thin', scrollbarColor: 'hsl(var(--border)) transparent' }}
+                        data-lenis-prevent
                     >
                         <CheckoutCustomer
                             register={register}
