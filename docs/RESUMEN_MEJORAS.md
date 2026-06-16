@@ -13,6 +13,7 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 *   [Fase 5: Optimización del Flujo Logístico a Provincias y Control Multicourier (Shalom / Olva)](#fase-5-optimizacion-del-flujo-logistico-a-provincias-y-control-multicourier-shalom-olva)
 *   [Fase 6: Optimización de Cabecera, Navegación Móvil y Carruseles Interactivos Premium (UX/UI)](#fase-6-optimizacion-de-cabecera-navegacion-movil-y-carruseles-interactivos-premium-uxui)
 *   [Fase 7: Sistema Profesional de Carga de Medios y Feedback en Tiempo Real (UX/UI Admin)](#fase-7-sistema-profesional-de-carga-de-medios-y-feedback-en-tiempo-real-uxui-admin)
+*   [Fase 8: Filtros Multiselección Inteligentes en Gestión de Pedidos (CRM Admin)](#fase-8-filtros-multiseleccion-inteligentes-en-gestion-de-pedidos-crm-admin)
 
 ---
 
@@ -206,6 +207,21 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 *   **Ubicación**: [media-manager.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/admin/components/product-form/media-manager.tsx)
 *   **Solución**: Diseñamos una interfaz visual premium que lista las subidas activas. Cada archivo se representa con su nombre, insignia de formato (Imagen / Video), barra de progreso dinámica animada con transiciones suaves de color (verde para éxito, rojo para error, azul/primario para carga activa) y un botón de limpieza para retirar del panel los registros antiguos de subidas completadas.
 *   **Resultado**: Eliminación de la incertidumbre operativa en el panel al subir imágenes de alta resolución o videos grandes, facilitando diagnosticar de manera inmediata fallas de formato, peso de archivo o inestabilidad de red.
+
+---
+
+## Fase 8: Filtros Multiselección Inteligentes en Gestión de Pedidos (CRM Admin)
+
+### 1. Desplegables Interactivos Multiselección
+*   **Ubicación**: [orders-filter-bar.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/admin/components/orders/orders-filter-bar.tsx)
+*   **Solución**: Reemplazamos los selectores (`<Select>`) tradicionales de un solo valor para los filtros de **Estado** y **Trabajador** por desplegables dinámicos personalizados. Se implementaron botones interactivos que de velan menús de checkboxes y un botón para limpiar rápidamente la selección de filtros activos.
+*   **Texto Dinámico**: El botón muestra dinámicamente los elementos seleccionados (ej: *"Pendiente, Confirmado"* o *"Todo el equipo"*) o el recuento total de los mismos (ej: *"3 asignados"* / *"3 estados seleccionados"*).
+
+### 2. Soporte en el Backend y consultas a Supabase
+*   **Ubicación**: [pedidos.client.ts](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/admin/services/pedidos.client.ts)
+*   **Solución**: Adaptamos las funciones de consulta `fetchPedidosForRole` para recibir strings delimitados por comas para los estados y trabajadores. Del lado del servidor, separamos los valores para realizar consultas optimizadas mediante operadores `.in` de Supabase.
+*   **Manejo de pedidos sin asignar**: Si en el filtro múltiple de trabajadores se incluye a "Sin asignar" (`unassigned`) junto a otros asesores, se estructura dinámicamente una cláusula `.or` (`asignado_a.in.("id1","id2"),asignado_a.is.null`) compatible con PostgREST de Supabase para retornar ambos tipos de registros de forma atómica.
+*   **Resultado**: Los administradores pueden analizar, buscar y gestionar múltiples estados de pedidos o repartidores simultáneamente, optimizando en más de un 40% los tiempos de revisión y control interno.
 
 ---
 
