@@ -307,7 +307,7 @@ export default function ProductoDetalleClient() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Image Gallery Skeleton */}
                     <div className="space-y-4">
-                        <Skeleton className="aspect-square w-full rounded-2xl" />
+                        <Skeleton className="aspect-[3/4] w-full -mx-4 sm:mx-0 rounded-none sm:rounded-2xl" />
                         <div className="grid grid-cols-4 gap-2">
                             <Skeleton className="aspect-square rounded-lg" />
                             <Skeleton className="aspect-square rounded-lg" />
@@ -475,7 +475,7 @@ export default function ProductoDetalleClient() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                    <Card className="overflow-hidden shadow-sm border">
+                    <Card className="overflow-hidden shadow-sm border -mx-4 sm:mx-0 rounded-none sm:rounded-xl border-x-0 sm:border">
                         <div className="aspect-[3/4] bg-popover relative group" ref={imageContainerRef}>
                             {showVideo && activeVideo ? (
                                 <div className="absolute inset-0 flex items-center justify-center bg-black">
