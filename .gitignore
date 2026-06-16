@@ -75,3 +75,6 @@ pnpm-debug.log*
 *.mov
 *.webm
 *.avi
+
+# 📁 Carpetas Temporales de Desarrollo
+scratch/

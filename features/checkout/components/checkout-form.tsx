@@ -1,64 +1,25 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useEffect } from "react"
 import { useJsApiLoader } from "@react-google-maps/api"
 import { m, AnimatePresence } from "framer-motion"
-import usePlacesAutocomplete, {
-    getGeocode,
-    getLatLng,
-} from "use-places-autocomplete"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2 } from "lucide-react"
 import { toast } from "sonner"
-import {
-    buildPreOpenUrl,
-    buildWhatsAppFinalMessage,
-    buildWhatsAppPreviewMessage,
-    buildWhatsAppUrl,
-    clearCartStorage,
-    createCheckoutOrder,
-    isCouponRelatedError,
-    isInAppBrowser,
-    isMobileDevice,
-    normalizeDigits,
-    normalizeDni,
-    setLastOrderSuccessMarker,
-    validateCoupon,
-} from "@/features/checkout"
-import { sendGTMEvent } from "@/lib/gtm"
-import { useRouter } from "next/navigation"
-import { SuccessCheckmark } from "@/components/ui/success-checkmark"
+import { Controller } from "react-hook-form"
 
-// New modular components
+// Modular components
 import { CheckoutShipping } from "@/features/checkout/components/checkout-shipping"
 import { CheckoutCustomer } from "@/features/checkout/components/checkout-customer"
 import { CheckoutAddress } from "@/features/checkout/components/checkout-address"
 import { CheckoutSummary } from "@/features/checkout/components/checkout-summary"
-import { CheckoutPayment } from "@/features/checkout/components/checkout-payment" // Nuevo
-import { CulqiPaymentButton } from "@/features/checkout/components/culqi-payment-button" // Nuevo
+import { CheckoutPayment } from "@/features/checkout/components/checkout-payment"
+import { CulqiPaymentButton } from "@/features/checkout/components/culqi-payment-button"
 
-import { useForm, Controller } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-import { identitySchema, checkoutBaseFields } from "@/features/checkout"
+// Hook
+import { useCheckoutForm } from "@/features/checkout/hooks/useCheckoutForm"
 
-// Define libraries array outside component to prevent re-renders
-const libraries: ("places")[] = ["places"];
-
-const checkoutFormSchema = z.object({
-    name: identitySchema.name,
-    phone: identitySchema.phone,
-    dni: identitySchema.document,
-    department: checkoutBaseFields.department,
-    province: checkoutBaseFields.province,
-    district: checkoutBaseFields.district,
-    reference: z.string().optional(),
-    shippingMethod: z.string(),
-    paymentMethod: z.string(),
-    email: identitySchema.email,
-})
-
-type CheckoutFormValues = z.infer<typeof checkoutFormSchema>
+const libraries: ("places")[] = ["places"]
 
 interface CheckoutFormProps {
     items: any[]
@@ -71,7 +32,7 @@ interface CheckoutFormProps {
 }
 
 export function CheckoutForm({ items, total, onBack, onComplete, onCompleteCulqi }: CheckoutFormProps) {
-    // Usamos el hook de forma no bloqueante. 
+    // Usamos el hook de forma no bloqueante.
     // Como ya existe un cargador global en Providers, esto solo se asegura de que este componente tenga acceso si es necesario.
     useJsApiLoader({
         id: 'google-map-script',
@@ -82,446 +43,48 @@ export function CheckoutForm({ items, total, onBack, onComplete, onCompleteCulqi
     return <FormContent items={items} total={total} onBack={onBack} onComplete={onComplete} onCompleteCulqi={onCompleteCulqi} />
 }
 
-
-import { useCheckoutDraft } from "@/features/checkout/hooks/use-checkout-draft"
-
 function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: CheckoutFormProps) {
-    const { draft, loaded, saveDraft, clearDraft } = useCheckoutDraft()
-    const router = useRouter()
-    const [isRedirecting, setIsRedirecting] = useState(false)
-
-    useEffect(() => {
-        // Prefetch success page to speed up transition
-        router.prefetch('/checkout/success')
-    }, [router])
-
-    const form = useForm<CheckoutFormValues>({
-        resolver: zodResolver(checkoutFormSchema),
-        defaultValues: {
-            name: "",
-            phone: "",
-            dni: "",
-            department: "",
-            province: "",
-            district: "",
-            reference: "",
-            shippingMethod: "Lima",
-            paymentMethod: "whatsapp",
-            email: ""
-        }
-    })
-
-    const { register, handleSubmit, trigger, control, watch, getValues, setValue: setFormValue, formState: { errors } } = form
-
-    // ── Selectores específicos (evita re-render total en cada keystroke) ──────
-    const paymentMethod = watch("paymentMethod")
-    const shippingMethod = watch("shippingMethod")
-    const department = watch("department")
-    const [locationLink, setLocationLink] = useState("")
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const [couponCode, setCouponCode] = useState("")
-    const [couponDiscount, setCouponDiscount] = useState(0)
-    const [couponApplying, setCouponApplying] = useState(false)
-    const [couponError, setCouponError] = useState("")
-    const [couponApplied, setCouponApplied] = useState(false)
-
-    // Scroll hint reference removed as it's no longer a sticky bottom layout
-
-
-    // Google Maps Hook
     const {
+        register,
+        handleSubmit,
+        control,
+        watch,
+        errors,
+        paymentMethod,
+        shippingMethod,
+        isRedirecting,
+        isSubmitting,
+        couponCode,
+        setCouponCode,
+        couponDiscount,
+        couponApplying,
+        couponError,
+        couponApplied,
+        setCouponApplied,
+        setCouponError,
         ready,
         value,
         setValue,
-        suggestions: { status, data },
-        clearSuggestions,
-    } = usePlacesAutocomplete({
-        requestOptions: {
-            componentRestrictions: { country: "pe" },
-            // Añadir locale y region strict
-            language: "es",
-            region: "pe",
-        },
-    })
-
-    // Load draft when ready
-    useEffect(() => {
-        if (loaded && draft) {
-            if (draft.name) setFormValue("name", draft.name)
-            if (draft.phone) setFormValue("phone", draft.phone)
-            if (draft.dni) setFormValue("dni", draft.dni)
-            if (draft.department) setFormValue("department", draft.department)
-            if (draft.province) setFormValue("province", draft.province)
-            if (draft.district) setFormValue("district", draft.district)
-            if (draft.reference) setFormValue("reference", draft.reference)
-            if (draft.shippingMethod) setFormValue("shippingMethod", draft.shippingMethod)
-            if (draft.paymentMethod) setFormValue("paymentMethod", draft.paymentMethod)
-            // Address value is handled by Google Maps hook, we can set it via setValue
-            if (draft.address) setValue(draft.address, false)
-        }
-    }, [loaded, draft, setFormValue, setValue])
-
-    // Save draft on changes — observa solo los campos relevantes, no el form entero
-    useEffect(() => {
-        if (!loaded) return
-        const timeout = setTimeout(() => {
-            saveDraft({
-                ...getValues(),
-                address: value,
-            })
-        }, 500) // Debounce 500ms
-        return () => clearTimeout(timeout)
-    }, [paymentMethod, shippingMethod, value, loaded, saveDraft, getValues])
-
-    // Auto-ajustar a Provincia si el departamento no es Lima o Callao (Prevención de Lima-Falso)
-    useEffect(() => {
-        if (!loaded) return
-        const deptClean = (department || "").trim().toLowerCase()
-        if (deptClean.length > 2) {
-            const isLimaOrCallao = deptClean.includes("lima") || deptClean.includes("callao")
-            const currentShipping = getValues("shippingMethod")
-
-            if (!isLimaOrCallao && currentShipping === "Lima") {
-                setFormValue("shippingMethod", "Provincia", { shouldValidate: true })
-                toast.info("Ajuste de Cobertura", {
-                    description: `Detectamos que tu dirección está en ${department}. El método de envío se ha configurado automáticamente a Provincia.`,
-                    duration: 6000
-                })
-            }
-        }
-    }, [department, loaded, setFormValue, getValues])
-
-    // Removed unused geoProvince, geoDistrict
-
-    const handleSelect = async (address: string) => {
-        setValue(address, false)
-        clearSuggestions()
-
-        try {
-            const results = await getGeocode({ address })
-
-            // --- NUEVO: AUTOCOMPLETADO INTELIGENTE ---
-            const addressComponents = results[0].address_components;
-
-            let departamentoEncontrado = "";
-            let provinciaEncontrada = "";
-            let distritoEncontrado = "";
-
-            addressComponents.forEach((component: any) => {
-                const types = component.types;
-                if (types.includes("administrative_area_level_1")) {
-                    departamentoEncontrado = component.long_name;
-                }
-                if (types.includes("administrative_area_level_2")) {
-                    provinciaEncontrada = component.long_name;
-                }
-                if (types.includes("locality") || types.includes("sublocality")) {
-                    distritoEncontrado = component.long_name;
-                }
-            });
-
-            if (departamentoEncontrado) setFormValue("department", departamentoEncontrado, { shouldValidate: true });
-            if (provinciaEncontrada) setFormValue("province", provinciaEncontrada, { shouldValidate: true });
-            if (distritoEncontrado) setFormValue("district", distritoEncontrado, { shouldValidate: true });
-            // ----------------------------------------
-
-            const { lat, lng } = await getLatLng(results[0])
-            const link = `https://www.google.com/maps/?q=${lat},${lng}`
-            setLocationLink(link)
-            console.log("📍 Location Link Generated:", link)
-        } catch (error) {
-            console.error("Error Geocoding:", error)
-            // Fallback: search link
-            const encoded = encodeURIComponent(address)
-            setLocationLink(`https://www.google.com/maps/search/?api=1&query=${encoded}`)
-        }
-    }
-
-    const subtotalAmount = Number(total) || 0
-    const discountAmount = Math.max(0, Math.min(subtotalAmount, Number(couponDiscount) || 0))
-    const totalToPay = Math.max(0, Math.round((subtotalAmount - discountAmount) * 100) / 100)
-
-
-    const handleApplyCoupon = async () => {
-        setCouponError("")
-        setCouponApplying(true)
-        setCouponApplied(false)
-        try {
-            const currentEmail = getValues("email")?.trim() || null
-            const res = await validateCoupon(couponCode, subtotalAmount, currentEmail)
-            setCouponDiscount(res.descuento)
-            setCouponApplied(res.descuento > 0)
-        } catch (err: any) {
-            setCouponDiscount(0)
-            setCouponApplied(false)
-            setCouponError(err?.message || 'No se pudo aplicar el cupón')
-        } finally {
-            setCouponApplying(false)
-        }
-    }
-
-    // ── Validation Helper ──
-    const validateFieldsForCulqi = async () => {
-        const isValid = await trigger()
-        if (!isValid) return false
-
-        setCouponError("")
-
-        if (!value || value.length < 5) {
-            toast.error("Dirección inválida", {
-                description: "Por favor selecciona una dirección válida del mapa antes de continuar.",
-                duration: 5000
-            })
-            return false
-        }
-
-        if (couponCode.trim()) {
-            try {
-                const currentEmail = getValues("email")?.trim() || null
-                await validateCoupon(couponCode, subtotalAmount, currentEmail)
-            } catch (err: any) {
-                setCouponError(err?.message || 'Cupón inválido')
-                return false
-            }
-        }
-        return true
-    }
-
-    // ── Helper para construir Payload (reutilizable) ──
-    const getOrderPayload = async (data: CheckoutFormValues) => {
-        const normalizedPhone = data.phone.replace(/\D/g, "")
-        const normalizedDni = normalizeDni(data.dni)
-
-        // Re-validar cupón para obtener descuento final seguro
-        let appliedCouponCode: string | null = null
-        let appliedDiscount = discountAmount
-
-        if (couponCode.trim()) {
-            try {
-                const res = await validateCoupon(couponCode, subtotalAmount, data.email?.trim() || null)
-                appliedCouponCode = res.codigo
-                appliedDiscount = res.descuento
-            } catch (err) {
-                // Si falla aquí, usamos datos previos validos o 0
-                console.warn("Coupon re-validation failed silently", err)
-            }
-        }
-
-        const finalDiscount = Math.max(0, Math.min(subtotalAmount, Number(appliedDiscount) || 0))
-        const finalTotal = Math.max(0, Math.round((subtotalAmount - finalDiscount) * 100) / 100)
-
-        const checkoutItems = (Array.isArray(items) ? items : []).map((it: any) => ({
-            id: Number(it?.id ?? 0),
-            quantity: Number(it?.quantity ?? 0),
-            precio: Number(it?.precio ?? 0),
-            nombre: String(it?.nombre ?? ''),
-            producto_variante_id: (it as any)?.producto_variante_id ?? null,
-            variante_nombre: (it as any)?.variante_nombre ?? null,
-        }))
-
-        const fullAddress = `${data.department}, ${data.province}, ${data.district}. ${value || ''}`.trim()
-
-        let finalLocationLink = locationLink
-        if ((!finalLocationLink || finalLocationLink.trim() === "") && fullAddress) {
-            const encoded = encodeURIComponent(fullAddress)
-            finalLocationLink = `https://www.google.com/maps/search/?api=1&query=${encoded}`
-        }
-
-        // address field for API must be min(5). Use the raw Google Maps street value,
-        // falling back to the full composed address.
-        const streetForApi = (value || "").trim()
-        const addressForApi = streetForApi.length >= 5
-            ? streetForApi
-            : fullAddress.length >= 5
-                ? fullAddress
-                : `${data.district || ''} ${data.province || ''}`.trim()
-
-        return {
-            name: data.name,
-            phone: normalizedPhone,
-            dni: normalizedDni,
-            email: data.email?.trim() || undefined,
-            address: addressForApi,  // Primary address for API (needed for min(5))
-            street: streetForApi,    // Raw Google Maps part
-            province: data.province,
-            district: data.district,
-            department: data.department,
-            reference: data.reference || undefined,
-            locationLink: finalLocationLink || "",
-            couponCode: appliedCouponCode || undefined,
-            discountAmount: finalDiscount || 0,
-            shippingMethod: data.shippingMethod || undefined,
-            items: checkoutItems,
-            // Computed for logs
-            subtotal: subtotalAmount,
-            total: finalTotal
-        }
-    }
-
-
-    const onSubmit = async (data: CheckoutFormValues) => {
-        if (data.paymentMethod === 'culqi') return
-
-        if (!value || value.length < 5) {
-            toast.error("Dirección inválida", {
-                description: "Por favor selecciona una dirección válida del mapa antes de continuar.",
-                duration: 5000
-            })
-            return
-        }
-
-        setIsSubmitting(true)
-        setCouponError("")
-
-        if (couponCode.trim()) {
-            try {
-                await validateCoupon(couponCode, subtotalAmount, data.email?.trim() || null)
-            } catch (err: any) {
-                setCouponError(err?.message || 'Cupón inválido')
-                setIsSubmitting(false)
-                return
-            }
-        }
-
-        try {
-            // 2. Build Payload
-            const payload = await getOrderPayload(data)
-
-            // 3. Create Order
-            const { orderId: newOrderId } = await createCheckoutOrder(payload)
-            const orderIdFormatted = newOrderId.toString().padStart(6, '0')
-
-            // 4. WhatsApp Final Message
-            const messageCliente = buildWhatsAppFinalMessage({
-                orderIdFormatted,
-                name: payload.name,
-                dni: payload.dni,
-                phone: payload.phone,
-                address: payload.street || payload.address,
-                department: payload.department,
-                province: payload.province,
-                district: payload.district,
-                reference: payload.reference,
-                locationLink: payload.locationLink,
-                items: payload.items,
-                subtotal: payload.subtotal,
-                discount: Number(payload.discountAmount),
-                total: payload.total,
-                couponCode: payload.couponCode,
-                shippingMethod: payload.shippingMethod,
-                email: payload.email,
-            })
-
-            // Start transition for natural feel
-            setIsRedirecting(true)
-            setLastOrderSuccessMarker(orderIdFormatted)
-
-            // redirection to success page
-            router.push(`/checkout/success?order_id=${newOrderId}&transaction_id=whatsapp`)
-
-            // Side effects in background
-            clearCartStorage()
-            onComplete()
-
-        } catch (error: any) {
-            console.error("Error al procesar:", error)
-            const msg = String(error?.message || '')
-            if (isCouponRelatedError(msg)) {
-                setCouponDiscount(0)
-                setCouponApplied(false)
-                setCouponError(msg)
-            } else {
-                toast.error("No se pudo crear el pedido", {
-                    description: msg || "Intenta nuevamente o contáctanos por WhatsApp.",
-                    duration: 8000
-                })
-            }
-            setIsSubmitting(false)
-        }
-    }
-
-    // ── CULQI Handler ──
-    const handleCulqiToken = async (token: string, email: string) => {
-        try {
-            const payload = await getOrderPayload(getValues())
-
-            // Asegurar que siempre haya un email válido (fallback si Culqi no lo devuelve)
-            const emailToSend = email || "pedidos@blama.shop"
-
-            // Call API
-            const res = await fetch("/api/checkout/culqi", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    ...payload,
-                    token,
-                    email: emailToSend
-                })
-            })
-
-            const data = await res.json()
-
-            if (!res.ok || !data.ok) {
-                // Mejora de debug: Si hay detalles de validación, mostrarlos
-                const errorDetails = data.details ? `\nDetalles: ${JSON.stringify(data.details, null, 2)}` : ""
-                throw new Error((data.error || "Error al procesar el pago") + errorDetails)
-            }
-
-            // Success!
-            const orderIdFormatted = String(data.orderId || '0').padStart(6, '0')
-            setLastOrderSuccessMarker(orderIdFormatted)
-            clearCartStorage()
-            setIsRedirecting(true)
-
-            // GTM: Track Purchase
-            sendGTMEvent({
-                event: 'purchase',
-                ecommerce: {
-                    transaction_id: orderIdFormatted,
-                    value: payload.total,
-                    currency: 'PEN',
-                    coupon: payload.couponCode,
-                    items: payload.items.map(item => ({
-                        item_id: String(item.id),
-                        item_name: item.nombre,
-                        price: item.precio,
-                        quantity: item.quantity
-                    }))
-                }
-            })
-
-            // Para Culqi: cerrar el carrito directamente (sin pantalla de éxito intermedia)
-            // y redirigir a la página de éxito de inmediato.
-            if (onCompleteCulqi) {
-                onCompleteCulqi()
-            } else {
-                onComplete()
-            }
-            router.push(`/checkout/success?order_id=${data.orderId}&transaction_id=${data.transactionId}`)
-
-        } catch (err: any) {
-            console.error("Culqi Error:", err)
-            const msg = err?.message || (typeof err === 'object' ? JSON.stringify(err) : String(err))
-            toast.error("Error al procesar el pago", {
-                description: msg || "Ocurrió un error inesperado. Por favor intenta nuevamente.",
-                duration: 8000,
-                action: {
-                    label: "WhatsApp",
-                    onClick: () => window.open(`https://api.whatsapp.com/send/?phone=${process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "982432561"}&text=Hola,%20tuve%20un%20problema%20al%20pagar%20con%20tarjeta.%20%C2%BFPueden%20ayudarme?`, "_blank")
-                }
-            })
-            throw err
-        }
-    }
+        suggestions,
+        suggestionsStatus,
+        handleSelect,
+        subtotalAmount,
+        discountAmount,
+        totalToPay,
+        handleApplyCoupon,
+        validateFieldsForCulqi,
+        onSubmit,
+        handleCulqiToken,
+    } = useCheckoutForm({ items, total, onComplete, onCompleteCulqi })
 
     // Prevent keyboard from opening automatically on mobile
     useEffect(() => {
-        // Aggressively blur any active element when this component mounts
-        // This ensures the keyboard doesn't pop up even if the browser tries to auto-focus
-        if (document.activeElement instanceof HTMLElement) {
-            document.activeElement.blur()
+        if (typeof window !== "undefined") {
+            if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur()
+            }
+            window.scrollTo(0, 0)
         }
-        window.scrollTo(0, 0)
     }, [])
 
     return (
@@ -543,8 +106,6 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                         className="h-full overflow-y-auto p-4 space-y-6 scroll-smooth pb-8"
                         style={{ scrollbarWidth: 'thin', scrollbarColor: 'hsl(var(--border)) transparent' }}
                     >
-
-
                         <CheckoutCustomer
                             register={register}
                             errors={errors}
@@ -559,10 +120,11 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                             addressValue={value}
                             onAddressChange={(val) => {
                                 setValue(val)
-                                setLocationLink("")
                             }}
                             addressReady={ready}
-                            suggestions={data} suggestionsStatus={status} onSuggestionSelect={handleSelect}
+                            suggestions={suggestions}
+                            suggestionsStatus={suggestionsStatus}
+                            onSuggestionSelect={handleSelect}
                             disabled={isSubmitting}
                             apiKeyMissing={!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
                         />
@@ -587,17 +149,22 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                                 />
                             )}
                         />
+
                         <div className="pt-4 border-t mt-4">
                             <CheckoutSummary
                                 subtotal={subtotalAmount}
                                 shippingMethod={shippingMethod}
                                 discount={discountAmount}
                                 total={totalToPay}
-                                couponCode={couponCode} setCouponCode={setCouponCode}
-                                applyCoupon={handleApplyCoupon} couponApplying={couponApplying} couponApplied={couponApplied} couponError={couponError} setCouponApplied={setCouponApplied} setCouponError={setCouponError}
+                                couponCode={couponCode}
+                                setCouponCode={setCouponCode}
+                                applyCoupon={handleApplyCoupon}
+                                couponApplying={couponApplying}
+                                couponApplied={couponApplied}
+                                couponError={couponError}
+                                setCouponApplied={setCouponApplied}
+                                setCouponError={setCouponError}
                                 isSubmitting={isSubmitting}
-
-                                // Inyectar botón de Culqi si está seleccionado
                                 customButton={paymentMethod === 'culqi' ? (
                                     <CulqiPaymentButton
                                         amount={totalToPay}
@@ -618,35 +185,35 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                                 ) : undefined}
                             />
                         </div>
-                    </div>{/* end inner scroll div */}
-                </div>{/* end outer relative div */}
+                    </div>
+                </div>
             </form>
 
             <AnimatePresence>
                 {isRedirecting && (
                     <m.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/90 backdrop-blur-xl"
-                    >
-                        <m.div
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="flex flex-col items-center gap-4 text-center"
-                        >
-                            <div className="relative">
-                                <div className="h-16 w-16 rounded-full border-4 border-blue-100 border-t-blue-600 animate-spin" />
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="h-2 w-2 bg-blue-600 rounded-full" />
-                                </div>
-                            </div>
-                            <div>
-                                <h2 className="text-xl font-bold text-gray-900">Procesando tu pedido...</h2>
-                                <p className="text-gray-500 text-sm">Estamos finalizando tu compra de forma segura.</p>
-                            </div>
-                        </m.div>
-                    </m.div>
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/90 backdrop-blur-xl"
+					>
+						<m.div
+							initial={{ scale: 0.8, opacity: 0 }}
+							animate={{ scale: 1, opacity: 1 }}
+							className="flex flex-col items-center gap-4 text-center"
+						>
+							<div className="relative">
+								<div className="h-16 w-16 rounded-full border-4 border-blue-100 border-t-blue-600 animate-spin" />
+								<div className="absolute inset-0 flex items-center justify-center">
+									<div className="h-2 w-2 bg-blue-600 rounded-full" />
+								</div>
+							</div>
+							<div>
+								<h2 className="text-xl font-bold text-gray-900">Procesando tu pedido...</h2>
+								<p className="text-gray-500 text-sm">Estamos finalizando tu compra de forma segura.</p>
+							</div>
+						</m.div>
+					</m.div>
                 )}
             </AnimatePresence>
         </>
