@@ -1,5 +1,6 @@
 import { m } from "framer-motion"
-import { Search, Calendar } from "lucide-react"
+import { Search, Calendar, ChevronDown } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
 import { Input } from "@/components/ui/input"
 import {
     Select,
@@ -37,6 +38,75 @@ export function OrdersFilterBar({
     customStartDate, setCustomStartDate,
     customEndDate, setCustomEndDate
 }: OrdersFilterBarProps) {
+    const [statusOpen, setStatusOpen] = useState(false)
+    const [workerOpen, setWorkerOpen] = useState(false)
+
+    const statusRef = useRef<HTMLDivElement>(null)
+    const workerRef = useRef<HTMLDivElement>(null)
+
+    // Cerrar los dropdowns al hacer clic fuera del componente
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (statusRef.current && !statusRef.current.contains(event.target as Node)) {
+                setStatusOpen(false)
+            }
+            if (workerRef.current && !workerRef.current.contains(event.target as Node)) {
+                setWorkerOpen(false)
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => document.removeEventListener("mousedown", handleClickOutside)
+    }, [])
+
+    const allStatuses = [
+        { value: "Pendiente", label: "Pendiente" },
+        { value: "Confirmado", label: "Confirmado" },
+        { value: "Preparando", label: "Preparando" },
+        { value: "Enviado", label: "Enviado" },
+        { value: "Llegó a Agencia", label: "Llegó a Agencia" },
+        { value: "Entregado", label: "Entregado" },
+        { value: "Fallido", label: "Fallido" },
+        { value: "Devuelto", label: "Devuelto" },
+        { value: "Cancelado", label: "Cancelado" },
+    ]
+
+    const selectedStatuses = statusFilter === "all" ? [] : statusFilter.split(",").filter(Boolean)
+    const selectedWorkers = filterWorker === "all" ? [] : filterWorker.split(",").filter(Boolean)
+
+    const toggleStatus = (status: string) => {
+        const next = selectedStatuses.includes(status)
+            ? selectedStatuses.filter(s => s !== status)
+            : [...selectedStatuses, status]
+        setStatusFilter(next.length === 0 ? "all" : next.join(","))
+    }
+
+    const toggleWorker = (workerId: string) => {
+        const next = selectedWorkers.includes(workerId)
+            ? selectedWorkers.filter(w => w !== workerId)
+            : [...selectedWorkers, workerId]
+        setFilterWorker(next.length === 0 ? "all" : next.join(","))
+    }
+
+    // Texto dinámico y contextual para los botones
+    const getStatusButtonText = () => {
+        if (selectedStatuses.length === 0) return "Todos los estados"
+        if (selectedStatuses.length <= 2) return selectedStatuses.join(", ")
+        return `${selectedStatuses.length} estados seleccionados`
+    }
+
+    const getWorkerButtonText = () => {
+        if (selectedWorkers.length === 0) return "Todo el equipo"
+        
+        const names = selectedWorkers.map(id => {
+            if (id === 'unassigned') return "Sin asignar"
+            const w = workers.find(work => work.id === id)
+            return w ? (w.nombre || "Trabajador") : "Desconocido"
+        })
+
+        if (names.length <= 2) return names.join(", ")
+        return `${names.length} asignados`
+    }
+
     return (
         <m.div 
             initial={{ opacity: 0, y: 10 }}
@@ -44,6 +114,7 @@ export function OrdersFilterBar({
             transition={{ delay: 0.1 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-6 bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100"
         >
+            {/* Campo de búsqueda */}
             <div className="relative group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 group-focus-within:text-slate-900 transition-colors" />
                 <Input
@@ -54,37 +125,120 @@ export function OrdersFilterBar({
                 />
             </div>
 
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="h-14 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 px-6">
-                    <SelectValue placeholder="Estado" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="all">Todos los estados</SelectItem>
-                    <SelectItem value="Pendiente">Pendiente</SelectItem>
-                    <SelectItem value="Confirmado">Confirmado</SelectItem>
-                    <SelectItem value="Enviado">Enviado</SelectItem>
-                    <SelectItem value="Entregado">Entregado</SelectItem>
-                    <SelectItem value="Fallido">Fallido / Cancelado</SelectItem>
-                </SelectContent>
-            </Select>
+            {/* Filtro Multiselección de Estado */}
+            <div ref={statusRef} className="relative">
+                <button
+                    type="button"
+                    onClick={() => {
+                        setStatusOpen(!statusOpen)
+                        setWorkerOpen(false)
+                    }}
+                    className="h-14 w-full flex items-center justify-between bg-slate-50 border-none rounded-2xl font-bold text-slate-900 px-6 cursor-pointer focus:outline-none hover:bg-slate-100/70 transition-all text-left"
+                >
+                    <span className="truncate pr-2">{getStatusButtonText()}</span>
+                    <ChevronDown className={`h-5 w-5 text-slate-400 shrink-0 transition-transform duration-200 ${statusOpen ? 'rotate-180' : ''}`} />
+                </button>
 
+                {statusOpen && (
+                    <div className="absolute top-full left-0 right-0 z-50 mt-2 rounded-2xl bg-white border border-slate-100 shadow-[0_10px_40px_rgba(0,0,0,0.12)] p-3 space-y-1 max-h-80 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between border-b pb-2 mb-2 px-1">
+                            <span className="text-[10px] uppercase font-black text-muted-foreground">Estados</span>
+                            {selectedStatuses.length > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={() => setStatusFilter("all")}
+                                    className="text-[10px] font-bold text-primary hover:underline cursor-pointer"
+                                >
+                                    Limpiar
+                                </button>
+                            )}
+                        </div>
+                        {allStatuses.map((st) => {
+                            const isChecked = selectedStatuses.includes(st.value)
+                            return (
+                                <label
+                                    key={st.value}
+                                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer select-none"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={isChecked}
+                                        onChange={() => toggleStatus(st.value)}
+                                        className="h-5 w-5 rounded border-slate-200 text-slate-900 focus:ring-slate-900/5 focus:ring-offset-0 focus:ring-2 accent-slate-900 cursor-pointer"
+                                    />
+                                    <span className="text-xs font-bold text-slate-800">{st.label}</span>
+                                </label>
+                            )
+                        })}
+                    </div>
+                )}
+            </div>
+
+            {/* Filtro Multiselección de Trabajador */}
             {(userRole === 'admin' || userRole === 'superadmin') && (
-                <Select value={filterWorker} onValueChange={setFilterWorker}>
-                    <SelectTrigger className="h-14 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 px-6">
-                        <SelectValue placeholder="Trabajador" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Todo el equipo</SelectItem>
-                        <SelectItem value="unassigned">Sin asignar</SelectItem>
-                        {workers.map((w) => (
-                            <SelectItem key={w.id} value={w.id}>
-                                {w.nombre || 'Trabajador'}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+                <div ref={workerRef} className="relative">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setWorkerOpen(!workerOpen)
+                            setStatusOpen(false)
+                        }}
+                        className="h-14 w-full flex items-center justify-between bg-slate-50 border-none rounded-2xl font-bold text-slate-900 px-6 cursor-pointer focus:outline-none hover:bg-slate-100/70 transition-all text-left"
+                    >
+                        <span className="truncate pr-2">{getWorkerButtonText()}</span>
+                        <ChevronDown className={`h-5 w-5 text-slate-400 shrink-0 transition-transform duration-200 ${workerOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {workerOpen && (
+                        <div className="absolute top-full left-0 right-0 z-50 mt-2 rounded-2xl bg-white border border-slate-100 shadow-[0_10px_40px_rgba(0,0,0,0.12)] p-3 space-y-1 max-h-80 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+                            <div className="flex items-center justify-between border-b pb-2 mb-2 px-1">
+                                <span className="text-[10px] uppercase font-black text-muted-foreground">Personal</span>
+                                {selectedWorkers.length > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setFilterWorker("all")}
+                                        className="text-[10px] font-bold text-primary hover:underline cursor-pointer"
+                                    >
+                                        Limpiar
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Opción Sin asignar */}
+                            <label className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={selectedWorkers.includes("unassigned")}
+                                    onChange={() => toggleWorker("unassigned")}
+                                    className="h-5 w-5 rounded border-slate-200 text-slate-900 focus:ring-slate-900/5 focus:ring-offset-0 focus:ring-2 accent-slate-900 cursor-pointer"
+                                />
+                                <span className="text-xs font-bold text-slate-800">Sin asignar</span>
+                            </label>
+
+                            {/* Lista de Trabajadores */}
+                            {workers.map((w) => {
+                                const isChecked = selectedWorkers.includes(w.id)
+                                return (
+                                    <label
+                                        key={w.id}
+                                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer select-none"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={isChecked}
+                                            onChange={() => toggleWorker(w.id)}
+                                            className="h-5 w-5 rounded border-slate-200 text-slate-900 focus:ring-slate-900/5 focus:ring-offset-0 focus:ring-2 accent-slate-900 cursor-pointer"
+                                        />
+                                        <span className="text-xs font-bold text-slate-800">{w.nombre || 'Trabajador'}</span>
+                                    </label>
+                                )
+                            })}
+                        </div>
+                    )}
+                </div>
             )}
 
+            {/* Filtro de Rango de Fechas */}
             <div className="flex gap-2">
                 <Select value={dateFilter} onValueChange={setDateFilter}>
                     <SelectTrigger className="h-14 flex-1 bg-slate-50 border-none rounded-2xl font-bold text-slate-900 px-6">

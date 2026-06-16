@@ -37,16 +37,27 @@ export async function fetchPedidosForRole(args: FetchPedidosArgs): Promise<{ dat
 
   // Apply Worker Filter
   if (args.filterWorker && args.filterWorker !== 'all') {
-    if (args.filterWorker === 'unassigned') {
-      query = query.is("asignado_a", null)
-    } else {
-      query = query.eq("asignado_a", args.filterWorker)
+    const workers = args.filterWorker.split(',').map(w => w.trim()).filter(Boolean)
+    if (workers.length > 0) {
+      const hasUnassigned = workers.includes('unassigned')
+      const workerIds = workers.filter(w => w !== 'unassigned')
+
+      if (hasUnassigned && workerIds.length > 0) {
+        query = query.or(`asignado_a.in.(${workerIds.map(id => `"${id}"`).join(',')}),asignado_a.is.null`)
+      } else if (hasUnassigned) {
+        query = query.is("asignado_a", null)
+      } else {
+        query = query.in("asignado_a", workerIds)
+      }
     }
   }
 
   // Apply Status Filter
   if (args.statusFilter && args.statusFilter !== 'all') {
-    query = query.eq("status", args.statusFilter)
+    const statuses = args.statusFilter.split(',').map(s => s.trim()).filter(Boolean)
+    if (statuses.length > 0) {
+      query = query.in("status", statuses)
+    }
   }
 
   // Apply Date Filter
@@ -146,16 +157,27 @@ export async function fetchPedidosForRole(args: FetchPedidosArgs): Promise<{ dat
 
   // Re-apply Worker Filter
   if (args.filterWorker && args.filterWorker !== 'all') {
-    if (args.filterWorker === 'unassigned') {
-      dataQuery = dataQuery.is("asignado_a", null)
-    } else {
-      dataQuery = dataQuery.eq("asignado_a", args.filterWorker)
+    const workers = args.filterWorker.split(',').map(w => w.trim()).filter(Boolean)
+    if (workers.length > 0) {
+      const hasUnassigned = workers.includes('unassigned')
+      const workerIds = workers.filter(w => w !== 'unassigned')
+
+      if (hasUnassigned && workerIds.length > 0) {
+        dataQuery = dataQuery.or(`asignado_a.in.(${workerIds.map(id => `"${id}"`).join(',')}),asignado_a.is.null`)
+      } else if (hasUnassigned) {
+        dataQuery = dataQuery.is("asignado_a", null)
+      } else {
+        dataQuery = dataQuery.in("asignado_a", workerIds)
+      }
     }
   }
 
   // Re-apply Status Filter
   if (args.statusFilter && args.statusFilter !== 'all') {
-    dataQuery = dataQuery.eq("status", args.statusFilter)
+    const statuses = args.statusFilter.split(',').map(s => s.trim()).filter(Boolean)
+    if (statuses.length > 0) {
+      dataQuery = dataQuery.in("status", statuses)
+    }
   }
 
   // Re-apply Date Filter
