@@ -2,6 +2,7 @@ import { Resend } from "resend"
 import { render } from "@react-email/components"
 import { OrderConfirmationEmail } from "../components/order-confirmation"
 import { OrderStatusEmail } from "../components/order-status"
+import { NewsletterWelcomeEmail } from "../components/newsletter-welcome"
 
 function getResend() {
     return new Resend(process.env.RESEND_API_KEY)
@@ -139,6 +140,40 @@ export async function sendOrderStatusEmail(params: SendOrderStatusParams) {
         return { success: true, emailId: data?.id }
     } catch (err: any) {
         console.error("❌ Error crítico en servicio de correo de estado:", err)
+        return { success: false, error: err.message }
+    }
+}
+
+interface SendNewsletterWelcomeParams {
+    to: string
+    cuponCodigo: string
+}
+
+export async function sendNewsletterWelcomeEmail(params: SendNewsletterWelcomeParams) {
+    try {
+        const emailHtml = await render(
+            NewsletterWelcomeEmail({
+                cuponCodigo: params.cuponCodigo,
+                whatsappTienda: process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "+51958279604",
+            })
+        )
+
+        const { data, error } = await getResend().emails.send({
+            from: "Tienda Blama Shop <pedidos@blama.shop>",
+            to: params.to,
+            subject: "¡Bienvenido a Blama Shop! Aquí tienes tu cupón del 10% 🎁",
+            html: emailHtml,
+        })
+
+        if (error) {
+            console.error("❌ Error enviando correo de bienvenida al newsletter:", error)
+            return { success: false, error: error.message }
+        }
+
+        console.log(`📧 Correo de bienvenida al newsletter enviado a ${params.to} (ID: ${data?.id})`)
+        return { success: true, emailId: data?.id }
+    } catch (err: any) {
+        console.error("❌ Error crítico en servicio de correo de newsletter:", err)
         return { success: false, error: err.message }
     }
 }

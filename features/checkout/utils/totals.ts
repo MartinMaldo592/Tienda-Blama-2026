@@ -8,7 +8,8 @@ import { SupabaseClient } from "@supabase/supabase-js"
 export async function validateAndCalculateTotals(
     supabaseAdmin: SupabaseClient,
     items: Array<{ id: number; quantity: number; producto_variante_id?: number | null }>,
-    couponCode?: string | null
+    couponCode?: string | null,
+    customerEmail?: string | null
 ) {
     const productIds = items.map(it => it.id)
     const variantIds = items
@@ -19,13 +20,16 @@ export async function validateAndCalculateTotals(
         throw new Error("El carrito está vacío")
     }
 
-    const [productsRes, variantsRes, couponRes] = await Promise.all([
+    const [productsRes, variantsRes, couponRes, subscriptionRes] = await Promise.all([
         supabaseAdmin.from("productos").select("id, precio, stock, nombre").in("id", productIds),
         variantIds.length > 0
             ? supabaseAdmin.from("producto_variantes").select("id, precio, stock, talla, color, modelo").in("id", variantIds)
             : Promise.resolve({ data: [], error: null }),
         couponCode
-            ? supabaseAdmin.from("cupones").select("*").eq("codigo", couponCode).single()
+            ? supabaseAdmin.from("cupones").select("*").eq("codigo", couponCode).maybeSingle()
+            : Promise.resolve({ data: null, error: null }),
+        couponCode
+            ? supabaseAdmin.from("newsletter_subscriptions").select("email").eq("cupon_codigo", couponCode).maybeSingle()
             : Promise.resolve({ data: null, error: null })
     ])
 
@@ -97,7 +101,10 @@ export async function validateAndCalculateTotals(
     let discountAmount = 0
     let validCouponCode = null
 
-    if (couponCode && couponRes.data) {
+    if (couponCode) {
+        if (couponRes.error || !couponRes.data) {
+            throw new Error("Cupón inválido")
+        }
         const coupon = couponRes.data
         const now = new Date()
         const isActive = coupon.activo !== false
@@ -106,13 +113,29 @@ export async function validateAndCalculateTotals(
         const hasUsesLeft = !coupon.max_usos || coupon.usos < coupon.max_usos
         const meetsMinTotal = subtotal >= (coupon.min_total || 0)
 
-        if (isActive && hasNotExpired && hasStarted && hasUsesLeft && meetsMinTotal) {
-            validCouponCode = coupon.codigo
-            if (coupon.tipo === 'monto') {
-                discountAmount = coupon.valor
-            } else if (coupon.tipo === 'porcentaje') {
-                discountAmount = (subtotal * coupon.valor) / 100
+        if (!isActive) throw new Error("Cupón inactivo")
+        if (!hasNotExpired) throw new Error("El cupón expiró")
+        if (!hasStarted) throw new Error("El cupón aún no está disponible")
+        if (!hasUsesLeft) throw new Error("El cupón ya alcanzó el máximo de usos")
+        if (!meetsMinTotal) throw new Error("El cupón no aplica para este total")
+
+        // ── Validar propiedad de cupón de bienvenida (newsletter) ──
+        if (subscriptionRes && subscriptionRes.data) {
+            const cleanedUserEmail = String(customerEmail || "").trim().toLowerCase()
+            const cleanedSubEmail = String(subscriptionRes.data.email || "").trim().toLowerCase()
+            if (!cleanedUserEmail) {
+                throw new Error("Por favor ingresa tu correo de contacto para aplicar este cupón de bienvenida.")
             }
+            if (cleanedUserEmail !== cleanedSubEmail) {
+                throw new Error("Este cupón de bienvenida solo es válido para el correo que se suscribió.")
+            }
+        }
+
+        validCouponCode = coupon.codigo
+        if (coupon.tipo === 'monto') {
+            discountAmount = coupon.valor
+        } else if (coupon.tipo === 'porcentaje') {
+            discountAmount = (subtotal * coupon.valor) / 100
         }
     }
 

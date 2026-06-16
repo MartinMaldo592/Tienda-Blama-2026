@@ -94,7 +94,7 @@ export async function POST(req: Request) {
 
         let subtotal, appliedDiscount, total, validCouponCode, getUnitPrice;
         try {
-            const result = await validateAndCalculateTotals(supabase, data.items, data.couponCode);
+            const result = await validateAndCalculateTotals(supabase, data.items, data.couponCode, data.email);
             subtotal = result.subtotal;
             appliedDiscount = result.discountAmount;
             total = result.total;
