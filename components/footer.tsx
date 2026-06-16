@@ -108,10 +108,6 @@ export function Footer() {
                         Tu tienda online favorita con la mejor variedad de productos en tendencia.
                     </p>
                     <div className="space-y-2 text-sm text-gray-400 pt-2">
-                        <div className="flex items-start gap-2">
-                            <span className="font-bold text-white shrink-0">Dirección:</span>
-                            <span>Calle Los Piroxenos 678, Lima, Perú</span>
-                        </div>
                         <div className="flex items-center gap-2">
                             <span className="font-bold text-white shrink-0">Email:</span>
                             <span>soporte@blamashop.com</span>

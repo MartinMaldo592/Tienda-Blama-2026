@@ -20,7 +20,7 @@ export default function ContactoPage() {
                 </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                 {/* Info Cards */}
                 <Card className="hover:shadow-lg transition-shadow">
                     <CardHeader className="flex flex-col items-center text-center pb-2">
@@ -49,23 +49,9 @@ export default function ContactoPage() {
                         <p className="text-sm text-muted-foreground mt-1">Consultas generales y pedidos</p>
                     </CardContent>
                 </Card>
-
-                <Card className="hover:shadow-lg transition-shadow">
-                    <CardHeader className="flex flex-col items-center text-center pb-2">
-                        <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mb-4 text-primary">
-                            <MapPin className="h-6 w-6" />
-                        </div>
-                        <CardTitle>Visítanos</CardTitle>
-                        <CardDescription>Oficina Administrativa</CardDescription>
-                    </CardHeader>
-                    <CardContent className="text-center">
-                        <p className="font-semibold text-base">Calle Los Piroxenos 678</p>
-                        <p className="text-sm text-muted-foreground mt-1">Lima, Perú</p>
-                    </CardContent>
-                </Card>
             </div>
 
-            <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch">
 
                 {/* Formulario */}
                 <div className="space-y-6">
@@ -101,29 +87,16 @@ export default function ContactoPage() {
                     </form>
                 </div>
 
-                {/* Mapa o Imagen + WhatsApp CTA */}
-                <div className="space-y-6">
-                    <div className="bg-muted rounded-xl h-[300px] w-full flex items-center justify-center relative overflow-hidden border">
-                        {/* Embed Google Maps */}
-                        <iframe
-                            src="https://maps.google.com/maps?q=Calle%20Los%20Piroxenos%20678&t=&z=17&ie=UTF8&iwloc=B&output=embed"
-                            width="100%"
-                            height="100%"
-                            style={{ border: 0 }}
-                            allowFullScreen
-                            loading="lazy"
-                            referrerPolicy="no-referrer-when-downgrade"
-                        ></iframe>
-                    </div>
-
-                    <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-6 rounded-xl">
-                        <h3 className="text-xl font-bold text-green-800 dark:text-green-300 mb-2">¿Prefieres Chat Directo?</h3>
-                        <p className="text-muted-foreground mb-4">
-                            Nuestros asesores están disponibles en WhatsApp para resolver tus dudas al instante.
+                {/* Canal de WhatsApp destacado */}
+                <div className="space-y-6 lg:h-full lg:flex lg:flex-col lg:justify-center">
+                    <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-8 rounded-xl h-full flex flex-col justify-center">
+                        <h3 className="text-2xl font-bold text-green-800 dark:text-green-300 mb-3">¿Prefieres Chat Directo?</h3>
+                        <p className="text-muted-foreground mb-6 text-base leading-relaxed">
+                            Nuestros asesores de atención al cliente están disponibles a través de WhatsApp para resolver tus dudas sobre envíos, productos y pedidos al instante.
                         </p>
-                        <Button asChild className="w-full bg-green-600 hover:bg-green-700 text-white h-11">
+                        <Button asChild className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-base font-bold shadow-md hover:shadow-lg transition-all">
                             <a href={`https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${defaultMessage}`} target="_blank" rel="noopener noreferrer">
-                                <span className="flex items-center gap-2">
+                                <span className="flex items-center justify-center gap-2">
                                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.592 2.654-.694c1.003.545 1.972.82 2.8.82 3.181 0 5.768-2.586 5.768-5.766s-2.586-5.766-5.762-5.766zM12 4.156c4.291 0 7.78 3.489 7.78 7.78a7.78 7.78 0 0 1-7.78 7.78 7.75 7.75 0 0 1-4-.9l-5.61 1.48 1.49-5.46a7.76 7.76 0 0 1-.67-2.91C3.21 7.64 6.7 4.16 12 4.16z" /></svg>
                                     Abrir WhatsApp
                                 </span>
