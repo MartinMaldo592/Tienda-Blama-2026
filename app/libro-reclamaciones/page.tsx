@@ -149,8 +149,7 @@ export default function LibroReclamacionesPage() {
                     <CardTitle className="text-xl">Hoja de Reclamación</CardTitle>
                     <CardDescription>
                         <span className="font-bold">RAZÓN SOCIAL:</span> MALDONADO QUINTANA KENNETH MARTIN<br />
-                        <span className="font-bold">RUC:</span> 10724108453 <br />
-                        <span className="font-bold">DIRECCIÓN:</span> Calle Los Piroxenos 678, Lima, Perú
+                        <span className="font-bold">RUC:</span> 10724108453
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">

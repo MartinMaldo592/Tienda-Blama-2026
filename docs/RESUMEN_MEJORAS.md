@@ -194,6 +194,25 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
     *   El ícono SVG y el efecto visual de onda se escalan proporcionalmente en base a las dimensiones del contenedor (`h-[52%] w-[52%]`).
 *   **Resultado**: Una interacción de ayuda directa mucho más visible y accesible en las páginas generales, sin interferir con los flujos de compra transaccional en el detalle de producto.
 
+### 11. Colapsado por Defecto del Acordeón de Descripción del Producto
+*   **Ubicación**: [producto-detalle-client.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/productos/[id]/producto-detalle-client.tsx) y [client.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/productos/[id]/modelo1/client.tsx)
+*   **Solución**: Se eliminó el atributo `defaultValue="description"` de la etiqueta `<Accordion>` en las vistas de detalle de producto principal y de modelo1.
+*   **Resultado**: Ahora la sección de la descripción del producto inicia colapsada por defecto cuando un usuario visita la página del producto. Esto reduce la longitud visual inicial de la página y permite que el cliente decida activamente qué secciones desea expandir.
+
+### 12. Remoción Completa de Dirección Física (Modelo 100% Tienda Virtual)
+*   **Ubicación**: [footer.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/components/footer.tsx), [page.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/contacto/page.tsx), [page.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/libro-reclamaciones/page.tsx) y [page.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/terminos/page.tsx)
+*   **Solución**:
+    *   **Footer**: Se eliminó el bloque de renderizado de la fila de dirección.
+    *   **Contacto**: Se removió la tarjeta "Visítanos" (reestructurando la grilla a 2 columnas para Teléfono y Email de forma balanceada) y se eliminó el `iframe` de Google Maps, sustituyéndolo por un banner vertical limpio para el soporte directo por WhatsApp.
+    *   **Libro de Reclamaciones**: Se quitó la dirección física de la información fiscal de la Hoja de Reclamación.
+    *   **Términos y Condiciones**: Se omitió la dirección física del domicilio fiscal, manteniendo únicamente la razón social y el RUC.
+*   **Resultado**: Una experiencia de marca coherente con el modelo de negocio digital puro, evitando que los clientes asuman la existencia de un local de atención al público o almacén de retiro presencial.
+
+### 13. Reemplazo del Icono de Compartir Producto (Estilo Tradicional)
+*   **Ubicación**: [producto-detalle-client.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/productos/[id]/producto-detalle-client.tsx) y [client.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/productos/[id]/modelo1/client.tsx)
+*   **Solución**: Se reemplazó el uso del icono de red de nodos (`Share2`) por el icono de una flecha curva saliendo de un contenedor (`Share`) de la biblioteca `lucide-react`.
+*   **Resultado**: Un aspecto mucho más intuitivo y familiar para los clientes a la hora de compartir enlaces de productos desde dispositivos móviles y de escritorio.
+
 ---
 
 ## Fase 7: Sistema Profesional de Carga de Medios y Feedback en Tiempo Real (UX/UI Admin)

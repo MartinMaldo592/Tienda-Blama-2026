@@ -26,7 +26,7 @@ import {
     RefreshCw,
     Send,
     ShieldCheck,
-    Share2,
+    Share,
     ShoppingCart,
     Truck,
     Star,
@@ -857,7 +857,7 @@ export default function ProductoDetalleClient() {
                                     className="w-full gap-2 h-11 border-2 border-muted hover:border-primary hover:text-primary transition-colors"
                                     onClick={handleShareNative}
                                 >
-                                    <Share2 className="h-4 w-4" />
+                                    <Share className="h-4 w-4" />
                                     Compartir este producto
                                 </Button>
                                 {shareOpen && (
@@ -880,7 +880,7 @@ export default function ProductoDetalleClient() {
 
                     {/* TABS SECTION REPLACED WITH ACCORDION */}
                     <div className="mt-12 mb-10 text-left">
-                        <Accordion type="single" collapsible defaultValue="description" className="w-full space-y-4">
+                        <Accordion type="single" collapsible className="w-full space-y-4">
                             {/* DESCRIPTION */}
                             {producto?.descripcion && (
                                 <AccordionItem value="description" className="bg-card border rounded-2xl px-6 shadow-sm overflow-hidden">

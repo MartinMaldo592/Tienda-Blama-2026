@@ -9,7 +9,7 @@ export default function TerminosPage() {
                 <section>
                     <h2 className="text-xl font-bold mb-2">1. INFORMACIÓN GENERAL</h2>
                     <p>
-                        Este sitio web es operado por <strong>MALDONADO QUINTANA KENNETH MARTIN</strong> con RUC 10724108453, con domicilio fiscal en Calle Los Piroxenos 678, Lima, Perú. En todo el sitio, los términos "nosotros", "nos" y "nuestro" se refieren a BLAMA SHOP.
+                        Este sitio web es operado por <strong>MALDONADO QUINTANA KENNETH MARTIN</strong> con RUC 10724108453. En todo el sitio, los términos "nosotros", "nos" y "nuestro" se refieren a BLAMA SHOP.
                         Al visitar nuestro sitio y/o comprar algo de nosotros, usted acepta los siguientes términos y condiciones.
                     </p>
                 </section>
