@@ -39,7 +39,15 @@ import { PedidoRow, PedidoItemRow, ProfileRow, PedidoLog } from "@/features/admi
 import { assignPedidoToWorker, fetchAdminWorkers, fetchPedidoDetail, updatePedidoStatusWithStock } from "@/features/admin"
 import { createClient } from "@/lib/supabase.client"
 import { OrderNotesCard } from "@/features/admin/components/orders/order-notes-card"
-import { OrderLabelGenerator } from "@/features/admin/components/orders/order-label-generator"
+import dynamic from "next/dynamic"
+
+const OrderLabelGenerator = dynamic(
+    () => import("@/features/admin/components/orders/order-label-generator").then(mod => mod.OrderLabelGenerator),
+    {
+        ssr: false,
+        loading: () => <div className="p-8 text-center text-sm font-medium text-slate-400">Cargando generador de etiquetas...</div>
+    }
+)
 import { m, AnimatePresence } from "framer-motion"
 
 export default function PedidoDetallePage() {
