@@ -750,14 +750,14 @@ export default function ProductoDetalleClient() {
             </div>
 
             {/* MODERN FLOATING MOBILE BOTTOM BAR - ANIMATED VERSION */}
-            <div className={`md:hidden fixed bottom-4 left-4 right-4 z-40 transition-all duration-500 ease-out ${showStickyBar ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0 pointer-events-none"}`}>
-                <div className="bg-white/95 backdrop-blur-md border border-neutral-200 shadow-[0_-8px_40px_rgb(0,0,0,0.12)] rounded-3xl p-2 flex items-center justify-between gap-3">
-                    <div className="pl-3 py-1 flex-shrink-0">
+            <div className={`md:hidden fixed bottom-4 left-4 right-[84px] z-40 transition-all duration-500 ease-out ${showStickyBar ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0 pointer-events-none"}`}>
+                <div className="bg-white/95 backdrop-blur-md border border-neutral-200 shadow-[0_-8px_40px_rgb(0,0,0,0.12)] rounded-3xl p-2 flex items-center justify-between gap-2">
+                    <div className="pl-2 py-1 flex-shrink-0">
                         <div className="text-[10px] uppercase font-bold text-muted-foreground leading-none mb-1 hidden sm:block">Total Pagar</div>
                         <div className="text-[10px] uppercase font-bold text-muted-foreground leading-none mb-1 sm:hidden">Total</div>
                         <div className="text-[19px] font-black text-foreground leading-none tracking-tight">{formatCurrency(currentPrice)}</div>
                     </div>
-                    <div className="flex gap-2 flex-1 justify-end">
+                    <div className="flex gap-1.5 flex-1 justify-end">
                         <Button
                             variant="outline"
                             size="icon"
@@ -768,7 +768,7 @@ export default function ProductoDetalleClient() {
                             <ShoppingCart className="h-[22px] w-[22px]" />
                         </Button>
                         <Button
-                            className="h-12 px-6 rounded-2xl border-2 border-transparent bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-[0_4px_14px_rgba(249,115,22,0.4)] font-black text-[15px] tracking-wide transform active:scale-95 transition-all overflow-hidden relative group"
+                            className="h-12 px-4 sm:px-6 rounded-2xl border-2 border-transparent bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-[0_4px_14px_rgba(249,115,22,0.4)] font-black text-[15px] tracking-wide transform active:scale-95 transition-all overflow-hidden relative group"
                             disabled={!inStock}
                             onClick={handleBeginCheckout}
                         >

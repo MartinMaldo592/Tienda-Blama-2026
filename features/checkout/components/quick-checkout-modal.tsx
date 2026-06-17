@@ -134,7 +134,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
     const quantity = 1
     const total = unitPrice * quantity
 
-    const { draft, loaded, saveDraft } = useCheckoutDraft()
+    const { draft, loaded, saveDraft, clearDraft } = useCheckoutDraft()
 
     const {
         ready,
@@ -316,6 +316,18 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
 
             // Start transition for natural feel
             setIsRedirecting(true)
+            clearDraft()
+            setName("")
+            setPhone("")
+            setDni("")
+            setAddress("")
+            setValue("")
+            setReference("")
+            setDepartment("")
+            setProvince("")
+            setDistrict("")
+            setShippingMethod("Lima")
+            setEmail("")
 
             // Redirect to success page as fast as possible
             router.push(`/checkout/success?order_id=${orderId}&transaction_id=whatsapp`)

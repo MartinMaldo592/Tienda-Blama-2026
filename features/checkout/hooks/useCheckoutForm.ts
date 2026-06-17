@@ -48,7 +48,7 @@ interface UseCheckoutFormOptions {
 }
 
 export function useCheckoutForm({ items, total, onComplete, onCompleteCulqi }: UseCheckoutFormOptions) {
-    const { draft, loaded, saveDraft } = useCheckoutDraft()
+    const { draft, loaded, saveDraft, clearDraft } = useCheckoutDraft()
     const router = useRouter()
     const [isRedirecting, setIsRedirecting] = useState(false)
     const [locationLink, setLocationLink] = useState("")
@@ -348,6 +348,8 @@ export function useCheckoutForm({ items, total, onComplete, onCompleteCulqi }: U
 
             setIsRedirecting(true)
             setLastOrderSuccessMarker(orderIdFormatted)
+            clearDraft()
+            form.reset()
             router.push(`/checkout/success?order_id=${newOrderId}&transaction_id=whatsapp`)
 
             clearCartStorage()
@@ -393,6 +395,8 @@ export function useCheckoutForm({ items, total, onComplete, onCompleteCulqi }: U
 
             const orderIdFormatted = String(data.orderId || '0').padStart(6, '0')
             setLastOrderSuccessMarker(orderIdFormatted)
+            clearDraft()
+            form.reset()
             clearCartStorage()
             setIsRedirecting(true)
 

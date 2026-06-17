@@ -104,9 +104,23 @@ export function LayoutShell({ children, announcementData }: LayoutShellProps) {
     return pathname ? pathname.startsWith("/productos/") && pathname !== "/productos" : false
   }, [pathname])
 
+  const [stickyBarActive, setStickyBarActive] = useState(false)
+
+  useEffect(() => {
+    if (!isProductPage) {
+      setStickyBarActive(false)
+      return
+    }
+    const handleStickyBarChange = (e: Event) => {
+      setStickyBarActive((e as CustomEvent).detail)
+    }
+    window.addEventListener("sticky-bar-change", handleStickyBarChange)
+    return () => window.removeEventListener("sticky-bar-change", handleStickyBarChange)
+  }, [isProductPage])
+
   const containerClasses = isProductPage
-    ? "fixed bottom-24 right-4 md:bottom-8 md:right-6 z-50 flex items-center justify-center group h-14 w-14"
-    : "fixed bottom-6 right-4 md:bottom-8 md:right-6 z-50 flex items-center justify-center group h-16 w-16 md:h-[72px] md:w-[72px]"
+    ? `fixed ${stickyBarActive ? "bottom-5" : "bottom-6"} right-4 md:bottom-8 md:right-6 z-50 flex items-center justify-center group h-14 w-14 transition-all duration-500`
+    : "fixed bottom-6 right-4 md:bottom-8 md:right-6 z-50 flex items-center justify-center group h-16 w-16 md:h-[72px] md:w-[72px] transition-all duration-500"
 
   const buttonClasses = isProductPage
     ? "relative inline-flex h-full w-full items-center justify-center rounded-full bg-green-600 text-white shadow-xl transition-all duration-300 hover:scale-110 hover:bg-green-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 focus-visible:ring-offset-2"
