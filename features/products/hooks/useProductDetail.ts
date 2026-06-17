@@ -74,6 +74,14 @@ export function useProductDetail() {
         return () => observer.disconnect()
     }, [producto, loading])
 
+    // Dispatch event on Sticky Bar visibility change
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const event = new CustomEvent("sticky-bar-change", { detail: showStickyBar })
+            window.dispatchEvent(event)
+        }
+    }, [showStickyBar])
+
     // WhatsApp Custom Message
     useEffect(() => {
         if (producto) {
