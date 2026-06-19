@@ -314,6 +314,22 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
 
             const orderIdFormatted = String(orderId).padStart(6, '0')
 
+            sendGTMEvent({
+                event: 'purchase',
+                ecommerce: {
+                    transaction_id: orderIdFormatted,
+                    value: total,
+                    currency: 'PEN',
+                    items: items.map(item => ({
+                        item_id: String(item.id),
+                        item_name: item.nombre,
+                        price: item.precio,
+                        quantity: item.quantity,
+                        item_variant: item.variante_nombre || undefined
+                    }))
+                }
+            })
+
             // Start transition for natural feel
             setIsRedirecting(true)
             clearDraft()

@@ -4,6 +4,7 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { sendGTMEvent } from "@/lib/gtm"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Mail, Phone, MapPin, Clock } from "lucide-react"
 
@@ -95,7 +96,17 @@ export default function ContactoPage() {
                             Nuestros asesores de atención al cliente están disponibles a través de WhatsApp para resolver tus dudas sobre envíos, productos y pedidos al instante.
                         </p>
                         <Button asChild className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-base font-bold shadow-md hover:shadow-lg transition-all">
-                            <a href={`https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${defaultMessage}`} target="_blank" rel="noopener noreferrer">
+                            <a 
+                                href={`https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${defaultMessage}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                onClick={() => {
+                                    sendGTMEvent({
+                                        event: 'click_whatsapp',
+                                        whatsapp_type: 'pagina_contacto'
+                                    })
+                                }}
+                            >
                                 <span className="flex items-center justify-center gap-2">
                                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.592 2.654-.694c1.003.545 1.972.82 2.8.82 3.181 0 5.768-2.586 5.768-5.766s-2.586-5.766-5.762-5.766zM12 4.156c4.291 0 7.78 3.489 7.78 7.78a7.78 7.78 0 0 1-7.78 7.78 7.75 7.75 0 0 1-4-.9l-5.61 1.48 1.49-5.46a7.76 7.76 0 0 1-.67-2.91C3.21 7.64 6.7 4.16 12 4.16z" /></svg>
                                     Abrir WhatsApp

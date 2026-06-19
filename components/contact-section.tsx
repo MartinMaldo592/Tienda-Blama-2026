@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { CheckCircle } from "lucide-react"
+import { sendGTMEvent } from "@/lib/gtm"
 
 export function ContactSection() {
     return (
@@ -63,7 +64,13 @@ export function ContactSection() {
 
                             <Button
                                 className="group/btn relative mt-4 h-16 px-10 rounded-full bg-black text-white dark:bg-white dark:text-black font-black text-lg transition-all duration-300 hover:scale-105 hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.3)] flex items-center gap-3"
-                                onClick={() => window.open(`https://api.whatsapp.com/send/?phone=${process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "982432561"}&text=Hola%2C%20quisiera%20m%C3%A1s%20informaci%C3%B3n`, "_blank")}
+                                onClick={() => {
+                                    sendGTMEvent({
+                                        event: 'click_whatsapp',
+                                        whatsapp_type: 'seccion_contacto_global'
+                                    })
+                                    window.open(`https://api.whatsapp.com/send/?phone=${process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "982432561"}&text=Hola%2C%20quisiera%20m%C3%A1s%20informaci%C3%B3n`, "_blank")
+                                }}
                             >
                                 <span>Hablar con un asesor</span>
                                 <div className="bg-white/20 dark:bg-black/10 p-1 rounded-full transition-transform group-hover/btn:translate-x-1">

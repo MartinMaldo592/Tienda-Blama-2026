@@ -22,8 +22,8 @@ import {
     identitySchema,
     checkoutBaseFields,
 } from "@/features/checkout"
-import { sendGTMEvent } from "@/lib/gtm"
 import { useCheckoutDraft } from "@/features/checkout/hooks/use-checkout-draft"
+import { sendGTMEvent } from "@/lib/gtm"
 
 const checkoutFormSchema = z.object({
     name: identitySchema.name,
@@ -346,6 +346,23 @@ export function useCheckoutForm({ items, total, onComplete, onCompleteCulqi }: U
                 email: payload.email,
             })
 
+            sendGTMEvent({
+                event: 'purchase',
+                ecommerce: {
+                    transaction_id: orderIdFormatted,
+                    value: payload.total,
+                    currency: 'PEN',
+                    coupon: payload.couponCode || undefined,
+                    items: payload.items.map(item => ({
+                        item_id: String(item.id),
+                        item_name: item.nombre,
+                        price: item.precio,
+                        quantity: item.quantity,
+                        item_variant: item.variante_nombre || undefined
+                    }))
+                }
+            })
+
             setIsRedirecting(true)
             setLastOrderSuccessMarker(orderIdFormatted)
             clearDraft()
@@ -406,12 +423,13 @@ export function useCheckoutForm({ items, total, onComplete, onCompleteCulqi }: U
                     transaction_id: orderIdFormatted,
                     value: payload.total,
                     currency: 'PEN',
-                    coupon: payload.couponCode,
+                    coupon: payload.couponCode || undefined,
                     items: payload.items.map(item => ({
                         item_id: String(item.id),
                         item_name: item.nombre,
                         price: item.precio,
-                        quantity: item.quantity
+                        quantity: item.quantity,
+                        item_variant: item.variante_nombre || undefined
                     }))
                 }
             })

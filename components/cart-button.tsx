@@ -350,7 +350,8 @@ export function CartButton() {
                                                             item_id: String(item.id),
                                                             item_name: item.nombre,
                                                             price: item.precio,
-                                                            quantity: item.quantity
+                                                            quantity: item.quantity,
+                                                            item_variant: item.variante_nombre || undefined
                                                         }))
                                                     }
                                                 })
