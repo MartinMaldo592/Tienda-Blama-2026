@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from "react"
 import { usePathname } from "next/navigation"
 import { useWhatsAppStore } from "@/features/checkout"
+import { sendGTMEvent } from "@/lib/gtm"
 
 import { Header } from "@/components/header"
 
@@ -168,6 +169,12 @@ export function LayoutShell({ children, announcementData }: LayoutShellProps) {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Abrir chat de WhatsApp"
+            onClick={() => {
+              sendGTMEvent({
+                event: 'click_whatsapp',
+                whatsapp_type: 'boton_flotante_contacto'
+              })
+            }}
             className={buttonClasses}
           >
             <svg

@@ -142,7 +142,6 @@ export function useProductDetail() {
 
         setLoading(false)
 
-        // GTM: View Content
         if (producto) {
             sendGTMEvent({
                 event: 'view_item',
@@ -286,6 +285,12 @@ export function useProductDetail() {
     }
 
     const handleShareWhatsApp = () => {
+        sendGTMEvent({
+            event: 'click_whatsapp',
+            whatsapp_type: 'compartir_producto',
+            product_id: producto?.id ? String(producto.id) : undefined,
+            product_name: producto?.nombre || undefined
+        })
         const text = `${String(producto?.nombre || "Producto")}: ${shareUrl}`
         const wa = `https://api.whatsapp.com/send/?text=${encodeURIComponent(text)}`
         window.open(wa, "_blank")
@@ -324,20 +329,22 @@ export function useProductDetail() {
     const handleAddToCart = () => {
         addItem(producto, selectedVariante)
 
-        // GTM: Add to Cart
-        sendGTMEvent({
-            event: 'add_to_cart',
-            ecommerce: {
-                currency: 'PEN',
-                value: Number(producto.precio) || 0,
-                items: [{
-                    item_id: String(producto.id),
-                    item_name: producto.nombre,
-                    price: Number(producto.precio) || 0,
-                    quantity: 1
-                }]
-            }
-        })
+        if (producto) {
+            sendGTMEvent({
+                event: 'add_to_cart',
+                ecommerce: {
+                    currency: 'PEN',
+                    value: Number(selectedVariante?.precio ?? producto.precio) || 0,
+                    items: [{
+                        item_id: String(producto.id),
+                        item_name: producto.nombre,
+                        price: Number(selectedVariante?.precio ?? producto.precio) || 0,
+                        quantity: 1,
+                        item_variant: selectedVariante?.etiqueta || undefined
+                    }]
+                }
+            })
+        }
 
         triggerBump()
         setAddedToastKey(Date.now())
@@ -345,19 +352,22 @@ export function useProductDetail() {
     }
 
     const handleBeginCheckout = () => {
-        sendGTMEvent({
-            event: 'begin_checkout',
-            ecommerce: {
-                currency: 'PEN',
-                value: Number(producto.precio) || 0,
-                items: [{
-                    item_id: String(producto.id),
-                    item_name: producto.nombre,
-                    price: Number(producto.precio) || 0,
-                    quantity: 1
-                }]
-            }
-        })
+        if (producto) {
+            sendGTMEvent({
+                event: 'begin_checkout',
+                ecommerce: {
+                    currency: 'PEN',
+                    value: Number(selectedVariante?.precio ?? producto.precio) || 0,
+                    items: [{
+                        item_id: String(producto.id),
+                        item_name: producto.nombre,
+                        price: Number(selectedVariante?.precio ?? producto.precio) || 0,
+                        quantity: 1,
+                        item_variant: selectedVariante?.etiqueta || undefined
+                    }]
+                }
+            })
+        }
         setQuickBuyOpen(true)
     }
 
