@@ -258,6 +258,37 @@ export default function ProductoDetalleClient() {
                         </div>
                     </Card>
 
+                    {videos.length > 0 && (
+                        <Button
+                            className={`w-full gap-2 h-10 text-sm font-bold shadow-md transition-all duration-300 ${showVideo
+                                ? "bg-white text-gray-900 border-2 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+                                : "bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-700 hover:to-red-600 hover:shadow-lg hover:scale-[1.01] border-0"
+                                }`}
+                            onClick={() => {
+                                setShowVideo(!showVideo)
+                                setTimeout(() => {
+                                    imageContainerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+                                }, 50)
+                            }}
+                        >
+                            {showVideo ? (
+                                <>
+                                    <span className="animate-bounce">👉</span>
+                                    <ImageIcon className="h-4 w-4" />
+                                    <span>Ver imágenes del Producto</span>
+                                    <span className="animate-bounce">👈</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="animate-bounce">👉</span>
+                                    <PlayCircle className="h-4 w-4 animate-pulse" />
+                                    <span>Ver Videos del Producto</span>
+                                    <span className="animate-bounce">👈</span>
+                                </>
+                            )}
+                        </Button>
+                    )}
+
                     {showVideo && videos.length > 1 && (
                         <div className="flex flex-wrap gap-2">
                             {videos.map((v, i) => (
@@ -274,37 +305,6 @@ export default function ProductoDetalleClient() {
                                 </button>
                             ))}
                         </div>
-                    )}
-
-                    {videos.length > 0 && (
-                        <Button
-                            className={`w-full gap-2 h-12 text-base font-bold shadow-md transition-all duration-300 ${showVideo
-                                ? "bg-white text-gray-900 border-2 border-gray-200 hover:bg-gray-50 hover:border-gray-300"
-                                : "bg-gradient-to-r from-red-600 to-red-500 text-white hover:from-red-700 hover:to-red-600 hover:shadow-lg hover:scale-[1.01] border-0"
-                                }`}
-                            onClick={() => {
-                                setShowVideo(!showVideo)
-                                setTimeout(() => {
-                                    imageContainerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
-                                }, 50)
-                            }}
-                        >
-                            {showVideo ? (
-                                <>
-                                    <span className="animate-bounce">👉</span>
-                                    <ImageIcon className="h-5 w-5" />
-                                    <span>Ver imágenes del Producto</span>
-                                    <span className="animate-bounce">👈</span>
-                                </>
-                            ) : (
-                                <>
-                                    <span className="animate-bounce">👉</span>
-                                    <PlayCircle className="h-5 w-5 animate-pulse" />
-                                    <span>Ver Videos del Producto</span>
-                                    <span className="animate-bounce">👈</span>
-                                </>
-                            )}
-                        </Button>
                     )}
                 </div>
 

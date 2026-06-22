@@ -45,7 +45,7 @@ export function useProductDetail() {
     const [addedToastKey, setAddedToastKey] = useState(0)
     const [showVideo, setShowVideo] = useState(false)
     const [quickBuyOpen, setQuickBuyOpen] = useState(false)
-    const [showStickyBar, setShowStickyBar] = useState(false)
+    const [showStickyBar] = useState(true)
     const [activeImageIndex, setActiveImageIndex] = useState(0)
     const visibilityAnchorRef = useRef<HTMLDivElement>(null)
     const thumbContainerRef = useRef<HTMLDivElement>(null)
@@ -53,26 +53,6 @@ export function useProductDetail() {
     const { addItem, items, updateQuantity } = useCartStore()
     const { setCustomMessage } = useWhatsAppStore()
     const triggerBump = useCartAnimationStore((s) => s.triggerBump)
-
-    // Sticky Bar Observer
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                const isAbove = entry.boundingClientRect.top < 650
-                setShowStickyBar(!entry.isIntersecting && isAbove)
-            },
-            {
-                threshold: 0,
-                rootMargin: '-650px 0px 0px 0px'
-            }
-        )
-
-        if (visibilityAnchorRef.current) {
-            observer.observe(visibilityAnchorRef.current)
-        }
-
-        return () => observer.disconnect()
-    }, [producto, loading])
 
     // Dispatch event on Sticky Bar visibility change
     useEffect(() => {
