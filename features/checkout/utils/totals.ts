@@ -9,7 +9,8 @@ export async function validateAndCalculateTotals(
     supabaseAdmin: SupabaseClient,
     items: Array<{ id: number; quantity: number; producto_variante_id?: number | null }>,
     couponCode?: string | null,
-    customerEmail?: string | null
+    customerEmail?: string | null,
+    isQuickCheckout?: boolean
 ) {
     const productIds = items.map(it => it.id)
     const variantIds = items
@@ -148,8 +149,13 @@ export async function validateAndCalculateTotals(
         }
     }
 
-    const discountAmount = Math.max(0, Math.round(Math.min(subtotal, volumeDiscount + couponDiscount) * 100) / 100)
-    const total = Math.max(0, Math.round((subtotal - discountAmount) * 100) / 100)
+    let discountAmount = Math.max(0, Math.round(Math.min(subtotal, volumeDiscount + couponDiscount) * 100) / 100)
+    let total = Math.max(0, Math.round((subtotal - discountAmount) * 100) / 100)
+
+    if (isQuickCheckout) {
+        total = Math.round(total)
+        discountAmount = Math.max(0, Math.round((subtotal - total) * 100) / 100)
+    }
 
     const getUnitPrice = (productId: number, variantId?: number | null) => {
         let price: number | undefined

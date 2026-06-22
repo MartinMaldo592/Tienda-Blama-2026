@@ -27,6 +27,7 @@ export type CreateOrderPayload = {
     couponCode?: string | null
     discountAmount?: number
     shippingMethod?: string
+    isQuickCheckout?: boolean
     items: Array<{
         id: number
         quantity: number

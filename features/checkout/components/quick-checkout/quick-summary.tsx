@@ -148,16 +148,24 @@ export function QuickSummary({ shippingMethod, setShippingMethod, total, isSubmi
             )}
 
             {/* Submit */}
-            <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm p-4 pb-5 border-t space-y-3 -mx-0 mt-4">
+            <div className="sticky bottom-0 z-50 bg-background/95 backdrop-blur-sm p-4 pb-5 border-t space-y-3 mt-4">
                 <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full h-14 text-base font-bold bg-green-600 hover:bg-green-700 text-white shadow-lg rounded-xl transition-all duration-200 hover:scale-[1.01]"
+                    className="w-full h-auto min-h-[3.5rem] py-3 px-4 text-sm sm:text-base font-bold bg-green-600 hover:bg-green-700 text-white shadow-lg rounded-xl transition-all duration-200 hover:scale-[1.01] flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 whitespace-normal break-words leading-tight"
                 >
-                    {isSubmitting
-                        ? <><Loader2 className="animate-spin mr-2 h-5 w-5" /> Procesando...</>
-                        : `🛵  Confirmar Pedido — Pago al Recibir — ${formatCurrency(total)}`
-                    }
+                    {isSubmitting ? (
+                        <span className="flex items-center justify-center gap-2">
+                            <Loader2 className="animate-spin h-5 w-5" /> Procesando...
+                        </span>
+                    ) : (
+                        <>
+                            <span>Confirmar Pedido</span>
+                            <span className="hidden sm:inline text-green-300">•</span>
+                            <span>Pago al Recibir</span>
+                            <span className="text-green-200 font-extrabold">{formatCurrency(total)}</span>
+                        </>
+                    )}
                 </Button>
                 <div className="flex items-center justify-center gap-4 text-[10px] text-muted-foreground font-semibold">
                     <span className="flex items-center gap-1">🔒 Datos protegidos</span>

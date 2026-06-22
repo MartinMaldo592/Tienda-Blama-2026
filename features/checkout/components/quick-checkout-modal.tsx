@@ -150,8 +150,8 @@ function QuickForm({ product, variant, onClose, initialQuantity = 1 }: { product
 
     const unitPrice = Number(variant?.precio ?? product?.precio ?? 0)
     const pack1Total = unitPrice
-    const pack2Total = Math.round(unitPrice * 2 * 0.85) // 15% desc.
-    const pack3Total = Math.round(unitPrice * 3 * 0.70) // 30% desc.
+    const pack2Total = Math.round(unitPrice * 2 * 0.85) // 15% desc. (Entero)
+    const pack3Total = Math.round(unitPrice * 3 * 0.70) // 30% desc. (Entero)
 
     const total = chosenQty === 1
         ? pack1Total
@@ -339,7 +339,8 @@ function QuickForm({ product, variant, onClose, initialQuantity = 1 }: { product
                 reference,
                 locationLink: finalLocationLink,
                 items,
-                shippingMethod
+                shippingMethod,
+                isQuickCheckout: true
             })
 
             const orderIdFormatted = String(orderId).padStart(6, '0')

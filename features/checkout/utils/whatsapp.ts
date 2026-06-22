@@ -70,9 +70,13 @@ export function buildWhatsAppPreviewMessage(input: {
     })
     message += `\n`
 
-    if (discount > 0 && couponCode) {
+    if (discount > 0) {
         message += `• *Subtotal:* ${formatCurrency(subtotal)}\n`
-        message += `• *Cupón (${couponCode}):* -${formatCurrency(discount)}\n`
+        if (couponCode) {
+            message += `• *Cupón (${couponCode}):* -${formatCurrency(discount)}\n`
+        } else {
+            message += `• *Descuento:* -${formatCurrency(discount)}\n`
+        }
     }
     
     message += `💰 *TOTAL A PAGAR:* *${formatCurrency(total)}*\n`
@@ -151,9 +155,13 @@ export function buildWhatsAppFinalMessage(input: {
     })
     message += `\n`
 
-    if (discount > 0 && couponCode) {
+    if (discount > 0) {
         message += `• *Subtotal:* ${formatCurrency(subtotal)}\n`
-        message += `• *Cupón (${couponCode}):* -${formatCurrency(discount)}\n`
+        if (couponCode) {
+            message += `• *Cupón (${couponCode}):* -${formatCurrency(discount)}\n`
+        } else {
+            message += `• *Descuento:* -${formatCurrency(discount)}\n`
+        }
     }
     
     message += `💰 *TOTAL A PAGAR:* *${formatCurrency(total)}*\n`

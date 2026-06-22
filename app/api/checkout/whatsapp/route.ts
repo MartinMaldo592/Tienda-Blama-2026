@@ -46,6 +46,7 @@ const CheckoutBodySchema = z.object({
   provinceName: z.string().optional(), // compatibility
   district: z.string().optional(),
   street: z.string().optional(),
+  isQuickCheckout: z.boolean().optional(),
 })
 
 export async function GET() {
@@ -120,11 +121,13 @@ export async function POST(req: Request) {
     const items = body.items
     const shippingMethod = body.shippingMethod?.trim() || null
 
+    const isQuickCheckout = body.isQuickCheckout || false
+
     const supabaseAdmin = createClient(url, service)
 
     let subtotal, appliedDiscount, total, validCouponCode, getUnitPrice;
     try {
-      const result = await validateAndCalculateTotals(supabaseAdmin, items, couponCode, email);
+      const result = await validateAndCalculateTotals(supabaseAdmin, items, couponCode, email, isQuickCheckout);
       subtotal = result.subtotal;
       appliedDiscount = result.discountAmount;
       total = result.total;
