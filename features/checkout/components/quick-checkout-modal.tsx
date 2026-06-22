@@ -39,9 +39,10 @@ interface QuickCheckoutModalProps {
     onClose: () => void
     product: any
     variant: any
+    initialQuantity?: number
 }
 
-export function QuickCheckoutModal({ isOpen, onClose, product, variant }: QuickCheckoutModalProps) {
+export function QuickCheckoutModal({ isOpen, onClose, product, variant, initialQuantity = 1 }: QuickCheckoutModalProps) {
     useJsApiLoader({
         id: 'google-map-script',
         googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
@@ -101,6 +102,7 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant }: QuickC
                         product={product}
                         variant={variant}
                         onClose={onClose}
+                        initialQuantity={initialQuantity}
                     />
                 </div>
             </DialogContent>
@@ -108,7 +110,7 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant }: QuickC
     )
 }
 
-function QuickForm({ product, variant, onClose }: { product: any; variant: any; onClose: () => void }) {
+function QuickForm({ product, variant, onClose, initialQuantity = 1 }: { product: any; variant: any; onClose: () => void; initialQuantity?: number }) {
     const router = useRouter()
     const [isRedirecting, setIsRedirecting] = useState(false)
 
@@ -124,15 +126,38 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
     const [department, setDepartment] = useState("")
     const [province, setProvince] = useState("")
     const [district, setDistrict] = useState("")
-    const [shippingMethod, setShippingMethod] = useState("Lima")
+    const [shippingMethod, setShippingMethod] = useState("")
     const [email, setEmail] = useState("")
     const [locationLink, setLocationLink] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
 
-    // Derived values
+    // Derived values & state for chosen pack
+    const [chosenQty, setChosenQty] = useState(initialQuantity)
+    const [timeLeft, setTimeLeft] = useState(600) // 10 mins
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0))
+        }, 1000)
+        return () => clearInterval(interval)
+    }, [])
+
+    const formatTime = (seconds: number) => {
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0')
+        const s = (seconds % 60).toString().padStart(2, '0')
+        return `${m}:${s}`
+    }
+
     const unitPrice = Number(variant?.precio ?? product?.precio ?? 0)
-    const quantity = 1
-    const total = unitPrice * quantity
+    const pack1Total = unitPrice
+    const pack2Total = Math.round(unitPrice * 2 * 0.85) // 15% desc.
+    const pack3Total = Math.round(unitPrice * 3 * 0.70) // 30% desc.
+
+    const total = chosenQty === 1
+        ? pack1Total
+        : chosenQty === 2
+            ? pack2Total
+            : Math.round(unitPrice * chosenQty * 0.70)
 
     const { draft, loaded, saveDraft, clearDraft } = useCheckoutDraft()
 
@@ -197,7 +222,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
         const deptClean = (department || "").trim().toLowerCase()
         if (deptClean.length > 2) {
             const isLimaOrCallao = deptClean.includes("lima") || deptClean.includes("callao")
-            if (!isLimaOrCallao && (shippingMethod === "Lima" || shippingMethod.includes("Lima"))) {
+            if (!isLimaOrCallao && shippingMethod && (shippingMethod === "Lima" || shippingMethod.includes("Lima"))) {
                 setShippingMethod("Provincia")
                 toast.info("Ajuste de Cobertura", {
                     description: `Detectamos que tu dirección está en ${department}. El método de envío se ha configurado automáticamente a Provincia.`,
@@ -261,6 +286,11 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
         setIsSubmitting(true)
 
         // Basic Validation
+        if (!shippingMethod) {
+            toast.error("Selecciona un método de envío (Lima o Provincia)")
+            setIsSubmitting(false)
+            return
+        }
         const phoneClean = phone.replace(/\D/g, "")
         if (phoneClean.length !== 9) {
             toast.error("El celular debe tener 9 dígitos")
@@ -277,7 +307,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
         // Prepare Payload
         const items = [{
             id: Number(product.id),
-            quantity: quantity,
+            quantity: chosenQty,
             precio: unitPrice,
             nombre: String(product.nombre),
             producto_variante_id: variant?.id ? Number(variant.id) : null,
@@ -342,7 +372,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
             setDepartment("")
             setProvince("")
             setDistrict("")
-            setShippingMethod("Lima")
+            setShippingMethod("")
             setEmail("")
 
             // Redirect to success page as fast as possible
@@ -358,6 +388,91 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
 
+            {/* Urgency Countdown Timer */}
+            {timeLeft > 0 && (
+                <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-300/50 rounded-xl p-3 flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2 duration-500">
+                    <span className="text-sm">⏰</span>
+                    <span className="text-xs font-bold text-amber-800 dark:text-amber-300">
+                        Tu oferta y stock están reservados por <span className="text-orange-600 dark:text-orange-400 font-black tabular-nums">{formatTime(timeLeft)}</span>
+                    </span>
+                </div>
+            )}
+
+            {/* Pack Selector — AOV Booster */}
+            <div className="space-y-2">
+                <h4 className="font-bold text-sm text-foreground text-center">¿Cuántas unidades deseas llevar?</h4>
+                <div className="grid grid-cols-1 gap-2">
+                    {/* Pack 1 */}
+                    <button
+                        type="button"
+                        onClick={() => setChosenQty(1)}
+                        disabled={isSubmitting}
+                        className={`relative flex items-center justify-between rounded-xl border-2 px-4 py-3 text-left transition-all duration-200 cursor-pointer ${
+                            chosenQty === 1
+                                ? "border-primary bg-primary/5 shadow-sm"
+                                : "border-border hover:bg-muted/50"
+                        }`}
+                    >
+                        <div>
+                            <span className="text-sm font-bold text-foreground">1 Unidad</span>
+                            <span className="block text-xs text-muted-foreground">Precio regular</span>
+                        </div>
+                        <span className="text-base font-black text-foreground">{formatCurrency(pack1Total)}</span>
+                        {chosenQty === 1 && <div className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-primary/20" />}
+                    </button>
+
+                    {/* Pack 2 — Recommended */}
+                    <button
+                        type="button"
+                        onClick={() => setChosenQty(2)}
+                        disabled={isSubmitting}
+                        className={`relative flex items-center justify-between rounded-xl border-2 px-4 py-3 text-left transition-all duration-200 cursor-pointer ${
+                            chosenQty === 2
+                                ? "border-emerald-500 bg-emerald-500/5 shadow-md ring-1 ring-emerald-500/20"
+                                : "border-border hover:bg-muted/50"
+                        }`}
+                    >
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-bold text-foreground">2 Unidades</span>
+                                <span className="bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">⭐ Recomendado</span>
+                            </div>
+                            <span className="block text-xs text-emerald-600 font-semibold">Ahorras {formatCurrency(unitPrice * 2 - pack2Total)}</span>
+                        </div>
+                        <div className="text-right">
+                            <span className="block text-[11px] text-muted-foreground line-through">{formatCurrency(unitPrice * 2)}</span>
+                            <span className="text-base font-black text-emerald-600">{formatCurrency(pack2Total)}</span>
+                        </div>
+                        {chosenQty === 2 && <div className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-500/20" />}
+                    </button>
+
+                    {/* Pack 3 */}
+                    <button
+                        type="button"
+                        onClick={() => setChosenQty(3)}
+                        disabled={isSubmitting}
+                        className={`relative flex items-center justify-between rounded-xl border-2 px-4 py-3 text-left transition-all duration-200 cursor-pointer ${
+                            chosenQty === 3
+                                ? "border-violet-500 bg-violet-500/5 shadow-md ring-1 ring-violet-500/20"
+                                : "border-border hover:bg-muted/50"
+                        }`}
+                    >
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-bold text-foreground">3 Unidades</span>
+                                <span className="bg-violet-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">🔥 Mega Ahorro</span>
+                            </div>
+                            <span className="block text-xs text-violet-600 font-semibold">Ahorras {formatCurrency(unitPrice * 3 - pack3Total)}</span>
+                        </div>
+                        <div className="text-right">
+                            <span className="block text-[11px] text-muted-foreground line-through">{formatCurrency(unitPrice * 3)}</span>
+                            <span className="text-base font-black text-violet-600">{formatCurrency(pack3Total)}</span>
+                        </div>
+                        {chosenQty === 3 && <div className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-violet-500 ring-4 ring-violet-500/20" />}
+                    </button>
+                </div>
+            </div>
+
             <div className="pt-2 pb-1">
                 <h3 className="text-center font-bold text-lg">Ingrese su dirección de envío</h3>
             </div>
@@ -368,6 +483,7 @@ function QuickForm({ product, variant, onClose }: { product: any; variant: any; 
                 dni={dni} setDni={setDni}
                 email={email} setEmail={setEmail}
                 disabled={isSubmitting}
+                shippingMethod={shippingMethod}
             />
 
             {/* Alerta de envíos a provincia */}

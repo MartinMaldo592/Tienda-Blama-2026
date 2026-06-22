@@ -332,17 +332,18 @@ export function useProductDetail() {
     }
 
     const handleBeginCheckout = () => {
+        const qtyToSend = quantity > 0 ? quantity : 1
         if (producto) {
             sendGTMEvent({
                 event: 'begin_checkout',
                 ecommerce: {
                     currency: 'PEN',
-                    value: Number(selectedVariante?.precio ?? producto.precio) || 0,
+                    value: (Number(selectedVariante?.precio ?? producto.precio) || 0) * qtyToSend,
                     items: [{
                         item_id: String(producto.id),
                         item_name: producto.nombre,
                         price: Number(selectedVariante?.precio ?? producto.precio) || 0,
-                        quantity: 1,
+                        quantity: qtyToSend,
                         item_variant: selectedVariante?.etiqueta || undefined
                     }]
                 }

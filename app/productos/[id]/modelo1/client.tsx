@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useMemo } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -96,6 +97,20 @@ export default function ProductoDetalleClient() {
         handleAddToCart,
         handleBeginCheckout
     } = useProductDetail()
+
+    const [activeTab, setActiveTab] = useState<string>("")
+
+    const tabList = useMemo(() => {
+        return [
+            { id: "description", label: "Descripción", icon: FileText, show: !!producto?.descripcion },
+            { id: "details", label: "Detalles", icon: Sparkles, show: !!(producto?.materiales || producto?.tamano || producto?.color || producto?.cuidados || producto?.uso) },
+            { id: "specs", label: "Especificaciones", icon: Ruler, show: especificaciones.length > 0 },
+            { id: "reviews", label: "Valoraciones", icon: Star, show: true },
+            { id: "questions", label: "Preguntas", icon: MessageCircle, show: true },
+        ].filter(t => t.show)
+    }, [producto, especificaciones])
+
+    const currentActiveTab = activeTab || tabList[0]?.id || ""
 
     if (loading) {
         return (
@@ -194,6 +209,7 @@ export default function ProductoDetalleClient() {
                 onClose={() => setQuickBuyOpen(false)}
                 product={producto}
                 variant={selectedVariante}
+                initialQuantity={quantity > 0 ? quantity : 1}
             />
             <div className="flex items-center justify-between gap-3">
                 <Button variant="ghost" className="gap-2" asChild>
@@ -526,161 +542,128 @@ export default function ProductoDetalleClient() {
 
                     </div>
 
-                    {/* TABS SECTION REPLACED WITH ACCORDION */}
+                    {/* TABS SECTION */}
                     <div className="mt-12 mb-10 text-left">
-                        <Accordion type="single" collapsible className="w-full space-y-4">
-                            {/* DESCRIPTION */}
-                            {producto?.descripcion && (
-                                <AccordionItem value="description" className="bg-card border rounded-2xl px-6 shadow-sm overflow-hidden">
-                                    <AccordionTrigger className="text-lg font-bold hover:no-underline py-5 text-primary">
-                                        <div className="flex items-center gap-3">
-                                            <span className="p-2 bg-primary/10 rounded-lg shrink-0">
-                                                <FileText className="h-5 w-5" />
-                                            </span>
-                                            Descripción del Producto
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent className="pb-6">
-                                        <div className="prose prose-sm md:prose-base text-muted-foreground whitespace-pre-line leading-relaxed max-w-none">
-                                            {producto.descripcion}
-                                        </div>
-                                    </AccordionContent>
-                                </AccordionItem>
+                        {/* Tab Headers - Premium Segmented Control Capsule */}
+                        <div className="bg-slate-100/80 dark:bg-slate-900/50 border border-slate-200/50 dark:border-slate-800/40 rounded-2xl p-1.5 flex gap-1 overflow-x-auto md:overflow-x-visible md:flex-wrap scrollbar-hide backdrop-blur-md">
+                            {tabList.map((tab) => {
+                                const Icon = tab.icon
+                                const isActive = tab.id === currentActiveTab
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        type="button"
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={`flex items-center gap-2 py-2.5 px-4 text-sm font-bold rounded-xl transition-all duration-300 whitespace-nowrap shrink-0 ${
+                                            isActive
+                                                ? "bg-white dark:bg-slate-800 text-primary shadow-sm scale-[1.02]"
+                                                : "text-muted-foreground hover:text-foreground hover:bg-white/40 dark:hover:bg-slate-800/20"
+                                        }`}
+                                    >
+                                        <Icon className={`h-4 w-4 transition-transform duration-300 ${isActive ? "scale-110 text-primary" : "text-muted-foreground"}`} />
+                                        <span>{tab.label}</span>
+                                    </button>
+                                )
+                            })}
+                        </div>
+
+                        {/* Tab Content Box - Premium Card */}
+                        <div className="mt-6 bg-gradient-to-b from-white to-slate-50/50 dark:from-slate-900/90 dark:to-slate-950/90 border border-slate-200/60 dark:border-slate-800/80 rounded-3xl p-6 md:p-8 shadow-[0_12px_40px_rgba(0,0,0,0.015)] min-h-[150px]">
+                            {currentActiveTab === "description" && producto?.descripcion && (
+                                <div className="prose prose-neutral dark:prose-invert leading-relaxed max-w-none text-[15px] sm:text-base animate-in fade-in slide-in-from-bottom-2 duration-300 whitespace-pre-line text-muted-foreground">
+                                    {producto.descripcion}
+                                </div>
                             )}
 
-                            {/* DETAILS */}
-                            {(producto?.materiales || producto?.tamano || producto?.color || producto?.cuidados || producto?.uso) && (
-                                <AccordionItem value="details" className="bg-card border rounded-2xl px-6 shadow-sm overflow-hidden">
-                                    <AccordionTrigger className="text-lg font-bold hover:no-underline py-5">
-                                        <div className="flex items-center gap-3">
-                                            <span className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg shrink-0">
-                                                <Sparkles className="h-5 w-5" />
-                                            </span>
-                                            Detalles
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent className="pb-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 items-start">
-                                            {producto?.materiales && (
-                                                <div className="border border-blue-100 dark:border-blue-900/30 rounded-xl p-4 flex gap-4 items-start group">
-                                                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-xl">
-                                                        <Shield className="h-5 w-5" />
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="font-semibold text-foreground mb-1 text-sm">Materiales</h4>
-                                                        <p className="text-sm text-muted-foreground leading-relaxed">{producto.materiales}</p>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {producto?.tamano && (
-                                                <div className="border border-emerald-100 dark:border-emerald-900/30 rounded-xl p-4 flex gap-4 items-start group">
-                                                    <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-xl">
-                                                        <Ruler className="h-5 w-5" />
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="font-semibold text-foreground mb-1 text-sm">Medidas</h4>
-                                                        <p className="text-sm text-muted-foreground leading-relaxed">{producto.tamano}</p>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {producto?.color && (
-                                                <div className="border border-purple-100 dark:border-purple-900/30 rounded-xl p-4 flex gap-4 items-start group">
-                                                    <div className="p-3 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-xl">
-                                                        <Palette className="h-5 w-5" />
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="font-semibold text-foreground mb-1 text-sm">Color</h4>
-                                                        <p className="text-sm text-muted-foreground leading-relaxed">{producto.color}</p>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {producto?.cuidados && (
-                                                <div className="border border-sky-100 dark:border-sky-900/30 rounded-xl p-4 flex gap-4 items-start group">
-                                                    <div className="p-3 bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 rounded-xl">
-                                                        <Droplets className="h-5 w-5" />
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="font-semibold text-foreground mb-1 text-sm">Cuidados</h4>
-                                                        <p className="text-sm text-muted-foreground leading-relaxed">{producto.cuidados}</p>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {producto?.uso && (
-                                                <div className="md:col-span-2 border border-amber-100 dark:border-amber-900/30 rounded-xl p-4 flex gap-4 items-start group">
-                                                    <div className="p-3 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-xl">
-                                                        <Lightbulb className="h-5 w-5" />
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="font-semibold text-foreground mb-1 text-sm">Uso Recomendado</h4>
-                                                        <p className="text-sm text-muted-foreground leading-relaxed">{producto.uso}</p>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </AccordionContent>
-                                </AccordionItem>
-                            )}
-
-                            {/* SPECS */}
-                            {especificaciones.length > 0 && (
-                                <AccordionItem value="specs" className="bg-card border rounded-2xl px-6 shadow-sm overflow-hidden">
-                                    <AccordionTrigger className="text-lg font-bold hover:no-underline py-5">
-                                        <div className="flex items-center gap-3">
-                                            <span className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg shrink-0">
-                                                <Ruler className="h-5 w-5" />
-                                            </span>
-                                            Especificaciones Técnicas
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent className="pb-6">
-                                        <div className="rounded-xl border bg-card overflow-hidden mt-2">
-                                            <div className="divide-y">
-                                                {especificaciones.map((s: any, idx: number) => (
-                                                    <div key={s.id} className="p-3 flex items-start justify-between gap-4 hover:bg-muted/30 transition-colors">
-                                                        <div className="text-sm font-semibold text-foreground w-1/3">{String(s.clave || "")}</div>
-                                                        <div className="text-sm text-muted-foreground text-right w-2/3 whitespace-pre-line">{String(s.valor || "")}</div>
-                                                    </div>
-                                                ))}
+                            {currentActiveTab === "details" && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                    {producto?.materiales && (
+                                        <div className="bg-white/40 dark:bg-slate-950/20 border border-slate-200/60 dark:border-slate-800/60 hover:bg-white dark:hover:bg-slate-900 hover:shadow-md hover:border-blue-500/20 dark:hover:border-blue-400/20 transition-all duration-300 rounded-2xl p-5 flex gap-4 items-start group">
+                                            <div className="p-3 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 text-blue-600 dark:text-blue-400 rounded-xl group-hover:scale-105 transition-transform duration-300 shrink-0">
+                                                <Shield className="h-5 w-5" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-slate-800 dark:text-slate-200 mb-1.5 text-xs tracking-wider uppercase">Materiales</h4>
+                                                <p className="text-[14px] text-muted-foreground leading-relaxed">{producto.materiales}</p>
                                             </div>
                                         </div>
-                                    </AccordionContent>
-                                </AccordionItem>
+                                    )}
+
+                                    {producto?.tamano && (
+                                        <div className="bg-white/40 dark:bg-slate-950/20 border border-slate-200/60 dark:border-slate-800/60 hover:bg-white dark:hover:bg-slate-900 hover:shadow-md hover:border-emerald-500/20 dark:hover:border-emerald-400/20 transition-all duration-300 rounded-2xl p-5 flex gap-4 items-start group">
+                                            <div className="p-3 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl group-hover:scale-105 transition-transform duration-300 shrink-0">
+                                                <Ruler className="h-5 w-5" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-slate-800 dark:text-slate-200 mb-1.5 text-xs tracking-wider uppercase">Medidas</h4>
+                                                <p className="text-[14px] text-muted-foreground leading-relaxed">{producto.tamano}</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {producto?.color && (
+                                        <div className="bg-white/40 dark:bg-slate-950/20 border border-slate-200/60 dark:border-slate-800/60 hover:bg-white dark:hover:bg-slate-900 hover:shadow-md hover:border-purple-500/20 dark:hover:border-purple-400/20 transition-all duration-300 rounded-2xl p-5 flex gap-4 items-start group">
+                                            <div className="p-3 bg-gradient-to-br from-purple-500/10 to-fuchsia-500/10 text-purple-600 dark:text-purple-400 rounded-xl group-hover:scale-105 transition-transform duration-300 shrink-0">
+                                                <Palette className="h-5 w-5" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-slate-800 dark:text-slate-200 mb-1.5 text-xs tracking-wider uppercase">Color</h4>
+                                                <p className="text-[14px] text-muted-foreground leading-relaxed">{producto.color}</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {producto?.cuidados && (
+                                        <div className="bg-white/40 dark:bg-slate-950/20 border border-slate-200/60 dark:border-slate-800/60 hover:bg-white dark:hover:bg-slate-900 hover:shadow-md hover:border-cyan-500/20 dark:hover:border-cyan-400/20 transition-all duration-300 rounded-2xl p-5 flex gap-4 items-start group">
+                                            <div className="p-3 bg-gradient-to-br from-sky-500/10 to-cyan-500/10 text-sky-600 dark:text-sky-400 rounded-xl group-hover:scale-105 transition-transform duration-300 shrink-0">
+                                                <Droplets className="h-5 w-5" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-slate-800 dark:text-slate-200 mb-1.5 text-xs tracking-wider uppercase">Cuidados</h4>
+                                                <p className="text-[14px] text-muted-foreground leading-relaxed">{producto.cuidados}</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {producto?.uso && (
+                                        <div className="md:col-span-2 bg-white/40 dark:bg-slate-950/20 border border-slate-200/60 dark:border-slate-800/60 hover:bg-white dark:hover:bg-slate-900 hover:shadow-md hover:border-amber-500/20 dark:hover:border-amber-400/20 transition-all duration-300 rounded-2xl p-5 flex gap-4 items-start group">
+                                            <div className="p-3 bg-gradient-to-br from-amber-500/10 to-orange-500/10 text-amber-600 dark:text-amber-400 rounded-xl group-hover:scale-105 transition-transform duration-300 shrink-0">
+                                                <Lightbulb className="h-5 w-5" />
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-slate-800 dark:text-slate-200 mb-1.5 text-xs tracking-wider uppercase">Uso Recomendado</h4>
+                                                <p className="text-[14px] text-muted-foreground leading-relaxed">{producto.uso}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             )}
 
-                            {/* REVIEWS */}
-                            <AccordionItem value="reviews" className="bg-card border rounded-2xl px-6 shadow-sm overflow-hidden">
-                                <AccordionTrigger className="text-lg font-bold hover:no-underline py-5">
-                                    <div className="flex items-center gap-3">
-                                        <span className="p-2 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-500 rounded-lg shrink-0">
-                                            <Star className="h-5 w-5" />
-                                        </span>
-                                        Valoraciones
+                            {currentActiveTab === "specs" && especificaciones.length > 0 && (
+                                <div className="rounded-2xl border border-slate-200/60 dark:border-slate-800/60 bg-white/50 dark:bg-slate-950/20 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                    <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                                        {especificaciones.map((s: any) => (
+                                            <div key={s.id} className="p-4 flex items-center justify-between gap-6 hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition-colors duration-200">
+                                                <div className="text-sm font-bold text-slate-800 dark:text-slate-200 w-1/3 tracking-wide">{String(s.clave || "")}</div>
+                                                <div className="text-sm text-muted-foreground text-right w-2/3 font-medium">{String(s.valor || "")}</div>
+                                            </div>
+                                        ))}
                                     </div>
-                                </AccordionTrigger>
-                                <AccordionContent className="pb-6 pt-2">
-                                    <ProductSocialProof productId={Number(producto.id)} section="reviews" />
-                                </AccordionContent>
-                            </AccordionItem>
+                                </div>
+                            )}
 
-                            {/* QUESTIONS */}
-                            <AccordionItem value="questions" className="bg-card border rounded-2xl px-6 shadow-sm overflow-hidden">
-                                <AccordionTrigger className="text-lg font-bold hover:no-underline py-5">
-                                    <div className="flex items-center gap-3">
-                                        <span className="p-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-500 rounded-lg shrink-0">
-                                            <MessageCircle className="h-5 w-5" />
-                                        </span>
-                                        Preguntas
-                                    </div>
-                                </AccordionTrigger>
-                                <AccordionContent className="pb-6 pt-2">
+                            {currentActiveTab === "reviews" && (
+                                <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                    <ProductSocialProof productId={Number(producto.id)} section="reviews" />
+                                </div>
+                            )}
+
+                            {currentActiveTab === "questions" && (
+                                <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                                     <ProductSocialProof productId={Number(producto.id)} section="questions" />
-                                </AccordionContent>
-                            </AccordionItem>
-                        </Accordion>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

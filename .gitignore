@@ -26,7 +26,7 @@ dist/
 *.pem
 *.key
 *.cert
-tienda-blama-81721945035e.json
+tienda-blama-*.json
 
 # 🧪 Suites de Pruebas y Reportes (Playwright / Jest)
 coverage/

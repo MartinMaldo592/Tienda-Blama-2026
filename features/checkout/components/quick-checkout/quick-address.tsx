@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { MapPin, Building2, Landmark, Navigation } from "lucide-react"
@@ -33,6 +34,7 @@ export function QuickAddress({
     disabled,
     ready, suggestionsStatus, suggestionsData, onSuggestionSelect
 }: QuickAddressProps) {
+    const [manualMode, setManualMode] = useState(false)
     return (
         <div className="space-y-4 bg-card rounded-xl p-4 border shadow-sm">
             <h4 className="font-bold text-base">Dirección de Envío</h4>
@@ -50,13 +52,13 @@ export function QuickAddress({
                         required
                         value={addressValue}
                         onChange={(e) => setAddressValue(e.target.value)}
-                        disabled={disabled || !ready}
-                        placeholder="Escribe tu dirección..."
-                        autoComplete="off"
+                        disabled={disabled || (!manualMode && !ready)}
+                        placeholder={manualMode ? "Escribe tu dirección completa..." : "Escribe tu dirección..."}
+                        autoComplete={manualMode ? "street-address" : "off"}
                         className="pl-11 h-12 bg-background border-border focus-visible:border-primary transition-colors rounded-lg font-medium text-foreground"
                     />
                 </div>
-                {suggestionsStatus === "OK" && (
+                {!manualMode && suggestionsStatus === "OK" && (
                     <ul className="absolute z-10 w-full bg-card border border-border rounded-xl shadow-xl mt-1 max-h-48 overflow-auto divide-y divide-border">
                         {suggestionsData.map(({ place_id, description }) => (
                             <li
@@ -70,6 +72,13 @@ export function QuickAddress({
                         ))}
                     </ul>
                 )}
+                <button
+                    type="button"
+                    onClick={() => setManualMode(!manualMode)}
+                    className="text-xs font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer mt-1"
+                >
+                    {manualMode ? "← Usar autocompletado de Google Maps" : "¿No encuentras tu dirección? Ingresar manualmente"}
+                </button>
             </div>
 
             {/* Dept */}

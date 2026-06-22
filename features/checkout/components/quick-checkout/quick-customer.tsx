@@ -16,9 +16,11 @@ interface QuickCustomerProps {
     email: string
     setEmail: (v: string) => void
     disabled?: boolean
+    shippingMethod?: string
 }
 
-export function QuickCustomer({ name, setName, phone, setPhone, dni, setDni, email, setEmail, disabled }: QuickCustomerProps) {
+export function QuickCustomer({ name, setName, phone, setPhone, dni, setDni, email, setEmail, disabled, shippingMethod }: QuickCustomerProps) {
+    const isProvincia = String(shippingMethod || '').toLowerCase().includes('provincia') || String(shippingMethod || '').toLowerCase().includes('shalom')
     const [showEmail, setShowEmail] = useState(false)
     const isNameValid = name.length > 5
     const isDniValid = dni.length === 8

@@ -98,7 +98,16 @@ export async function validateAndCalculateTotals(
 
     subtotal = Math.max(0, Math.round(subtotal * 100) / 100)
 
-    let discountAmount = 0
+    // ── Calcular descuento automático por volumen (Packs) ──
+    let volumeDiscount = 0
+    const totalQuantity = items.reduce((acc, it) => acc + (Number(it.quantity) || 0), 0)
+    if (totalQuantity === 2) {
+        volumeDiscount = Math.round(subtotal * 0.15 * 100) / 100
+    } else if (totalQuantity >= 3) {
+        volumeDiscount = Math.round(subtotal * 0.30 * 100) / 100
+    }
+
+    let couponDiscount = 0
     let validCouponCode = null
 
     if (couponCode) {
@@ -133,13 +142,13 @@ export async function validateAndCalculateTotals(
 
         validCouponCode = coupon.codigo
         if (coupon.tipo === 'monto') {
-            discountAmount = coupon.valor
+            couponDiscount = coupon.valor
         } else if (coupon.tipo === 'porcentaje') {
-            discountAmount = (subtotal * coupon.valor) / 100
+            couponDiscount = (subtotal * coupon.valor) / 100
         }
     }
 
-    discountAmount = Math.max(0, Math.round(Math.min(subtotal, discountAmount) * 100) / 100)
+    const discountAmount = Math.max(0, Math.round(Math.min(subtotal, volumeDiscount + couponDiscount) * 100) / 100)
     const total = Math.max(0, Math.round((subtotal - discountAmount) * 100) / 100)
 
     const getUnitPrice = (productId: number, variantId?: number | null) => {

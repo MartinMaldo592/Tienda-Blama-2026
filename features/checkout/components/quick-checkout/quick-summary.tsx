@@ -148,17 +148,22 @@ export function QuickSummary({ shippingMethod, setShippingMethod, total, isSubmi
             )}
 
             {/* Submit */}
-            <div className="bg-muted/30 -mx-6 -mb-6 p-4 border-t space-y-3">
+            <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm p-4 pb-5 border-t space-y-3 -mx-0 mt-4">
                 <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full h-14 text-base font-bold bg-green-600 hover:bg-green-700 text-white shadow-lg rounded-xl"
+                    className="w-full h-14 text-base font-bold bg-green-600 hover:bg-green-700 text-white shadow-lg rounded-xl transition-all duration-200 hover:scale-[1.01]"
                 >
                     {isSubmitting
                         ? <><Loader2 className="animate-spin mr-2 h-5 w-5" /> Procesando...</>
-                        : `🛵  Confirmar Pedido — ${formatCurrency(total)}`
+                        : `🛵  Confirmar Pedido — Pago al Recibir — ${formatCurrency(total)}`
                     }
                 </Button>
+                <div className="flex items-center justify-center gap-4 text-[10px] text-muted-foreground font-semibold">
+                    <span className="flex items-center gap-1">🔒 Datos protegidos</span>
+                    <span className="flex items-center gap-1">📦 Envío gratis</span>
+                    <span className="flex items-center gap-1">🤝 Compra garantizada</span>
+                </div>
             </div>
         </div>
     )
