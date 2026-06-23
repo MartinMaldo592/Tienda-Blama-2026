@@ -4,7 +4,7 @@ import { SuccessCheckmark } from "@/components/ui/success-checkmark"
 
 import Image from "next/image"
 import { toast } from "sonner"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import usePlacesAutocomplete from "use-places-autocomplete"
 import {
     Dialog,
@@ -49,13 +49,65 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant, initialQ
         libraries: libraries,
     })
 
+    const [chosenQty, setChosenQty] = useState(initialQuantity)
+    const [hasAppliedDiscount, setHasAppliedDiscount] = useState(false)
+    const [hasOfferedPromo, setHasOfferedPromo] = useState(false)
+    const [showPromoModal, setShowPromoModal] = useState(false)
+    const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        if (isOpen) {
+            setChosenQty(initialQuantity)
+            setHasAppliedDiscount(false)
+            setHasOfferedPromo(false)
+            setShowPromoModal(false)
+
+            if (scrollContainerRef.current) {
+                scrollContainerRef.current.scrollTop = 0
+            }
+            const timer = setTimeout(() => {
+                if (scrollContainerRef.current) {
+                    scrollContainerRef.current.scrollTop = 0
+                }
+            }, 50)
+            return () => clearTimeout(timer)
+        } else {
+            setShowPromoModal(false)
+            setHasOfferedPromo(false)
+        }
+    }, [isOpen, initialQuantity])
+
+    const closeModal = () => {
+        setShowPromoModal(false)
+        setHasOfferedPromo(false)
+        onClose()
+    }
+
+    const handleClose = () => {
+        if (chosenQty === 1 && !hasAppliedDiscount && !hasOfferedPromo) {
+            setHasOfferedPromo(true)
+            setShowPromoModal(true)
+        } else {
+            closeModal()
+        }
+    }
+
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
+        <Dialog open={isOpen} onOpenChange={(open) => {
+            if (!open) {
+                handleClose()
+            }
+        }}>
             <DialogContent
-                className="max-w-md w-full p-0 gap-0 overflow-hidden rounded-xl max-h-[90vh] flex flex-col"
-                onOpenAutoFocus={(e) => e.preventDefault()}
+                className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] z-50 max-w-md w-full p-0 gap-0 overflow-hidden rounded-xl max-h-[90vh] flex flex-col"
             >
-                <div className="overflow-y-auto flex-1 p-6" data-lenis-prevent>
+                <div 
+                    ref={scrollContainerRef}
+                    className={`overflow-y-auto flex-1 p-6 ${showPromoModal ? 'overflow-hidden pointer-events-none' : ''}`} 
+                    data-lenis-prevent
+                >
+                    {/* Elemento oculto para capturar el foco inicial de Radix Dialog y evitar que la vista haga scroll al final */}
+                    <div tabIndex={0} className="sr-only" aria-hidden="true" />
                     <DialogHeader className="mb-4 text-center">
                         <DialogTitle className="text-base font-bold uppercase leading-tight">
                             Envíos contraentrega en Lima y <br /> otras provincias envíos por agencia
@@ -93,7 +145,7 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant, initialQ
                                 </div>
                             )}
                             <div className="text-lg font-bold text-foreground">
-                                {formatCurrency(variant?.precio ?? product?.precio)}
+                                {formatCurrency(hasAppliedDiscount && chosenQty === 1 ? Math.round((variant?.precio ?? product?.precio ?? 0) * 0.90) : (variant?.precio ?? product?.precio))}
                             </div>
                         </div>
                     </div>
@@ -101,16 +153,91 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant, initialQ
                     <QuickForm
                         product={product}
                         variant={variant}
-                        onClose={onClose}
-                        initialQuantity={initialQuantity}
+                        onClose={closeModal}
+                        chosenQty={chosenQty}
+                        setChosenQty={setChosenQty}
+                        hasAppliedDiscount={hasAppliedDiscount}
+                        setHasAppliedDiscount={setHasAppliedDiscount}
                     />
                 </div>
+
+                {/* EXIT PROMO MODAL OVERLAY */}
+                {showPromoModal && (
+                    <div className="absolute inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="bg-white w-full max-w-[340px] rounded-[2rem] p-6 relative flex flex-col items-center text-center shadow-2xl animate-in zoom-in-95 duration-200">
+                            <button
+                                onClick={() => {
+                                    closeModal()
+                                }}
+                                className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+
+                            <span className="text-xl font-black text-slate-900 mb-0.5 leading-none">¡Espera!</span>
+                            <span className="text-xs font-semibold text-slate-500 mb-4 leading-none">¡Tenemos una oferta para ti!</span>
+
+                            <h4 className="text-[13px] font-black text-slate-800 tracking-tight uppercase max-w-[240px] leading-tight mb-2">
+                                Obtén un descuento extra en tu pedido:
+                            </h4>
+
+                            <div className="relative my-3 flex items-center justify-center">
+                                <svg viewBox="0 0 100 100" className="w-32 h-32 text-rose-500 drop-shadow-md animate-pulse" fill="currentColor">
+                                    <path d="M50 2 L55.5 13 L67.3 9.4 L67.5 21.8 L79.3 22.3 L75.3 34.1 L85.8 40.5 L78.4 50.4 L85.8 60.3 L75.3 66.7 L79.3 78.5 L67.5 79 L67.3 91.4 L55.5 87.8 L50 98.8 L44.5 87.8 L32.7 91.4 L32.5 79 L20.7 78.5 L24.7 66.7 L14.2 60.3 L21.6 50.4 L14.2 40.5 L24.7 34.1 L20.7 22.3 L32.5 21.8 L32.7 9.4 L44.5 13 Z" />
+                                </svg>
+                                <span className="absolute text-white font-black text-3xl tracking-tight select-none">10%</span>
+                            </div>
+
+                            <span className="text-xs font-bold text-slate-800 mb-5 leading-tight max-w-[200px]">
+                                ¿Quieres completar tu pedido?
+                            </span>
+
+                            <button
+                                onClick={() => {
+                                    setHasAppliedDiscount(true)
+                                    setShowPromoModal(false)
+                                    toast.success("¡10% de descuento adicional aplicado!")
+                                }}
+                                className="w-full py-3.5 px-4 bg-gradient-to-r from-rose-500 to-pink-600 text-white font-black text-xs uppercase rounded-full shadow-lg shadow-pink-500/20 hover:from-rose-600 hover:to-pink-700 transition-all duration-200 haptic-scale mb-2.5 cursor-pointer leading-tight"
+                            >
+                                Completa tu pedido con 10% de descuento
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    closeModal()
+                                }}
+                                className="w-full py-3.5 border-2 border-black bg-white text-black font-black text-xs uppercase rounded-full hover:bg-slate-50 transition-all duration-200 haptic-scale cursor-pointer leading-none"
+                            >
+                                No gracias
+                            </button>
+                        </div>
+                    </div>
+                )}
             </DialogContent>
         </Dialog>
     )
 }
 
-function QuickForm({ product, variant, onClose, initialQuantity = 1 }: { product: any; variant: any; onClose: () => void; initialQuantity?: number }) {
+function QuickForm({
+    product,
+    variant,
+    onClose,
+    chosenQty,
+    setChosenQty,
+    hasAppliedDiscount,
+    setHasAppliedDiscount
+}: {
+    product: any
+    variant: any
+    onClose: () => void
+    chosenQty: number
+    setChosenQty: (qty: number) => void
+    hasAppliedDiscount: boolean
+    setHasAppliedDiscount: (v: boolean) => void
+}) {
     const router = useRouter()
     const [isRedirecting, setIsRedirecting] = useState(false)
 
@@ -131,8 +258,6 @@ function QuickForm({ product, variant, onClose, initialQuantity = 1 }: { product
     const [locationLink, setLocationLink] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
 
-    // Derived values & state for chosen pack
-    const [chosenQty, setChosenQty] = useState(initialQuantity)
     const [timeLeft, setTimeLeft] = useState(600) // 10 mins
 
     useEffect(() => {
@@ -153,11 +278,15 @@ function QuickForm({ product, variant, onClose, initialQuantity = 1 }: { product
     const pack2Total = Math.round(unitPrice * 2 * 0.85) // 15% desc. (Entero)
     const pack3Total = Math.round(unitPrice * 3 * 0.70) // 30% desc. (Entero)
 
-    const total = chosenQty === 1
+    let total = chosenQty === 1
         ? pack1Total
         : chosenQty === 2
             ? pack2Total
             : Math.round(unitPrice * chosenQty * 0.70)
+
+    if (chosenQty === 1 && hasAppliedDiscount) {
+        total = Math.round(pack1Total * 0.90)
+    }
 
     const { draft, loaded, saveDraft, clearDraft } = useCheckoutDraft()
 
@@ -340,7 +469,8 @@ function QuickForm({ product, variant, onClose, initialQuantity = 1 }: { product
                 locationLink: finalLocationLink,
                 items,
                 shippingMethod,
-                isQuickCheckout: true
+                isQuickCheckout: true,
+                couponCode: (chosenQty === 1 && hasAppliedDiscount) ? "EXIT10" : undefined
             })
 
             const orderIdFormatted = String(orderId).padStart(6, '0')
@@ -416,9 +546,13 @@ function QuickForm({ product, variant, onClose, initialQuantity = 1 }: { product
                     >
                         <div>
                             <span className="text-sm font-bold text-foreground">1 Unidad</span>
-                            <span className="block text-xs text-muted-foreground">Precio regular</span>
+                            <span className="block text-xs text-muted-foreground">
+                                {hasAppliedDiscount ? "¡10% descuento extra aplicado!" : "Precio regular"}
+                            </span>
                         </div>
-                        <span className="text-base font-black text-foreground">{formatCurrency(pack1Total)}</span>
+                        <span className="text-base font-black text-foreground">
+                            {formatCurrency(hasAppliedDiscount ? Math.round(pack1Total * 0.90) : pack1Total)}
+                        </span>
                         {chosenQty === 1 && <div className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-primary/20" />}
                     </button>
 

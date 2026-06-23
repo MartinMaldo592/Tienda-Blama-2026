@@ -112,40 +112,49 @@ export async function validateAndCalculateTotals(
     let validCouponCode = null
 
     if (couponCode) {
-        if (couponRes.error || !couponRes.data) {
-            throw new Error("Cupón inválido")
-        }
-        const coupon = couponRes.data
-        const now = new Date()
-        const isActive = coupon.activo !== false
-        const hasNotExpired = !coupon.expires_at || new Date(coupon.expires_at) >= now
-        const hasStarted = !coupon.starts_at || new Date(coupon.starts_at) <= now
-        const hasUsesLeft = !coupon.max_usos || coupon.usos < coupon.max_usos
-        const meetsMinTotal = subtotal >= (coupon.min_total || 0)
-
-        if (!isActive) throw new Error("Cupón inactivo")
-        if (!hasNotExpired) throw new Error("El cupón expiró")
-        if (!hasStarted) throw new Error("El cupón aún no está disponible")
-        if (!hasUsesLeft) throw new Error("El cupón ya alcanzó el máximo de usos")
-        if (!meetsMinTotal) throw new Error("El cupón no aplica para este total")
-
-        // ── Validar propiedad de cupón de bienvenida (newsletter) ──
-        if (subscriptionRes && subscriptionRes.data) {
-            const cleanedUserEmail = String(customerEmail || "").trim().toLowerCase()
-            const cleanedSubEmail = String(subscriptionRes.data.email || "").trim().toLowerCase()
-            if (!cleanedUserEmail) {
-                throw new Error("Por favor ingresa tu correo de contacto para aplicar este cupón de bienvenida.")
+        if (couponCode === "EXIT10") {
+            if (totalQuantity === 1) {
+                couponDiscount = Math.round(subtotal * 0.10 * 100) / 100
+                validCouponCode = "EXIT10"
+            } else {
+                throw new Error("El cupón de descuento adicional solo aplica para pedidos de 1 unidad")
             }
-            if (cleanedUserEmail !== cleanedSubEmail) {
-                throw new Error("Este cupón de bienvenida solo es válido para el correo que se suscribió.")
+        } else {
+            if (couponRes.error || !couponRes.data) {
+                throw new Error("Cupón inválido")
             }
-        }
+            const coupon = couponRes.data
+            const now = new Date()
+            const isActive = coupon.activo !== false
+            const hasNotExpired = !coupon.expires_at || new Date(coupon.expires_at) >= now
+            const hasStarted = !coupon.starts_at || new Date(coupon.starts_at) <= now
+            const hasUsesLeft = !coupon.max_usos || coupon.usos < coupon.max_usos
+            const meetsMinTotal = subtotal >= (coupon.min_total || 0)
 
-        validCouponCode = coupon.codigo
-        if (coupon.tipo === 'monto') {
-            couponDiscount = coupon.valor
-        } else if (coupon.tipo === 'porcentaje') {
-            couponDiscount = (subtotal * coupon.valor) / 100
+            if (!isActive) throw new Error("Cupón inactivo")
+            if (!hasNotExpired) throw new Error("El cupón expiró")
+            if (!hasStarted) throw new Error("El cupón aún no está disponible")
+            if (!hasUsesLeft) throw new Error("El cupón ya alcanzó el máximo de usos")
+            if (!meetsMinTotal) throw new Error("El cupón no aplica para este total")
+
+            // ── Validar propiedad de cupón de bienvenida (newsletter) ──
+            if (subscriptionRes && subscriptionRes.data) {
+                const cleanedUserEmail = String(customerEmail || "").trim().toLowerCase()
+                const cleanedSubEmail = String(subscriptionRes.data.email || "").trim().toLowerCase()
+                if (!cleanedUserEmail) {
+                    throw new Error("Por favor ingresa tu correo de contacto para aplicar este cupón de bienvenida.")
+                }
+                if (cleanedUserEmail !== cleanedSubEmail) {
+                    throw new Error("Este cupón de bienvenida solo es válido para el correo que se suscribió.")
+                }
+            }
+
+            validCouponCode = coupon.codigo
+            if (coupon.tipo === 'monto') {
+                couponDiscount = coupon.valor
+            } else if (coupon.tipo === 'porcentaje') {
+                couponDiscount = (subtotal * coupon.valor) / 100
+            }
         }
     }
 
