@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import Link from "next/link"
 import Image from "next/image"
@@ -110,6 +110,14 @@ export default function ProductoDetalleClient({
     } = useProductDetail(initialProduct, initialVariants, initialSpecs)
 
     const [activeTab, setActiveTab] = useState<string>("")
+
+    useEffect(() => {
+        // Preload checkout modal chunk in the background 1.5s after mount to make checkout instant
+        const timer = setTimeout(() => {
+            import("@/features/checkout/components/quick-checkout-modal")
+        }, 1500)
+        return () => clearTimeout(timer)
+    }, [])
 
     const tabList = useMemo(() => {
         return [

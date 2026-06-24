@@ -64,7 +64,7 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
 
 
             {/* --- IMAGE SECTION --- */}
-            <Link href={productHref} className="relative block w-full aspect-[4/5] bg-slate-100 overflow-hidden">
+            <Link href={productHref} prefetch={false} className="relative block w-full aspect-[4/5] bg-slate-100 overflow-hidden">
                 <div className="w-full h-full transition-transform duration-500 group-hover:scale-105">
                     {fallbackImages.length > 0 ? (
                         <ProductImageCarousel
@@ -93,7 +93,7 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
                     <Flame size={12} className="text-white" fill="currentColor" />
                     ¡LO MÁS VENDIDO!
                 </div>
-                <Link href={productHref} className="mb-2 block">
+                <Link href={productHref} prefetch={false} className="mb-2 block">
                     <h3 className="text-[17px] font-black text-slate-900 leading-tight line-clamp-2 h-[42px] overflow-hidden hover:text-blue-600 transition-colors">
                         {product.nombre}
                     </h3>

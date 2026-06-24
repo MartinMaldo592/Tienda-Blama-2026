@@ -31,6 +31,7 @@ export function CategoryGrid({ categories }: { categories: Category[] }) {
                     <Link
                         key={cat.id}
                         href={`/productos?cat=${cat.id}`}
+                        prefetch={false}
                         className="group shrink-0 relative flex items-center gap-2.5 px-6 py-3 rounded-full bg-white border border-gray-200 hover:border-gray-900 hover:bg-gray-900 hover:text-white transition-all duration-300 shadow-sm hover:shadow-md active:scale-95 snap-start"
                     >
                         <Tag className="w-4 h-4 text-gray-400 group-hover:text-white/90 transition-colors" />
