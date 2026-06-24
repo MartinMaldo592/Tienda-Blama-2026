@@ -77,8 +77,8 @@ export async function checkRateLimit(
 
             const pipelineRes = await res.json()
             if (Array.isArray(pipelineRes)) {
-                const count = Number(pipelineRes[0]?.[1] ?? 0)
-                let ttl = Number(pipelineRes[1]?.[1] ?? -1)
+                const count = Number(pipelineRes[0]?.result ?? 0)
+                let ttl = Number(pipelineRes[1]?.result ?? -1)
 
                 if (count === 1 || ttl === -1) {
                     await fetch(`${redisUrl}/EXPIRE/${key}/${windowSeconds}`, {
