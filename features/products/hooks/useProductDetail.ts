@@ -22,18 +22,25 @@ function parseProductIdentifier(raw: string): string | number {
     return raw
 }
 
-export function useProductDetail() {
+export function useProductDetail(
+    initialProduct?: any,
+    initialVariants: any[] = [],
+    initialSpecs: any[] = []
+) {
     const params = useParams()
     const router = useRouter()
     const rawId = params.id as string
 
     const identifier = useMemo(() => parseProductIdentifier(rawId), [rawId])
 
-    const [loading, setLoading] = useState(true)
-    const [producto, setProducto] = useState<any>(null)
-    const [variantes, setVariantes] = useState<any[]>([])
-    const [especificaciones, setEspecificaciones] = useState<any[]>([])
-    const [selectedVarianteId, setSelectedVarianteId] = useState<number | null>(null)
+    const [producto, setProducto] = useState<any>(initialProduct || null)
+    const [variantes, setVariantes] = useState<any[]>(initialVariants)
+    const [especificaciones, setEspecificaciones] = useState<any[]>(initialSpecs)
+    const [loading, setLoading] = useState(!initialProduct)
+    const [selectedVarianteId, setSelectedVarianteId] = useState<number | null>(() => {
+        const vData = initialVariants || []
+        return vData.length > 0 ? Number(vData[0].id) : null
+    })
     const [recoLoading, setRecoLoading] = useState(false)
     const [recomendados, setRecomendados] = useState<any[]>([])
     const recoRef = useRef<HTMLDivElement | null>(null)
@@ -138,9 +145,38 @@ export function useProductDetail() {
     // Fetch Product Data
     useEffect(() => {
         if (!rawId) return
+
+        // If we already have the initialProduct and its identifier matches the requested rawId,
+        // we don't need to re-fetch. But we DO need to send the GTM view_item event!
+        const matchesInitial = initialProduct && (
+            String(initialProduct.id) === String(identifier) ||
+            String(initialProduct.slug) === String(identifier)
+        )
+
+        if (matchesInitial) {
+            setLoading(false)
+            // Trigger GTM event for the initial product
+            if (initialProduct) {
+                sendGTMEvent({
+                    event: 'view_item',
+                    ecommerce: {
+                        currency: 'PEN',
+                        value: Number(initialProduct.precio) || 0,
+                        items: [{
+                            item_id: String(initialProduct.id),
+                            item_name: initialProduct.nombre,
+                            price: Number(initialProduct.precio) || 0,
+                            quantity: 1
+                        }]
+                    }
+                })
+            }
+            return
+        }
+
         fetchProducto()
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [rawId])
+    }, [rawId, identifier, initialProduct])
 
     // Fetch Recommendations
     useEffect(() => {

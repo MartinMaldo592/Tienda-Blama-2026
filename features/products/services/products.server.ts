@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js"
 import type { Database } from "@/types/database.types"
-import type { Category, Product, SortValue } from "@/features/products/types"
+import type { Category, Product, SortValue, ProductSpecification, ProductVariant, ProductWithCategory } from "@/features/products/types"
 
 function createAnonServerClient() {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -37,9 +37,73 @@ export const fetchProductForMeta = unstable_cache(
     { tags: ['products'] }
 )
 
+export const getProductDetailServer = unstable_cache(
+    async (identifier: string | number) => {
+        const supabase = createAnonServerClient()
+        if (!supabase) return { producto: null, variantes: [], especificaciones: [] }
+
+        let producto: ProductWithCategory | null = null
+        let error: any = null
+
+        if (typeof identifier === "number") {
+            const { data, error: err } = await supabase
+                .from("productos")
+                .select(`*, categorias (id, nombre, slug)`)
+                .eq("id", identifier)
+                .maybeSingle()
+            producto = data as ProductWithCategory
+            error = err
+        } else {
+            const { data, error: err } = await supabase
+                .from("productos")
+                .select(`*, categorias (id, nombre, slug)`)
+                .eq("slug", identifier)
+                .maybeSingle()
+            producto = data as ProductWithCategory
+            error = err
+        }
+
+        if (error || !producto) {
+            console.error("Error fetching product server:", error)
+            return { producto: null, variantes: [], especificaciones: [] }
+        }
+
+        const productId = producto.id
+
+        const [variantsRes, specsRes] = await Promise.all([
+            supabase
+                .from("producto_variantes")
+                .select("*")
+                .eq("producto_id", productId)
+                .eq("activo", true)
+                .order("id", { ascending: true }),
+            supabase
+                .from("producto_especificaciones")
+                .select("*")
+                .eq("producto_id", productId)
+                .order("orden", { ascending: true })
+                .order("id", { ascending: true }),
+        ])
+
+        const variantes = Array.isArray(variantsRes.data) ? (variantsRes.data as ProductVariant[]) : []
+        const especificaciones = Array.isArray(specsRes.data)
+            ? (specsRes.data as ProductSpecification[])
+            : []
+
+        return {
+            producto,
+            variantes,
+            especificaciones,
+        }
+    },
+    ['product-detail-server'],
+    { tags: ['products'], revalidate: 3600 }
+)
+
+
 // ... (keep helper functions)
 
-export async function getHomePageData(opts: {
+async function getHomePageDataRaw(opts: {
     selectedCategorySlug?: string
     productsLimit: number
 }) {
@@ -163,6 +227,25 @@ export async function getHomePageData(opts: {
         productsError,
     }
 }
+
+export async function getHomePageData(opts: {
+    selectedCategorySlug?: string
+    productsLimit: number
+}) {
+    const slug = opts.selectedCategorySlug ? String(opts.selectedCategorySlug).trim() : "all"
+    const limit = opts.productsLimit
+    const cacheKey = `home-page-data-${slug}-${limit}`
+
+    return unstable_cache(
+        async () => getHomePageDataRaw(opts),
+        [cacheKey],
+        {
+            tags: ['products', 'home-page'],
+            revalidate: 600 // Cache for 10 minutes
+        }
+    )()
+}
+
 
 export const listCategories = unstable_cache(
     async (): Promise<Category[]> => {

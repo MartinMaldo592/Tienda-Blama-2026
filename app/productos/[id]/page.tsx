@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import ProductoDetalleClient from "./producto-detalle-client"
-import { fetchProductForMeta } from "@/features/products/services/products.server"
+import { fetchProductForMeta, getProductDetailServer } from "@/features/products/services/products.server"
 import { slugify } from "@/lib/utils"
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.blama.shop"
@@ -123,7 +123,7 @@ export default async function ProductoDetallePage({
 }) {
     const resolvedParams = await params
     const identifier = parseProductIdentifier(resolvedParams.id)
-    const product = await fetchProductForMeta(identifier) as any
+    const { producto: product, variantes, especificaciones } = await getProductDetailServer(identifier)
 
     if (!product) {
         return <ProductoDetalleClient />
@@ -236,7 +236,11 @@ export default async function ProductoDetallePage({
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
             />
-            <ProductoDetalleClient />
+            <ProductoDetalleClient
+                initialProduct={product}
+                initialVariants={variantes}
+                initialSpecs={especificaciones}
+            />
         </>
     )
 }

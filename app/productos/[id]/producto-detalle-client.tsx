@@ -46,7 +46,17 @@ const QuickCheckoutModal = dynamic(() => import("@/features/checkout/components/
     ssr: false
 })
 
-export default function ProductoDetalleClient() {
+interface ProductoDetalleClientProps {
+    initialProduct?: any
+    initialVariants?: any[]
+    initialSpecs?: any[]
+}
+
+export default function ProductoDetalleClient({
+    initialProduct,
+    initialVariants = [],
+    initialSpecs = [],
+}: ProductoDetalleClientProps) {
     const {
         router,
         loading,
@@ -97,7 +107,7 @@ export default function ProductoDetalleClient() {
         scrollRecoBy,
         handleAddToCart,
         handleBeginCheckout
-    } = useProductDetail()
+    } = useProductDetail(initialProduct, initialVariants, initialSpecs)
 
     const [activeTab, setActiveTab] = useState<string>("")
 
