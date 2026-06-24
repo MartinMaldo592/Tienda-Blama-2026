@@ -162,7 +162,7 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant, initialQ
                     <div tabIndex={0} className="sr-only" aria-hidden="true" />
                     <DialogHeader className="mb-4 text-center relative px-8">
                         <DialogTitle className="text-base font-bold uppercase leading-tight">
-                            Envíos contraentrega en Lima y <br /> otras provincias envíos por agencia
+                            🚚 Envíos contraentrega en todo el Perú 🇵🇪 <br /> (Pagas solo al recibir tu pedido) 🤝
                         </DialogTitle>
                         <button
                             type="button"
