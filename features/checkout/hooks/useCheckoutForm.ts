@@ -212,7 +212,7 @@ export function useCheckoutForm({ items, total, onComplete, onCompleteCulqi }: U
 
         setCouponError("")
 
-        if (!value || value.length < 5) {
+        if (!value || value.length < 1) {
             toast.error("Dirección inválida", {
                 description: "Por favor selecciona una dirección válida del mapa antes de continuar.",
                 duration: 5000
@@ -270,9 +270,9 @@ export function useCheckoutForm({ items, total, onComplete, onCompleteCulqi }: U
         }
 
         const streetForApi = (value || "").trim()
-        const addressForApi = streetForApi.length >= 5
+        const addressForApi = streetForApi.length >= 1
             ? streetForApi
-            : fullAddress.length >= 5
+            : fullAddress.length >= 1
                 ? fullAddress
                 : `${data.district || ''} ${data.province || ''}`.trim()
 
@@ -300,7 +300,7 @@ export function useCheckoutForm({ items, total, onComplete, onCompleteCulqi }: U
     const onSubmit = async (data: CheckoutFormValues) => {
         if (data.paymentMethod === 'culqi') return
 
-        if (!value || value.length < 5) {
+        if (!value || value.length < 1) {
             toast.error("Dirección inválida", {
                 description: "Por favor selecciona una dirección válida del mapa antes de continuar.",
                 duration: 5000

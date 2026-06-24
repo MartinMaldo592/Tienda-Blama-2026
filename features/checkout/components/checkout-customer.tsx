@@ -24,7 +24,10 @@ export function CheckoutCustomer({
         if (name === 'email') {
             return value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && !errors[name]
         }
-        return value && value.length >= (name === 'dni' ? 8 : name === 'phone' ? 9 : 3) && !errors[name]
+        if (name === 'phone') {
+            return value && value.replace(/\D/g, '').length === 9 && value.startsWith('9') && !errors[name]
+        }
+        return value && value.length >= (name === 'dni' ? 8 : 3) && !errors[name]
     }
 
     return (
@@ -49,7 +52,11 @@ export function CheckoutCustomer({
                             "pl-11 pr-10 h-12 bg-background border-border transition-all rounded-lg font-medium text-foreground",
                             isValid("name", nameValue) ? "border-green-500/50 focus-visible:ring-green-500/20" : "focus-visible:border-primary"
                         )}
-                        {...register("name")}
+                        {...register("name", {
+                            onChange: (e: any) => {
+                                e.target.value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, "");
+                            }
+                        })}
                     />
                     {isValid("name", nameValue) && (
                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 animate-in zoom-in duration-300">

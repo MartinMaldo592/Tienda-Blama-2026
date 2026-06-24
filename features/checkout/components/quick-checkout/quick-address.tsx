@@ -3,7 +3,8 @@
 import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { MapPin, Building2, Landmark, Navigation } from "lucide-react"
+import { MapPin, Building2, Landmark, Navigation, CheckCircle2 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface QuickAddressProps {
     department: string
@@ -35,6 +36,13 @@ export function QuickAddress({
     ready, suggestionsStatus, suggestionsData, onSuggestionSelect
 }: QuickAddressProps) {
     const [manualMode, setManualMode] = useState(false)
+
+    const isAddressValid = addressValue && addressValue.length >= 1
+    const isDepartmentValid = department && department.length >= 1
+    const isProvinceValid = province && province.length >= 1
+    const isDistrictValid = district && district.length >= 1
+    const isReferenceValid = reference && reference.length >= 1
+
     return (
         <div className="space-y-4 bg-card rounded-xl p-4 border shadow-sm">
             <h4 className="font-bold text-base">Dirección de Envío</h4>
@@ -44,8 +52,11 @@ export function QuickAddress({
                 <Label className="text-sm font-bold text-foreground">
                     Dirección <span className="text-destructive">*</span>
                 </Label>
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-primary">
+                <div className="relative group">
+                    <div className={cn(
+                        "absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none transition-colors",
+                        isAddressValid ? "text-green-500" : "text-primary group-focus-within:text-primary"
+                    )}>
                         <MapPin className="h-5 w-5" />
                     </div>
                     <Input
@@ -55,8 +66,16 @@ export function QuickAddress({
                         disabled={disabled || (!manualMode && !ready)}
                         placeholder={manualMode ? "Escribe tu dirección completa..." : "Escribe tu dirección..."}
                         autoComplete={manualMode ? "street-address" : "off"}
-                        className="pl-11 h-12 bg-background border-border focus-visible:border-primary transition-colors rounded-lg font-medium text-foreground"
+                        className={cn(
+                            "pl-11 pr-10 h-12 bg-background border-border focus-visible:border-primary transition-colors rounded-lg font-medium text-foreground",
+                            isAddressValid ? "border-green-500/50 focus-visible:ring-green-500/20" : "focus-visible:border-primary"
+                        )}
                     />
+                    {isAddressValid && (
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 animate-in zoom-in duration-300">
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        </div>
+                    )}
                 </div>
                 {!manualMode && suggestionsStatus === "OK" && (
                     <ul className="absolute z-10 w-full bg-card border border-border rounded-xl shadow-xl mt-1 max-h-48 overflow-auto divide-y divide-border">
@@ -86,8 +105,11 @@ export function QuickAddress({
                 <Label className="text-sm font-bold text-foreground">
                     Departamento <span className="text-destructive">*</span>
                 </Label>
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-muted-foreground">
+                <div className="relative group">
+                    <div className={cn(
+                        "absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none transition-colors",
+                        isDepartmentValid ? "text-green-500" : "text-muted-foreground group-focus-within:text-primary"
+                    )}>
                         <Building2 className="h-5 w-5" />
                     </div>
                     <Input
@@ -96,8 +118,16 @@ export function QuickAddress({
                         value={department}
                         onChange={(e) => setDepartment(e.target.value)}
                         disabled={disabled}
-                        className="pl-11 h-12 bg-background border-border focus-visible:border-primary transition-colors rounded-lg font-medium text-foreground"
+                        className={cn(
+                            "pl-11 pr-10 h-12 bg-background border-border focus-visible:border-primary transition-colors rounded-lg font-medium text-foreground",
+                            isDepartmentValid ? "border-green-500/50 focus-visible:ring-green-500/20" : "focus-visible:border-primary"
+                        )}
                     />
+                    {isDepartmentValid && (
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 animate-in zoom-in duration-300">
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -106,8 +136,11 @@ export function QuickAddress({
                 <Label className="text-sm font-bold text-foreground">
                     Provincia <span className="text-destructive">*</span>
                 </Label>
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-muted-foreground">
+                <div className="relative group">
+                    <div className={cn(
+                        "absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none transition-colors",
+                        isProvinceValid ? "text-green-500" : "text-muted-foreground group-focus-within:text-primary"
+                    )}>
                         <Landmark className="h-5 w-5" />
                     </div>
                     <Input
@@ -116,8 +149,16 @@ export function QuickAddress({
                         value={province}
                         onChange={(e) => setProvince(e.target.value)}
                         disabled={disabled}
-                        className="pl-11 h-12 bg-background border-border focus-visible:border-primary transition-colors rounded-lg font-medium text-foreground"
+                        className={cn(
+                            "pl-11 pr-10 h-12 bg-background border-border focus-visible:border-primary transition-colors rounded-lg font-medium text-foreground",
+                            isProvinceValid ? "border-green-500/50 focus-visible:ring-green-500/20" : "focus-visible:border-primary"
+                        )}
                     />
+                    {isProvinceValid && (
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 animate-in zoom-in duration-300">
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -126,8 +167,11 @@ export function QuickAddress({
                 <Label className="text-sm font-bold text-foreground">
                     Distrito <span className="text-destructive">*</span>
                 </Label>
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-muted-foreground">
+                <div className="relative group">
+                    <div className={cn(
+                        "absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none transition-colors",
+                        isDistrictValid ? "text-green-500" : "text-muted-foreground group-focus-within:text-primary"
+                    )}>
                         <Navigation className="h-5 w-5" />
                     </div>
                     <Input
@@ -136,8 +180,16 @@ export function QuickAddress({
                         value={district}
                         onChange={(e) => setDistrict(e.target.value)}
                         disabled={disabled}
-                        className="pl-11 h-12 bg-background border-border focus-visible:border-primary transition-colors rounded-lg font-medium text-foreground"
+                        className={cn(
+                            "pl-11 pr-10 h-12 bg-background border-border focus-visible:border-primary transition-colors rounded-lg font-medium text-foreground",
+                            isDistrictValid ? "border-green-500/50 focus-visible:ring-green-500/20" : "focus-visible:border-primary"
+                        )}
                     />
+                    {isDistrictValid && (
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 animate-in zoom-in duration-300">
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -146,8 +198,11 @@ export function QuickAddress({
                 <Label className="text-sm font-bold text-foreground">
                     Referencia <span className="text-muted-foreground font-normal text-xs">(Opcional)</span>
                 </Label>
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-muted-foreground">
+                <div className="relative group">
+                    <div className={cn(
+                        "absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none transition-colors",
+                        isReferenceValid ? "text-green-500" : "text-muted-foreground group-focus-within:text-primary"
+                    )}>
                         <MapPin className="h-5 w-5" />
                     </div>
                     <Input
@@ -155,8 +210,16 @@ export function QuickAddress({
                         value={reference}
                         onChange={(e) => setReference(e.target.value)}
                         disabled={disabled}
-                        className="pl-11 h-12 bg-background border-border focus-visible:border-primary transition-colors rounded-lg font-medium text-foreground"
+                        className={cn(
+                            "pl-11 pr-10 h-12 bg-background border-border focus-visible:border-primary transition-colors rounded-lg font-medium text-foreground",
+                            isReferenceValid ? "border-green-500/50 focus-visible:ring-green-500/20" : "focus-visible:border-primary"
+                        )}
                     />
+                    {isReferenceValid && (
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 animate-in zoom-in duration-300">
+                            <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

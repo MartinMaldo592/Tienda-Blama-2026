@@ -23,11 +23,11 @@ export const identitySchema = {
         .max(15, "Máximo 15 caracteres")
         .regex(/^[a-zA-Z0-9]+$/, "Solo números y letras, sin guiones ni espacios"),
 
-    // Soporta teléfonos fijos y celulares peruanos, e internacionales con símbolo +
+    // Debe empezar estrictamente con 9 y tener entre 9 y 15 dígitos
     phone: z.string()
         .min(9, "Mínimo 9 dígitos")
         .max(15, "Teléfono demasiado largo")
-        .regex(/^\+?[0-9\s]+$/, "Debe contener solo números o formato internacional"),
+        .regex(/^9[0-9\s]+$/, "El celular debe empezar con 9"),
 
     // Email opcional
     email: z.string()
@@ -38,11 +38,11 @@ export const identitySchema = {
 
 export const addressSchema = {
     address: z.string()
-        .min(5, "La dirección detallada es obligatoria")
+        .min(1, "La dirección es obligatoria")
         .max(250, "La dirección es demasiado larga"),
 
     locationField: z.string()
-        .min(2, "Este campo es requerido")
+        .min(1, "Este campo es requerido")
         .max(100, "El texto es muy largo"),
 
     reference: z.string().nullable().optional()

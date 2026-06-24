@@ -22,9 +22,9 @@ interface QuickCustomerProps {
 export function QuickCustomer({ name, setName, phone, setPhone, dni, setDni, email, setEmail, disabled, shippingMethod }: QuickCustomerProps) {
     const isProvincia = String(shippingMethod || '').toLowerCase().includes('provincia') || String(shippingMethod || '').toLowerCase().includes('shalom')
     const [showEmail, setShowEmail] = useState(false)
-    const isNameValid = name.length > 5
+    const isNameValid = name.length >= 2
     const isDniValid = dni.length === 8
-    const isPhoneValid = phone.replace(/\D/g, '').length === 9
+    const isPhoneValid = phone.replace(/\D/g, '').length === 9 && phone.startsWith('9')
     const isEmailValid = email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
     return (
@@ -47,7 +47,10 @@ export function QuickCustomer({ name, setName, phone, setPhone, dni, setDni, ema
                         minLength={4}
                         placeholder="Tu nombre completo"
                         value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        onChange={(e) => {
+                            const val = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, "")
+                            setName(val)
+                        }}
                         disabled={disabled}
                         className={cn(
                             "pl-11 pr-10 h-12 bg-background border-border transition-all rounded-lg font-medium text-foreground",

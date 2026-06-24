@@ -161,7 +161,7 @@ export async function validateAndCalculateTotals(
     let discountAmount = Math.max(0, Math.round(Math.min(subtotal, volumeDiscount + couponDiscount) * 100) / 100)
     let total = Math.max(0, Math.round((subtotal - discountAmount) * 100) / 100)
 
-    if (isQuickCheckout) {
+    if (isQuickCheckout && totalQuantity > 1) {
         total = Math.round(total)
         discountAmount = Math.max(0, Math.round((subtotal - total) * 100) / 100)
     }

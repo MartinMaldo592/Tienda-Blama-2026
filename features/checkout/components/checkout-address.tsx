@@ -32,10 +32,10 @@ export function CheckoutAddress({
     const shippingMethod = watch("shippingMethod")
 
     const isValid = (name: string, value: string) => {
-        return value && value.length >= 2 && !errors[name]
+        return value && value.length >= 1 && !errors[name]
     }
 
-    const isAddressValid = addressValue && addressValue.length > 5
+    const isAddressValid = addressValue && addressValue.length >= 1
 
     return (
         <div className="space-y-4 bg-card rounded-xl p-4 sm:p-5 border shadow-sm transition-all duration-300">

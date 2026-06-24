@@ -145,7 +145,7 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant, initialQ
                                 </div>
                             )}
                             <div className="text-lg font-bold text-foreground">
-                                {formatCurrency(hasAppliedDiscount && chosenQty === 1 ? Math.round((variant?.precio ?? product?.precio ?? 0) * 0.90) : (variant?.precio ?? product?.precio))}
+                                {formatCurrency(hasAppliedDiscount && chosenQty === 1 ? Math.round((variant?.precio ?? product?.precio ?? 0) * 0.90 * 100) / 100 : (variant?.precio ?? product?.precio))}
                             </div>
                         </div>
                     </div>
@@ -285,7 +285,7 @@ function QuickForm({
             : Math.round(unitPrice * chosenQty * 0.70)
 
     if (chosenQty === 1 && hasAppliedDiscount) {
-        total = Math.round(pack1Total * 0.90)
+        total = Math.round(pack1Total * 0.90 * 100) / 100
     }
 
     const { draft, loaded, saveDraft, clearDraft } = useCheckoutDraft()
@@ -421,8 +421,14 @@ function QuickForm({
             return
         }
         const phoneClean = phone.replace(/\D/g, "")
-        if (phoneClean.length !== 9) {
-            toast.error("El celular debe tener 9 dígitos")
+        if (phoneClean.length !== 9 || !phoneClean.startsWith("9")) {
+            toast.error("El celular debe tener 9 dígitos y empezar con 9")
+            setIsSubmitting(false)
+            return
+        }
+        const addressClean = (value || address || "").trim()
+        if (addressClean.length < 1) {
+            toast.error("La dirección es obligatoria")
             setIsSubmitting(false)
             return
         }
@@ -551,7 +557,7 @@ function QuickForm({
                             </span>
                         </div>
                         <span className="text-base font-black text-foreground">
-                            {formatCurrency(hasAppliedDiscount ? Math.round(pack1Total * 0.90) : pack1Total)}
+                            {formatCurrency(hasAppliedDiscount ? Math.round(pack1Total * 0.90 * 100) / 100 : pack1Total)}
                         </span>
                         {chosenQty === 1 && <div className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-primary/20" />}
                     </button>
