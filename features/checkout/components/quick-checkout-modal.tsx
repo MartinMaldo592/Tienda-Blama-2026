@@ -30,10 +30,6 @@ import { sendGTMEvent } from "@/lib/gtm"
 import { QuickCustomer } from "@/features/checkout/components/quick-checkout/quick-customer"
 import { QuickAddress } from "@/features/checkout/components/quick-checkout/quick-address"
 import { QuickSummary } from "@/features/checkout/components/quick-checkout/quick-summary"
-import { useJsApiLoader } from "@react-google-maps/api"
-
-const libraries: ("places")[] = ["places"];
-
 interface QuickCheckoutModalProps {
     isOpen: boolean
     onClose: () => void
@@ -43,11 +39,6 @@ interface QuickCheckoutModalProps {
 }
 
 export function QuickCheckoutModal({ isOpen, onClose, product, variant, initialQuantity = 1 }: QuickCheckoutModalProps) {
-    useJsApiLoader({
-        id: 'google-map-script',
-        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-        libraries: libraries,
-    })
 
     const [chosenQty, setChosenQty] = useState(initialQuantity)
     const [hasAppliedDiscount, setHasAppliedDiscount] = useState(false)
@@ -351,12 +342,36 @@ function QuickForm({
 
     const { draft, loaded, saveDraft, clearDraft } = useCheckoutDraft()
 
+    const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false)
+
+    const loadGoogleMapsScript = () => {
+        if (typeof window === "undefined") return
+        if (window.google?.maps) {
+            setGoogleMapsLoaded(true)
+            return
+        }
+        const existingScript = document.getElementById("google-maps-sdk")
+        if (existingScript) {
+            const handleLoad = () => setGoogleMapsLoaded(true)
+            existingScript.addEventListener("load", handleLoad)
+            return
+        }
+        const script = document.createElement("script")
+        script.id = "google-maps-sdk"
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}&libraries=places&language=es&region=pe`
+        script.async = true
+        script.defer = true
+        script.onload = () => setGoogleMapsLoaded(true)
+        document.head.appendChild(script)
+    }
+
     const {
         ready,
         value,
         setValue,
         suggestions: { status, data },
         clearSuggestions,
+        init,
     } = usePlacesAutocomplete({
         requestOptions: {
             componentRestrictions: { country: "pe" },
@@ -364,7 +379,20 @@ function QuickForm({
             region: "pe",
         },
         debounce: 300,
+        initOnMount: false,
     })
+
+    useEffect(() => {
+        if (googleMapsLoaded) {
+            init()
+        }
+    }, [googleMapsLoaded, init])
+
+    useEffect(() => {
+        if (typeof window !== "undefined" && window.google?.maps) {
+            setGoogleMapsLoaded(true)
+        }
+    }, [])
 
     // Load draft when ready
     useEffect(() => {
@@ -380,6 +408,8 @@ function QuickForm({
             if (draft.email) setEmail(draft.email)
             // Address value handling
             if (draft.address) {
+                // Si la dirección del borrador existe, forzamos la carga del script para que el autocomplete se sincronice
+                loadGoogleMapsScript()
                 setValue(draft.address, false)
                 setAddress(draft.address)
             }
@@ -704,6 +734,7 @@ function QuickForm({
                 reference={reference} setReference={setReference}
                 ready={ready} suggestionsStatus={status} suggestionsData={data} onSuggestionSelect={handleAddressSelect}
                 disabled={isSubmitting}
+                onFocus={loadGoogleMapsScript}
             />
 
             <QuickSummary

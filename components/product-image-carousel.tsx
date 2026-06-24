@@ -32,7 +32,7 @@ export function ProductImageCarousel({
   showControls = true,
   priority = false,
   sizes,
-  quality,
+  quality = 75,
   imageFit = "contain",
   selectedIndex,
   onIndexChange,
@@ -262,7 +262,8 @@ export function ProductImageCarousel({
               alt=""
               fill
               className="object-cover opacity-30 blur-2xl scale-125 saturate-150 -z-10"
-              quality={10}
+              sizes="40px"
+              quality={5}
               aria-hidden="true"
               draggable={false}
             />

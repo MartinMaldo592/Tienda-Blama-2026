@@ -38,6 +38,7 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
 
     // Countdown logic
     const [timeLeft, setTimeLeft] = useState({ m: 14, s: 59 })
+    const [isHovered, setIsHovered] = useState(false)
 
     useEffect(() => {
         const randomMinutes = Math.floor(Math.random() * 15) + 5
@@ -54,7 +55,11 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
     }, [])
 
     return (
-        <div className="group relative flex flex-col h-full bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm transition-all hover:shadow-md">
+        <div 
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            className="group relative flex flex-col h-full bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm transition-all hover:shadow-md"
+        >
             
 
 
@@ -66,12 +71,12 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
                             images={fallbackImages}
                             alt={product.nombre}
                             className="w-full h-full object-cover"
-                            autoPlay
+                            autoPlay={isHovered}
                             intervalMs={4000}
                             showControls={false}
                             priority={imagePriority}
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            quality={90}
+                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
+                            quality={75}
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-300">

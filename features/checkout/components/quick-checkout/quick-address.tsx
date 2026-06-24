@@ -18,6 +18,7 @@ interface QuickAddressProps {
     reference: string
     setReference: (v: string) => void
     disabled?: boolean
+    onFocus?: () => void
 
     // Auto-complete props
     ready: boolean
@@ -33,6 +34,7 @@ export function QuickAddress({
     addressValue, setAddressValue,
     reference, setReference,
     disabled,
+    onFocus,
     ready, suggestionsStatus, suggestionsData, onSuggestionSelect
 }: QuickAddressProps) {
     const [manualMode, setManualMode] = useState(false)
@@ -63,7 +65,8 @@ export function QuickAddress({
                         required
                         value={addressValue}
                         onChange={(e) => setAddressValue(e.target.value)}
-                        disabled={disabled || (!manualMode && !ready)}
+                        onFocus={onFocus}
+                        disabled={disabled}
                         placeholder={manualMode ? "Escribe tu dirección completa..." : "Escribe tu dirección..."}
                         autoComplete={manualMode ? "street-address" : "off"}
                         className={cn(

@@ -9,9 +9,15 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
   useEffect(() => {
-    // 1. Check for prefers-reduced-motion (Accessibility fallback)
+    // 1. Check for mobile screens or prefers-reduced-motion (Accessibility fallback)
+    const isMobile = window.innerWidth <= 768
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
     
+    if (isMobile) {
+      console.log("[Lenis] Mobile screen detected. Skipping smooth scroll for native performance.")
+      return
+    }
+
     if (mediaQuery.matches) {
       console.log("[Lenis] User prefers reduced motion. Skipping smooth scroll.")
       return
