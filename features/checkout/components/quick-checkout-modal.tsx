@@ -55,13 +55,20 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant, initialQ
     const [showPromoModal, setShowPromoModal] = useState(false)
     const scrollContainerRef = useRef<HTMLDivElement>(null)
 
-    const isOpenRef = useRef(isOpen)
+    const showPromoModalRef = useRef(showPromoModal)
+    const onCloseRef = useRef(onClose)
+
     useEffect(() => {
-        isOpenRef.current = isOpen
-    }, [isOpen])
+        showPromoModalRef.current = showPromoModal
+    }, [showPromoModal])
+
+    useEffect(() => {
+        onCloseRef.current = onClose
+    }, [onClose])
 
     useEffect(() => {
         if (typeof window === "undefined") return
+        if (!isOpen) return
 
         const handleHashChange = () => {
             const hash = window.location.hash
@@ -69,43 +76,44 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant, initialQ
                 setShowPromoModal(true)
             } else if (hash === "#compra-rapida") {
                 setShowPromoModal(false)
-            } else if (hash === "") {
+            } else {
+                // Cualquier otro hash (vacío, # o navegación externa)
                 setShowPromoModal(false)
                 setHasOfferedPromo(false)
-                onClose()
+                onCloseRef.current()
             }
         }
 
-        if (isOpen) {
-            // Si el modal se abre y el hash no está establecido, lo ponemos
-            if (window.location.hash !== "#compra-rapida" && window.location.hash !== "#promo-10") {
-                window.location.hash = "compra-rapida"
-            }
-
-            // Si la promo se abre y no tiene el hash de la promo, lo actualizamos
-            if (showPromoModal && window.location.hash !== "#promo-10") {
-                window.location.hash = "promo-10"
-            }
-
-            // Si la promo se cierra programáticamente pero el modal sigue abierto, regresamos al hash del formulario
-            if (!showPromoModal && window.location.hash === "#promo-10") {
-                window.location.hash = "compra-rapida"
-            }
-
-            window.addEventListener("hashchange", handleHashChange)
+        // Si el modal se abre y el hash no está establecido, lo ponemos
+        if (window.location.hash !== "#compra-rapida" && window.location.hash !== "#promo-10") {
+            window.location.hash = "compra-rapida"
         }
+
+        window.addEventListener("hashchange", handleHashChange)
 
         return () => {
             window.removeEventListener("hashchange", handleHashChange)
             
             // Al cerrarse el modal (isOpen pasa a false o se desmonta), limpiamos el hash de la URL de forma limpia
-            if (!isOpenRef.current) {
-                if (window.location.hash === "#compra-rapida" || window.location.hash === "#promo-10") {
-                    window.history.replaceState(null, "", window.location.pathname + window.location.search)
-                }
+            if (window.location.hash === "#compra-rapida" || window.location.hash === "#promo-10") {
+                window.history.replaceState(null, "", window.location.pathname + window.location.search)
             }
         }
-    }, [isOpen, showPromoModal, onClose])
+    }, [isOpen])
+
+    useEffect(() => {
+        if (typeof window === "undefined" || !isOpen) return
+
+        // Si la promo se abre y no tiene el hash de la promo, lo actualizamos
+        if (showPromoModal && window.location.hash !== "#promo-10") {
+            window.location.hash = "promo-10"
+        }
+
+        // Si la promo se cierra programáticamente pero el modal sigue abierto, regresamos al hash del formulario
+        if (!showPromoModal && window.location.hash === "#promo-10") {
+            window.location.hash = "compra-rapida"
+        }
+    }, [showPromoModal, isOpen])
 
     useEffect(() => {
         if (isOpen) {
@@ -136,7 +144,8 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant, initialQ
     }
 
     const handleClose = () => {
-        if (chosenQty === 1 && !hasAppliedDiscount && !hasOfferedPromo) {
+        const isFormHash = typeof window !== "undefined" && window.location.hash === "#compra-rapida"
+        if (isFormHash && chosenQty === 1 && !hasAppliedDiscount && !hasOfferedPromo) {
             setHasOfferedPromo(true)
             setShowPromoModal(true)
         } else {
