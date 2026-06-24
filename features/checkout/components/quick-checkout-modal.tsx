@@ -55,65 +55,55 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant, initialQ
     const [showPromoModal, setShowPromoModal] = useState(false)
     const scrollContainerRef = useRef<HTMLDivElement>(null)
 
-    const isProgrammaticBackRef = useRef(false)
-    const currentHistoryStateRef = useRef<"closed" | "form" | "promo">("closed")
+    const isOpenRef = useRef(isOpen)
+    useEffect(() => {
+        isOpenRef.current = isOpen
+    }, [isOpen])
 
     useEffect(() => {
         if (typeof window === "undefined") return
 
-        if (!isOpen) {
-            // Limpieza al cerrarse el modal completo
-            if (currentHistoryStateRef.current === "promo") {
-                isProgrammaticBackRef.current = true
-                window.history.go(-2)
-            } else if (currentHistoryStateRef.current === "form") {
-                isProgrammaticBackRef.current = true
-                window.history.back()
-            }
-            currentHistoryStateRef.current = "closed"
-            return
-        }
-
-        // Si se abre y está en closed, empujamos form
-        if (currentHistoryStateRef.current === "closed") {
-            window.history.pushState({ quickCheckoutForm: true }, "", window.location.href)
-            currentHistoryStateRef.current = "form"
-        }
-
-        // Si se abre la promo y está en form, empujamos promo
-        if (showPromoModal && currentHistoryStateRef.current === "form") {
-            window.history.pushState({ quickCheckoutPromo: true }, "", window.location.href)
-            currentHistoryStateRef.current = "promo"
-        }
-
-        // Si la promo se cierra programáticamente pero el modal sigue abierto (el usuario aplicó la promo)
-        if (!showPromoModal && currentHistoryStateRef.current === "promo") {
-            isProgrammaticBackRef.current = true
-            currentHistoryStateRef.current = "form"
-            window.history.back()
-        }
-
-        const handlePopState = (event: PopStateEvent) => {
-            if (isProgrammaticBackRef.current) {
-                isProgrammaticBackRef.current = false
-                return
-            }
-
-            if (currentHistoryStateRef.current === "promo") {
-                // Retroceso físico desde la promo: cerramos la promo y nos quedamos en form
+        const handleHashChange = () => {
+            const hash = window.location.hash
+            if (hash === "#promo-10") {
+                setShowPromoModal(true)
+            } else if (hash === "#compra-rapida") {
                 setShowPromoModal(false)
-                currentHistoryStateRef.current = "form"
-            } else if (currentHistoryStateRef.current === "form") {
-                // Retroceso físico desde el formulario: cerramos todo el modal
-                currentHistoryStateRef.current = "closed"
+            } else if (hash === "") {
+                setShowPromoModal(false)
+                setHasOfferedPromo(false)
                 onClose()
             }
         }
 
-        window.addEventListener("popstate", handlePopState)
+        if (isOpen) {
+            // Si el modal se abre y el hash no está establecido, lo ponemos
+            if (window.location.hash !== "#compra-rapida" && window.location.hash !== "#promo-10") {
+                window.location.hash = "compra-rapida"
+            }
+
+            // Si la promo se abre y no tiene el hash de la promo, lo actualizamos
+            if (showPromoModal && window.location.hash !== "#promo-10") {
+                window.location.hash = "promo-10"
+            }
+
+            // Si la promo se cierra programáticamente pero el modal sigue abierto, regresamos al hash del formulario
+            if (!showPromoModal && window.location.hash === "#promo-10") {
+                window.location.hash = "compra-rapida"
+            }
+
+            window.addEventListener("hashchange", handleHashChange)
+        }
 
         return () => {
-            window.removeEventListener("popstate", handlePopState)
+            window.removeEventListener("hashchange", handleHashChange)
+            
+            // Al cerrarse el modal (isOpen pasa a false o se desmonta), limpiamos el hash de la URL de forma limpia
+            if (!isOpenRef.current) {
+                if (window.location.hash === "#compra-rapida" || window.location.hash === "#promo-10") {
+                    window.history.replaceState(null, "", window.location.pathname + window.location.search)
+                }
+            }
         }
     }, [isOpen, showPromoModal, onClose])
 
