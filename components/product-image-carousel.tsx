@@ -64,6 +64,7 @@ export function ProductImageCarousel({
   }, [images])
 
   const [internalIndex, setInternalIndex] = useState(0)
+  const [loadedIndices, setLoadedIndices] = useState<number[]>([])
 
   // Semi-controlled: use external index if provided, otherwise internal
   const isControlled = selectedIndex !== undefined
@@ -96,6 +97,7 @@ export function ProductImageCarousel({
     setIndex(0)
     setDragX(0)
     setIsDragging(false)
+    setLoadedIndices([])
   }, [cleanImages.join("|")])
 
   useEffect(() => {
@@ -268,15 +270,26 @@ export function ProductImageCarousel({
               draggable={false}
             />
 
+            {!loadedIndices.includes(i) && (
+              <div className="absolute inset-0 bg-slate-100 dark:bg-slate-800 animate-pulse z-20 flex items-center justify-center">
+                <div className="absolute inset-0 shimmer opacity-60" />
+              </div>
+            )}
+
             <Image
               src={src}
               alt={alt}
               fill
-              className={cn("absolute inset-0 z-10", imageFit === "cover" ? "object-cover" : "object-contain")}
+              className={cn(
+                "absolute inset-0 z-10 transition-opacity duration-300",
+                imageFit === "cover" ? "object-cover" : "object-contain",
+                !loadedIndices.includes(i) ? "opacity-0" : "opacity-100"
+              )}
               priority={priority && i === 0}
               sizes={sizes || "(max-width: 640px) 40vw, (max-width: 1200px) 33vw, 20vw"}
               quality={quality}
               draggable={false}
+              onLoad={() => setLoadedIndices((prev) => [...prev, i])}
             />
 
           </div>
