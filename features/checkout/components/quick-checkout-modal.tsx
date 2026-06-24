@@ -40,7 +40,7 @@ interface QuickCheckoutModalProps {
 
 export function QuickCheckoutModal({ isOpen, onClose, product, variant, initialQuantity = 1 }: QuickCheckoutModalProps) {
 
-    const [chosenQty, setChosenQty] = useState(initialQuantity)
+    const [chosenQty, setChosenQty] = useState(1)
     const [hasAppliedDiscount, setHasAppliedDiscount] = useState(false)
     const [hasOfferedPromo, setHasOfferedPromo] = useState(false)
     const [showPromoModal, setShowPromoModal] = useState(false)
@@ -108,7 +108,7 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant, initialQ
 
     useEffect(() => {
         if (isOpen) {
-            setChosenQty(initialQuantity)
+            setChosenQty(1)
             setHasAppliedDiscount(false)
             setHasOfferedPromo(false)
             setShowPromoModal(false)
@@ -319,6 +319,7 @@ function QuickForm({
     const [email, setEmail] = useState("")
     const [locationLink, setLocationLink] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [isExpanded, setIsExpanded] = useState(false)
 
     const [timeLeft, setTimeLeft] = useState(600) // 10 mins
 
@@ -639,13 +640,87 @@ function QuickForm({
             {/* Pack Selector — AOV Booster */}
             <div className="space-y-2">
                 <h4 className="font-bold text-sm text-foreground text-center">¿Cuántas unidades deseas llevar?</h4>
-                <div className="grid grid-cols-1 gap-2">
+                <button
+                    type="button"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className={`w-full flex items-center justify-between px-4 py-3.5 bg-white border-2 rounded-xl transition-all duration-200 group cursor-pointer ${
+                        chosenQty === 1
+                            ? "border-primary bg-primary/[0.02]"
+                            : chosenQty === 2
+                                ? "border-emerald-500 bg-emerald-500/[0.02]"
+                                : "border-violet-500 bg-violet-500/[0.02]"
+                    }`}
+                >
+                    <div className="flex flex-col text-left">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-foreground">
+                                {chosenQty === 1 ? "1 Unidad" : chosenQty === 2 ? "2 Unidades" : `${chosenQty} Unidades`}
+                            </span>
+                            {chosenQty === 2 && (
+                                <span className="bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                    ⭐ Recomendado
+                                </span>
+                            )}
+                            {chosenQty === 3 && (
+                                <span className="bg-violet-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                    🔥 Mega Ahorro
+                                </span>
+                            )}
+                        </div>
+                        <span className="text-[11px] text-muted-foreground font-medium">
+                            {chosenQty === 1 
+                                ? (hasAppliedDiscount ? "¡10% descuento extra aplicado!" : "Precio regular")
+                                : chosenQty === 2
+                                    ? `Ahorras ${formatCurrency(unitPrice * 2 - pack2Total)}`
+                                    : `Ahorras ${formatCurrency(unitPrice * 3 - pack3Total)}`
+                            }
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-right">
+                        <div className="flex flex-col items-end">
+                            {chosenQty > 1 && (
+                                <span className="text-[10px] text-muted-foreground line-through leading-none mb-0.5">
+                                    {formatCurrency(unitPrice * chosenQty)}
+                                </span>
+                            )}
+                            <span className={`text-base font-black leading-none ${
+                                chosenQty === 2 
+                                    ? "text-emerald-600" 
+                                    : chosenQty === 3 
+                                        ? "text-violet-600" 
+                                        : "text-foreground"
+                            }`}>
+                                {formatCurrency(total)}
+                            </span>
+                        </div>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className={`h-5 w-5 text-slate-400 group-hover:text-slate-600 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2.5}
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </div>
+                </button>
+
+                {/* Contenedor de Packs Colapsable con transición */}
+                <div className={`grid grid-cols-1 gap-2 transition-all duration-300 ease-in-out origin-top ${
+                    isExpanded 
+                        ? "max-h-[500px] opacity-100 scale-y-100 mt-2" 
+                        : "max-h-0 opacity-0 scale-y-95 overflow-hidden pointer-events-none"
+                }`}>
                     {/* Pack 1 */}
                     <button
                         type="button"
-                        onClick={() => setChosenQty(1)}
+                        onClick={() => {
+                            setChosenQty(1)
+                            setIsExpanded(false)
+                        }}
                         disabled={isSubmitting}
-                        className={`relative flex items-center justify-between rounded-xl border-2 px-4 py-3 text-left transition-all duration-200 cursor-pointer ${
+                        className={`relative flex items-center justify-between rounded-xl border-2 px-4 py-3.5 text-left transition-all duration-200 cursor-pointer ${
                             chosenQty === 1
                                 ? "border-primary bg-primary/5 shadow-sm"
                                 : "border-border hover:bg-muted/50"
@@ -666,9 +741,12 @@ function QuickForm({
                     {/* Pack 2 — Recommended */}
                     <button
                         type="button"
-                        onClick={() => setChosenQty(2)}
+                        onClick={() => {
+                            setChosenQty(2)
+                            setIsExpanded(false)
+                        }}
                         disabled={isSubmitting}
-                        className={`relative flex items-center justify-between rounded-xl border-2 px-4 py-3 text-left transition-all duration-200 cursor-pointer ${
+                        className={`relative flex items-center justify-between rounded-xl border-2 px-4 py-3.5 text-left transition-all duration-200 cursor-pointer ${
                             chosenQty === 2
                                 ? "border-emerald-500 bg-emerald-500/5 shadow-md ring-1 ring-emerald-500/20"
                                 : "border-border hover:bg-muted/50"
@@ -691,9 +769,12 @@ function QuickForm({
                     {/* Pack 3 */}
                     <button
                         type="button"
-                        onClick={() => setChosenQty(3)}
+                        onClick={() => {
+                            setChosenQty(3)
+                            setIsExpanded(false)
+                        }}
                         disabled={isSubmitting}
-                        className={`relative flex items-center justify-between rounded-xl border-2 px-4 py-3 text-left transition-all duration-200 cursor-pointer ${
+                        className={`relative flex items-center justify-between rounded-xl border-2 px-4 py-3.5 text-left transition-all duration-200 cursor-pointer ${
                             chosenQty === 3
                                 ? "border-violet-500 bg-violet-500/5 shadow-md ring-1 ring-violet-500/20"
                                 : "border-border hover:bg-muted/50"
