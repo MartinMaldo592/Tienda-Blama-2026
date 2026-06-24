@@ -1,11 +1,11 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { Flame } from "lucide-react"
 import { formatCurrency, slugify } from "@/lib/utils"
 import { Database } from "@/types/database.types"
 import { useEffect, useState } from "react"
-import { ProductImageCarousel } from "@/components/product-image-carousel"
 
 type Product = Database['public']['Tables']['productos']['Row']
 
@@ -67,13 +67,11 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
             <Link href={productHref} prefetch={false} className="relative block w-full aspect-[4/5] bg-slate-100 overflow-hidden">
                 <div className="w-full h-full transition-transform duration-500 group-hover:scale-105">
                     {fallbackImages.length > 0 ? (
-                        <ProductImageCarousel
-                            images={fallbackImages}
+                        <Image
+                            src={fallbackImages[0]}
                             alt={product.nombre}
-                            className="w-full h-full object-cover"
-                            autoPlay={isHovered}
-                            intervalMs={4000}
-                            showControls={false}
+                            fill
+                            className="object-cover"
                             priority={imagePriority}
                             sizes="(max-width: 640px) 40vw, (max-width: 1200px) 33vw, 20vw"
                             quality={75}
