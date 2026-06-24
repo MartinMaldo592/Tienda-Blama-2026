@@ -69,7 +69,7 @@ export function useProductDetail() {
             setCustomMessage(encodeURIComponent(text))
         }
         return () => setCustomMessage(null)
-    }, [producto?.id, producto?.nombre, setCustomMessage])
+    }, [producto, setCustomMessage])
 
     // Added Toast Timeout
     useEffect(() => {

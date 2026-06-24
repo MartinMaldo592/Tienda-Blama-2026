@@ -122,11 +122,12 @@ export function OrderFileCard({
                     {/* Image Preview */}
                     {showPreview && isImage(fileUrl) && (
                         <div className="animate-in fade-in zoom-in-95 duration-300">
-                            <img
+                            <Image
                                 src={fileUrl}
                                 alt={title}
+                                width={500}
+                                height={280}
                                 className="w-full h-auto rounded-2xl border border-slate-100 shadow-sm object-cover max-h-[280px]"
-                                loading="lazy"
                             />
                         </div>
                     )}

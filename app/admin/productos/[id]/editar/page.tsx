@@ -9,7 +9,7 @@ import { ProductForm } from "@/features/admin/components/product-form"
 import { ArrowLeft } from "lucide-react"
 import { useRoleGuard } from "@/hooks/use-role-guard"
 import { AccessDenied } from "@/features/admin/components/access-denied"
-import { fetchAdminProductoById, fetchAdminCategorias } from "@/features/admin"
+import { fetchAdminProductoById, fetchAdminCategorias, Producto, Categoria } from "@/features/admin"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function EditarProductoPage() {
@@ -20,8 +20,8 @@ export default function EditarProductoPage() {
     const guard = useRoleGuard({ allowedRoles: ['superadmin', 'admin'] })
 
     const [loading, setLoading] = useState(true)
-    const [producto, setProducto] = useState<any>(null)
-    const [categories, setCategories] = useState<any[]>([])
+    const [producto, setProducto] = useState<Producto | null>(null)
+    const [categories, setCategories] = useState<Categoria[]>([])
 
     const loadProducto = useCallback(async () => {
         setLoading(true)

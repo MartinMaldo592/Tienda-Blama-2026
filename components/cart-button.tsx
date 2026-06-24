@@ -131,7 +131,7 @@ export function CartButton() {
             window.removeEventListener('focus', onFocus)
             document.removeEventListener('visibilitychange', onVisibility)
         }
-    }, [])
+    }, [clearCart])
 
 
 

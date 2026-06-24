@@ -4,15 +4,15 @@ import { useEffect, useState, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/utils"
-import { fetchPedidoDetail } from "@/features/admin"
+import { fetchPedidoDetail, PedidoRow, PedidoItemRow } from "@/features/admin"
 
 export default function PedidoTicketPage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
 
-  const [pedido, setPedido] = useState<any>(null)
-  const [items, setItems] = useState<any[]>([])
+  const [pedido, setPedido] = useState<PedidoRow | null>(null)
+  const [items, setItems] = useState<PedidoItemRow[]>([])
   const [loading, setLoading] = useState(true)
 
   const fetchTicket = useCallback(async () => {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState, useCallback } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { useRoleGuard } from "@/hooks/use-role-guard"
 import { AccessDenied } from "@/features/admin/components/access-denied"

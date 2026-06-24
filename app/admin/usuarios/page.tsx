@@ -1,8 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase.client"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,7 +16,6 @@ import { createWorkerAction, updateUserProfile, updateUserRole, updateUserStatus
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ShieldCheck, UserCheck, Loader2, Search, UserPlus, Mail, User, Shield, AlertTriangle, Lock, RefreshCw, Edit2, Users } from "lucide-react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { m, AnimatePresence } from "framer-motion"
@@ -36,7 +34,7 @@ export default function UsuariosPage() {
   const [confirmStatusDialog, setConfirmStatusDialog] = useState<{open:boolean;userId:string;activo:boolean;userName:string}|null>(null)
   const [editProfileDialog, setEditProfileDialog] = useState<{open:boolean;userId:string;nombre:string}|null>(null)
 
-  const { data: profiles = [], isLoading, isFetching } = useQuery({
+  const { data: profiles = [], isFetching } = useQuery({
     queryKey: ["adminProfiles"], queryFn: fetchAdminProfiles,
     enabled: !guard.loading && !guard.accessDenied,
   })

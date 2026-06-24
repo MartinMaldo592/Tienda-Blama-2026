@@ -13,7 +13,7 @@ import {
     Search, MapPin, Phone, History, Mail, Users, RefreshCw,
     UserCheck, UserX, ExternalLink
 } from "lucide-react"
-import { fetchAdminClientes } from "@/features/admin"
+import { fetchAdminClientes, Cliente } from "@/features/admin"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 
 export default function ClientesPage() {
@@ -21,7 +21,7 @@ export default function ClientesPage() {
     const qc = useQueryClient()
     const [searchTerm, setSearchTerm] = useState("")
 
-    const { data: clientes = [], isLoading, isFetching } = useQuery({
+    const { data: clientes = [], isLoading, isFetching } = useQuery<Cliente[]>({
         queryKey: ["adminClientes"], queryFn: fetchAdminClientes,
         enabled: !guard.loading && !guard.accessDenied,
     })
@@ -39,7 +39,7 @@ export default function ClientesPage() {
     const filteredClientes = useMemo(() => {
         if (!searchTerm) return clientes
         const st = searchTerm.toLowerCase()
-        return clientes.filter((c:any) => (
+        return clientes.filter((c: Cliente) => (
             (c.nombre?.toLowerCase() || "").includes(st) ||
             (c.telefono?.toLowerCase() || "").includes(st) ||
             (c.dni?.toLowerCase() || "").includes(st) ||
@@ -50,8 +50,8 @@ export default function ClientesPage() {
 
     const stats = useMemo(() => ({
         total: clientes.length,
-        conEmail: clientes.filter((c:any) => c.email).length,
-        sinDireccion: clientes.filter((c:any) => !c.direccion).length
+        conEmail: clientes.filter((c: Cliente) => c.email).length,
+        sinDireccion: clientes.filter((c: Cliente) => !c.direccion).length
     }), [clientes])
 
     if (guard.loading || isLoading) return <AdminPageSkeleton hasStats={3} tableColumns={8} tableRows={8} />

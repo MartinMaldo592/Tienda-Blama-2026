@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { createClient } from "@/lib/supabase.client"
@@ -64,11 +64,7 @@ export function OrderNotesCard({
     const [loading, setLoading] = useState(false)
     const [refreshing, setRefreshing] = useState(false)
 
-    useEffect(() => {
-        fetchNotes()
-    }, [pedidoId])
-
-    async function fetchNotes() {
+    const fetchNotes = useCallback(async () => {
         setRefreshing(true)
         const supabase = createClient()
         const { data, error } = await supabase
@@ -89,7 +85,11 @@ export function OrderNotesCard({
             )
         }
         setRefreshing(false)
-    }
+    }, [pedidoId])
+
+    useEffect(() => {
+        fetchNotes()
+    }, [pedidoId, fetchNotes])
 
     async function handleAddNote() {
         if (!newNote.trim()) return
