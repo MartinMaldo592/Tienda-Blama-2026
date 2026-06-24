@@ -151,7 +151,7 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant, initialQ
             }
         }}>
             <DialogContent
-                className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] z-50 max-w-md w-full p-0 gap-0 overflow-hidden rounded-xl max-h-[90vh] flex flex-col"
+                className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] z-50 max-w-md w-full p-0 gap-0 overflow-hidden rounded-xl max-h-[90vh] flex flex-col [&>button]:hidden"
             >
                 <div 
                     ref={scrollContainerRef}
@@ -160,10 +160,20 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant, initialQ
                 >
                     {/* Elemento oculto para capturar el foco inicial de Radix Dialog y evitar que la vista haga scroll al final */}
                     <div tabIndex={0} className="sr-only" aria-hidden="true" />
-                    <DialogHeader className="mb-4 text-center">
+                    <DialogHeader className="mb-4 text-center relative px-8">
                         <DialogTitle className="text-base font-bold uppercase leading-tight">
                             Envíos contraentrega en Lima y <br /> otras provincias envíos por agencia
                         </DialogTitle>
+                        <button
+                            type="button"
+                            onClick={handleClose}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800 transition-colors p-1.5 rounded-full hover:bg-slate-100 cursor-pointer flex items-center justify-center"
+                            aria-label="Cerrar modal"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
                     </DialogHeader>
 
                     {/* Product Summary */}
