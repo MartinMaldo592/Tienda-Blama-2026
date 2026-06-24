@@ -28,7 +28,11 @@ export function LayoutShell({ children, announcementData }: LayoutShellProps) {
   const isOpenWa = pathname?.startsWith("/open-wa")
 
   const [visible, setVisible] = useState(true)
-  const [headerHeight, setHeaderHeight] = useState(0)
+  const [headerHeight, setHeaderHeight] = useState(() => {
+    if (isAdmin || isAuth) return 0
+    const hasAnnouncement = announcementData?.enabled === true && announcementData.messages.length > 0
+    return hasAnnouncement ? 100 : 64
+  })
   const headerRef = useRef<HTMLDivElement>(null)
   const prevScrollY = useRef(0)
   const ticking = useRef(false)
@@ -88,10 +92,6 @@ export function LayoutShell({ children, announcementData }: LayoutShellProps) {
     return () => window.removeEventListener("scroll", onScroll)
   }, [isAdmin, isAuth])
 
-  if (isAdmin || isAuth) {
-    return <>{children}</>
-  }
-
   const shouldShowAnnouncement = useMemo(() => {
     return announcementData?.enabled === true && announcementData.messages.length > 0
   }, [announcementData])
@@ -118,6 +118,10 @@ export function LayoutShell({ children, announcementData }: LayoutShellProps) {
     window.addEventListener("sticky-bar-change", handleStickyBarChange)
     return () => window.removeEventListener("sticky-bar-change", handleStickyBarChange)
   }, [isProductPage])
+
+  if (isAdmin || isAuth) {
+    return <>{children}</>
+  }
 
   const containerClasses = isProductPage
     ? `fixed ${stickyBarActive ? "bottom-5" : "bottom-6"} right-4 md:bottom-8 md:right-6 z-50 flex items-center justify-center group h-14 w-14 transition-all duration-500`

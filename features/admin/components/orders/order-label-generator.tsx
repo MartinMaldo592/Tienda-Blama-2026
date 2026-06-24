@@ -331,7 +331,7 @@ export function OrderLabelGenerator({ pedido, items, isLocked }: OrderLabelGener
 
                     <div className="flex-1 space-y-4">
                         <p className="text-sm text-gray-500">
-                            Genera una etiqueta estándar de <b>10x15cm (4x6")</b> lista para impresoras térmicas o pegar en el paquete.
+                            Genera una etiqueta estándar de <b>10x15cm (4x6&quot;)</b> lista para impresoras térmicas o pegar en el paquete.
                             Incluye código QR y datos de entrega claros.
                         </p>
 

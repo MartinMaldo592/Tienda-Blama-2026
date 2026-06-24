@@ -104,3 +104,20 @@ El proyecto utiliza **Culqi** para procesar pagos con tarjeta de crédito/débit
 - El precio **nunca** se confía del lado del cliente — se recalcula desde la base de datos.
 
 > Documentación: [Culqi Docs](https://docs.culqi.com)
+
+---
+
+## 5. Lista de Verificación de Producción (Production Checklist)
+
+Para garantizar la estabilidad, rendimiento y seguridad en el entorno de producción (Vercel Serverless), es **mandatorio** configurar las siguientes variables de entorno adicionales:
+
+### A. Upstash Redis (Rate Limiting Global)
+El proyecto utiliza un rate limiter para mitigar ataques DDoS y abusos en subida de archivos y checkouts. En producción, el fallback en memoria **no funciona** de forma distribuida en Serverless debido a contenedores efímeros aislados. Debes configurar:
+* `UPSTASH_REDIS_REST_URL` - URL de tu base de datos Upstash Redis.
+* `UPSTASH_REDIS_REST_TOKEN` - Token de autorización REST de Upstash Redis.
+
+> **Ubicación:** Upstash Console -> Seleccionar base de datos -> Copiar credenciales REST.
+
+### B. SSL y Redirección en Vercel
+Asegurar que `NEXT_PUBLIC_SITE_URL` apunte a `https://www.blama.shop` y esté configurado en las variables de entorno de Vercel para que las rutas del Checkout de WhatsApp y de los correos transaccionales generen links absolutos correctos.
+

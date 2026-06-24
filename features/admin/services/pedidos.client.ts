@@ -112,7 +112,7 @@ export async function fetchPedidosForRole(args: FetchPedidosArgs): Promise<{ dat
       matchingClientIds = cData.map((c: any) => c.id)
     }
 
-    let orParts = []
+    const orParts = []
     if (isNum) orParts.push(`id.eq.${args.searchTerm.trim()}`)
     orParts.push(`nombre_contacto.ilike.${term}`)
     orParts.push(`telefono_contacto.ilike.${term}`)
@@ -240,7 +240,7 @@ export async function fetchPedidosForRole(args: FetchPedidosArgs): Promise<{ dat
       matchingClientIds = cData.map((c: any) => c.id)
     }
 
-    let orParts = []
+    const orParts = []
     if (isNum) orParts.push(`id.eq.${args.searchTerm.trim()}`)
     orParts.push(`nombre_contacto.ilike.${term}`)
     orParts.push(`telefono_contacto.ilike.${term}`)

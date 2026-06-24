@@ -1,0 +1,8 @@
+defaults
+not IE 11
+not IE_Mob 11
+edge >= 100
+firefox >= 100
+chrome >= 100
+safari >= 15
+ios_saf >= 15

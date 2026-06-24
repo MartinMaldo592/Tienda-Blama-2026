@@ -23,7 +23,7 @@ export async function createWorkerAction(args: {
     const role = String(args.role || "worker").toLowerCase()
 
     const validRoles = ["superadmin", "admin", "worker", "user"]
-    let finalRole = validRoles.includes(role) ? role : "worker"
+    const finalRole = validRoles.includes(role) ? role : "worker"
 
     // Enforce role hierarchy for creation
     if (currentUserRole !== "superadmin") {

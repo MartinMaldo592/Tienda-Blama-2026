@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -23,13 +23,7 @@ export default function EditarProductoPage() {
     const [producto, setProducto] = useState<any>(null)
     const [categories, setCategories] = useState<any[]>([])
 
-    useEffect(() => {
-        if (guard.loading || guard.accessDenied) return
-        loadProducto()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [id, guard.loading, guard.accessDenied])
-
-    async function loadProducto() {
+    const loadProducto = useCallback(async () => {
         setLoading(true)
 
         const numericId = Number(id)
@@ -53,7 +47,13 @@ export default function EditarProductoPage() {
         }
 
         setLoading(false)
-    }
+    }, [id])
+
+    useEffect(() => {
+        if (guard.loading || guard.accessDenied) return
+        loadProducto()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [id, guard.loading, guard.accessDenied, loadProducto])
 
     if (guard.accessDenied) return <AccessDenied />
 

@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useCallback } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { m, AnimatePresence } from "framer-motion"
@@ -41,19 +41,19 @@ export default function ProductosPage() {
         return () => clearTimeout(handler)
     }, [searchTerm])
 
-    // Cambiar de página al buscar para evitar páginas vacías
-    useEffect(() => {
-        handlePageChange(1)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [debouncedSearch])
-
-    const handlePageChange = (newPage: number) => {
+    const handlePageChange = useCallback((newPage: number) => {
         const params = new URLSearchParams(searchParams.toString())
         if (newPage > 1) params.set("page", newPage.toString())
         else params.delete("page")
         const query = params.toString()
         router.push(query ? `${pathname}?${query}` : pathname, { scroll: false })
-    }
+    }, [searchParams, pathname, router])
+
+    // Cambiar de página al buscar para evitar páginas vacías
+    useEffect(() => {
+        handlePageChange(1)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [debouncedSearch, handlePageChange])
 
     const { data: queryResult, isLoading, isFetching } = useQuery({
         queryKey: ["adminProductos", currentPage, debouncedSearch],

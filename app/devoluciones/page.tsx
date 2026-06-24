@@ -38,7 +38,7 @@ export default function DevolucionesPage() {
                         <li>Ropa interior y trajes de baño.</li>
                         <li>Aretes y piercings.</li>
                         <li>Productos de cuidado personal abiertos.</li>
-                        <li>Productos en liquidación o oferta final ("Sale").</li>
+                        <li>Productos en liquidación o oferta final (&quot;Sale&quot;).</li>
                     </ul>
                 </section>
 

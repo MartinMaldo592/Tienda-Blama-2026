@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/utils"
@@ -15,21 +15,7 @@ export default function PedidoTicketPage() {
   const [items, setItems] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (!id) return
-    fetchTicket()
-  }, [id])
-
-  useEffect(() => {
-    if (!pedido) return
-    try {
-      const orderId = String(pedido.id).padStart(6, "0")
-      document.title = `Ticket Pedido #${orderId} - Blama Shop`
-    } catch (err) {
-    }
-  }, [pedido])
-
-  async function fetchTicket() {
+  const fetchTicket = useCallback(async () => {
     setLoading(true)
 
     try {
@@ -49,7 +35,21 @@ export default function PedidoTicketPage() {
       setItems([])
     }
     setLoading(false)
-  }
+  }, [id])
+
+  useEffect(() => {
+    if (!id) return
+    fetchTicket()
+  }, [id, fetchTicket])
+
+  useEffect(() => {
+    if (!pedido) return
+    try {
+      const orderId = String(pedido.id).padStart(6, "0")
+      document.title = `Ticket Pedido #${orderId} - Blama Shop`
+    } catch (err) {
+    }
+  }, [pedido])
 
   if (loading) {
     return <div className="p-10 text-center">Cargando ticket...</div>

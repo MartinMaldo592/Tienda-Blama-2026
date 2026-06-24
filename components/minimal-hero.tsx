@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 
 export function MinimalHero() {
     return (
-        <section className="relative overflow-hidden rounded-3xl bg-background mx-4 my-2 border border-border/50 shadow-md">
+        <section className="relative overflow-hidden rounded-3xl bg-background mx-4 my-2 border border-border/50 shadow-md min-h-[360px] sm:min-h-[420px] md:min-h-[480px] flex items-center justify-center">
             {/* Background with animated gradient mesh */}
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-cyan-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800" />
 

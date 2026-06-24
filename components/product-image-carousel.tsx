@@ -274,7 +274,7 @@ export function ProductImageCarousel({
               fill
               className={cn("absolute inset-0 z-10", imageFit === "cover" ? "object-cover" : "object-contain")}
               priority={priority && i === 0}
-              sizes={sizes || "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"}
+              sizes={sizes || "(max-width: 640px) 40vw, (max-width: 1200px) 33vw, 20vw"}
               quality={quality}
               draggable={false}
             />

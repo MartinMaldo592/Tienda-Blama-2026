@@ -113,6 +113,9 @@ export async function checkRateLimit(
     }
 
     // ── FALLBACK: In-Memory Rate Limiting ──
+    if (process.env.NODE_ENV === "production") {
+        console.warn("⚠️ WARNING: Rate limiting falling back to in-memory store in production! This is not robust in Serverless. Ensure UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are set.")
+    }
     cleanupExpired()
 
     const { maxRequests, windowSeconds, prefix = "rl" } = config

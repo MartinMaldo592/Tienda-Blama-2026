@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useCallback } from "react"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { useRoleGuard } from "@/hooks/use-role-guard"
 import { AccessDenied } from "@/features/admin/components/access-denied"
@@ -45,19 +45,19 @@ export default function AdminResenasPage() {
     return () => clearTimeout(handler)
   }, [search])
 
-  // Reiniciar página a 1 al buscar
-  useEffect(() => {
-    handlePageChange(1)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch])
-
-  const handlePageChange = (newPage: number) => {
+  const handlePageChange = useCallback((newPage: number) => {
     const params = new URLSearchParams(searchParams.toString())
     if (newPage > 1) params.set("page", newPage.toString())
     else params.delete("page")
     const query = params.toString()
     router.push(query ? `${pathname}?${query}` : pathname, { scroll: false })
-  }
+  }, [searchParams, pathname, router])
+
+  // Reiniciar página a 1 al buscar
+  useEffect(() => {
+    handlePageChange(1)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch, handlePageChange])
 
   // Petición paginada al servidor
   const { data: queryResult, isLoading, isFetching } = useQuery({

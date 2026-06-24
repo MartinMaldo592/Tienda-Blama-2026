@@ -80,20 +80,6 @@ export function useProductDetail() {
         return () => window.clearTimeout(id)
     }, [addedToastOpen])
 
-    // Fetch Product Data
-    useEffect(() => {
-        if (!rawId) return
-        fetchProducto()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [rawId])
-
-    // Fetch Recommendations
-    useEffect(() => {
-        if (!producto?.id) return
-        fetchRecomendados(Number(producto.id))
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [producto?.id])
-
     async function fetchProducto() {
         setLoading(true)
 
@@ -149,6 +135,20 @@ export function useProductDetail() {
         }
     }
 
+    // Fetch Product Data
+    useEffect(() => {
+        if (!rawId) return
+        fetchProducto()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [rawId])
+
+    // Fetch Recommendations
+    useEffect(() => {
+        if (!producto?.id) return
+        fetchRecomendados(Number(producto.id))
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [producto?.id])
+
     const images = useMemo(() => {
         const arr = Array.isArray(producto?.imagenes) ? (producto.imagenes as string[]) : []
         const clean = (arr || [])
@@ -196,18 +196,17 @@ export function useProductDetail() {
         return unique
     }, [producto])
 
-    const [activeVideo, setActiveVideo] = useState<string | null>(null)
+    const [selectedVideo, setSelectedVideo] = useState<string | null>(null)
+    const [prevProductId, setPrevProductId] = useState<number | null>(null)
 
-    useEffect(() => {
-        setActiveVideo((prev) => {
-            if (prev && videos.includes(prev)) return prev
-            return videos[0] || null
-        })
-    }, [videos.join('|')])
-
-    useEffect(() => {
+    const currentProductId = producto?.id ? Number(producto.id) : null
+    if (currentProductId !== prevProductId) {
+        setPrevProductId(currentProductId)
         setActiveImageIndex(0)
-    }, [images.join('|')])
+        setSelectedVideo(null)
+    }
+
+    const activeVideo = selectedVideo && videos.includes(selectedVideo) ? selectedVideo : (videos[0] || null)
 
     useEffect(() => {
         const container = thumbContainerRef.current
@@ -385,7 +384,7 @@ export function useProductDetail() {
         images,
         videos,
         activeVideo,
-        setActiveVideo,
+        setActiveVideo: setSelectedVideo,
         selectedVariante,
         effectiveStock,
         inStock,

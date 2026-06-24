@@ -1,8 +1,18 @@
 "use client"
 
 import Link from 'next/link'
-import { CartButton } from "@/components/cart-button"
 import { Menu, Search, X, ShoppingCart } from "lucide-react"
+import dynamic from "next/dynamic"
+
+const CartButton = dynamic(() => import("@/components/cart-button").then(mod => mod.CartButton), {
+    ssr: false,
+    loading: () => (
+        <div className="h-10 w-10 md:w-24 rounded-full border border-border bg-background flex items-center justify-center gap-1.5 px-2.5 md:px-3 text-muted-foreground/25 select-none">
+            <ShoppingCart className="h-5 w-5" />
+            <span className="font-bold text-sm mr-1 hidden md:inline">Carrito</span>
+        </div>
+    )
+})
 import { useEffect, useRef, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { createPortal } from "react-dom"
@@ -193,14 +203,7 @@ export function Header() {
 
                     {/* Cart Button */}
                     <div className="shrink-0">
-                        {mounted ? (
-                            <CartButton />
-                        ) : (
-                            <div className="h-10 w-10 md:w-24 rounded-full border border-border bg-background flex items-center justify-center gap-1.5 px-2.5 md:px-3 text-muted-foreground/25 select-none">
-                                <ShoppingCart className="h-5 w-5" />
-                                <span className="font-bold text-sm mr-1 hidden md:inline">Carrito</span>
-                            </div>
-                        )}
+                        <CartButton />
                     </div>
                 </div>
 
@@ -300,13 +303,13 @@ export function Header() {
                                             onClick={handleSearch}
                                             className="w-full text-center py-3 text-xs font-black text-primary hover:bg-muted transition-colors flex items-center justify-center gap-1.5 uppercase tracking-wider"
                                         >
-                                            Ver todos los resultados para "{searchQuery}"
+                                            Ver todos los resultados para &quot;{searchQuery}&quot;
                                             <Search className="h-3.5 w-3.5" />
                                         </button>
                                     </div>
                                 ) : (
                                     <div className="p-6 text-center text-sm text-muted-foreground">
-                                        No se encontraron resultados relacionados con "{searchQuery}"
+                                        No se encontraron resultados relacionados con &quot;{searchQuery}&quot;
                                     </div>
                                 )}
                             </div>
