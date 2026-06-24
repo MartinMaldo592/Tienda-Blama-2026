@@ -55,6 +55,68 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant, initialQ
     const [showPromoModal, setShowPromoModal] = useState(false)
     const scrollContainerRef = useRef<HTMLDivElement>(null)
 
+    const isProgrammaticBackRef = useRef(false)
+    const currentHistoryStateRef = useRef<"closed" | "form" | "promo">("closed")
+
+    useEffect(() => {
+        if (typeof window === "undefined") return
+
+        if (!isOpen) {
+            // Limpieza al cerrarse el modal completo
+            if (currentHistoryStateRef.current === "promo") {
+                isProgrammaticBackRef.current = true
+                window.history.go(-2)
+            } else if (currentHistoryStateRef.current === "form") {
+                isProgrammaticBackRef.current = true
+                window.history.back()
+            }
+            currentHistoryStateRef.current = "closed"
+            return
+        }
+
+        // Si se abre y está en closed, empujamos form
+        if (currentHistoryStateRef.current === "closed") {
+            window.history.pushState({ quickCheckoutForm: true }, "", window.location.href)
+            currentHistoryStateRef.current = "form"
+        }
+
+        // Si se abre la promo y está en form, empujamos promo
+        if (showPromoModal && currentHistoryStateRef.current === "form") {
+            window.history.pushState({ quickCheckoutPromo: true }, "", window.location.href)
+            currentHistoryStateRef.current = "promo"
+        }
+
+        // Si la promo se cierra programáticamente pero el modal sigue abierto (el usuario aplicó la promo)
+        if (!showPromoModal && currentHistoryStateRef.current === "promo") {
+            isProgrammaticBackRef.current = true
+            currentHistoryStateRef.current = "form"
+            window.history.back()
+        }
+
+        const handlePopState = (event: PopStateEvent) => {
+            if (isProgrammaticBackRef.current) {
+                isProgrammaticBackRef.current = false
+                return
+            }
+
+            if (currentHistoryStateRef.current === "promo") {
+                // Retroceso físico desde la promo: cerramos la promo y nos quedamos en form
+                setShowPromoModal(false)
+                currentHistoryStateRef.current = "form"
+            } else if (currentHistoryStateRef.current === "form") {
+                // Retroceso físico desde el formulario: cerramos todo el modal
+                currentHistoryStateRef.current = "closed"
+                onClose()
+            }
+        }
+
+        window.addEventListener("popstate", handlePopState)
+
+        return () => {
+            window.removeEventListener("popstate", handlePopState)
+        }
+    }, [isOpen, showPromoModal, onClose])
+
     useEffect(() => {
         if (isOpen) {
             setChosenQty(initialQuantity)
