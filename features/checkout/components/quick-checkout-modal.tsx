@@ -206,9 +206,9 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant, initialQ
                                     {formatCurrency(product.precio_antes)}
                                 </div>
                             )}
-                            <div className="text-lg font-bold text-foreground">
-                                {formatCurrency(hasAppliedDiscount && chosenQty === 1 ? Math.round((variant?.precio ?? product?.precio ?? 0) * 0.90 * 100) / 100 : (variant?.precio ?? product?.precio))}
-                            </div>
+                             <div className="text-lg font-bold text-foreground">
+                                 {formatCurrency(hasAppliedDiscount && chosenQty === 1 ? Math.round((variant?.precio ?? product?.precio ?? 0) * 0.90) : (variant?.precio ?? product?.precio))}
+                             </div>
                         </div>
                     </div>
 
@@ -347,9 +347,9 @@ function QuickForm({
             ? pack2Total
             : Math.round(unitPrice * chosenQty * 0.70)
 
-    if (chosenQty === 1 && hasAppliedDiscount) {
-        total = Math.round(pack1Total * 0.90 * 100) / 100
-    }
+     if (chosenQty === 1 && hasAppliedDiscount) {
+         total = Math.round(pack1Total * 0.90)
+     }
 
     const { draft, loaded, saveDraft, clearDraft } = useCheckoutDraft()
 
@@ -732,9 +732,9 @@ function QuickForm({
                                 {hasAppliedDiscount ? "¡10% descuento extra aplicado!" : "Precio regular"}
                             </span>
                         </div>
-                        <span className="text-base font-black text-foreground">
-                            {formatCurrency(hasAppliedDiscount ? Math.round(pack1Total * 0.90 * 100) / 100 : pack1Total)}
-                        </span>
+                         <span className="text-base font-black text-foreground">
+                             {formatCurrency(hasAppliedDiscount ? Math.round(pack1Total * 0.90) : pack1Total)}
+                         </span>
                         {chosenQty === 1 && <div className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-primary ring-4 ring-primary/20" />}
                     </button>
 

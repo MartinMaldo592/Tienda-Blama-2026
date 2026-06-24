@@ -114,7 +114,7 @@ export async function validateAndCalculateTotals(
     if (couponCode) {
         if (couponCode === "EXIT10") {
             if (totalQuantity === 1) {
-                couponDiscount = Math.round(subtotal * 0.10 * 100) / 100
+                couponDiscount = Math.round(subtotal * 0.10)
                 validCouponCode = "EXIT10"
             } else {
                 throw new Error("El cupón de descuento adicional solo aplica para pedidos de 1 unidad")
@@ -161,7 +161,7 @@ export async function validateAndCalculateTotals(
     let discountAmount = Math.max(0, Math.round(Math.min(subtotal, volumeDiscount + couponDiscount) * 100) / 100)
     let total = Math.max(0, Math.round((subtotal - discountAmount) * 100) / 100)
 
-    if (isQuickCheckout && totalQuantity > 1) {
+    if (isQuickCheckout && (totalQuantity > 1 || couponCode === "EXIT10")) {
         total = Math.round(total)
         discountAmount = Math.max(0, Math.round((subtotal - total) * 100) / 100)
     }
