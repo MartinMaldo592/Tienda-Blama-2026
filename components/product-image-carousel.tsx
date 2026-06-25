@@ -259,18 +259,20 @@ export function ProductImageCarousel({
         {cleanImages.map((src, i) => (
           <div key={src} className="relative h-full w-full flex-none overflow-hidden">
             {/* Background Blur for aesthetics - Optimized with Next/Image */}
-            <Image
-              src={src}
-              alt=""
-              fill
-              className="object-cover opacity-30 blur-2xl scale-125 saturate-150 -z-10"
-              sizes="40px"
-              quality={5}
-              aria-hidden="true"
-              draggable={false}
-            />
+            {(i !== 0 || loadedIndices.includes(0)) && (
+              <Image
+                src={src}
+                alt=""
+                fill
+                className="object-cover opacity-30 blur-2xl scale-125 saturate-150 -z-10"
+                sizes="40px"
+                quality={5}
+                aria-hidden="true"
+                draggable={false}
+              />
+            )}
 
-            {!loadedIndices.includes(i) && (
+            {!loadedIndices.includes(i) && !(priority && i === 0) && (
               <div className="absolute inset-0 bg-slate-100 dark:bg-slate-800 animate-pulse z-20 flex items-center justify-center">
                 <div className="absolute inset-0 shimmer opacity-60" />
               </div>
@@ -283,7 +285,7 @@ export function ProductImageCarousel({
               className={cn(
                 "absolute inset-0 z-10 transition-opacity duration-300",
                 imageFit === "cover" ? "object-cover" : "object-contain",
-                !loadedIndices.includes(i) ? "opacity-0" : "opacity-100"
+                ((priority && i === 0) || loadedIndices.includes(i)) ? "opacity-100" : "opacity-0"
               )}
               priority={priority && i === 0}
               sizes={sizes || "(max-width: 640px) 40vw, (max-width: 1200px) 33vw, 20vw"}

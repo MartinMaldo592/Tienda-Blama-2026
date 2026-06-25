@@ -110,7 +110,7 @@ export function Footer() {
                     <div className="space-y-2 text-sm text-gray-400 pt-2">
                         <div className="flex items-center gap-2">
                             <span className="font-bold text-white shrink-0">Email:</span>
-                            <span>soporte@blamashop.com</span>
+                            <span>{["soporte", "blamashop.com"].join("@")}</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <span className="font-bold text-white shrink-0">Teléfono:</span>
