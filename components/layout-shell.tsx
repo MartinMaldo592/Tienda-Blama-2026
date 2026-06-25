@@ -38,6 +38,14 @@ export function LayoutShell({ children, announcementData }: LayoutShellProps) {
   const prevScrollY = useRef(0)
   const ticking = useRef(false)
 
+  // Resetear el estado del header al cambiar de ruta para evitar
+  // que quede oculto/inert tras una navegación client-side (bug en WebViews de TikTok)
+  useEffect(() => {
+    setVisible(true)
+    prevScrollY.current = 0
+    ticking.current = false
+  }, [pathname])
+
   // Lógica de scroll: compatible con Lenis
   useEffect(() => {
     if (isAdmin || isAuth) return
@@ -125,9 +133,9 @@ export function LayoutShell({ children, announcementData }: LayoutShellProps) {
       <div
         ref={headerRef}
         className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ease-in-out ${
-          visible ? "translate-y-0" : "-translate-y-full"
+          visible ? "translate-y-0 pointer-events-auto" : "-translate-y-full pointer-events-none"
         }`}
-        {...(!visible ? { inert: true } : {})}
+        aria-hidden={!visible}
       >
         <Header />
 
