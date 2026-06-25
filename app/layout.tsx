@@ -8,6 +8,8 @@ import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/sonner";
 import { createClient } from "@supabase/supabase-js";
 import { SmoothScroll } from "@/components/smooth-scroll";
+import { AttributionTracker } from "@/components/attribution-tracker";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -131,7 +133,9 @@ export default async function RootLayout({
             style={{ display: "none", visibility: "hidden" }}
           />
         </noscript>
+        <AttributionTracker />
         <Providers>
+
           <SmoothScroll>
             <LayoutShell announcementData={announcementData}>{children}</LayoutShell>
           </SmoothScroll>
