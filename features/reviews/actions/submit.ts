@@ -1,6 +1,8 @@
 "use server"
 
 import { createClient } from "@supabase/supabase-js"
+import { PutObjectCommand } from "@aws-sdk/client-s3"
+import { r2Client, R2_BUCKET_NAME, R2_PUBLIC_DOMAIN } from "@/lib/r2"
 
 function getEnv() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -92,14 +94,22 @@ export async function submitReviewAction(formData: FormData) {
         const path = `reviews/${productId}/${fileName}`
 
         const arrayBuffer = await f.arrayBuffer()
-        const { error: upErr } = await supabaseAdmin.storage
-          .from("review_photos")
-          .upload(path, arrayBuffer, { contentType: f.type || "image/jpeg", upsert: false })
+        const buffer = Buffer.from(arrayBuffer)
 
-        if (upErr) throw upErr
+        const command = new PutObjectCommand({
+          Bucket: R2_BUCKET_NAME,
+          Key: path,
+          Body: buffer,
+          ContentType: f.type || "image/jpeg",
+        })
 
-        const { data } = supabaseAdmin.storage.from("review_photos").getPublicUrl(path)
-        if (data?.publicUrl) photoUrls.push(data.publicUrl)
+        await r2Client.send(command)
+
+        const publicUrl = R2_PUBLIC_DOMAIN
+          ? `${R2_PUBLIC_DOMAIN}/${path}`
+          : `https://${process.env.R2_ACCOUNT_ID}.r2.dev/${path}`
+
+        photoUrls.push(publicUrl)
       }
     }
 

@@ -14,6 +14,7 @@ const ALLOWED_CONTENT_TYPES = [
     "image/gif",
     "video/mp4",
     "video/webm",
+    "application/pdf",
 ]
 
 // Tamaño máximo del nombre de archivo

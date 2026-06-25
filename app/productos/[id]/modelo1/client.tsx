@@ -77,7 +77,9 @@ export default function ProductoDetalleClient() {
         
         images,
         videos,
+        videoGroups,
         activeVideo,
+        activeVideoGroup,
         setActiveVideo,
         selectedVariante,
         effectiveStock,
@@ -241,15 +243,22 @@ export default function ProductoDetalleClient() {
                 <div className="space-y-4">
                     <Card className="overflow-hidden shadow-sm border">
                         <div className="aspect-[3/4] bg-popover relative group" ref={imageContainerRef}>
-                            {showVideo && activeVideo ? (
+                            {showVideo && activeVideoGroup ? (
                                 <div className="absolute inset-0 flex items-center justify-center bg-black">
                                     <video
-                                        key={activeVideo}
-                                        src={activeVideo}
+                                        key={activeVideoGroup.id}
                                         controls
+                                        autoPlay
+                                        loop
+                                        muted
                                         playsInline
                                         className="w-full h-full object-contain"
-                                    />
+                                    >
+                                        {activeVideoGroup.sources.map((s) => (
+                                            <source key={s.src} src={s.src} type={s.type} />
+                                        ))}
+                                        Tu navegador no soporta la reproducción de video.
+                                    </video>
                                 </div>
                             ) : (
                                 <>
@@ -305,16 +314,16 @@ export default function ProductoDetalleClient() {
                         </Button>
                     )}
 
-                    {showVideo && videos.length > 1 && (
+                    {showVideo && videoGroups.length > 1 && (
                         <div className="flex flex-wrap gap-2">
-                            {videos.map((v, i) => (
+                            {videoGroups.map((vg, i) => (
                                 <button
-                                    key={v}
+                                    key={vg.id}
                                     type="button"
-                                    onClick={() => setActiveVideo(v)}
+                                    onClick={() => setActiveVideo(vg.id)}
                                     className={
                                         "rounded-lg border px-3 py-2 text-xs font-semibold transition-colors " +
-                                        (activeVideo === v ? "border-primary bg-primary/10" : "border-border hover:bg-popover")
+                                        (activeVideoGroup?.id === vg.id ? "border-primary bg-primary/10" : "border-border hover:bg-popover")
                                     }
                                 >
                                     Video {i + 1}

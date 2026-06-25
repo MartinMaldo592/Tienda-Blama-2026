@@ -226,8 +226,16 @@ export default async function ProductoDetallePage({
         ]
     }
 
+    const r2PublicDomain = process.env.NEXT_PUBLIC_R2_PUBLIC_DOMAIN || ""
+
     return (
         <>
+            {r2PublicDomain && (
+                <>
+                    <link rel="preconnect" href={r2PublicDomain} crossOrigin="anonymous" />
+                    <link rel="dns-prefetch" href={r2PublicDomain} />
+                </>
+            )}
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

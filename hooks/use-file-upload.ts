@@ -1,42 +1,36 @@
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase.client'
 import { toast } from 'sonner'
+import { uploadToR2 } from '@/features/admin/services/storage.client'
 
 interface UseFileUploadProps {
-    bucketName: string
+    bucketName?: string
     onUploadComplete?: (url: string) => Promise<void> | void
     onDeleteComplete?: () => Promise<void> | void
 }
 
-export function useFileUpload({ bucketName, onUploadComplete, onDeleteComplete }: UseFileUploadProps) {
-    const supabase = createClient()
+export function useFileUpload({ onUploadComplete, onDeleteComplete }: UseFileUploadProps) {
     const [isUploading, setIsUploading] = useState(false)
 
     /**
-     * Uploads a file to Supabase Storage and triggers the callback
+     * Uploads a file to Cloudflare R2 and triggers the callback
      */
     const upload = async (file: File, customFileName?: string) => {
         if (!file) return
 
         setIsUploading(true)
         try {
-            const fileExt = file.name.split('.').pop()
-            // Use custom name or generate a random safe one
-            const fileName = customFileName || `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
+            const fileToUpload = customFileName
+                ? new File([file], customFileName, { type: file.type })
+                : file
 
-            // 1. Upload to Storage
-            const { error: uploadError } = await supabase.storage
-                .from(bucketName)
-                .upload(fileName, file)
+            // Subir el archivo a R2 (imágenes, PDFs o videos)
+            const publicUrl = await uploadToR2(fileToUpload)
 
-            if (uploadError) throw uploadError
+            if (!publicUrl) {
+                throw new Error("No se pudo obtener la URL del archivo subido")
+            }
 
-            // 2. Get Public URL
-            const { data: { publicUrl } } = supabase.storage
-                .from(bucketName)
-                .getPublicUrl(fileName)
-
-            // 3. Callback (usually DB update)
+            // Callback (actualización de base de datos)
             if (onUploadComplete) {
                 await onUploadComplete(publicUrl)
             }

@@ -88,7 +88,9 @@ export default function ProductoDetalleClient({
         
         images,
         videos,
+        videoGroups,
         activeVideo,
+        activeVideoGroup,
         setActiveVideo,
         selectedVariante,
         effectiveStock,
@@ -260,15 +262,22 @@ export default function ProductoDetalleClient({
                 <div className="space-y-4">
                     <Card className="overflow-hidden shadow-sm border -mx-4 sm:mx-0 rounded-none sm:rounded-xl border-x-0 sm:border">
                         <div className="aspect-[3/4] bg-popover relative group" ref={imageContainerRef}>
-                            {showVideo && activeVideo ? (
+                            {showVideo && activeVideoGroup ? (
                                 <div className="absolute inset-0 flex items-center justify-center bg-black">
                                     <video
-                                        key={activeVideo}
-                                        src={activeVideo}
+                                        key={activeVideoGroup.id}
                                         controls
+                                        autoPlay
+                                        loop
+                                        muted
                                         playsInline
                                         className="w-full h-full object-contain"
-                                    />
+                                    >
+                                        {activeVideoGroup.sources.map((s) => (
+                                            <source key={s.src} src={s.src} type={s.type} />
+                                        ))}
+                                        Tu navegador no soporta la reproducción de video.
+                                    </video>
                                 </div>
                             ) : (
                                 <>
@@ -357,29 +366,32 @@ export default function ProductoDetalleClient({
                         </div>
                     )}
 
-                    {showVideo && videos.length > 1 && (
+                    {showVideo && videoGroups.length > 1 && (
                         <div
                             className="flex gap-2.5 overflow-x-auto md:overflow-x-visible md:flex-wrap scrollbar-hide py-2 px-0.5 snap-x snap-mandatory"
                         >
-                            {videos.map((v, i) => (
+                            {videoGroups.map((vg, i) => (
                                 <button
-                                    key={v}
+                                    key={vg.id}
                                     type="button"
                                     aria-label={`Ver video ${i + 1}`}
-                                    onClick={() => setActiveVideo(v)}
+                                    onClick={() => setActiveVideo(vg.id)}
                                     className={`relative shrink-0 w-[22.5%] aspect-square md:w-24 md:h-24 rounded-xl overflow-hidden border-2 transition-all duration-200 snap-start active:scale-95 ${
-                                        activeVideo === v
+                                        activeVideoGroup?.id === vg.id
                                             ? 'border-primary ring-2 ring-primary/20 shadow-md scale-[1.03]'
                                             : 'border-transparent opacity-60 hover:opacity-90 hover:border-border'
                                     }`}
                                 >
                                     <video
-                                        src={v}
                                         className="w-full h-full object-cover bg-black"
                                         preload="metadata"
                                         muted
                                         playsInline
-                                    />
+                                    >
+                                        {vg.sources.map((s) => (
+                                            <source key={s.src} src={s.src} type={s.type} />
+                                        ))}
+                                    </video>
                                     <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                                         <PlayCircle className="h-7 w-7 text-white drop-shadow-md" />
                                     </div>

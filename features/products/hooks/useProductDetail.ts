@@ -22,6 +22,19 @@ function parseProductIdentifier(raw: string): string | number {
     return raw
 }
 
+
+export interface VideoSource {
+    src: string;
+    type: string;
+}
+
+export interface VideoGroup {
+    id: string;
+    name: string;
+    sources: VideoSource[];
+    defaultSrc: string;
+}
+
 export function useProductDetail(
     initialProduct?: any,
     initialVariants: any[] = [],
@@ -244,6 +257,67 @@ export function useProductDetail(
 
     const activeVideo = selectedVideo && videos.includes(selectedVideo) ? selectedVideo : (videos[0] || null)
 
+    const videoGroups = useMemo(() => {
+        const groupsMap = new Map<string, { sources: VideoSource[]; defaultSrc: string }>()
+        
+        for (const v of videos) {
+            const baseUrl = v.replace(/\.[^/.]+$/, "") // Quitar extensión
+            const ext = v.split(".").pop()?.toLowerCase() || ""
+            let mimeType = "video/mp4"
+            if (ext === "webm") mimeType = "video/webm"
+            else if (ext === "ogg") mimeType = "video/ogg"
+            else if (ext === "mov" || ext === "quicktime") mimeType = "video/quicktime"
+            
+            if (!groupsMap.has(baseUrl)) {
+                groupsMap.set(baseUrl, {
+                    sources: [],
+                    defaultSrc: v
+                })
+            }
+            
+            const group = groupsMap.get(baseUrl)!
+            group.sources.push({ src: v, type: mimeType })
+            
+            // Preferir webm como defaultSrc para la estrategia de doble formato
+            if (ext === "webm") {
+                group.defaultSrc = v
+            }
+        }
+        
+        const result: VideoGroup[] = []
+        let index = 1
+        groupsMap.forEach((val, key) => {
+            // Ordenar fuentes: primero webm, luego ogg, luego mp4, luego quicktime
+            const sortedSources = [...val.sources].sort((a, b) => {
+                const score = (type: string) => {
+                    if (type.includes("webm")) return 1
+                    if (type.includes("ogg")) return 2
+                    if (type.includes("mp4")) return 3
+                    return 4
+                }
+                return score(a.type) - score(b.type)
+            })
+            
+            result.push({
+                id: key,
+                name: `Video ${index++}`,
+                sources: sortedSources,
+                defaultSrc: val.defaultSrc
+            })
+        })
+        
+        return result
+    }, [videos])
+
+    const activeVideoGroup = useMemo(() => {
+        if (videoGroups.length === 0) return null
+        if (selectedVideo) {
+            const found = videoGroups.find(g => g.id === selectedVideo || g.defaultSrc === selectedVideo || g.sources.some(s => s.src === selectedVideo))
+            if (found) return found
+        }
+        return videoGroups[0]
+    }, [videoGroups, selectedVideo])
+
     useEffect(() => {
         const container = thumbContainerRef.current
         if (!container) return
@@ -419,7 +493,9 @@ export function useProductDetail(
         
         images,
         videos,
+        videoGroups,
         activeVideo,
+        activeVideoGroup,
         setActiveVideo: setSelectedVideo,
         selectedVariante,
         effectiveStock,
