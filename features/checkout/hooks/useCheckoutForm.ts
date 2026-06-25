@@ -348,6 +348,8 @@ export function useCheckoutForm({ items, total, onComplete, onCompleteCulqi }: U
 
             sendGTMEvent({
                 event: 'purchase',
+                email: payload.email || undefined,
+                phone: payload.phone || undefined,
                 ecommerce: {
                     transaction_id: orderIdFormatted,
                     value: payload.total,

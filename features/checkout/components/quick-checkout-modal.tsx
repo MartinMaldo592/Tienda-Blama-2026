@@ -585,6 +585,8 @@ function QuickForm({
 
             sendGTMEvent({
                 event: 'purchase',
+                email: email.trim() || undefined,
+                phone: phoneClean || undefined,
                 ecommerce: {
                     transaction_id: orderIdFormatted,
                     value: total,
