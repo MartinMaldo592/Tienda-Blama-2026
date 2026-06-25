@@ -46,7 +46,7 @@ export default function ContactoPage() {
                         <CardDescription>Responderemos en 24 horas</CardDescription>
                     </CardHeader>
                     <CardContent className="text-center">
-                        <p className="font-semibold text-lg">soporte@blamashop.com</p>
+                        <p className="font-semibold text-lg">{["soporte", "blamashop.com"].join("@")}</p>
                         <p className="text-sm text-muted-foreground mt-1">Consultas generales y pedidos</p>
                     </CardContent>
                 </Card>
@@ -71,7 +71,7 @@ export default function ContactoPage() {
 
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Email</label>
-                            <Input type="email" placeholder="tucorreo@ejemplo.com" />
+                            <Input type="email" placeholder="Tu correo electrónico" />
                         </div>
 
                         <div className="space-y-2">

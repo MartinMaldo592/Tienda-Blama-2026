@@ -50,7 +50,7 @@ export default function PoliticaPrivacidadPage() {
                 <section>
                     <h2 className="text-xl font-bold mb-2">6. SUS DERECHOS ARCO</h2>
                     <p>
-                        Usted tiene derecho a Acceder, Rectificar, Cancelar u Oponerse al tratamiento de sus datos personales. Para ejercer estos derechos, puede contactarnos a través de nuestro correo electrónico soporte@blamashop.com.
+                        Usted tiene derecho a Acceder, Rectificar, Cancelar u Oponerse al tratamiento de sus datos personales. Para ejercer estos derechos, puede contactarnos a través de nuestro correo electrónico <span dangerouslySetInnerHTML={{ __html: "<!--email_off-->soporte@blamashop.com<!--/email_off-->" }} />.
                     </p>
                 </section>
 

@@ -169,7 +169,7 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                                 customButton={paymentMethod === 'culqi' ? (
                                     <CulqiPaymentButton
                                         amount={totalToPay}
-                                        email={watch("email") || "pedidos@blama.shop"}
+                                        email={watch("email") || ["pedidos", "blama.shop"].join("@")}
                                         title={`Pedido Blama Shop - S/ ${totalToPay}`}
                                         onBeforeOpen={validateFieldsForCulqi}
                                         onToken={handleCulqiToken}

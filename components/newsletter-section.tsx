@@ -86,7 +86,7 @@ export function NewsletterSection() {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="tu@email.com"
+                        placeholder="Tu correo electrónico"
                         disabled={isLoading}
                         className="bg-white/10 border-white/20 text-white placeholder:text-white/60 focus-visible:ring-offset-0"
                     />

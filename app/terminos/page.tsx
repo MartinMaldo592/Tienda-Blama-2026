@@ -80,7 +80,7 @@ export default function TerminosPage() {
                         Para cualquier duda o consulta sobre nuestros términos, puede contactarnos en:
                     </p>
                     <ul className="list-none mt-2 space-y-1">
-                        <li><strong>Email:</strong> soporte@blamashop.com</li>
+                        <li><strong>Email:</strong> <span dangerouslySetInnerHTML={{ __html: "<!--email_off-->soporte@blamashop.com<!--/email_off-->" }} /></li>
                         <li><strong>WhatsApp:</strong> +51 958 279 604</li>
                     </ul>
                 </section>

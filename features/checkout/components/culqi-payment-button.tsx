@@ -130,7 +130,7 @@ export function CulqiPaymentButton({
                 title: title,
                 currency: 'PEN',
                 amount: amountInCents,
-                email: email || 'cliente@blama.shop',
+                email: email || ['cliente', 'blama.shop'].join('@'),
             })
 
             window.Culqi.open()

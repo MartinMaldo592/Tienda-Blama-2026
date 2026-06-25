@@ -49,7 +49,7 @@ export default function DevolucionesPage() {
                     </p>
                     <ul className="list-none mt-2 space-y-1">
                         <li><strong>WhatsApp:</strong> +51 958 279 604</li>
-                        <li><strong>Email:</strong> soporte@blamashop.com</li>
+                        <li><strong>Email:</strong> <span dangerouslySetInnerHTML={{ __html: "<!--email_off-->soporte@blamashop.com<!--/email_off-->" }} /></li>
                     </ul>
                     <p className="mt-4">
                         Por favor indique su número de pedido y el motivo de la devolución. Si el producto presenta fallas, adjunte fotos claras del defecto.

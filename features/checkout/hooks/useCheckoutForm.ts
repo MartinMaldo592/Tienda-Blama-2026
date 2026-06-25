@@ -391,7 +391,7 @@ export function useCheckoutForm({ items, total, onComplete, onCompleteCulqi }: U
     const handleCulqiToken = async (token: string, email: string) => {
         try {
             const payload = await getOrderPayload(getValues())
-            const emailToSend = email || "pedidos@blama.shop"
+            const emailToSend = email || ["pedidos", "blama.shop"].join("@")
 
             const res = await fetch("/api/checkout/culqi", {
                 method: "POST",

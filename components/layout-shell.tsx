@@ -28,31 +28,15 @@ export function LayoutShell({ children, announcementData }: LayoutShellProps) {
   const isOpenWa = pathname?.startsWith("/open-wa")
 
   const [visible, setVisible] = useState(true)
-  const [headerHeight, setHeaderHeight] = useState(() => {
-    if (isAdmin || isAuth) return 0
-    const hasAnnouncement = announcementData?.enabled === true && announcementData.messages.length > 0
-    return hasAnnouncement ? 100 : 64
-  })
+
+  const hasAnnouncement = useMemo(() => {
+    return announcementData?.enabled === true && announcementData.messages.length > 0
+  }, [announcementData])
+
+  const headerHeight = isAdmin || isAuth ? 0 : (hasAnnouncement ? 100 : 64)
   const headerRef = useRef<HTMLDivElement>(null)
   const prevScrollY = useRef(0)
   const ticking = useRef(false)
-
-  // Medir la altura real del header para crear el spacer
-  useEffect(() => {
-    if (!headerRef.current || isAdmin || isAuth) return
-
-    const measure = () => {
-      if (headerRef.current) {
-        setHeaderHeight(headerRef.current.offsetHeight)
-      }
-    }
-
-    measure()
-
-    // Re-medir si la ventana cambia de tamaño
-    window.addEventListener("resize", measure)
-    return () => window.removeEventListener("resize", measure)
-  }, [isAdmin, isAuth])
 
   // Lógica de scroll: compatible con Lenis
   useEffect(() => {
