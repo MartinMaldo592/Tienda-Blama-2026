@@ -1,7 +1,21 @@
 import type { Metadata } from "next"
 import ProductoDetalleClient from "./producto-detalle-client"
-import { fetchProductForMeta, getProductDetailServer } from "@/features/products/services/products.server"
+import { fetchProductForMeta, getProductDetailServer, getAllProductIdentifiers } from "@/features/products/services/products.server"
 import { slugify } from "@/lib/utils"
+
+export const revalidate = 60
+
+export async function generateStaticParams() {
+    try {
+        const products = await getAllProductIdentifiers()
+        return products.map((product) => ({
+            id: product.slug || String(product.id),
+        }))
+    } catch (error) {
+        console.error("Error generating static params:", error)
+        return []
+    }
+}
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.blama.shop"
 

@@ -414,3 +414,10 @@ export async function listProducts(params: ListProductsParams, allCategories?: C
         }
     )()
 }
+
+export async function getAllProductIdentifiers() {
+    const supabase = createAnonServerClient()
+    if (!supabase) return []
+    const { data } = await supabase.from("productos").select("id, slug")
+    return data || []
+}
