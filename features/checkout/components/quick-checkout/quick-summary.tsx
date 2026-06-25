@@ -21,16 +21,7 @@ export function QuickSummary({ shippingMethod, setShippingMethod, total, isSubmi
         String(shippingMethod || '').toLowerCase().includes('shalom')
     )
 
-    // Sub-metodos para Lima
-    const subMethod = shippingMethod === 'Lima (Retiro en Agencia Shalom)' ? 'shalom' : 'delivery'
 
-    const handleLimaSelect = (type: 'delivery' | 'shalom') => {
-        if (type === 'delivery') {
-            setShippingMethod('Lima (Entrega a Domicilio)')
-        } else {
-            setShippingMethod('Lima (Retiro en Agencia Shalom)')
-        }
-    }
 
     return (
         <div className="space-y-6">
@@ -52,7 +43,7 @@ export function QuickSummary({ shippingMethod, setShippingMethod, total, isSubmi
                             name="quick-shipping"
                             value="Lima"
                             checked={isLimaActive}
-                            onChange={() => handleLimaSelect('delivery')}
+                            onChange={() => setShippingMethod('Lima')}
                             className="sr-only"
                             disabled={isSubmitting}
                         />
@@ -104,48 +95,7 @@ export function QuickSummary({ shippingMethod, setShippingMethod, total, isSubmi
                 </div>
             </div>
 
-            {/* Sub-selector de Lima */}
-            {isLimaActive && (
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 animate-in slide-in-from-top-2 duration-300">
-                    <p className="text-xs font-bold text-slate-700">Selecciona la modalidad de envío en Lima:</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <button
-                            type="button"
-                            onClick={() => handleLimaSelect('delivery')}
-                            disabled={isSubmitting}
-                            className={cn(
-                                "flex items-center justify-between px-3 py-2.5 rounded-lg border text-xs font-semibold transition-all text-left cursor-pointer",
-                                subMethod === 'delivery'
-                                    ? "bg-white border-primary text-primary shadow-sm"
-                                    : "bg-white/60 border-slate-200 text-slate-600 hover:bg-white"
-                            )}
-                        >
-                            <span>🛵 Entrega a Domicilio</span>
-                            {subMethod === 'delivery' && <span className="text-primary font-bold">✓</span>}
-                        </button>
 
-                        <button
-                            type="button"
-                            onClick={() => handleLimaSelect('shalom')}
-                            disabled={isSubmitting}
-                            className={cn(
-                                "flex items-center justify-between px-3 py-2.5 rounded-lg border text-xs font-semibold transition-all text-left cursor-pointer",
-                                subMethod === 'shalom'
-                                    ? "bg-white border-primary text-primary shadow-sm"
-                                    : "bg-white/60 border-slate-200 text-slate-600 hover:bg-white"
-                            )}
-                        >
-                            <span>📦 Retiro en Agencia Shalom</span>
-                            {subMethod === 'shalom' && <span className="text-primary font-bold">✓</span>}
-                        </button>
-                    </div>
-                    {subMethod === 'shalom' && (
-                        <p className="text-[10px] text-indigo-700 font-medium leading-relaxed bg-indigo-50/50 p-2.5 rounded-md border border-indigo-100">
-                            💡 **Retiro en Agencia**: Recoge tu paquete en la oficina de Shalom de tu preferencia en Lima. El costo del flete se paga en ventanilla al retirar.
-                        </p>
-                    )}
-                </div>
-            )}
 
             {/* Submit */}
             <div className="sticky bottom-0 z-50 bg-background/95 backdrop-blur-sm p-4 pb-5 border-t space-y-3 mt-4">

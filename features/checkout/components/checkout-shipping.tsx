@@ -1,5 +1,5 @@
 import { Label } from "@/components/ui/label"
-import { Truck, MapPin, Check } from "lucide-react"
+import { Truck, MapPin } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface CheckoutShippingProps {
@@ -15,17 +15,6 @@ export function CheckoutShipping({ value, onChange, disabled }: CheckoutShipping
         String(value || '').toLowerCase().includes('provincia') ||
         String(value || '').toLowerCase().includes('shalom')
     )
-
-    // Sub-metodos para Lima
-    const subMethod = value === 'Lima (Retiro en Agencia Shalom)' ? 'shalom' : 'delivery'
-
-    const handleLimaSelect = (type: 'delivery' | 'shalom') => {
-        if (type === 'delivery') {
-            onChange('Lima (Entrega a Domicilio)')
-        } else {
-            onChange('Lima (Retiro en Agencia Shalom)')
-        }
-    }
 
     return (
         <div className="space-y-4 pb-2">
@@ -43,7 +32,7 @@ export function CheckoutShipping({ value, onChange, disabled }: CheckoutShipping
                         name="shipping"
                         value="Lima"
                         checked={isLimaActive}
-                        onChange={() => handleLimaSelect('delivery')}
+                        onChange={() => onChange('Lima')}
                         className="sr-only"
                         disabled={disabled}
                     />
@@ -87,49 +76,6 @@ export function CheckoutShipping({ value, onChange, disabled }: CheckoutShipping
                     )}
                 </label>
             </div>
-
-            {/* Sub-selector de Lima */}
-            {isLimaActive && (
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 animate-in slide-in-from-top-2 duration-300">
-                    <p className="text-xs font-bold text-slate-700">Selecciona la modalidad de envío en Lima:</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <button
-                            type="button"
-                            onClick={() => handleLimaSelect('delivery')}
-                            disabled={disabled}
-                            className={cn(
-                                "flex items-center justify-between px-3 py-2.5 rounded-lg border text-xs font-semibold transition-all text-left cursor-pointer",
-                                subMethod === 'delivery'
-                                    ? "bg-white border-primary text-primary shadow-sm"
-                                    : "bg-white/60 border-slate-200 text-slate-600 hover:bg-white"
-                            )}
-                        >
-                            <span>🛵 Entrega a Domicilio</span>
-                            {subMethod === 'delivery' && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => handleLimaSelect('shalom')}
-                            disabled={disabled}
-                            className={cn(
-                                "flex items-center justify-between px-3 py-2.5 rounded-lg border text-xs font-semibold transition-all text-left cursor-pointer",
-                                subMethod === 'shalom'
-                                    ? "bg-white border-primary text-primary shadow-sm"
-                                    : "bg-white/60 border-slate-200 text-slate-600 hover:bg-white"
-                            )}
-                        >
-                            <span>📦 Retiro en Agencia Shalom</span>
-                            {subMethod === 'shalom' && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
-                        </button>
-                    </div>
-                    {subMethod === 'shalom' && (
-                        <p className="text-[10px] text-indigo-700 font-medium leading-relaxed bg-indigo-50/50 p-2.5 rounded-md border border-indigo-100">
-                            💡 **Retiro en Agencia**: Recoge tu paquete en la oficina de Shalom de tu preferencia en Lima. El costo del flete se paga en ventanilla al retirar.
-                        </p>
-                    )}
-                </div>
-            )}
         </div>
     )
 }
