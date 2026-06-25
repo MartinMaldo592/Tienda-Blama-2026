@@ -121,3 +121,48 @@ El proyecto utiliza un rate limiter para mitigar ataques DDoS y abusos en subida
 ### B. SSL y Redirección en Vercel
 Asegurar que `NEXT_PUBLIC_SITE_URL` apunte a `https://www.blama.shop` y esté configurado en las variables de entorno de Vercel para que las rutas del Checkout de WhatsApp y de los correos transaccionales generen links absolutos correctos.
 
+---
+
+## 6. Analíticas, Píxeles (Meta, TikTok) y Atribución
+
+La plataforma utiliza **Google Tag Manager (GTM)** como hub centralizado para disparar y configurar analíticas.
+
+### Arquitectura de 4 Píxeles
+Para evitar que las pruebas locales de desarrollo contaminen tus métricas y públicos reales de anuncios, implementamos un sistema dual basado en el hostname (`localhost` vs `blama.shop`):
+
+1. **Meta (Facebook) Pixel:**
+   - **ID Desarrollo (Local):** `986967067666281` (Cargado en `localhost:3000`).
+   - **ID Producción (Real):** Configurable en GTM mediante la Lookup Table.
+2. **TikTok Pixel:**
+   - **ID Desarrollo (Local):** `D8UK603C77U4748KH5LG` (Cargado en `localhost:3000`).
+   - **ID Producción (Real):** Configurable en GTM mediante la Lookup Table.
+
+### Rastreo y Atribución de Campañas
+El componente `<AttributionTracker />` captura automáticamente los siguientes parámetros al entrar a la tienda y los almacena en cookies de origen con 30 días de duración:
+* `blama_utm_source`, `blama_utm_medium`, `blama_utm_campaign`, `blama_utm_content`, `blama_utm_term`
+* `blama_fbclid` (Meta Click ID)
+* `blama_ttclid` (TikTok Click ID)
+* `blama_gclid` (Google Click ID)
+
+GTM lee estas cookies y las inyecta en los eventos de conversión para atribución avanzada.
+
+### Coincidencia Avanzada (Advanced Matching)
+Para resolver la advertencia crítica de TikTok Ads y mejorar la tasa de coincidencia, el evento `purchase` en el `dataLayer` ahora inyecta dinámicamente:
+* **`email`**: Correo electrónico del cliente.
+* **`phone`**: Teléfono móvil del cliente.
+
+Las etiquetas de GTM se encargan de procesar (hashear en SHA-256) e identificar al usuario antes de enviar la conversión a las plataformas publicitarias.
+
+### Instrucciones para la Importación Rápida en GTM
+Puedes recrear toda la estructura de variables de cookies, activadores de e-commerce y etiquetas de Meta/TikTok importando un solo archivo:
+
+1. Localiza el archivo [gtm-import-pixels.json](../gtm-import-pixels.json) en la raíz del proyecto.
+2. Ingresa a tu panel de Google Tag Manager $\rightarrow$ **Administrador** (Admin).
+3. Haz clic en **Importar contenedor** (Import container).
+4. Elige el archivo `gtm-import-pixels.json`.
+5. Selecciona el espacio de trabajo existente (ej. `Default Workspace`).
+6. **Fusión:** Selecciona **Fusionar** (Merge) y luego **Cambiar el nombre de las variables, activadores y etiquetas en conflicto** (¡NO elijas Sobrescribir!).
+7. Confirma e introduce tus IDs de producción en las variables tipo *Lookup* (`Lookup - ID Meta Pixel` y `Lookup - ID TikTok Pixel`).
+8. Publica los cambios.
+
+

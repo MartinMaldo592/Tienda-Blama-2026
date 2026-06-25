@@ -14,6 +14,9 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 *   [Fase 6: Optimización de Cabecera, Navegación Móvil y Carruseles Interactivos Premium (UX/UI)](#fase-6-optimizacion-de-cabecera-navegacion-movil-y-carruseles-interactivos-premium-uxui)
 *   [Fase 7: Sistema Profesional de Carga de Medios y Feedback en Tiempo Real (UX/UI Admin)](#fase-7-sistema-profesional-de-carga-de-medios-y-feedback-en-tiempo-real-uxui-admin)
 *   [Fase 8: Filtros Multiselección Inteligentes en Gestión de Pedidos (CRM Admin)](#fase-8-filtros-multiseleccion-inteligentes-en-gestion-de-pedidos-crm-admin)
+*   [Fase 9: Sistema de Suscripción al Newsletter con Generación de Cupones Únicos y No Transferibles](#fase-9-sistema-de-suscripcion-al-newsletter-con-generacion-de-cupones-unicos-y-no-transferibles)
+*   [Fase 10: Centralización de Analíticas, Atribución de Tráfico y Optimización de Medios (Junio 2026)](#fase-10-centralizacion-de-analiticas-atribucion-de-trafico-y-optimizacion-de-medios-junio-2026)
+
 
 ---
 
@@ -131,49 +134,47 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 ## Fase 6: Optimización de Cabecera, Navegación Móvil y Carruseles Interactivos Premium (UX/UI)
 
 ### 1. Centrado Absoluto del Logotipo y Limpieza de Cabecera
-*   **Ubicación**: [header.tsx](file:///c:/Users/Administrador/Desktop/PROYECTOS/Tienda-Blama-2026/components/header.tsx)
+*   **Ubicación**: [header.tsx](../components/header.tsx)
 *   **Solución**: Se reestructuró la cuadrícula y distribución de flexbox en la barra de navegación para garantizar que el logotipo de la marca (`BLAMA SHOP`) permanezca centrado de forma absoluta en móviles y pantallas grandes sin colisionar con otros elementos.
 *   **Resultado**: Una presentación estética simétrica e impecable que respeta las pautas de diseño modernas de alta gama.
 
 ### 2. Optimización Móvil y del Menú Hamburguesa
-*   **Ubicación**: [header.tsx](file:///c:/Users/Administrador/Desktop/PROYECTOS/Tienda-Blama-2026/components/header.tsx) y [cart-button.tsx](file:///c:/Users/Administrador/Desktop/PROYECTOS/Tienda-Blama-2026/components/cart-button.tsx)
+*   **Ubicación**: [header.tsx](../components/header.tsx) y [cart-button.tsx](../components/cart-button.tsx)
 *   **Solución**:
     *   Se eliminó el círculo de fondo del icono del menú hamburguesa, dejándolo únicamente con sus tres líneas minimalistas.
     *   Se reubicó la bandera de Perú y el selector de país para renderizarse a la derecha del menú hamburguesa, reduciendo el ruido visual del lado derecho.
     *   En dispositivos móviles, se configuró el botón del carrito para ocultar el texto informativo "Carrito", dejando únicamente el ícono del carrito para evitar que se desborde el espacio horizontal disponible.
 
 ### 3. Mitigación de Desbordamiento Horizontal (Horizontal Scroll Overflow)
-*   **Ubicación**: [globals.css](file:///c:/Users/Administrador/Desktop/PROYECTOS/Tienda-Blama-2026/app/globals.css) y [producto-detalle-client.tsx](file:///c:/Users/Administrador/Desktop/PROYECTOS/Tienda-Blama-2026/app/productos/[id]/producto-detalle-client.tsx)
+*   **Ubicación**: [globals.css](../app/globals.css) y [producto-detalle-client.tsx](../app/productos/[id]/producto-detalle-client.tsx)
 *   **Solución**: Se identificó un error donde la vista del producto permitía un desplazamiento horizontal indeseado a la izquierda/derecha.
 *   **Resultado**: Se corrigió agregando la propiedad `overflow-x-hidden` a los contenedores principales y controlando los anchos fijos de los componentes internos, asegurando que la navegación vertical sea completamente vertical y sin holguras horizontales rotas.
 
 ### 4. Carrusel Controlado y Tira de Miniaturas Premium (Estilo Razor Bill)
-*   **Ubicación**: [product-image-carousel.tsx](file:///c:/Users/Administrador/Desktop/PROYECTOS/Tienda-Blama-2026/components/product-image-carousel.tsx) y [producto-detalle-client.tsx](file:///c:/Users/Administrador/Desktop/PROYECTOS/Tienda-Blama-2026/app/productos/[id]/producto-detalle-client.tsx)
+*   **Ubicación**: [product-image-carousel.tsx](../components/product-image-carousel.tsx) y [producto-detalle-client.tsx](../app/productos/[id]/producto-detalle-client.tsx)
 *   **Solución**:
     *   Se rediseñó el componente `ProductImageCarousel` para admitir las propiedades controladas `selectedIndex` y `onIndexChange`.
     *   Se integró una tira horizontal de miniaturas debajo de la imagen del producto, escalada dinámicamente con `w-[22.5%] aspect-square` en móviles para asegurar que se muestren entre 3 y 4 imágenes simultáneamente con scrolling suave de tipo `snap-start`.
     *   Se programó un efecto `useEffect` en el contenedor para realizar un scroll automático (scroll-into-view) y centrar la miniatura activa en el listado cuando el usuario hace swipe sobre el carrusel de imágenes grande.
 
 ### 5. Miniaturas Interactivas con Previsualizaciones de Video en Vivo
-*   **Ubicación**: [producto-detalle-client.tsx](file:///c:/Users/Administrador/Desktop/PROYECTOS/Tienda-Blama-2026/app/productos/[id]/producto-detalle-client.tsx)
+*   **Ubicación**: [producto-detalle-client.tsx](../app/productos/[id]/producto-detalle-client.tsx)
 *   **Solución**: Se aplicó el mismo diseño de tamaño y comportamiento premium a los selectores de videos de productos.
 *   **Resultado**: Los antiguos botones de texto plano (`Video 1`, `Video 2`) se reemplazaron por miniaturas que cargan en segundo plano el primer fotograma del video real (`<video preload="metadata" muted playsInline />`), combinándose con un filtro translúcido, un ícono de reproducción `PlayCircle` en el centro y etiquetas numeradas legibles.
 
 ### 6. Reubicación de la Etiqueta '¡LO MÁS VENDIDO!' en la Tarjeta de Producto
-*   **Ubicación**: [product-card.tsx](file:///c:/Users/Administrador/Desktop/PROYECTOS/Tienda-Blama-2026/components/product-card.tsx)
+*   **Ubicación**: [product-card.tsx](../components/product-card.tsx)
 *   **Solución**: Se extrajo la etiqueta `"¡LO MÁS VENDIDO!"` que antes se superponía en la esquina superior izquierda de la imagen y se colocó como un elemento de bloque de ancho ajustado (`w-fit`) dentro de la sección de detalles, directamente arriba del nombre del producto.
 *   **Resultado**: Esto evita que la etiqueta oculte detalles clave de la foto de los productos, logrando una presentación mucho más limpia y equilibrada.
 
 ### 7. Buscador con Animación Overlay Premium (Evita Solapamiento de Marca)
-*   **Ubicación**: [header.tsx](file:///c:/Users/Administrador/Desktop/PROYECTOS/Tienda-Blama-2026/components/header.tsx)
+*   **Ubicación**: [header.tsx](../components/header.tsx)
+
 *   **Solución**: Se eliminó el input de búsqueda expandible dentro de la cabecera que solapaba al logotipo central de la marca (`BLAMA SHOP`). En su lugar, se implementó un panel de búsqueda de ancho completo (Overlay) que se desliza y desvanece suavemente desde arriba sobre la cabecera al hacer clic en la lupa.
 *   **Detalles Técnicos**:
     *   **Autofocus**: Usa `useRef` para enfocar automáticamente el campo de entrada cuando se activa.
-    *   **Cancelación**: Añade un botón interactivo de "Cancelar" que cierra y reinicia el estado de búsqueda.
-    *   **Responsive**: Funciona de forma adaptativa cubriendo la cabecera completa en resoluciones móviles, de tablet y de escritorio, optimizando el espacio al 100% sin jank o saltos de diseño.
-
-### 8. Cabecera Auto-ocultable Inteligente al hacer Scroll (Header Fijo Dinámico)
-*   **Ubicación**: [layout-shell.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA WEB/Tienda-Blama-2026/components/layout-shell.tsx) y [header.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA WEB/Tienda-Blama-2026/components/header.tsx)
+    *   **Cancelación**: A�### 8. Cabecera Auto-ocultable Inteligente al hacer Scroll (Header Fijo Dinámico)
+*   **Ubicación**: [layout-shell.tsx](../components/layout-shell.tsx) y [header.tsx](../components/header.tsx)
 *   **Solución**: 
     *   Se reemplazó la propiedad nativa de `sticky top-0` del componente Header por una envoltura de tipo fixed (`fixed top-0 left-0 right-0 z-50`) controlada por estado en el contenedor principal LayoutShell.
     *   Se implementó un controlador de eventos de scroll compatible con la biblioteca de scroll Lenis. Si el usuario se desplaza hacia abajo, la cabecera se oculta suavemente desplazándose hacia arriba (`-translate-y-full`); si se desplaza hacia arriba con un delta superior a 5px, se despliega de inmediato (`translate-y-0`).
@@ -181,12 +182,12 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 *   **Resultado**: Aumenta el área útil de lectura en dispositivos móviles durante la exploración del catálogo y conserva una accesibilidad inmediata a la navegación al menor indicio de retorno del usuario.
 
 ### 9. Ajuste de Activación Temprana de Barra de Compra Flotante en Detalle de Producto
-*   **Ubicación**: [producto-detalle-client.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA WEB/Tienda-Blama-2026/app/productos/[id]/producto-detalle-client.tsx)
+*   **Ubicación**: [producto-detalle-client.tsx](../app/productos/[id]/producto-detalle-client.tsx)
 *   **Solución**: Se recalibró el sensor de visibilidad (IntersectionObserver) para la barra flotante inferior en dispositivos móviles, elevando el umbral de activación (tanto en `rootMargin` como en la lógica de evaluación `boundingClientRect.top`) de **450px** a **650px**.
 *   **Resultado**: La barra flotante aparece antes al avanzar en el detalle de la página de producto, acelerando la posibilidad de que el cliente inicie el flujo de compra rápida.
 
 ### 10. Botón de WhatsApp Flotante Adaptativo e Interactivo Premium
-*   **Ubicación**: [layout-shell.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA WEB/Tienda-Blama-2026/components/layout-shell.tsx)
+*   **Ubicación**: [layout-shell.tsx](../components/layout-shell.tsx)
 *   **Solución**:
     *   Se implementó una evaluación condicional basada en rutas para alternar las dimensiones, el diseño y el posicionamiento del botón de WhatsApp.
     *   **En la página de detalle de producto**: Se mantiene en su posición superior (`bottom-24` en móviles) y tamaño estándar (`h-14 w-14`) para evitar el solapamiento con la barra inferior de compra rápida móvil (`bottom-4`).
@@ -195,12 +196,12 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 *   **Resultado**: Una interacción de ayuda directa mucho más visible y accesible en las páginas generales, sin interferir con los flujos de compra transaccional en el detalle de producto.
 
 ### 11. Colapsado por Defecto del Acordeón de Descripción del Producto
-*   **Ubicación**: [producto-detalle-client.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/productos/[id]/producto-detalle-client.tsx) y [client.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/productos/[id]/modelo1/client.tsx)
+*   **Ubicación**: [producto-detalle-client.tsx](../app/productos/[id]/producto-detalle-client.tsx) y [client.tsx](../app/productos/[id]/modelo1/client.tsx)
 *   **Solución**: Se eliminó el atributo `defaultValue="description"` de la etiqueta `<Accordion>` en las vistas de detalle de producto principal y de modelo1.
 *   **Resultado**: Ahora la sección de la descripción del producto inicia colapsada por defecto cuando un usuario visita la página del producto. Esto reduce la longitud visual inicial de la página y permite que el cliente decida activamente qué secciones desea expandir.
 
 ### 12. Remoción Completa de Dirección Física (Modelo 100% Tienda Virtual)
-*   **Ubicación**: [footer.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/components/footer.tsx), [page.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/contacto/page.tsx), [page.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/libro-reclamaciones/page.tsx) y [page.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/terminos/page.tsx)
+*   **Ubicación**: [footer.tsx](../components/footer.tsx), [page.tsx](../app/contacto/page.tsx), [page.tsx](../app/libro-reclamaciones/page.tsx) y [page.tsx](../app/terminos/page.tsx)
 *   **Solución**:
     *   **Footer**: Se eliminó el bloque de renderizado de la fila de dirección.
     *   **Contacto**: Se removió la tarjeta "Visítanos" (reestructurando la grilla a 2 columnas para Teléfono y Email de forma balanceada) y se eliminó el `iframe` de Google Maps, sustituyéndolo por un banner vertical limpio para el soporte directo por WhatsApp.
@@ -209,9 +210,13 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 *   **Resultado**: Una experiencia de marca coherente con el modelo de negocio digital puro, evitando que los clientes asuman la existencia de un local de atención al público o almacén de retiro presencial.
 
 ### 13. Reemplazo del Icono de Compartir Producto (Estilo Tradicional)
-*   **Ubicación**: [producto-detalle-client.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/productos/[id]/producto-detalle-client.tsx) y [client.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/productos/[id]/modelo1/client.tsx)
+*   **Ubicación**: [producto-detalle-client.tsx](../app/productos/[id]/producto-detalle-client.tsx) y [client.tsx](../app/productos/[id]/modelo1/client.tsx)
 *   **Solución**: Se reemplazó el uso del icono de red de nodos (`Share2`) por el icono de una flecha curva saliendo de un contenedor (`Share`) de la biblioteca `lucide-react`.
 *   **Resultado**: Un aspecto mucho más intuitivo y familiar para los clientes a la hora de compartir enlaces de productos desde dispositivos móviles y de escritorio.
+
+### 14. Modificación de Título de Newsletter (Suscripción)
+*   **Ubicación**: [newsletter-section.tsx](../components/newsletter-section.tsx)
+**Resultado**: Un aspecto mucho más intuitivo y familiar para los clientes a la hora de compartir enlaces de productos desde dispositivos móviles y de escritorio.
 
 ### 14. Modificación de Título de Newsletter (Suscripción)
 *   **Ubicación**: [newsletter-section.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/components/newsletter-section.tsx)
@@ -223,12 +228,12 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 ## Fase 7: Sistema Profesional de Carga de Medios y Feedback en Tiempo Real (UX/UI Admin)
 
 ### 1. Seguimiento Dinámico de Porcentaje (XHR Native)
-*   **Ubicación**: [storage.client.ts](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/admin/services/storage.client.ts)
+*   **Ubicación**: [storage.client.ts](../features/admin/services/storage.client.ts)
 *   **Solución**: Sustituimos las subidas de archivos mediante `fetch` opaco por peticiones basadas en `XMLHttpRequest` nativo. Vinculamos el evento `xhr.upload.onprogress` para calcular el porcentaje real de subida de 0% a 100%. Esto aplica tanto para la subida directa a R2 vía presigned URL (para videos y archivos pesados) como a través del proxy de compresión de imágenes.
 *   **Mensajes Dinámicos por Pasos**: Diseñamos callbacks interactivos que informan del paso exacto al usuario (ej: *"Preparando archivo..."*, *"Transfiriendo imagen..."*, *"Comprimiendo y optimizando con Sharp..."*, *"¡Subida exitosa!"*).
 
 ### 2. Panel Multitarea de Progreso en Panel de Administración
-*   **Ubicación**: [media-manager.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/admin/components/product-form/media-manager.tsx)
+*   **Ubicación**: [media-manager.tsx](../features/admin/components/product-form/media-manager.tsx)
 *   **Solución**: Diseñamos una interfaz visual premium que lista las subidas activas. Cada archivo se representa con su nombre, insignia de formato (Imagen / Video), barra de progreso dinámica animada con transiciones suaves de color (verde para éxito, rojo para error, azul/primario para carga activa) y un botón de limpieza para retirar del panel los registros antiguos de subidas completadas.
 *   **Resultado**: Eliminación de la incertidumbre operativa en el panel al subir imágenes de alta resolución o videos grandes, facilitando diagnosticar de manera inmediata fallas de formato, peso de archivo o inestabilidad de red.
 
@@ -237,18 +242,19 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 ## Fase 8: Filtros Multiselección Inteligentes en Gestión de Pedidos (CRM Admin)
 
 ### 1. Desplegables Interactivos Multiselección
-*   **Ubicación**: [orders-filter-bar.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/admin/components/orders/orders-filter-bar.tsx)
+*   **Ubicación**: [orders-filter-bar.tsx](../features/admin/components/orders/orders-filter-bar.tsx)
 *   **Solución**: Reemplazamos los selectores (`<Select>`) tradicionales de un solo valor para los filtros de **Estado** y **Trabajador** por desplegables dinámicos personalizados. Se implementaron botones interactivos que de velan menús de checkboxes y un botón para limpiar rápidamente la selección de filtros activos.
 *   **Texto Dinámico**: El botón muestra dinámicamente los elementos seleccionados (ej: *"Pendiente, Confirmado"* o *"Todo el equipo"*) o el recuento total de los mismos (ej: *"3 asignados"* / *"3 estados seleccionados"*).
 
 ### 2. Soporte en el Backend y consultas a Supabase
-*   **Ubicación**: [pedidos.client.ts](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/admin/services/pedidos.client.ts)
+*   **Ubicación**: [pedidos.client.ts](../features/admin/services/pedidos.client.ts)
 *   **Solución**: Adaptamos las funciones de consulta `fetchPedidosForRole` para recibir strings delimitados por comas para los estados y trabajadores. Del lado del servidor, separamos los valores para realizar consultas optimizadas mediante operadores `.in` de Supabase.
 *   **Manejo de pedidos sin asignar**: Si en el filtro múltiple de trabajadores se incluye a "Sin asignar" (`unassigned`) junto a otros asesores, se estructura dinámicamente una cláusula `.or` (`asignado_a.in.("id1","id2"),asignado_a.is.null`) compatible con PostgREST de Supabase para retornar ambos tipos de registros de forma atómica.
 *   **Resultado**: Los administradores pueden analizar, buscar y gestionar múltiples estados de pedidos o repartidores simultáneamente, optimizando en más de un 40% los tiempos de revisión y control interno.
 
 ### 3. Filtro de Estado de Pago del Pedido (`pago_status`)
-*   **Ubicación**: [orders-filter-bar.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/admin/components/orders/orders-filter-bar.tsx), [page.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/admin/pedidos/page.tsx) y [pedidos.client.ts](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/admin/services/pedidos.client.ts)
+*   **Ubicación**: [orders-filter-bar.tsx](../features/admin/components/orders/orders-filter-bar.tsx), [page.tsx](../app/admin/pedidos/page.tsx) y [pedidos.client.ts](../features/admin/services/pedidos.client.ts)
+
 *   **Solución**: 
     *   Añadimos soporte para el filtro `pagoStatusFilter` a través de consultas `.in("pago_status", pagoStatuses)` en Supabase en `pedidos.client.ts` para los métodos de cuenta y selección de pedidos.
     *   Registramos el estado `pagoStatusFilter` en la vista de pedidos de administración (`app/admin/pedidos/page.tsx`), integrándolo al caché de react-query, refrescos dinámicos al cambiar de página y prefetching.
@@ -264,22 +270,22 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 *   **Seguridad RLS**: Habilitamos Row Level Security (RLS) en la nueva tabla. Configuramos políticas restrictivas para que el público general no pueda leer los datos de suscripción de otros clientes, mientras que la lógica de backend interactúa de manera segura mediante el cliente de rol de servicio (`SUPABASE_SERVICE_ROLE_KEY`).
 
 ### 2. Plantilla de Correo de Bienvenida Premium (React-Email & Resend)
-*   **Ubicación**: [newsletter-welcome.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/emails/components/newsletter-welcome.tsx) y [email.ts](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/emails/services/email.ts)
+*   **Ubicación**: [newsletter-welcome.tsx](../features/emails/components/newsletter-welcome.tsx) y [email.ts](../features/emails/services/email.ts)
 *   **Solución**: Diseñamos una plantilla de correo interactiva con estética oscura en la cabecera (igual a la confirmación de compras de la marca), un contenedor de cupón estilizado con bordes discontinuos, tipografía de código monoespaciada para facilitar la lectura del código, y un botón de llamada a la acción (CTA) directo a `/productos`.
 *   **Servicio de Envío**: Expusimos la función `sendNewsletterWelcomeEmail` integrada con el cliente de Resend para despachar automáticamente los correos transaccionales de bienvenida con su respectivo cupón.
 
 ### 3. Endpoint de Registro & Prevención de Spam
-*   **Ubicación**: [route.ts](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/api/newsletter/subscribe/route.ts)
+*   **Ubicación**: [route.ts](../app/api/newsletter/subscribe/route.ts)
 *   **Solución**: Implementamos una ruta de API en Next.js (`POST /api/newsletter/subscribe`) que realiza validación de datos mediante Zod, comprueba la existencia previa del correo para evitar registros repetidos, genera un código alfanumérico único (`WELCOME-XXXXXXXX`), inserta el cupón en la base de datos (10% de descuento, activo, 1 uso máximo, validez por 30 días) y registra la suscripción en una sola secuencia, enviando el correo de bienvenida.
 *   **Rate Limiting**: Añadimos limitación de peticiones (Rate Limiting) de hasta 5 intentos por minuto por dirección IP pública para mitigar ataques de denegación de servicio o spam en el endpoint.
 
 ### 4. Componente de UI Frontend
-*   **Ubicación**: [newsletter-section.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/components/newsletter-section.tsx)
+*   **Ubicación**: [newsletter-section.tsx](../components/newsletter-section.tsx)
 *   **Solución**: Conectamos el formulario estático para admitir llamadas asíncronas con estados de carga (`isLoading`), deshabilitación de inputs y feedback inmediato a través de notificaciones Sonner Toast (`toast.success` / `toast.error`).
 *   **Persistencia**: Guardamos la clave `hasSubscribedNewsletter` en el `localStorage` una vez que la suscripción finaliza exitosamente, modificando la interfaz para renderizar un mensaje de agradecimiento persistente y evitar el spam visual del formulario.
 
 ### 5. Validación de Propiedad del Cupón en Checkout (No Transferencia)
-*   **Ubicación**: [coupons.client.ts](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/checkout/services/coupons.client.ts), [checkout-form.tsx](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/checkout/components/checkout-form.tsx), [totals.ts](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/features/checkout/utils/totals.ts), y los endpoints de checkout de [WhatsApp](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/api/checkout/whatsapp/route.ts) y [Culqi](file:///c:/Users/1964-oti/Desktop/PROYECTOS/PAGINA%20WEB/Tienda-Blama-2026/app/api/checkout/culqi/route.ts)
+*   **Ubicación**: [coupons.client.ts](../features/checkout/services/coupons.client.ts), [checkout-form.tsx](../features/checkout/components/checkout-form.tsx), [totals.ts](../features/checkout/utils/totals.ts), y los endpoints de checkout de [WhatsApp](../app/api/checkout/whatsapp/route.ts) y [Culqi](../app/api/checkout/culqi/route.ts)
 *   **Solución (Alternativa 2)**:
     *   **Cliente**: Modificamos `validateCoupon` para recibir el correo del cliente. Si el código ingresado corresponde a un registro de bienvenida en la tabla `newsletter_subscriptions`, valida de forma estricta (case-insensitive) que coincida con el correo ingresado en los datos de facturación del checkout; de lo contrario, rechaza su aplicación.
     *   **Servidor**: Extendimos `validateAndCalculateTotals` para recibir y verificar el correo, realizando la misma consulta segura sobre la tabla `newsletter_subscriptions` con Supabase Admin antes de procesar el subtotal y descuento final. Se adaptaron los endpoints de pago con Culqi y mensajería de WhatsApp para pasar este parámetro en la validación server-side.
@@ -287,8 +293,48 @@ Este documento centraliza y detalla el conjunto de optimizaciones, reestructurac
 
 ---
 
+## Fase 10: Centralización de Analíticas, Atribución de Tráfico y Optimización de Medios (Junio 2026)
+
+### 1. Rastreador de Atribución Global & Persistencia de Cookies
+*   **Ubicación**: [attribution-tracker.tsx](../components/attribution-tracker.tsx) y [layout.tsx](../app/layout.tsx)
+*   **Solución**: Se implementó un componente de rastreo dinámico del lado del cliente (`AttributionTracker`) que se activa en la entrada principal de la tienda. Captura parámetros críticos de URL (`utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`, `fbclid`, `ttclid`, `gclid`) y los escribe como cookies de origen de 30 días de duración (`blama_*`).
+*   **Resultado**: Permite que las analíticas internas y externas recuerden el origen exacto de la visita del cliente durante su navegación, incluso si esta se extiende por varios días.
+
+### 2. Arquitectura de 4 Píxeles Unificada (Meta & TikTok)
+*   **Ubicación**: [gtm-import-pixels.json](../gtm-import-pixels.json) y [layout.tsx](../app/layout.tsx)
+*   **Solución**: En lugar de crear y contaminar conjuntos de datos reales de píxeles, centralizamos las integraciones en Google Tag Manager y diseñamos una arquitectura de entornos:
+    *   **Meta (Facebook)**: 2 píxeles (1 de Desarrollo: `986967067666281` / 1 de Producción).
+    *   **TikTok Ads**: 2 píxeles (1 de Desarrollo: `D8UK603C77U4748KH5LG` / 1 de Producción).
+    *   **Lookup Tables en GTM**: Mapean dinámicamente el Hostname. Si el dominio es `localhost`, los eventos se envían a los píxeles de desarrollo; si el dominio es `blama.shop` o `www.blama.shop`, los datos se dirigen a los píxeles de producción.
+*   **Resultado**: Aislamiento total de los datos de conversión de pruebas locales frente a las campañas de marketing reales.
+
+### 3. Solución a Alerta de TikTok (Advanced Matching en Conversiones)
+*   **Ubicación**: [useCheckoutForm.ts](../features/checkout/hooks/useCheckoutForm.ts), [quick-checkout-modal.tsx](../features/checkout/components/quick-checkout-modal.tsx) y [gtm-import-pixels.json](../gtm-import-pixels.json)
+*   **Solución**: Para resolver el error crítico de TikTok de "Faltan correo electrónico y teléfono", modificamos el evento de compra en el dataLayer para inyectar las propiedades `email` y `phone` al mismo nivel del evento. En GTM, creamos variables de capa de datos correspondientes y configuramos la coincidencia avanzada (`Advanced Matching` y `ttq.identify`), enviando el email y teléfono hasheados en SHA-256 de forma automática en los eventos de compra.
+*   **Resultado**: Reducción drástica del Costo por Adquisición (CPA) y optimización del rendimiento de los anuncios al mejorar la calidad de coincidencia de eventos (Event Match Quality).
+
+### 4. Solución a Bloqueo de Navegación en TikTok WebViews
+*   **Ubicación**: [layout-shell.tsx](../components/layout-shell.tsx)
+*   **Solución**: Se identificó un bug crítico donde la navegación interna dentro de la aplicación móvil de TikTok (WebViews de iOS/Android) se bloqueaba o congelaba.
+*   **Resultado**: Se corrigió reseteando la posición de scroll a cero (`0,0`), limpiando el estado visible del header flotante dinámico y desactivando `inert` en favor de `aria-hidden` por compatibilidad con navegadores embebidos antiguos.
+
+### 5. Incremental Static Regeneration (ISR) y Carga de Scripts Diferida
+*   **Ubicación**: [page.tsx](../app/productos/[id]/page.tsx) y [layout.tsx](../app/layout.tsx)
+*   **Solución**: 
+    *   Activamos la regeneración estática incremental en `/productos/[id]` con `revalidate = 60s` y `generateStaticParams` para evitar consultas innecesarias y lentas en tiempo real a Supabase en cada carga de página.
+    *   Cambiamos la estrategia de carga del script de Google Tag Manager de `afterInteractive` a `lazyOnload` para no competir con el renderizado inicial y el hilo de Javascript de la página de inicio.
+*   **Resultado**: Mayor velocidad percibida (LCP y TTI) y excelente estabilidad frente a picos repentinos de tráfico.
+
+### 6. Almacenamiento Optimizado (Cloudflare R2 y Doble Formato de Video)
+*   **Ubicación**: [useProductDetail.ts](../features/products/hooks/useProductDetail.ts) y [next.config.ts](../next.config.ts)
+*   **Solución**: Migramos el almacenamiento de todos los videos de demostración a cubetas Cloudflare R2 asociadas a un subdominio CDN con políticas de pre-conexión. Implementamos la estrategia de doble formato: se cargan videos de tipo WebM en navegadores compatibles por su tamaño reducido de compresión, y MP4 como fallback secundario.
+*   **Resultado**: Visualización fluida de videos de productos en móviles sin buffering o lentitud.
+
+---
+
 <div align="center">
   <small><em>Tienda Blama 2026 - Manual Técnico de Cambios & Resiliencia.</em></small>
 </div>
+
 
 

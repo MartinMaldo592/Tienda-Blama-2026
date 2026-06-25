@@ -16,16 +16,18 @@ Tienda Blama es una plataforma de comercio electrónico diseñada para alto rend
 
 ## 📚 Índice de Documentación
 
-Para mantener la raíz del proyecto limpia, toda la documentación oficial se ha modularizado dentro de la carpeta `docs/`. Selecciona la guía que necesites:
+Toda la documentación oficial se encuentra actualizada y modularizada según el rol o enfoque que necesites:
 
 | Rol / Enfoque | Documento | Descripción |
 | --- | --- | --- |
-| 🚀 **Mejoras del Core** | [Resumen de Mejoras (RESUMEN_MEJORAS.md)](./docs/RESUMEN_MEJORAS.md) | Historial detallado de las Fases 1-4 de optimización, seguridad, RLS y mitigación de fallos. |
+| 📊 **Informe Global** | [Informe de Mejoras (INFORME_MEJORAS.md)](./INFORME_MEJORAS.md) | Resumen técnico consolidado de las optimizaciones, refactorizaciones y sistema de analíticas implementado. |
+| 🚀 **Mejoras del Core** | [Resumen de Mejoras (RESUMEN_MEJORAS.md)](./docs/RESUMEN_MEJORAS.md) | Historial y desglose detallado de las Fases 1 a 10 de optimización, seguridad, RLS, cookies de atribución y píxeles. |
 | 🧑‍💻 **Desarrolladores** | [Guía de Desarrollo (DEVELOPMENT_GUIDE.md)](./docs/DEVELOPMENT_GUIDE.md) | Guía de instalación local, estándares de código, uso de React Query y Git Workflow. |
 | 🏗️ **Arquitectos** | [Arquitectura (ARCHITECTURE.md)](./docs/ARCHITECTURE.md) | Topología Serverless, diagrama de flujo técnico (Next.js + Supabase) y estructura de carpetas. |
 | 📈 **Analistas** | [Lógica de Negocio (BUSINESS_LOGIC.md)](./docs/BUSINESS_LOGIC.md) | Diagramas de estado logístico, seguridad Zero-Trust en el carrito y lógica transaccional. |
 | 👷 **Administradores** | [Manual de Uso (USER_MANUAL.md)](./docs/USER_MANUAL.md) | Guía paso a paso sobre cómo gestionar pedidos diarios, envíos Shalom y devoluciones. |
-| ⚙️ **DevOps** | [Integraciones (INTEGRATIONS.md)](./docs/INTEGRATIONS.md) | Variables de entorno necesarias y activación de APIs externas (Google Maps, WhatsApp). |
+| ⚙️ **DevOps** | [Integraciones (INTEGRATIONS.md)](./docs/INTEGRATIONS.md) | Variables de entorno necesarias y activación de APIs externas (Google Maps, WhatsApp, GTM, Píxeles). |
+
 
 ---
 

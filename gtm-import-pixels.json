@@ -1,0 +1,743 @@
+{
+  "exportFormatVersion": 2,
+  "exportTime": "2026-06-25 16:17:55",
+  "containerVersion": {
+    "path": "accounts/6336487505/containers/242018047/workspaces/16",
+    "accountId": "6336487505",
+    "containerId": "242018047",
+    "workspaceId": "16",
+    "container": {
+      "path": "accounts/6336487505/containers/242018047",
+      "accountId": "6336487505",
+      "containerId": "242018047",
+      "name": "www.blama.shop",
+      "publicId": "GTM-PCKTWQM3",
+      "usageContext": [
+        "web"
+      ]
+    },
+    "folder": [
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "folderId": "1",
+        "name": "Meta Pixel"
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "folderId": "2",
+        "name": "TikTok Pixel"
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "folderId": "3",
+        "name": "Atribución"
+      }
+    ],
+    "variable": [
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "variableId": "10",
+        "name": "Cookie - fbclid",
+        "type": "cookie",
+        "parentFolderId": "3",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "name",
+            "value": "blama_fbclid"
+          },
+          {
+            "type": "boolean",
+            "key": "uriDecode",
+            "value": "true"
+          }
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "variableId": "11",
+        "name": "Cookie - ttclid",
+        "type": "cookie",
+        "parentFolderId": "3",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "name",
+            "value": "blama_ttclid"
+          },
+          {
+            "type": "boolean",
+            "key": "uriDecode",
+            "value": "true"
+          }
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "variableId": "12",
+        "name": "Cookie - utm_source",
+        "type": "cookie",
+        "parentFolderId": "3",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "name",
+            "value": "blama_utm_source"
+          },
+          {
+            "type": "boolean",
+            "key": "uriDecode",
+            "value": "true"
+          }
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "variableId": "13",
+        "name": "Cookie - utm_medium",
+        "type": "cookie",
+        "parentFolderId": "3",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "name",
+            "value": "blama_utm_medium"
+          },
+          {
+            "type": "boolean",
+            "key": "uriDecode",
+            "value": "true"
+          }
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "variableId": "14",
+        "name": "Cookie - utm_campaign",
+        "type": "cookie",
+        "parentFolderId": "3",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "name",
+            "value": "blama_utm_campaign"
+          },
+          {
+            "type": "boolean",
+            "key": "uriDecode",
+            "value": "true"
+          }
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "variableId": "15",
+        "name": "ecommerce",
+        "type": "v",
+        "parentFolderId": "3",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "name",
+            "value": "ecommerce"
+          },
+          {
+            "type": "template",
+            "key": "dataLayerVersion",
+            "value": "2"
+          }
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "variableId": "16",
+        "name": "Data Layer - email",
+        "type": "v",
+        "parentFolderId": "3",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "name",
+            "value": "email"
+          },
+          {
+            "type": "template",
+            "key": "dataLayerVersion",
+            "value": "2"
+          }
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "variableId": "17",
+        "name": "Data Layer - phone",
+        "type": "v",
+        "parentFolderId": "3",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "name",
+            "value": "phone"
+          },
+          {
+            "type": "template",
+            "key": "dataLayerVersion",
+            "value": "2"
+          }
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "variableId": "18",
+        "name": "Lookup - ID Meta Pixel",
+        "type": "lookup",
+        "parentFolderId": "1",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "input",
+            "value": "{{Page Hostname}}"
+          },
+          {
+            "type": "boolean",
+            "key": "defaultOnly",
+            "value": "true"
+          },
+          {
+            "type": "template",
+            "key": "defaultValue",
+            "value": "ID_META_PIXEL_PROD_PLACEHOLDER"
+          },
+          {
+            "type": "list",
+            "key": "map",
+            "list": [
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "from",
+                    "value": "localhost"
+                  },
+                  {
+                    "type": "template",
+                    "key": "to",
+                    "value": "986967067666281"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "from",
+                    "value": "www.blama.shop"
+                  },
+                  {
+                    "type": "template",
+                    "key": "to",
+                    "value": "ID_META_PIXEL_PROD_PLACEHOLDER"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "from",
+                    "value": "blama.shop"
+                  },
+                  {
+                    "type": "template",
+                    "key": "to",
+                    "value": "ID_META_PIXEL_PROD_PLACEHOLDER"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "variableId": "19",
+        "name": "Lookup - ID TikTok Pixel",
+        "type": "lookup",
+        "parentFolderId": "2",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "input",
+            "value": "{{Page Hostname}}"
+          },
+          {
+            "type": "boolean",
+            "key": "defaultOnly",
+            "value": "true"
+          },
+          {
+            "type": "template",
+            "key": "defaultValue",
+            "value": "ID_TIKTOK_PIXEL_PROD_PLACEHOLDER"
+          },
+          {
+            "type": "list",
+            "key": "map",
+            "list": [
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "from",
+                    "value": "localhost"
+                  },
+                  {
+                    "type": "template",
+                    "key": "to",
+                    "value": "D8UK603C77U4748KH5LG"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "from",
+                    "value": "www.blama.shop"
+                  },
+                  {
+                    "type": "template",
+                    "key": "to",
+                    "value": "ID_TIKTOK_PIXEL_PROD_PLACEHOLDER"
+                  }
+                ]
+              },
+              {
+                "type": "map",
+                "map": [
+                  {
+                    "type": "template",
+                    "key": "from",
+                    "value": "blama.shop"
+                  },
+                  {
+                    "type": "template",
+                    "key": "to",
+                    "value": "ID_TIKTOK_PIXEL_PROD_PLACEHOLDER"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "trigger": [
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "triggerId": "30",
+        "name": "Trigger - Custom - view_item",
+        "type": "customEvent",
+        "parentFolderId": "3",
+        "customEventFilter": [
+          {
+            "type": "equals",
+            "parameter": [
+              {
+                "type": "template",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "template",
+                "key": "arg1",
+                "value": "view_item"
+              }
+            ]
+          }
+        ],
+        "parameter": [
+          {
+            "type": "template",
+            "key": "eventName",
+            "value": "view_item"
+          }
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "triggerId": "31",
+        "name": "Trigger - Custom - add_to_cart",
+        "type": "customEvent",
+        "parentFolderId": "3",
+        "customEventFilter": [
+          {
+            "type": "equals",
+            "parameter": [
+              {
+                "type": "template",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "template",
+                "key": "arg1",
+                "value": "add_to_cart"
+              }
+            ]
+          }
+        ],
+        "parameter": [
+          {
+            "type": "template",
+            "key": "eventName",
+            "value": "add_to_cart"
+          }
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "triggerId": "32",
+        "name": "Trigger - Custom - begin_checkout",
+        "type": "customEvent",
+        "parentFolderId": "3",
+        "customEventFilter": [
+          {
+            "type": "equals",
+            "parameter": [
+              {
+                "type": "template",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "template",
+                "key": "arg1",
+                "value": "begin_checkout"
+              }
+            ]
+          }
+        ],
+        "parameter": [
+          {
+            "type": "template",
+            "key": "eventName",
+            "value": "begin_checkout"
+          }
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "triggerId": "33",
+        "name": "Trigger - Custom - purchase",
+        "type": "customEvent",
+        "parentFolderId": "3",
+        "customEventFilter": [
+          {
+            "type": "equals",
+            "parameter": [
+              {
+                "type": "template",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "template",
+                "key": "arg1",
+                "value": "purchase"
+              }
+            ]
+          }
+        ],
+        "parameter": [
+          {
+            "type": "template",
+            "key": "eventName",
+            "value": "purchase"
+          }
+        ]
+      }
+    ],
+    "tag": [
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "tagId": "50",
+        "name": "Meta - Base Pixel",
+        "type": "html",
+        "parentFolderId": "1",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "html",
+            "value": "<!-- Meta Pixel Code -->\n<script>\n!function(f,b,e,v,n,t,s)\n{if(f.fbq)return;n=f.fbq=function(){n.callMethod?\nn.callMethod.apply(n,arguments):n.queue.push(arguments)};\nif(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';\nn.queue=[];t=b.createElement(e);t.async=!0;\nt.src=v;s=b.getElementsByTagName(e)[0];\ns.parentNode.insertBefore(t,s)}(window, document,'script',\n'https://connect.facebook.net/en_US/fbevents.js');\nfbq('init', '{{Lookup - ID Meta Pixel}}');\nfbq('track', 'PageView');\n</script>\n<!-- End Meta Pixel Code -->"
+          },
+          {
+            "type": "boolean",
+            "key": "supportDocumentWrite",
+            "value": "false"
+          }
+        ],
+        "firingTriggerId": [
+          "2147479553"
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "tagId": "51",
+        "name": "Meta - Event - ViewContent",
+        "type": "html",
+        "parentFolderId": "1",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "html",
+            "value": "<script>\nif (window.fbq) {\n  var ecommerce = {{ecommerce}} || {};\n  var items = ecommerce.items || [];\n  var firstItem = items[0] || {};\n  fbq('track', 'ViewContent', {\n    content_ids: [String(firstItem.item_id || '')],\n    content_name: String(firstItem.item_name || ''),\n    content_type: 'product',\n    value: Number(ecommerce.value || 0),\n    currency: 'PEN'\n  });\n}\n</script>"
+          },
+          {
+            "type": "boolean",
+            "key": "supportDocumentWrite",
+            "value": "false"
+          }
+        ],
+        "firingTriggerId": [
+          "30"
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "tagId": "52",
+        "name": "Meta - Event - AddToCart",
+        "type": "html",
+        "parentFolderId": "1",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "html",
+            "value": "<script>\nif (window.fbq) {\n  var ecommerce = {{ecommerce}} || {};\n  var items = ecommerce.items || [];\n  var firstItem = items[0] || {};\n  fbq('track', 'AddToCart', {\n    content_ids: [String(firstItem.item_id || '')],\n    content_name: String(firstItem.item_name || ''),\n    content_type: 'product',\n    value: Number(ecommerce.value || 0),\n    currency: 'PEN'\n  });\n}\n</script>"
+          },
+          {
+            "type": "boolean",
+            "key": "supportDocumentWrite",
+            "value": "false"
+          }
+        ],
+        "firingTriggerId": [
+          "31"
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "tagId": "53",
+        "name": "Meta - Event - InitiateCheckout",
+        "type": "html",
+        "parentFolderId": "1",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "html",
+            "value": "<script>\nif (window.fbq) {\n  var ecommerce = {{ecommerce}} || {};\n  var items = ecommerce.items || [];\n  var contentIds = [];\n  for (var i = 0; i < items.length; i++) {\n    contentIds.push(String(items[i].item_id || ''));\n  }\n  fbq('track', 'InitiateCheckout', {\n    content_ids: contentIds,\n    content_type: 'product',\n    value: Number(ecommerce.value || 0),\n    currency: 'PEN'\n  });\n}\n</script>"
+          },
+          {
+            "type": "boolean",
+            "key": "supportDocumentWrite",
+            "value": "false"
+          }
+        ],
+        "firingTriggerId": [
+          "32"
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "tagId": "54",
+        "name": "Meta - Event - Purchase",
+        "type": "html",
+        "parentFolderId": "1",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "html",
+            "value": "<script>\nif (window.fbq) {\n  var ecommerce = {{ecommerce}} || {};\n  var items = ecommerce.items || [];\n  var contentIds = [];\n  for (var i = 0; i < items.length; i++) {\n    contentIds.push(String(items[i].item_id || ''));\n  }\n  \n  var emailVal = '{{Data Layer - email}}' || '';\n  var phoneVal = '{{Data Layer - phone}}' || '';\n  var fbclidVal = '{{Cookie - fbclid}}' || '';\n  \n  var advancedMatching = {};\n  if (emailVal) advancedMatching.em = emailVal.trim().toLowerCase();\n  if (phoneVal) advancedMatching.ph = phoneVal.trim().toLowerCase();\n  if (fbclidVal) advancedMatching.external_id = fbclidVal.trim();\n  \n  fbq('track', 'Purchase', {\n    content_ids: contentIds,\n    content_type: 'product',\n    value: Number(ecommerce.value || 0),\n    currency: 'PEN'\n  }, advancedMatching);\n}\n</script>"
+          },
+          {
+            "type": "boolean",
+            "key": "supportDocumentWrite",
+            "value": "false"
+          }
+        ],
+        "firingTriggerId": [
+          "33"
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "tagId": "55",
+        "name": "TikTok - Base Pixel",
+        "type": "html",
+        "parentFolderId": "2",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "html",
+            "value": "<!-- TikTok Pixel Code Start -->\n<script>\n!function (w, d, t) {\n  w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=[\"page\",\"track\",\"identify\",\"instances\",\"debug\",\"on\",\"off\",\"once\",\"ready\",\"alias\",\"group\",\"enableCookie\",\"disableCookie\",\"clean\"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var e=0;e<ttq.methods.length;e++)ttq.setAndDefer(ttq,ttq.methods[e]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r=\"https://analytics.tiktok.com/i18n/pixel/events.js\",o=n&&n.mix;w[t]._i=w[t]._i||{},w[t]._i[e]=[],w[t]._i[e]._u=r,w[t]._t=w[t]._t||{},w[t]._t[e]=+new Date,w[t]._o=w[t]._o||{},w[t]._o[e]=n||{};var a=d.createElement(\"script\");a.type=\"text/javascript\",a.async=!0,a.src=r;var i=d.getElementsByTagName(\"script\")[0];i.parentNode.insertBefore(a,i);\n  \n  ttq.load('{{Lookup - ID TikTok Pixel}}');\n  ttq.page();\n}(window, document, 'ttq');\n</script>\n<!-- TikTok Pixel Code End -->"
+          },
+          {
+            "type": "boolean",
+            "key": "supportDocumentWrite",
+            "value": "false"
+          }
+        ],
+        "firingTriggerId": [
+          "2147479553"
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "tagId": "56",
+        "name": "TikTok - Event - ViewContent",
+        "type": "html",
+        "parentFolderId": "2",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "html",
+            "value": "<script>\nif (window.ttq) {\n  var ecommerce = {{ecommerce}} || {};\n  var items = ecommerce.items || [];\n  var firstItem = items[0] || {};\n  ttq.track('ViewContent', {\n    contents: [{\n      content_id: String(firstItem.item_id || ''),\n      content_name: String(firstItem.item_name || ''),\n      content_type: 'product',\n      price: Number(firstItem.price || 0),\n      quantity: Number(firstItem.quantity || 1)\n    }],\n    value: Number(ecommerce.value || 0),\n    currency: 'PEN'\n  });\n}\n</script>"
+          },
+          {
+            "type": "boolean",
+            "key": "supportDocumentWrite",
+            "value": "false"
+          }
+        ],
+        "firingTriggerId": [
+          "30"
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "tagId": "57",
+        "name": "TikTok - Event - AddToCart",
+        "type": "html",
+        "parentFolderId": "2",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "html",
+            "value": "<script>\nif (window.ttq) {\n  var ecommerce = {{ecommerce}} || {};\n  var items = ecommerce.items || [];\n  var firstItem = items[0] || {};\n  ttq.track('AddToCart', {\n    contents: [{\n      content_id: String(firstItem.item_id || ''),\n      content_name: String(firstItem.item_name || ''),\n      content_type: 'product',\n      price: Number(firstItem.price || 0),\n      quantity: Number(firstItem.quantity || 1)\n    }],\n    value: Number(ecommerce.value || 0),\n    currency: 'PEN'\n  });\n}\n</script>"
+          },
+          {
+            "type": "boolean",
+            "key": "supportDocumentWrite",
+            "value": "false"
+          }
+        ],
+        "firingTriggerId": [
+          "31"
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "tagId": "58",
+        "name": "TikTok - Event - InitiateCheckout",
+        "type": "html",
+        "parentFolderId": "2",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "html",
+            "value": "<script>\nif (window.ttq) {\n  var ecommerce = {{ecommerce}} || {};\n  var items = ecommerce.items || [];\n  var contents = [];\n  for (var i = 0; i < items.length; i++) {\n    contents.push({\n      content_id: String(items[i].item_id || ''),\n      content_name: String(items[i].item_name || ''),\n      content_type: 'product',\n      price: Number(items[i].price || 0),\n      quantity: Number(items[i].quantity || 1)\n    });\n  }\n  ttq.track('InitiateCheckout', {\n    contents: contents,\n    value: Number(ecommerce.value || 0),\n    currency: 'PEN'\n  });\n}\n</script>"
+          },
+          {
+            "type": "boolean",
+            "key": "supportDocumentWrite",
+            "value": "false"
+          }
+        ],
+        "firingTriggerId": [
+          "32"
+        ]
+      },
+      {
+        "accountId": "6336487505",
+        "containerId": "242018047",
+        "workspaceId": "16",
+        "tagId": "59",
+        "name": "TikTok - Event - CompletePayment",
+        "type": "html",
+        "parentFolderId": "2",
+        "parameter": [
+          {
+            "type": "template",
+            "key": "html",
+            "value": "<script>\nif (window.ttq) {\n  var emailVal = '{{Data Layer - email}}' || '';\n  var phoneVal = '{{Data Layer - phone}}' || '';\n  var ttclidVal = '{{Cookie - ttclid}}' || '';\n  \n  var identity = {};\n  if (emailVal) identity.email = emailVal.trim().toLowerCase();\n  if (phoneVal) identity.phone_number = phoneVal.trim().toLowerCase();\n  if (ttclidVal) identity.external_id = ttclidVal.trim();\n  \n  if (identity.email || identity.phone_number || identity.external_id) {\n    ttq.identify(identity);\n  }\n  \n  var ecommerce = {{ecommerce}} || {};\n  var items = ecommerce.items || [];\n  var contents = [];\n  for (var i = 0; i < items.length; i++) {\n    contents.push({\n      content_id: String(items[i].item_id || ''),\n      content_name: String(items[i].item_name || ''),\n      content_type: 'product',\n      price: Number(items[i].price || 0),\n      quantity: Number(items[i].quantity || 1)\n    });\n  }\n  \n  ttq.track('CompletePayment', {\n    contents: contents,\n    value: Number(ecommerce.value || 0),\n    currency: 'PEN'\n  });\n}\n</script>"
+          },
+          {
+            "type": "boolean",
+            "key": "supportDocumentWrite",
+            "value": "false"
+          }
+        ],
+        "firingTriggerId": [
+          "33"
+        ]
+      }
+    ]
+  }
+}
