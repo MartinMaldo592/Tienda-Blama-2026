@@ -142,7 +142,7 @@ export function ProductosClient({
             <div className="container mx-auto px-6 pb-20">
                 {/* --- CONTROLS BAR --- */}
                 <div className="sticky top-20 z-40 bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-[2rem] p-4 mb-12 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
-                    <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+                    <div className="flex flex-col lg:flex-row gap-4 items-center justify-between" suppressHydrationWarning>
                         {/* Search Field */}
                         <div className="relative w-full lg:max-w-md group">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
