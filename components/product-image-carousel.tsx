@@ -33,7 +33,8 @@ export function ProductImageCarousel({
   priority = false,
   sizes,
   quality = 75,
-  imageFit = "contain",
+  imageFit = "cover",
+
   selectedIndex,
   onIndexChange,
 }: ProductImageCarouselProps) {
