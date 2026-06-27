@@ -118,10 +118,9 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-background`}
       >
-        {/* Polyfill temprano para prevenir ReferenceErrors de fbq/ttq en GTM si no cargan píxeles base */}
+        {/* Polyfill temprano para prevenir ReferenceErrors de ttq en GTM si no carga el píxel base */}
         <Script id="pixel-fallbacks" strategy="beforeInteractive">
           {`
-            window.fbq = window.fbq || function() { (window.fbq.q = window.fbq.q || []).push(arguments); };
             window.ttq = window.ttq || [];
             window.ttq.methods = window.ttq.methods || [];
             window.ttq.instance = window.ttq.instance || function() { return window.ttq; };

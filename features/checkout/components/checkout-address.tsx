@@ -65,7 +65,7 @@ export function CheckoutAddress({
                         id="address"
                         value={addressValue}
                         onChange={(e) => onAddressChange(e.target.value)}
-                        disabled={!addressReady || disabled}
+                        disabled={disabled}
                         placeholder="Escribe tu dirección..."
                         className={cn(
                             "pl-11 pr-10 h-12 bg-background border-border transition-all rounded-lg font-medium text-foreground",

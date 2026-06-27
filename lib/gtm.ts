@@ -20,9 +20,36 @@ type GTMEvent = {
   [key: string]: any;
 };
 
+const recentEvents = new Map<string, number>();
+
 export const sendGTMEvent = (data: GTMEvent) => {
   if (typeof window !== "undefined") {
     const win = window as any;
+    
+    // Evitar que eventos idénticos se disparen múltiples veces en ráfaga (ej: React Strict Mode en dev)
+    try {
+      const eventKey = JSON.stringify(data);
+      const now = Date.now();
+      const lastSent = recentEvents.get(eventKey);
+      
+      if (lastSent && now - lastSent < 500) {
+        console.warn(`[GTM] Ignorando evento duplicado para evitar doble rastreo en píxeles (${data.event})`);
+        return;
+      }
+      recentEvents.set(eventKey, now);
+      
+      // Limpiar mapa periódicamente para prevenir fugas de memoria
+      if (recentEvents.size > 100) {
+        for (const [key, timestamp] of recentEvents.entries()) {
+          if (now - timestamp > 5000) {
+            recentEvents.delete(key);
+          }
+        }
+      }
+    } catch (e) {
+      // Ignorar fallas en la serialización (ej. referencias circulares) y proceder
+    }
+
     win.dataLayer = win.dataLayer || [];
     win.dataLayer.push({ ecommerce: null }); // Limpiar el objeto ecommerce anterior
     win.dataLayer.push(data);
