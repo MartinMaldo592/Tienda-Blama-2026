@@ -43,7 +43,7 @@ export default function ContactoPage() {
                             <Mail className="h-6 w-6" />
                         </div>
                         <CardTitle>Escríbenos</CardTitle>
-                        <CardDescription>Responderemos en 24 horas</CardDescription>
+                        <CardDescription>Atención 24 horas</CardDescription>
                     </CardHeader>
                     <CardContent className="text-center">
                         <p className="font-semibold text-lg">{["soporte", "blamashop.com"].join("@")}</p>
@@ -96,9 +96,9 @@ export default function ContactoPage() {
                             Nuestros asesores de atención al cliente están disponibles a través de WhatsApp para resolver tus dudas sobre envíos, productos y pedidos al instante.
                         </p>
                         <Button asChild className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-base font-bold shadow-md hover:shadow-lg transition-all">
-                            <a 
-                                href={`https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${defaultMessage}`} 
-                                target="_blank" 
+                            <a
+                                href={`https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${defaultMessage}`}
+                                target="_blank"
                                 rel="noopener noreferrer"
                                 onClick={() => {
                                     sendGTMEvent({
