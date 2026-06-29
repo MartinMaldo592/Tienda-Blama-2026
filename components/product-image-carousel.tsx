@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import type { PointerEvent as ReactPointerEvent } from "react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, ImageOff } from "lucide-react"
 
 interface ProductImageCarouselProps {
   images: string[]
@@ -66,6 +66,7 @@ export function ProductImageCarousel({
 
   const [internalIndex, setInternalIndex] = useState(0)
   const [loadedIndices, setLoadedIndices] = useState<number[]>([])
+  const [errorIndices, setErrorIndices] = useState<number[]>([])
 
   // Semi-controlled: use external index if provided, otherwise internal
   const isControlled = selectedIndex !== undefined
@@ -99,6 +100,7 @@ export function ProductImageCarousel({
     setDragX(0)
     setIsDragging(false)
     setLoadedIndices([])
+    setErrorIndices([])
   }, [cleanImages.join("|")])
 
   useEffect(() => {
@@ -258,43 +260,54 @@ export function ProductImageCarousel({
         }}
       >
         {cleanImages.map((src, i) => (
-          <div key={src} className="relative h-full w-full flex-none overflow-hidden">
-            {/* Background Blur for aesthetics - Optimized with Next/Image */}
-            {(i !== 0 || loadedIndices.includes(0)) && (
-              <Image
-                src={src}
-                alt=""
-                fill
-                className="object-cover opacity-30 blur-2xl scale-125 saturate-150 -z-10"
-                sizes="40px"
-                quality={5}
-                aria-hidden="true"
-                draggable={false}
-              />
-            )}
-
-            {!loadedIndices.includes(i) && !(priority && i === 0) && (
-              <div className="absolute inset-0 bg-slate-100 dark:bg-slate-800 animate-pulse z-20 flex items-center justify-center">
-                <div className="absolute inset-0 shimmer opacity-60" />
+          <div key={src} className="relative h-full w-full flex-none overflow-hidden bg-slate-50 dark:bg-slate-950">
+            {errorIndices.includes(i) ? (
+              <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-2.5 p-4 text-center bg-slate-100 dark:bg-slate-900 text-muted-foreground select-none">
+                <div className="p-3 rounded-full bg-slate-200/50 dark:bg-slate-800/50">
+                  <ImageOff className="h-7 w-7 text-muted-foreground/60" />
+                </div>
+                <span className="text-xs font-bold tracking-wide">Imagen no disponible</span>
               </div>
+            ) : (
+              <>
+                {/* Background Blur for aesthetics - Optimized with Next/Image */}
+                {(i !== 0 || loadedIndices.includes(0)) && !errorIndices.includes(0) && (
+                  <Image
+                    src={src}
+                    alt=""
+                    fill
+                    className="object-cover opacity-30 blur-2xl scale-125 saturate-150 -z-10"
+                    sizes="40px"
+                    quality={5}
+                    aria-hidden="true"
+                    draggable={false}
+                  />
+                )}
+
+                {!loadedIndices.includes(i) && (
+                  <div className="absolute inset-0 bg-slate-100 dark:bg-slate-900 animate-pulse z-20 flex items-center justify-center">
+                    <div className="absolute inset-0 shimmer opacity-60" />
+                  </div>
+                )}
+
+                <Image
+                  src={src}
+                  alt={alt}
+                  fill
+                  className={cn(
+                    "absolute inset-0 z-10 transition-opacity duration-300",
+                    imageFit === "cover" ? "object-cover" : "object-contain",
+                    ((priority && i === 0) || loadedIndices.includes(i)) ? "opacity-100" : "opacity-0"
+                  )}
+                  priority={priority && i === 0}
+                  sizes={sizes || "(max-width: 640px) 40vw, (max-width: 1200px) 33vw, 20vw"}
+                  quality={quality}
+                  draggable={false}
+                  onLoad={() => setLoadedIndices((prev) => [...prev, i])}
+                  onError={() => setErrorIndices((prev) => [...prev, i])}
+                />
+              </>
             )}
-
-            <Image
-              src={src}
-              alt={alt}
-              fill
-              className={cn(
-                "absolute inset-0 z-10 transition-opacity duration-300",
-                imageFit === "cover" ? "object-cover" : "object-contain",
-                ((priority && i === 0) || loadedIndices.includes(i)) ? "opacity-100" : "opacity-0"
-              )}
-              priority={priority && i === 0}
-              sizes={sizes || "(max-width: 640px) 40vw, (max-width: 1200px) 33vw, 20vw"}
-              quality={quality}
-              draggable={false}
-              onLoad={() => setLoadedIndices((prev) => [...prev, i])}
-            />
-
           </div>
         ))}
       </div>

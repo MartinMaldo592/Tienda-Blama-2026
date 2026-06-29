@@ -1,3 +1,64 @@
+function compressImageInBrowser(file: File): Promise<File> {
+    return new Promise((resolve) => {
+        const reader = new FileReader()
+        reader.readAsDataURL(file)
+        reader.onload = (event) => {
+            const img = new Image()
+            img.src = event.target?.result as string
+            img.onload = () => {
+                const canvas = document.createElement("canvas")
+                let width = img.width
+                let height = img.height
+                const MAX_WIDTH = 1200
+                const MAX_HEIGHT = 1200
+
+                // Redimensionar manteniendo aspect ratio
+                if (width > height) {
+                    if (width > MAX_WIDTH) {
+                        height = Math.round((height * MAX_WIDTH) / width)
+                        width = MAX_WIDTH
+                    }
+                } else {
+                    if (height > MAX_HEIGHT) {
+                        width = Math.round((width * MAX_HEIGHT) / height)
+                        height = MAX_HEIGHT
+                    }
+                }
+
+                canvas.width = width
+                canvas.height = height
+
+                const ctx = canvas.getContext("2d")
+                if (!ctx) {
+                    resolve(file)
+                    return
+                }
+
+                ctx.drawImage(img, 0, 0, width, height)
+
+                canvas.toBlob(
+                    (blob) => {
+                        if (!blob) {
+                            resolve(file)
+                            return
+                        }
+                        const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name
+                        const compressedFile = new File([blob], `${nameWithoutExt}.webp`, {
+                            type: "image/webp",
+                            lastModified: Date.now(),
+                        })
+                        resolve(compressedFile)
+                    },
+                    "image/webp",
+                    0.82 // Calidad 82% WebP
+                )
+            }
+            img.onerror = () => resolve(file)
+        }
+        reader.onerror = () => resolve(file)
+    })
+}
+
 export function uploadToR2(
     file: File,
     onProgress?: (percent: number, step: string) => void
@@ -6,6 +67,12 @@ export function uploadToR2(
         try {
             const isImage = file.type.startsWith("image/")
             const isVideo = file.type.startsWith("video/")
+
+            let fileToProcess = file
+            if (isImage) {
+                if (onProgress) onProgress(0, "Optimizando imagen en el navegador...")
+                fileToProcess = await compressImageInBrowser(file)
+            }
 
             // Subir directamente si es video o si es un archivo no-imagen pesado.
             // Las imágenes siempre van a través del optimizador sharp.
@@ -71,7 +138,7 @@ export function uploadToR2(
                 if (onProgress) onProgress(0, "Preparando imagen y optimización...")
                 
                 const formData = new FormData()
-                formData.append("file", file)
+                formData.append("file", fileToProcess)
 
                 const xhr = new XMLHttpRequest()
                 xhr.open("POST", "/api/upload-proxy", true)
@@ -110,7 +177,7 @@ export function uploadToR2(
 
                 // Callback cuando el navegador termina de enviar la petición (inicia procesamiento en backend)
                 xhr.upload.onload = () => {
-                    if (onProgress) onProgress(85, "Comprimiendo y optimizando imagen con Sharp en el servidor...")
+                    if (onProgress) onProgress(85, "Procesando subida en el servidor...")
                 }
 
                 xhr.send(formData)
