@@ -28,23 +28,11 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "**.supabase.co",
-        pathname: "/storage/v1/object/public/**",
+        hostname: "**",
       },
       {
-        protocol: "https",
-        hostname: "picsum.photos",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "**.r2.dev",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "assets.blama.shop",
-        pathname: "/**",
+        protocol: "http",
+        hostname: "**",
       },
     ],
   },

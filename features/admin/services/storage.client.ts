@@ -4,11 +4,14 @@ export function uploadToR2(
 ): Promise<string | null> {
     return new Promise(async (resolve) => {
         try {
+            const isImage = file.type.startsWith("image/")
             const isVideo = file.type.startsWith("video/")
-            const isLargeFile = file.size > 4 * 1024 * 1024 // Mayor a 4MB
 
-            // Si es video o es un archivo pesado, subirlo directamente a R2 usando una presigned URL
-            if (isVideo || isLargeFile) {
+            // Subir directamente si es video o si es un archivo no-imagen pesado.
+            // Las imágenes siempre van a través del optimizador sharp.
+            const shouldUploadDirectly = isVideo || (!isImage && file.size > 4 * 1024 * 1024)
+
+            if (shouldUploadDirectly) {
                 if (onProgress) onProgress(0, "Preparando archivo y generando clave de subida...")
                 
                 // 1. Obtener la URL firmada del backend
