@@ -514,51 +514,78 @@ export function MediaManager({
                 </div>
 
                 {videos.length > 0 ? (
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                         {videos.map((url, idx) => (
-                            <div key={`${url}-${idx}`} className="flex items-center gap-3 rounded-lg border bg-card p-3 shadow-sm">
-                                <div className="h-8 w-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold ring-1 ring-slate-200">
-                                    {idx + 1}
+                            <div key={`${url}-${idx}`} className="flex flex-col sm:flex-row items-stretch gap-4 rounded-xl border bg-card p-4 shadow-sm">
+                                {/* Video Preview Player */}
+                                <div className="relative w-full sm:w-48 aspect-video rounded-lg overflow-hidden border bg-black flex-shrink-0">
+                                    <video
+                                        src={url}
+                                        controls
+                                        muted
+                                        playsInline
+                                        className="w-full h-full object-contain"
+                                        preload="metadata"
+                                    />
                                 </div>
 
-                                <div className="min-w-0 flex-1 overflow-hidden">
-                                    <a href={url} target="_blank" rel="noreferrer" className="text-sm font-medium hover:underline truncate block text-blue-600">
-                                        {url.split('/').pop()}
-                                    </a>
-                                </div>
+                                {/* Info & Controls */}
+                                <div className="flex-1 flex flex-col justify-between py-1 min-w-0">
+                                    <div className="space-y-1">
+                                        <span className="text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                                            Video #{idx + 1}
+                                        </span>
+                                        <p className="text-sm font-bold text-foreground truncate block mt-2" title={url.split('/').pop()}>
+                                            {url.split('/').pop()}
+                                        </p>
+                                        <a href={url} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline truncate inline-block">
+                                            Abrir archivo original ↗
+                                        </a>
+                                    </div>
 
-                                <div className="flex items-center gap-1">
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        title="Subir posición"
-                                        onClick={() => moveVideoIndex(idx, idx - 1)}
-                                        disabled={idx === 0}
-                                    >
-                                        <ArrowUp className="h-4 w-4" />
-                                    </Button>
+                                    <div className="flex items-center justify-between mt-4 pt-3 border-t">
+                                        <div className="flex gap-1.5">
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                                size="icon"
+                                                className="h-8 w-8"
+                                                title="Mover arriba"
+                                                onClick={() => moveVideoIndex(idx, idx - 1)}
+                                                disabled={idx === 0}
+                                            >
+                                                <ArrowUp className="h-4 w-4" />
+                                            </Button>
 
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="icon"
-                                        title="Bajar posición"
-                                        onClick={() => moveVideoIndex(idx, idx + 1)}
-                                        disabled={idx === videos.length - 1}
-                                    >
-                                        <ArrowDown className="h-4 w-4" />
-                                    </Button>
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                                size="icon"
+                                                className="h-8 w-8"
+                                                title="Mover abajo"
+                                                onClick={() => moveVideoIndex(idx, idx + 1)}
+                                                disabled={idx === videos.length - 1}
+                                            >
+                                                <ArrowDown className="h-4 w-4" />
+                                            </Button>
+                                        </div>
 
-                                    <Button
-                                        type="button"
-                                        variant="destructive"
-                                        size="icon"
-                                        title="Eliminar video"
-                                        onClick={() => setVideos((prev) => prev.filter((x) => x !== url))}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="sm"
+                                            className="gap-1.5 h-8 px-3"
+                                            title="Eliminar video"
+                                            onClick={() => {
+                                                if (confirm("¿Estás seguro de que deseas eliminar este video permanentemente? Esta acción no se puede deshacer.")) {
+                                                    setVideos((prev) => prev.filter((x) => x !== url))
+                                                }
+                                            }}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                            Eliminar
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         ))}
