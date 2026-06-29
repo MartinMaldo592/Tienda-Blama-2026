@@ -14,91 +14,95 @@ function createAnonServerClient() {
 
 import { unstable_cache } from "next/cache"
 
-export const fetchProductForMeta = unstable_cache(
-    async (identifier: string | number) => {
-        const supabase = createAnonServerClient()
-        if (!supabase) return null
+export async function fetchProductForMeta(identifier: string | number) {
+    return unstable_cache(
+        async () => {
+            const supabase = createAnonServerClient()
+            if (!supabase) return null
 
-        let query = supabase
-            .from("productos")
-            .select("id, nombre, descripcion, imagen_url, imagenes, slug, precio, precio_antes, stock, categorias(nombre)")
-
-        if (typeof identifier === "number") {
-            query = query.eq("id", identifier)
-        } else {
-            query = query.eq("slug", identifier)
-        }
-
-        const { data, error } = await query.maybeSingle()
-        if (error) return null
-        return data
-    },
-    ['product-meta'],
-    { tags: ['products'] }
-)
-
-export const getProductDetailServer = unstable_cache(
-    async (identifier: string | number) => {
-        const supabase = createAnonServerClient()
-        if (!supabase) return { producto: null, variantes: [], especificaciones: [] }
-
-        let producto: ProductWithCategory | null = null
-        let error: any = null
-
-        if (typeof identifier === "number") {
-            const { data, error: err } = await supabase
+            let query = supabase
                 .from("productos")
-                .select(`*, categorias (id, nombre, slug)`)
-                .eq("id", identifier)
-                .maybeSingle()
-            producto = data as ProductWithCategory
-            error = err
-        } else {
-            const { data, error: err } = await supabase
-                .from("productos")
-                .select(`*, categorias (id, nombre, slug)`)
-                .eq("slug", identifier)
-                .maybeSingle()
-            producto = data as ProductWithCategory
-            error = err
-        }
+                .select("id, nombre, descripcion, imagen_url, imagenes, slug, precio, precio_antes, stock, categorias(nombre)")
 
-        if (error || !producto) {
-            console.error("Error fetching product server:", error)
-            return { producto: null, variantes: [], especificaciones: [] }
-        }
+            if (typeof identifier === "number") {
+                query = query.eq("id", identifier)
+            } else {
+                query = query.eq("slug", identifier)
+            }
 
-        const productId = producto.id
+            const { data, error } = await query.maybeSingle()
+            if (error) return null
+            return data
+        },
+        [`product-meta-${identifier}`],
+        { tags: ['products'] }
+    )()
+}
 
-        const [variantsRes, specsRes] = await Promise.all([
-            supabase
-                .from("producto_variantes")
-                .select("*")
-                .eq("producto_id", productId)
-                .eq("activo", true)
-                .order("id", { ascending: true }),
-            supabase
-                .from("producto_especificaciones")
-                .select("*")
-                .eq("producto_id", productId)
-                .order("orden", { ascending: true })
-                .order("id", { ascending: true }),
-        ])
+export async function getProductDetailServer(identifier: string | number) {
+    return unstable_cache(
+        async () => {
+            const supabase = createAnonServerClient()
+            if (!supabase) return { producto: null, variantes: [], especificaciones: [] }
 
-        const variantes = Array.isArray(variantsRes.data) ? (variantsRes.data as ProductVariant[]) : []
-        const especificaciones = Array.isArray(specsRes.data)
-            ? (specsRes.data as ProductSpecification[])
-            : []
+            let producto: ProductWithCategory | null = null
+            let error: any = null
 
-        return {
-            producto,
-            variantes,
-            especificaciones,
-        }
-    },
-    ['product-detail-server'],
-    { tags: ['products'], revalidate: 3600 }
-)
+            if (typeof identifier === "number") {
+                const { data, error: err } = await supabase
+                    .from("productos")
+                    .select(`*, categorias (id, nombre, slug)`)
+                    .eq("id", identifier)
+                    .maybeSingle()
+                producto = data as ProductWithCategory
+                error = err
+            } else {
+                const { data, error: err } = await supabase
+                    .from("productos")
+                    .select(`*, categorias (id, nombre, slug)`)
+                    .eq("slug", identifier)
+                    .maybeSingle()
+                producto = data as ProductWithCategory
+                error = err
+            }
+
+            if (error || !producto) {
+                console.error("Error fetching product server:", error)
+                return { producto: null, variantes: [], especificaciones: [] }
+            }
+
+            const productId = producto.id
+
+            const [variantsRes, specsRes] = await Promise.all([
+                supabase
+                    .from("producto_variantes")
+                    .select("*")
+                    .eq("producto_id", productId)
+                    .eq("activo", true)
+                    .order("id", { ascending: true }),
+                supabase
+                    .from("producto_especificaciones")
+                    .select("*")
+                    .eq("producto_id", productId)
+                    .order("orden", { ascending: true })
+                    .order("id", { ascending: true }),
+            ])
+
+            const variantes = Array.isArray(variantsRes.data) ? (variantsRes.data as ProductVariant[]) : []
+            const especificaciones = Array.isArray(specsRes.data)
+                ? (specsRes.data as ProductSpecification[])
+                : []
+
+            return {
+                producto,
+                variantes,
+                especificaciones,
+            }
+        },
+        [`product-detail-server-${identifier}`],
+        { tags: ['products'], revalidate: 3600 }
+    )()
+}
 
 
 // ... (keep helper functions)
