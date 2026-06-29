@@ -441,19 +441,19 @@ export default function ProductoDetalleClient() {
                                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 shrink-0">
                                         <Truck className="h-4 w-4" />
                                     </div>
-                                    <span className="text-xs font-bold leading-tight">Envío en 24h a Lima</span>
+                                    <span className="text-xs font-bold leading-tight">Recibe el mismo día en Lima</span>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 shrink-0">
                                         <CreditCard className="h-4 w-4" />
                                     </div>
-                                    <span className="text-xs font-bold leading-tight">Pago Contraentrega</span>
+                                    <span className="text-xs font-bold leading-tight">Contraentrega en todo el Perú</span>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 shrink-0">
                                         <RefreshCw className="h-4 w-4" />
                                     </div>
-                                    <span className="text-xs font-bold leading-tight">Cambios / Devoluciones</span>
+                                    <span className="text-xs font-bold leading-tight">Envíos a todo el país</span>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 shrink-0">
