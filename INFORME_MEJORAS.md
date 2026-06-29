@@ -46,8 +46,29 @@ Este documento detalla todas las mejoras técnicas, optimizaciones de código y 
 *   **Advanced Matching (Coincidencia Avanzada):** Envío dinámico de `email` y `phone` al dataLayer en el evento `purchase` (`CompletePayment` y `Purchase` en los píxeles de Meta y TikTok) resolviendo la alerta de falta de parámetros de coincidencia avanzada de TikTok.
 *   **Compatibilidad TikTok WebViews:** Solución al bloqueo de navegación en dispositivos iOS/Android dentro del navegador interno de TikTok mediante el reseteo del estado visible del header y scroll al cambiar de ruta.
 *   **Optimización de Medios & Cloudflare R2:** Migración del almacenamiento de videos y fotos pesadas a Cloudflare R2 con pre-conexión de CDN, implementando una estrategia de doble formato (WebM/MP4) para cargas de video ultra rápidas.
-*   **ISR (Incremental Static Regeneration):** Habilitación de generación estática con `revalidate = 60s` y `generateStaticParams` en `/productos/[id]` y carga diferida de GTM a `lazyOnload` para optimizar el rendimiento y LCP.
+*   **ISR (Incremental Static Regeneration):** Habilitación de generación estática con `revalidate = 60s` and `generateStaticParams` en `/productos/[id]` y carga diferida de GTM a `lazyOnload` para optimizar el rendimiento y LCP.
 *   **Simplificación del Checkout:** Remoción del sub-selector de modalidad de envío en Lima en el checkout y en el modal de compra rápida para una experiencia de usuario sin fricción.
+
+### 6. Optimización de Textos Persuasivos de Conversión
+*   **Banners Dinámicos (Supabase):** Actualización de la tabla `announcement_bar` para rotar anuncios sobre *"Recibe hoy mismo"*, *"Pago Contraentrega"* y *"Soporte por WhatsApp"*.
+*   **Componente BenefitsBar:** Rediseño de textos en [benefits-bar.tsx](./components/benefits-bar.tsx) enfocándose en entregas Express en Lima y envíos a todo el Perú con pago al recibir en casa.
+*   **Insignias de Ficha de Producto:** Cambio de badges informativos en [producto-detalle-client.tsx](./app/productos/[id]/producto-detalle-client.tsx) y en la plantilla [modelo1/client.tsx](./app/productos/[id]/modelo1/client.tsx) para priorizar la entrega en el mismo día y cobertura contraentrega nacional.
+
+### 7. Resiliencia de Imágenes y Compresión en Navegador (Performance)
+*   **Compresión del lado del Cliente:** Creación de la rutina de compresión Canvas en [storage.client.ts](./features/admin/services/storage.client.ts) que convierte imágenes a WebP (82% de calidad) y las redimensiona a un máximo de `1200px` en el navegador del administrador antes de subirse, previniendo fallos de RAM en el servidor y Timeouts por fotos pesadas de celulares.
+*   **Carga Visual Ininterrumpida (Shimmers):** Configuración del componente [product-image-carousel.tsx](./components/product-image-carousel.tsx) para mostrar shimmers persistentes de carga durante la descarga de cualquier imagen (incluyendo la principal con `priority`).
+*   **Manejo de Errores (Fallback UI):** Implementación de la directiva `onError` en el carrusel de imágenes para mostrar un recuadro limpio con el mensaje *"Imagen no disponible"* en lugar del icono roto por defecto del navegador en caso de enlaces externos defectuosos.
+
+### 8. Corrección del Bug de Clave de Caché en Servidor
+*   **Evita Colisión de Catálogo:** Refactorización de las funciones de obtención de datos en [products.server.ts](./features/products/services/products.server.ts) (`fetchProductForMeta` y `getProductDetailServer`). Anteriormente usaban una clave estática `product-detail-server` en `unstable_cache`, lo que habría provocado que al añadir un segundo producto se mezclaran los datos de ambos. Ahora utilizan claves dinámicas indexadas por el identificador del producto (`product-detail-server-${identifier}`).
+
+### 9. Migración a CDN Global de Cloudflare
+*   **Dominio Personalizado de Activos:** Enlace del dominio `https://assets.blama.shop` al bucket de R2.
+*   **Migración de Base de Datos:** Actualización de todas las referencias de imágenes antiguas (`pub-xxx.r2.dev`) al dominio CDN de marca en la base de datos de Supabase.
+*   **Aceleración de Conexión DNS (Preconnect):** Inyección de la etiqueta `<link rel="preconnect" href="https://assets.blama.shop" crossOrigin="anonymous" />` en la plantilla principal [layout.tsx](./app/layout.tsx) para anticipar la resolución DNS en redes móviles.
+
+### 10. Mini-reproductores de Video en Panel de Administración
+*   **Visualización Interactiva:** Modificación del componente [media-manager.tsx](./features/admin/components/product-form/media-manager.tsx) para reemplazar la lista de enlaces de video de texto plano por reproductores de video HTML5 interactivos (`<video controls preload="metadata" />`). Ahora los administradores pueden reproducir, pausar y verificar sus videos directamente en la galería del panel administrativo antes de guardar.
 
 ---
 
@@ -61,4 +82,3 @@ Este documento detalla todas las mejoras técnicas, optimizaciones de código y 
 ## 🚀 Despliegue en Producción
 *   Se han integrado todos los cambios en la rama `develop`.
 *   Se realizó el merge exitoso de la rama `develop` a la rama `main` y se subieron los cambios al repositorio remoto (`origin/main`), lo que acciona de manera automática el pipeline de integración y despliegue continuo en Vercel para actualizar el sitio de producción.
-line de integración y despliegue continuo en Vercel para actualizar el sitio de producción.
