@@ -21,11 +21,9 @@ Esta guía contiene los estándares técnicos, flujos de datos y la arquitectura
 
 ## 🛠️ 2. Tecnologías Clave e Integraciones Recientes
 
-### A. Píxeles de Marketing en Web Workers (Partytown)
-*   **Implementación:** Google Tag Manager (GTM) y sus píxeles asociados (Meta Pixel, TikTok Pixel, Google Analytics) están configurados para correr en un hilo secundario utilizando `@builder.io/partytown`.
-*   **next.config.ts:** Habilitado con la bandera `experimental: { nextScriptWorkers: true }`.
-*   **app/layout.tsx:** GTM se carga con `strategy="worker"` y la cabecera incluye el componente `<Partytown forward={["dataLayer.push"]} />` para el correcto reenvío de eventos.
-*   *Nota para IA:* Si TypeScript arroja un error `TS7016` al importar de `@builder.io/partytown/react`, agrega siempre la directiva `// @ts-ignore` encima del import para suprimir la validación de tipado de esta librería externa.
+### A. Píxeles de Marketing y Google Tag Manager (GTM)
+*   **Estrategia de Carga:** Google Tag Manager (GTM) se carga utilizando la estrategia estándar `strategy="lazyOnload"` en el hilo principal del navegador.
+*   **Nota de Arquitectura (Partytown):** Se evaluó el uso de `@builder.io/partytown` para derivar la ejecución de los píxeles a Web Workers. Sin embargo, se descartó y revirtió debido a que las extensiones de depuración de navegadores (como *Meta Pixel Helper* y *TikTok Pixel Helper*) no pueden auditar ni detectar los píxeles que corren dentro del sandbox del Web Worker (marcando falsos negativos de "Píxel no detectado"), y ciertos scripts de rastreo fallan al requerir acceso directo al DOM de la ventana principal. Por estabilidad y fiabilidad de atribución en campañas publicitarias, GTM debe permanecer en el hilo principal.
 
 ### B. Almacenamiento y CDN de Imágenes (Cloudflare R2)
 *   **Servidor CDN:** Las imágenes se sirven en producción bajo el dominio personalizado de marca: `https://assets.blama.shop`.
