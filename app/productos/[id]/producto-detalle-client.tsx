@@ -112,6 +112,11 @@ export default function ProductoDetalleClient({
     } = useProductDetail(initialProduct, initialVariants, initialSpecs)
 
     const [activeTab, setActiveTab] = useState<string>("")
+    const [loadedThumbs, setLoadedThumbs] = useState<number[]>([])
+
+    useEffect(() => {
+        setLoadedThumbs([])
+    }, [images])
 
     useEffect(() => {
         // Preload checkout modal chunk in the background 1.5s after mount to make checkout instant
@@ -352,13 +357,21 @@ export default function ProductoDetalleClient({
                                             : 'border-transparent opacity-60 hover:opacity-90 hover:border-border'
                                     }`}
                                 >
+                                    {!loadedThumbs.includes(i) && (
+                                        <div className="absolute inset-0 bg-slate-100 dark:bg-slate-900 animate-pulse z-20 flex items-center justify-center">
+                                            <div className="absolute inset-0 shimmer opacity-60" />
+                                        </div>
+                                    )}
                                     <Image
                                         src={src}
                                         alt={`Miniatura ${i + 1}`}
                                         fill
-                                        className="object-cover"
+                                        className={`object-cover transition-opacity duration-300 ${
+                                            loadedThumbs.includes(i) ? "opacity-100" : "opacity-0"
+                                        }`}
                                         sizes="(max-width: 768px) 25vw, 96px"
                                         quality={60}
+                                        onLoad={() => setLoadedThumbs((prev) => [...prev, i])}
                                     />
                                 </button>
                             ))}
