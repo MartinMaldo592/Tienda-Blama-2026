@@ -25,7 +25,7 @@ export function QuickCustomer({ name, setName, phone, setPhone, dni, setDni, ema
     const [showDni, setShowDni] = useState(dni.length > 0)
     const isNameValid = name.length >= 2
     const isDniValid = dni.length === 8
-    const isPhoneValid = phone.replace(/\D/g, '').length === 9 && phone.startsWith('9')
+    const isPhoneValid = phone.replace(/\D/g, '').length === 9 && phone.replace(/\D/g, '').startsWith('9')
     const isEmailValid = email.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
     return (
@@ -81,15 +81,17 @@ export function QuickCustomer({ name, setName, phone, setPhone, dni, setDni, ema
                         </div>
                         <Input
                             required
-                            placeholder="9 dígitos"
-                            minLength={9}
-                            maxLength={9}
+                            placeholder="999 999 999"
+                            maxLength={11}
                             inputMode="numeric"
-                            pattern="[0-9]*"
                             value={phone}
                             onChange={(e) => {
-                                const raw = e.target.value.replace(/\D/g, '').slice(0, 9)
-                                setPhone(raw)
+                                const clean = e.target.value.replace(/\D/g, '').slice(0, 9);
+                                let formatted = "";
+                                if (clean.length > 0) formatted += clean.slice(0, 3);
+                                if (clean.length > 3) formatted += " " + clean.slice(3, 6);
+                                if (clean.length > 6) formatted += " " + clean.slice(6, 9);
+                                setPhone(formatted);
                             }}
                             disabled={disabled}
                             className={cn(

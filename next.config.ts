@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
     "192.168.0.19",
     "10.169.2.51"
   ],
+  experimental: {
+    nextScriptWorkers: true,
+  },
   async redirects() {
     return [
       {

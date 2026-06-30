@@ -25,7 +25,8 @@ export function CheckoutCustomer({
             return value && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && !errors[name]
         }
         if (name === 'phone') {
-            return value && value.replace(/\D/g, '').length === 9 && value.startsWith('9') && !errors[name]
+            const cleanVal = (value || "").replace(/\D/g, '')
+            return cleanVal.length === 9 && cleanVal.startsWith('9') && !errors[name]
         }
         return value && value.length >= (name === 'dni' ? 8 : 3) && !errors[name]
     }
@@ -79,9 +80,8 @@ export function CheckoutCustomer({
                             id="phone"
                             type="tel"
                             inputMode="numeric"
-                            pattern="[0-9]*"
-                            maxLength={9}
-                            placeholder="9 dígitos"
+                            maxLength={11}
+                            placeholder="999 999 999"
                             disabled={disabled}
                             className={cn(
                                 "pl-11 pr-10 h-12 bg-background border-border transition-all rounded-lg font-medium text-foreground",
@@ -89,7 +89,12 @@ export function CheckoutCustomer({
                             )}
                             {...register("phone", {
                                 onChange: (e: any) => {
-                                    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 9);
+                                    const clean = e.target.value.replace(/\D/g, '').slice(0, 9);
+                                    let formatted = "";
+                                    if (clean.length > 0) formatted += clean.slice(0, 3);
+                                    if (clean.length > 3) formatted += " " + clean.slice(3, 6);
+                                    if (clean.length > 6) formatted += " " + clean.slice(6, 9);
+                                    e.target.value = formatted;
                                 }
                             })}
                         />

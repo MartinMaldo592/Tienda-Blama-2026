@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+// @ts-ignore
+import { Partytown } from "@builder.io/partytown/react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { LayoutShell } from "@/components/layout-shell";
@@ -117,6 +119,7 @@ export default async function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://assets.blama.shop" crossOrigin="anonymous" />
+        <Partytown debug={false} forward={["dataLayer.push"]} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-background`}
@@ -146,7 +149,7 @@ export default async function RootLayout({
           shadow="0 0 10px #1e3a8a,0 0 5px #1e3a8a"
         />
 
-        <Script id="gtm-script" strategy="lazyOnload">
+        <Script id="gtm-script" strategy="worker">
           {`
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
             new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],

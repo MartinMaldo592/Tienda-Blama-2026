@@ -23,11 +23,13 @@ export const identitySchema = {
         .max(15, "Máximo 15 caracteres")
         .regex(/^[a-zA-Z0-9]+$/, "Solo números y letras, sin guiones ni espacios"),
 
-    // Debe empezar estrictamente con 9 y tener entre 9 y 15 dígitos
     phone: z.string()
-        .min(9, "Mínimo 9 dígitos")
-        .max(15, "Teléfono demasiado largo")
-        .regex(/^9[0-9\s]+$/, "El celular debe empezar con 9"),
+        .refine((val) => {
+            const clean = val.replace(/\D/g, "")
+            return clean.length === 9 && clean.startsWith("9")
+        }, {
+            message: "El celular debe tener exactamente 9 dígitos y empezar con 9"
+        }),
 
     // Email opcional
     email: z.string()
