@@ -279,8 +279,8 @@ export function useCheckoutForm({ items, total, onComplete, onCompleteCulqi }: U
         return {
             name: data.name,
             phone: normalizedPhone,
-            dni: normalizedDni,
-            email: data.email?.trim() || undefined,
+            dni: normalizedDni || "00000000",
+            email: data.email?.trim() || "cliente@blama.shop",
             address: addressForApi,
             street: streetForApi,
             province: data.province,
@@ -348,8 +348,9 @@ export function useCheckoutForm({ items, total, onComplete, onCompleteCulqi }: U
 
             sendGTMEvent({
                 event: 'purchase',
-                email: payload.email || undefined,
+                email: (payload.email || "").trim() || "cliente@blama.shop",
                 phone: payload.phone || undefined,
+                dni: (payload.dni || "").trim() || "00000000",
                 ecommerce: {
                     transaction_id: orderIdFormatted,
                     value: payload.total,
@@ -421,6 +422,9 @@ export function useCheckoutForm({ items, total, onComplete, onCompleteCulqi }: U
 
             sendGTMEvent({
                 event: 'purchase',
+                email: (payload.email || "").trim() || "cliente@blama.shop",
+                phone: payload.phone || undefined,
+                dni: (payload.dni || "").trim() || "00000000",
                 ecommerce: {
                     transaction_id: orderIdFormatted,
                     value: payload.total,

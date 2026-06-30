@@ -566,8 +566,8 @@ function QuickForm({
             const { orderId } = await createCheckoutOrder({
                 name,
                 phone: phoneClean,
-                dni: dniClean,
-                email: email.trim() || undefined,
+                dni: dniClean || "00000000",
+                email: email.trim() || "cliente@blama.shop",
                 address: fullAddress,
                 department, // Department
                 provinceName: province, // Province
@@ -585,7 +585,7 @@ function QuickForm({
 
             sendGTMEvent({
                 event: 'purchase',
-                email: email.trim() || undefined,
+                email: email.trim() || "cliente@blama.shop",
                 phone: phoneClean || undefined,
                 ecommerce: {
                     transaction_id: orderIdFormatted,
