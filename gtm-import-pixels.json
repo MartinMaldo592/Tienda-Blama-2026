@@ -307,7 +307,7 @@
           {
             "type": "template",
             "key": "defaultValue",
-            "value": "ID_TIKTOK_PIXEL_PROD_PLACEHOLDER"
+            "value": "D922UFRC77U4748KJP2G"
           },
           {
             "type": "list",
@@ -339,7 +339,7 @@
                   {
                     "type": "template",
                     "key": "to",
-                    "value": "ID_TIKTOK_PIXEL_PROD_PLACEHOLDER"
+                    "value": "D922UFRC77U4748KJP2G"
                   }
                 ]
               },
@@ -354,7 +354,7 @@
                   {
                     "type": "template",
                     "key": "to",
-                    "value": "ID_TIKTOK_PIXEL_PROD_PLACEHOLDER"
+                    "value": "D922UFRC77U4748KJP2G"
                   }
                 ]
               }
