@@ -47,6 +47,11 @@ const nextConfig: NextConfig = {
         hostname: "assets.blama.shop",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**",
+      },
     ],
   },
   async headers() {

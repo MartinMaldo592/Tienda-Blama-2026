@@ -6,6 +6,7 @@ import { Flame } from "lucide-react"
 import { formatCurrency, slugify } from "@/lib/utils"
 import { Database } from "@/types/database.types"
 import { useEffect, useState } from "react"
+import { cloudinaryLoader } from "@/lib/cloudinary"
 
 type Product = Database['public']['Tables']['productos']['Row']
 
@@ -78,6 +79,7 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
                                 src={fallbackImages[0]}
                                 alt={product.nombre}
                                 fill
+                                loader={cloudinaryLoader}
                                 className={`object-cover transition-opacity duration-300 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
                                 priority={imagePriority}
                                 sizes="(max-width: 640px) 40vw, (max-width: 1200px) 33vw, 20vw"

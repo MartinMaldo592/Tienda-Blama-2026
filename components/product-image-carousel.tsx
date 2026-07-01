@@ -5,6 +5,7 @@ import type { PointerEvent as ReactPointerEvent } from "react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { ChevronLeft, ChevronRight, ImageOff } from "lucide-react"
+import { cloudinaryLoader } from "@/lib/cloudinary"
 
 interface ProductImageCarouselProps {
   images: string[]
@@ -294,6 +295,7 @@ export function ProductImageCarousel({
                   src={src}
                   alt={alt}
                   fill
+                  loader={cloudinaryLoader}
                   className={cn(
                     "absolute inset-0 z-10 transition-opacity duration-300",
                     imageFit === "cover" ? "object-cover" : "object-contain",

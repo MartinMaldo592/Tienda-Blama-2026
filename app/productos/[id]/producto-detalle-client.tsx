@@ -41,6 +41,7 @@ import { ProductCard } from "@/components/product-card"
 import { ProductSocialProof } from "@/components/product-social-proof"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import dynamic from "next/dynamic"
+import { cloudinaryLoader } from "@/lib/cloudinary"
 
 const QuickCheckoutModal = dynamic(() => import("@/features/checkout/components/quick-checkout-modal").then(mod => mod.QuickCheckoutModal), {
     ssr: false
@@ -366,6 +367,7 @@ export default function ProductoDetalleClient({
                                         src={src}
                                         alt={`Miniatura ${i + 1}`}
                                         fill
+                                        loader={cloudinaryLoader}
                                         className={`object-cover transition-opacity duration-300 ${
                                             loadedThumbs.includes(i) ? "opacity-100" : "opacity-0"
                                         }`}
