@@ -66,7 +66,7 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
 
 
             {/* --- IMAGE SECTION --- */}
-            <Link href={productHref} prefetch={false} className="relative block w-full aspect-[4/5] bg-slate-100 dark:bg-slate-900 overflow-hidden">
+            <Link href={productHref} prefetch={false} className="relative block w-full aspect-[3/4] bg-slate-100 dark:bg-slate-900 overflow-hidden">
                 <div className="w-full h-full transition-transform duration-500 group-hover:scale-105">
                     {fallbackImages.length > 0 ? (
                         <>
