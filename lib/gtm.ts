@@ -26,6 +26,18 @@ export const sendGTMEvent = (data: GTMEvent) => {
   if (typeof window !== "undefined") {
     const win = window as any;
     
+    // Normalizar número telefónico a formato E.164 requerido por Meta Pixel y TikTok Pixel
+    if (data.phone) {
+      const clean = String(data.phone).replace(/\D/g, "");
+      if (clean.length === 9 && clean.startsWith("9")) {
+        data.phone = `+51${clean}`;
+      } else if (clean.startsWith("51") && clean.length === 11) {
+        data.phone = `+${clean}`;
+      } else if (clean.length > 0) {
+        data.phone = String(data.phone).startsWith("+") ? data.phone : `+${clean}`;
+      }
+    }
+    
     // Evitar que eventos idénticos se disparen múltiples veces en ráfaga (ej: React Strict Mode en dev)
     try {
       const eventKey = JSON.stringify(data);
