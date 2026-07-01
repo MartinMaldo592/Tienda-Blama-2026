@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
                 // Comprimir, redimensionar a un máx de 1200px y convertir a WebP (calidad 80)
                 const processed = await sharp(buffer)
                     .resize({ width: 1200, height: 1200, fit: "inside", withoutEnlargement: true })
-                    .webp({ quality: 80 })
+                    .webp({ quality: 95 })
                     .toBuffer()
                 
                 buffer = processed
