@@ -308,7 +308,7 @@ export function ProductImageCarousel({
                       return [...prev, i];
                   })}
                   ref={(img) => {
-                      if (img && img.complete) {
+                      if (img && img.complete && !loadedIndices.includes(i)) {
                           setLoadedIndices((prev) => {
                               if (prev.includes(i)) return prev;
                               return [...prev, i];

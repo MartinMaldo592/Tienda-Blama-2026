@@ -84,7 +84,7 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
                                 quality={75}
                                 onLoad={() => setImageLoading(false)}
                                 ref={(img) => {
-                                    if (img && img.complete) {
+                                    if (img && img.complete && imageLoading) {
                                         setImageLoading(false);
                                     }
                                 }}

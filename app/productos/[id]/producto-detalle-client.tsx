@@ -376,7 +376,7 @@ export default function ProductoDetalleClient({
                                             return [...prev, i];
                                         })}
                                         ref={(img) => {
-                                            if (img && img.complete) {
+                                            if (img && img.complete && !loadedThumbs.includes(i)) {
                                                 setLoadedThumbs((prev) => {
                                                     if (prev.includes(i)) return prev;
                                                     return [...prev, i];
