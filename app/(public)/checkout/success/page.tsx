@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
+import { cloudinaryLoader } from "@/lib/cloudinary"
 import { Button } from "@/components/ui/button"
 import { ShoppingBag, MessageCircle, Package, Truck, CheckCircle2, Clock, MapPin, User } from "lucide-react"
 import React, { useEffect, useState, useRef } from "react"
@@ -417,6 +418,7 @@ export default function SuccessPage({
                                             src={item.imagen_url}
                                             alt={item.producto_nombre}
                                             fill
+                                            loader={cloudinaryLoader}
                                             className="object-cover"
                                             sizes="56px"
                                         />

@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import { cloudinaryLoader } from "@/lib/cloudinary"
 import { useCartAnimationStore } from "@/features/cart/cart-animation"
 import { Button } from "@/components/ui/button"
 import { ShoppingCart, Trash2, Plus, Minus, Image as ImageIcon } from "lucide-react"
@@ -272,6 +273,7 @@ export function CartButton() {
                                                         src={item.imagen_url}
                                                         alt={item.nombre}
                                                         fill
+                                                        loader={cloudinaryLoader}
                                                         className="object-cover"
                                                         sizes="80px"
                                                     />

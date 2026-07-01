@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import { cloudinaryLoader } from "@/lib/cloudinary"
 import { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams, usePathname } from "next/navigation"
@@ -156,7 +157,7 @@ export default function ProductosPage() {
                                     <TableCell className="pl-8">
                                         <div className="relative h-14 w-14 bg-slate-100 rounded-2xl overflow-hidden shadow-inner group-hover:shadow-md transition-all duration-500">
                                             {producto.imagen_url ? (
-                                                <Image src={producto.imagen_url} alt={producto.nombre} fill className="object-cover transition-transform duration-700 group-hover:scale-110" sizes="56px" />
+                                                <Image src={producto.imagen_url} alt={producto.nombre} fill loader={cloudinaryLoader} className="object-cover transition-transform duration-700 group-hover:scale-110" sizes="56px" />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center"><ImageIcon className="h-5 w-5 text-slate-300"/></div>
                                             )}

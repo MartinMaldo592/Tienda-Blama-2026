@@ -1,4 +1,5 @@
 import Image from "next/image"
+import { cloudinaryLoader } from "@/lib/cloudinary"
 import { ShoppingBagIcon, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { formatCurrency } from "@/lib/utils"
@@ -28,6 +29,7 @@ export function OrderItemsCard({ items, pedido, isLocked, displayedShippingMetho
                                     src={item.productos.imagen_url}
                                     alt={item.productos.nombre || "Producto"}
                                     fill
+                                    loader={cloudinaryLoader}
                                     className="object-cover group-hover:scale-110 transition-transform duration-700"
                                     sizes="80px"
                                 />

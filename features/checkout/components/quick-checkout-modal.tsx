@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation"
 import { SuccessCheckmark } from "@/components/ui/success-checkmark"
 
 import Image from "next/image"
+import { cloudinaryLoader } from "@/lib/cloudinary"
 import { toast } from "sonner"
 import { useState, useEffect, useRef } from "react"
 import usePlacesAutocomplete from "use-places-autocomplete"
@@ -184,6 +185,7 @@ export function QuickCheckoutModal({ isOpen, onClose, product, variant, initialQ
                                     src={product.imagen_url}
                                     alt={product.nombre}
                                     fill
+                                    loader={cloudinaryLoader}
                                     className="object-contain"
                                     sizes="64px"
                                 />

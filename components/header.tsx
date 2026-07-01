@@ -21,6 +21,7 @@ import { PeruFlag } from "@/components/ui/peru-flag"
 import { getAutocompleteResults } from "@/features/products/services/products.client"
 import { formatCurrency, slugify } from "@/lib/utils"
 import Image from "next/image"
+import { cloudinaryLoader } from "@/lib/cloudinary"
 
 export function Header() {
     const pathname = usePathname()
@@ -274,6 +275,7 @@ export function Header() {
                                                                 src={pImgSrc}
                                                                 alt={p.nombre}
                                                                 fill
+                                                                loader={cloudinaryLoader}
                                                                 className="object-cover group-hover:scale-105 transition-transform duration-200 animate-in fade-in"
                                                                 sizes="48px"
                                                                 quality={50}

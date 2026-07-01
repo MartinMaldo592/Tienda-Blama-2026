@@ -277,6 +277,7 @@ export function ProductImageCarousel({
                     src={src}
                     alt=""
                     fill
+                    loader={cloudinaryLoader}
                     className="object-cover opacity-30 blur-2xl scale-125 saturate-150 -z-10"
                     sizes="40px"
                     quality={5}

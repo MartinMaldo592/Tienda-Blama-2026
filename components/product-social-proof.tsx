@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import { cloudinaryLoader } from "@/lib/cloudinary"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase.client"
 import { Card, CardContent } from "@/components/ui/card"
@@ -258,6 +259,7 @@ export function ProductSocialProof({ productId, section = 'all' }: { productId: 
                           alt="Foto del cliente"
                           width={80}
                           height={80}
+                          loader={cloudinaryLoader}
                           className="h-20 w-20 rounded-lg border object-cover"
                           style={{ minWidth: "80px" }}
                         />
