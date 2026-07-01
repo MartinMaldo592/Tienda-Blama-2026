@@ -59,28 +59,48 @@ const GTM_SCOPES = [
 *   **GTM Public ID:** `GTM-PCKTWQM3`
 *   **GTM Account ID:** `6336487505`
 *   **GTM Container ID:** `242018047`
-*   **Espacio de Trabajo (Workspace):** `Default Workspace` (el script debe buscarlo de forma dinámica por nombre para evitar problemas si se recrean IDs de workspace).
+
+### Variables de la Capa de Datos (Data Layer Variables) en GTM:
+Cuando construyas Custom HTML tags, asegúrate de referenciar las variables del contenedor por sus nombres exactos. En el contenedor en vivo, se llaman:
+*   `{{dlv - email}}` (Variable de Capa de Datos para el correo electrónico del cliente)
+*   `{{dlv - phone}}` (Variable de Capa de Datos para el celular del cliente)
+*   `{{ecommerce}}` (Objeto principal de comercio electrónico estándar de GA4)
 
 ### Variables Clave de Redirección (Lookup Tables):
 El contenedor utiliza variables de tipo *Lookup Table* basadas en el hostname del navegador (`{{Page Hostname}}`) para dirigir los datos:
-*   **`Lookup - ID Meta Pixel`:**
+*   **`Lookup - ID Meta Pixel`** (ID de Variable GTM: **61**):
     *   `localhost` $\rightarrow$ `986967067666281` (Desarrollo/Pruebas)
     *   `blama.shop` / `www.blama.shop` $\rightarrow$ `4026169770853490` (Producción Real)
-*   **`Lookup - ID TikTok Pixel`:**
+*   **`Lookup - ID TikTok Pixel`** (ID de Variable GTM: **62**):
     *   `localhost` $\rightarrow$ `D8UK603C77U4748KH5LG` (Desarrollo/Pruebas)
-    *   `blama.shop` / `www.blama.shop` $\rightarrow$ ID de producción asignado.
+    *   `blama.shop` / `www.blama.shop` $\rightarrow$ `D922UFRC77U4748KJP2G` (Producción Real)
 
-### Etiquetas de Google Analytics 4 (GA4):
-*   `GA4 Config` (Etiqueta de tipo Google Tag) $\rightarrow$ ID de medición: `G-6CN78M9MQM`
-*   Etiquetas de eventos (`GA4 Event - view_item`, `add_to_cart`, `begin_checkout`, `purchase`, `Click WhatsApp`) $\rightarrow$ Parámetro `measurementIdOverride`: `G-6CN78M9MQM`
+### Etiquetas Clave en el Contenedor (Tags):
+*   **`Meta - Event - Purchase`** (ID de Tag GTM: **70**): Custom HTML Tag que dispara el píxel de compra de Meta Ads.
+*   **`TikTok - Event - Purchase`** (ID de Tag GTM: **74**): Custom HTML Tag que dispara el píxel de compra de TikTok Ads.
+*   **`GA4 Config`** (ID de Tag GTM: **45**): Etiqueta de configuración global de Google Analytics 4 (`G-6CN78M9MQM`).
 
 ---
 
-## 5. Solución de Conflictos en GTM (Merge Conflicts)
+## 5. ⚠️ Lecciones Aprendidas y Diagnóstico de Errores (Crítico para IA)
 
+### A. Falso Negativo de Permisos (Fallo de Compilación 403)
+*   **El Problema:** Al intentar crear una versión (`create_version`) o publicar (`publish`), la API de GTM puede arrojar un error genérico `Not found or permission denied` (403 Forbidden).
+*   **La Causa Real:** Este error a menudo **NO** es por falta de permisos. GTM arroja este mismo error si el espacio de trabajo tiene **errores de compilación o validación** (por ejemplo, si una etiqueta Custom HTML hace referencia a una variable inexistente como `{{Data Layer - phone}}` en lugar de `{{dlv - phone}}`).
+*   **Solución:** Revisa siempre el estado del espacio de trabajo con `getStatus()` y asegúrate de que todas las variables referenciadas en tus tags existan en el contenedor antes de crear la versión.
+
+### B. Evitar IDs de Workspace Hardcodeados
+*   **El Problema:** El ID de los espacios de trabajo en GTM cambia de forma dinámica (por ejemplo, de `25` a `26`) cada vez que se crea y publica una versión de contenedor, ya que GTM regenera el `Default Workspace`.
+*   **Solución:** Los scripts siempre deben buscar el workspace por su nombre (`Default Workspace`) de manera dinámica:
+    ```javascript
+    const workspacesResponse = await tagmanager.accounts.containers.workspaces.list({ parent: ... });
+    const workspace = workspacesResponse.data.workspace.find(w => w.name === 'Default Workspace');
+    ```
+
+### C. Solución de Conflictos en GTM (Merge Conflicts)
 Si al intentar actualizar la API devuelve errores de conflicto (debido a que se han hecho cambios manuales fuera de sincronización con la versión activa), la estrategia de recuperación automática recomendada es:
 1.  Crear un espacio de trabajo temporal `TempWorkspace`.
 2.  Eliminar el `Default Workspace` en conflicto.
 3.  Volver a crear el `Default Workspace` limpio (esto lo sincroniza automáticamente y al 100% con la última versión publicada en producción, resolviendo todo conflicto).
 4.  Eliminar `TempWorkspace`.
-5.  Re-aplicar las variables y etiquetas mediante el script utilizando los IDs definidos en esta guía.
+5.  Re-aplicar las variables y etiquetas mediante el script utilizando los nombres unificados.
