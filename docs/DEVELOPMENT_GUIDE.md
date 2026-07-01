@@ -25,13 +25,23 @@ Esta guía contiene los estándares técnicos, flujos de datos y la arquitectura
 *   **Estrategia de Carga:** Google Tag Manager (GTM) se carga utilizando la estrategia estándar `strategy="lazyOnload"` en el hilo principal del navegador.
 *   **Nota de Arquitectura (Partytown):** Se evaluó el uso de `@builder.io/partytown` para derivar la ejecución de los píxeles a Web Workers. Sin embargo, se descartó y revirtió debido a que las extensiones de depuración de navegadores (como *Meta Pixel Helper* y *TikTok Pixel Helper*) no pueden auditar ni detectar los píxeles que corren dentro del sandbox del Web Worker (marcando falsos negativos de "Píxel no detectado"), y ciertos scripts de rastreo fallan al requerir acceso directo al DOM de la ventana principal. Por estabilidad y fiabilidad de atribución en campañas publicitarias, GTM debe permanecer en el hilo principal.
 
-### B. Almacenamiento y CDN de Imágenes (Cloudflare R2)
-*   **Servidor CDN:** Las imágenes se sirven en producción bajo el dominio personalizado de marca: `https://assets.blama.shop`.
-*   **Pre-conexión:** [layout.tsx](./app/layout.tsx) incluye `<link rel="preconnect" href="https://assets.blama.shop" crossOrigin="anonymous" />` para agilizar la resolución DNS en redes móviles.
-*   **Compresión en el Cliente:** Antes de subir cualquier imagen en el panel administrativo, [storage.client.ts](./features/admin/services/storage.client.ts) realiza una pre-compresión mediante un Canvas HTML5 a formato **WebP (82% de calidad)** y redimensiona a un máximo de `1200px` de ancho, previniendo fallos de memoria en el servidor.
-*   **Experiencia de Carga (UX):** Los carruseles e imágenes de la tienda muestran skeletons/shimmers animados durante la descarga y cuentan con una directiva `onError` que carga un fallback limpio si el enlace del proveedor falla.
+### B. Almacenamiento y CDN de Imágenes (Cloudflare R2 + Cloudinary Fetch)
+*   **Almacenamiento (Origen):** Las imágenes originales se almacenan en **Cloudflare R2** y se sincronizan bajo el dominio `https://assets.blama.shop`.
+*   **Entrega y Optimización (Cloudinary Fetch):** Para el cliente final, las imágenes se sirven a través del CDN de Cloudinary utilizando la tecnología de *Fetch* (sin necesidad de subir imágenes directamente a Cloudinary). La URL final se compone así:
+    `https://res.cloudinary.com/<cloud_name>/image/fetch/f_auto,q_auto,w_<width>/https://assets.blama.shop/<file>`
+*   **Next.js Loader:** El helper central [lib/cloudinary.ts](./lib/cloudinary.ts) provee el `cloudinaryLoader` que intercepta las peticiones de los componentes `<Image>` públicos para automatizar:
+    *   **f_auto:** Conversión automática a formatos modernos súper ligeros (AVIF o WebP) según el soporte del navegador del usuario.
+    *   **q_auto:** Compresión inteligente que reduce el peso visual en un 40-70% sin pérdidas perceptibles.
+    *   **w_width:** Redimensionamiento exacto basado en el viewport del dispositivo (móvil, tablet, desktop).
+*   **Compresión en el Servidor (Sharp):** Durante la subida en el panel admin [route.ts](./app/api/upload-proxy/route.ts), el servidor procesa el archivo a formato **WebP con calidad del 95%** y un tamaño máximo de `1200px` (fidelidad ultra-alta). Esto sirve como "máster" de excelente calidad para que luego Cloudinary genere sus variantes.
+*   **Experiencia de Carga (UX):** Los carruseles e imágenes muestran skeletons/shimmers animados durante la descarga y cuentan con refs de carga completada (`img.complete` en un callback ref) que resuelven problemas de visibilidad en imágenes cacheadas por navegadores internos.
 
-### C. Estrategia de Caché del Servidor (Next.js unstable_cache)
+### C. Navegación en Webviews e In-App Browsers (TikTok/Instagram/Facebook)
+*   **Enrutamiento SPA:** La navegación en el catálogo principal utiliza el componente de Next.js `<Link>` con enrutamiento del lado del cliente (`history.pushState`). 
+*   **Prevención de Advertencias de Seguridad:** No uses etiquetas nativas `<a>` para redirecciones internas en páginas públicas, ya que los sandboxes estrictos (especialmente el navegador interno de **TikTok**) detectan la recarga de página a nivel de navegador e interrumpen la navegación mostrando alertas de seguridad ("abre este enlace en el navegador").
+*   **Estabilidad en Transiciones:** Cualquier error de congelamiento de pantalla durante el enrutamiento se previene mediante la protección y sanitización en los callbacks `ref` de las imágenes (evitando bucles infinitos de actualización de estado).
+
+### D. Estrategia de Caché del Servidor (Next.js unstable_cache)
 *   *Importante:* En [products.server.ts](./features/products/services/products.server.ts), las funciones de obtención de datos del producto (`fetchProductForMeta` y `getProductDetailServer`) utilizan claves de caché dinámicas compuestas:
     ```typescript
     [`product-detail-server-${identifier}`]
