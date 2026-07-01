@@ -81,17 +81,16 @@ export function QuickCustomer({ name, setName, phone, setPhone, dni, setDni, ema
                         </div>
                         <Input
                             required
-                            placeholder="999 999 999"
-                            maxLength={11}
+                            placeholder="987654321"
+                            maxLength={9}
                             inputMode="numeric"
                             value={phone}
                             onChange={(e) => {
-                                const clean = e.target.value.replace(/\D/g, '').slice(0, 9);
-                                let formatted = "";
-                                if (clean.length > 0) formatted += clean.slice(0, 3);
-                                if (clean.length > 3) formatted += " " + clean.slice(3, 6);
-                                if (clean.length > 6) formatted += " " + clean.slice(6, 9);
-                                setPhone(formatted);
+                                let val = e.target.value.replace(/\D/g, '');
+                                if (val.length > 0 && !val.startsWith('9')) {
+                                    val = '';
+                                }
+                                setPhone(val.slice(0, 9));
                             }}
                             disabled={disabled}
                             className={cn(
