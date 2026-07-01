@@ -28,45 +28,12 @@ export function LayoutShell({ children, announcementData }: LayoutShellProps) {
   const isOpenWa = pathname?.startsWith("/open-wa")
 
   const [visible, setVisible] = useState(true)
-  const [showWebviewBanner, setShowWebviewBanner] = useState(false)
 
   const hasAnnouncement = useMemo(() => {
     return announcementData?.enabled === true && announcementData.messages.length > 0
   }, [announcementData])
 
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    
-    // Check if dismissed in this session
-    const isDismissed = sessionStorage.getItem("webview-banner-dismissed") === "true"
-    if (isDismissed) return
-
-    const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
-    const isInsideWebview = (
-      ua.indexOf('FBAN') > -1 ||      // Facebook App iOS
-      ua.indexOf('FBAV') > -1 ||      // Facebook App Android
-      ua.indexOf('Instagram') > -1 || // Instagram App
-      ua.indexOf('TikTok') > -1 ||    // TikTok App
-      ua.indexOf('Threads') > -1      // Threads App
-    )
-
-    if (isInsideWebview) {
-      setShowWebviewBanner(true)
-    }
-  }, [])
-
-  const handleDismissBanner = useCallback(() => {
-    sessionStorage.setItem("webview-banner-dismissed", "true")
-    setShowWebviewBanner(false)
-  }, [])
-
-  const headerHeight = useMemo(() => {
-    if (isAdmin || isAuth) return 0
-    let h = 64
-    if (hasAnnouncement) h += 36
-    if (showWebviewBanner) h += 40
-    return h
-  }, [isAdmin, isAuth, hasAnnouncement, showWebviewBanner])
+  const headerHeight = isAdmin || isAuth ? 0 : (hasAnnouncement ? 100 : 64)
 
   const headerRef = useRef<HTMLDivElement>(null)
   const prevScrollY = useRef(0)
@@ -171,20 +138,7 @@ export function LayoutShell({ children, announcementData }: LayoutShellProps) {
         }`}
         aria-hidden={!visible}
       >
-        {showWebviewBanner && (
-          <div className="bg-gradient-to-r from-amber-600 to-orange-500 text-white text-[11px] font-bold px-4 py-2 flex items-center justify-between shadow-md relative z-50 h-10 select-none">
-            <span className="flex-1 pr-6 text-center leading-tight">
-              ⚠️ ¿Problemas con pagos o imágenes? Toca <strong className="bg-white/20 px-1.5 py-0.5 rounded">•••</strong> y selecciona <strong className="underline decoration-wavy">"Abrir en navegador del sistema"</strong>.
-            </span>
-            <button
-              onClick={handleDismissBanner}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/80 hover:text-white text-xs font-bold h-6 w-6 flex items-center justify-center rounded-full hover:bg-white/10"
-              aria-label="Cerrar aviso"
-            >
-              ✕
-            </button>
-          </div>
-        )}
+
 
         <Header />
 
