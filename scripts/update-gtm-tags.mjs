@@ -16,8 +16,8 @@ if (window.fbq) {
     contentIds.push(String(items[i].item_id || ''));
   }
   
-  var emailVal = '{{Data Layer - email}}' || '';
-  var phoneVal = '{{Data Layer - phone}}' || '';
+  var emailVal = '{{dlv - email}}' || '';
+  var phoneVal = '{{dlv - phone}}' || '';
   var fbclidVal = '{{Cookie - fbclid}}' || '';
   
   var cleanPhone = phoneVal.replace(/\\D/g, '');
@@ -45,8 +45,8 @@ if (window.fbq) {
 
 const NEW_TIKTOK_HTML = `<script>
 if (window.ttq) {
-  var emailVal = '{{Data Layer - email}}' || '';
-  var phoneVal = '{{Data Layer - phone}}' || '';
+  var emailVal = '{{dlv - email}}' || '';
+  var phoneVal = '{{dlv - phone}}' || '';
   var ttclidVal = '{{Cookie - ttclid}}' || '';
   
   var cleanPhone = phoneVal.replace(/\\D/g, '');
@@ -190,7 +190,10 @@ async function main() {
       });
       console.log('🎉 ¡Cambios publicados exitosamente en producción en Google Tag Manager!');
     } catch (verError) {
-      console.log('\n⚠️ Nota: Los cambios se guardaron en tu espacio de trabajo de GTM, pero no se pudieron publicar automáticamente.');
+      console.error('\n❌ Error en versionado/publicación de GTM:', verError.message || verError);
+      if (verError.errors) {
+        console.error('Detalles del error:', JSON.stringify(verError.errors, null, 2));
+      }
     }
 
   } catch (error) {
