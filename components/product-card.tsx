@@ -65,7 +65,7 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
 
 
             {/* --- IMAGE SECTION --- */}
-            <Link href={productHref} prefetch={false} className="relative block w-full aspect-[4/5] bg-slate-100 dark:bg-slate-900 overflow-hidden">
+            <a href={productHref} className="relative block w-full aspect-[4/5] bg-slate-100 dark:bg-slate-900 overflow-hidden">
                 <div className="w-full h-full transition-transform duration-500 group-hover:scale-105">
                     {fallbackImages.length > 0 ? (
                         <>
@@ -83,6 +83,11 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
                                 sizes="(max-width: 640px) 40vw, (max-width: 1200px) 33vw, 20vw"
                                 quality={75}
                                 onLoad={() => setImageLoading(false)}
+                                ref={(img) => {
+                                    if (img && img.complete) {
+                                        setImageLoading(false);
+                                    }
+                                }}
                             />
                         </>
                     ) : (
@@ -91,7 +96,7 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
                         </div>
                     )}
                 </div>
-            </Link>
+            </a>
 
             {/* --- CONTENT --- */}
             <div className="p-5 flex flex-col flex-grow">
@@ -100,11 +105,11 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
                     <Flame size={12} className="text-white" fill="currentColor" />
                     ¡LO MÁS VENDIDO!
                 </div>
-                <Link href={productHref} prefetch={false} className="mb-2 block">
+                <a href={productHref} className="mb-2 block">
                     <h3 className="text-[17px] font-black text-slate-900 leading-tight line-clamp-2 h-[42px] overflow-hidden hover:text-blue-600 transition-colors">
                         {product.nombre}
                     </h3>
-                </Link>
+                </a>
 
                 <div className="mt-auto space-y-4">
                     {/* Price Row */}

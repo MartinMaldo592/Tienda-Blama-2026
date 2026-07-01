@@ -371,7 +371,18 @@ export default function ProductoDetalleClient({
                                         }`}
                                         sizes="(max-width: 768px) 25vw, 96px"
                                         quality={60}
-                                        onLoad={() => setLoadedThumbs((prev) => [...prev, i])}
+                                        onLoad={() => setLoadedThumbs((prev) => {
+                                            if (prev.includes(i)) return prev;
+                                            return [...prev, i];
+                                        })}
+                                        ref={(img) => {
+                                            if (img && img.complete) {
+                                                setLoadedThumbs((prev) => {
+                                                    if (prev.includes(i)) return prev;
+                                                    return [...prev, i];
+                                                });
+                                            }
+                                        }}
                                     />
                                 </button>
                             ))}

@@ -303,8 +303,22 @@ export function ProductImageCarousel({
                   sizes={sizes || "(max-width: 640px) 40vw, (max-width: 1200px) 33vw, 20vw"}
                   quality={quality}
                   draggable={false}
-                  onLoad={() => setLoadedIndices((prev) => [...prev, i])}
-                  onError={() => setErrorIndices((prev) => [...prev, i])}
+                  onLoad={() => setLoadedIndices((prev) => {
+                      if (prev.includes(i)) return prev;
+                      return [...prev, i];
+                  })}
+                  ref={(img) => {
+                      if (img && img.complete) {
+                          setLoadedIndices((prev) => {
+                              if (prev.includes(i)) return prev;
+                              return [...prev, i];
+                          });
+                      }
+                  }}
+                  onError={() => setErrorIndices((prev) => {
+                      if (prev.includes(i)) return prev;
+                      return [...prev, i];
+                  })}
                 />
               </>
             )}
