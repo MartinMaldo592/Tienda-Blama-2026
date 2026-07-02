@@ -40,11 +40,8 @@ export async function POST(req: NextRequest) {
         let finalFilename = file.name
         let finalContentType = file.type
 
-        const isImage = file.type.startsWith("image/") && 
-                        !file.type.includes("gif") && 
-                        !file.type.includes("svg") && 
-                        !file.type.includes("webp") // Omit webp if already optimized
-
+        // Desactivamos el procesamiento en el servidor por completo para no alterar formatos ni tamaños originales
+        /*
         if (isImage) {
             try {
                 // Comprimir, redimensionar a un máx de 1200px y convertir a WebP (calidad 80)
@@ -62,6 +59,7 @@ export async function POST(req: NextRequest) {
                 console.error("Sharp processing failed, falling back to original upload:", err)
             }
         }
+        */
 
         const cleanName = finalFilename.replace(/\s+/g, "-").replace(/[^\w.-]+/g, "")
         const uniqueFilename = `${Date.now()}-${Math.random().toString(36).substring(7)}-${cleanName}`

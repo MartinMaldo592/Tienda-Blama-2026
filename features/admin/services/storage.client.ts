@@ -69,14 +69,16 @@ export function uploadToR2(
             const isVideo = file.type.startsWith("video/")
 
             let fileToProcess = file
+            // Desactivamos la compresión en el navegador para conservar el tamaño y formato original
+            /*
             if (isImage) {
                 if (onProgress) onProgress(0, "Optimizando imagen en el navegador...")
                 fileToProcess = await compressImageInBrowser(file)
             }
+            */
 
-            // Subir directamente si es video o si es un archivo no-imagen pesado.
-            // Las imágenes siempre van a través del optimizador sharp.
-            const shouldUploadDirectly = isVideo || (!isImage && file.size > 4 * 1024 * 1024)
+            // Subir todo directamente a R2 para evitar la compresión sharp y límites de Vercel
+            const shouldUploadDirectly = true
 
             if (shouldUploadDirectly) {
                 if (onProgress) onProgress(0, "Preparando archivo y generando clave de subida...")

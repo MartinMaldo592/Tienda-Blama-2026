@@ -33,7 +33,7 @@ Esta guía contiene los estándares técnicos, flujos de datos y la arquitectura
     *   **f_auto:** Conversión automática a formatos modernos súper ligeros (AVIF o WebP) según el soporte del navegador del usuario.
     *   **q_auto:** Compresión inteligente que reduce el peso visual en un 40-70% sin pérdidas perceptibles.
     *   **w_width:** Redimensionamiento exacto basado en el viewport del dispositivo (móvil, tablet, desktop).
-*   **Compresión en el Servidor (Sharp):** Durante la subida en el panel admin [route.ts](./app/api/upload-proxy/route.ts), el servidor procesa el archivo a formato **WebP con calidad del 95%** y un tamaño máximo de `1200px` (fidelidad ultra-alta). Esto sirve como "máster" de excelente calidad para que luego Cloudinary genere sus variantes.
+*   **Sin compresión en la subida:** Para conservar los archivos originales con la máxima calidad, se ha desactivado la conversión automática a WebP tanto en el navegador (cliente) como en el servidor. Las imágenes se almacenan en su formato (JPG, PNG, WebP) y tamaño original en Cloudflare R2, y es **Cloudinary Fetch** el que se encarga de la optimización, compresión y redimensionamiento dinámico en la entrega.
 *   **Experiencia de Carga (UX):** Los carruseles e imágenes muestran skeletons/shimmers animados durante la descarga y cuentan con refs de carga completada (`img.complete` en un callback ref) que resuelven problemas de visibilidad en imágenes cacheadas por navegadores internos.
 
 ### C. Navegación en Webviews e In-App Browsers (TikTok/Instagram/Facebook)
