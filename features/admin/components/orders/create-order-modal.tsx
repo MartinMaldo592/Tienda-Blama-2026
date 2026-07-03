@@ -4,6 +4,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { 
@@ -283,6 +284,9 @@ export function CreateOrderModal({ open, onOpenChange, onSuccess }: CreateOrderM
                     <DialogTitle className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                         <Plus className="h-6 w-6 text-indigo-600" /> Crear Pedido Manual
                     </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        Formulario para ingresar de manera manual la información de un nuevo pedido en el panel de administración.
+                    </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-8 mt-4">
