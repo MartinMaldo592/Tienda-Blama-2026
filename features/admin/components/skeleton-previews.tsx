@@ -63,6 +63,7 @@ export function OrderRowSkeleton({ count = 5 }: { count?: number } = {}) {
                             <Skeleton className="h-3 w-20" />
                         </div>
                     </TableCell>
+                    <TableCell><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                     <TableCell><Skeleton className="h-4 w-16 font-bold" /></TableCell>
                     <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>

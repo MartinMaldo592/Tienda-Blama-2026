@@ -661,6 +661,7 @@ export type Database = {
           id: number
           link_ubicacion: string | null
           metodo_envio: string | null
+          origen: string | null
           nombre_contacto: string | null
           pago_status: string | null
           provincia: string | null
@@ -698,6 +699,7 @@ export type Database = {
           id?: number
           link_ubicacion?: string | null
           metodo_envio?: string | null
+          origen?: string | null
           nombre_contacto?: string | null
           pago_status?: string | null
           provincia?: string | null
@@ -735,6 +737,7 @@ export type Database = {
           id?: number
           link_ubicacion?: string | null
           metodo_envio?: string | null
+          origen?: string | null
           nombre_contacto?: string | null
           pago_status?: string | null
           provincia?: string | null

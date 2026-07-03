@@ -419,3 +419,163 @@ export async function checkBulkStockSufficient(pedidoIds: number[]): Promise<{ o
   // por lo que omitimos la validación restrictiva de stock.
   return { ok: true }
 }
+
+export async function fetchActiveProductsForOrder() {
+  const supabase = createClient()
+  const [prodRes, varRes] = await Promise.all([
+    supabase.from("productos").select("id, nombre, precio, stock, imagen_url").order("nombre", { ascending: true }),
+    supabase.from("producto_variantes").select("id, producto_id, etiqueta, stock, precio, activo").eq("activo", true).order("id", { ascending: true })
+  ])
+  if (prodRes.error) throw prodRes.error
+  if (varRes.error) throw varRes.error
+
+  return prodRes.data.map((p: any) => ({
+    ...p,
+    variants: varRes.data.filter((v: any) => v.producto_id === p.id)
+  }))
+}
+
+export interface ManualPedidoItem {
+  producto_id: number
+  producto_variante_id: number | null
+  cantidad: number
+  precio_unitario: number
+  producto_nombre: string
+  variante_nombre: string | null
+}
+
+export interface CreateManualPedidoArgs {
+  cliente_nombre: string
+  cliente_telefono: string
+  cliente_dni: string
+  cliente_email?: string
+  cliente_direccion: string
+  cliente_departamento: string
+  cliente_provincia: string
+  cliente_distrito: string
+  cliente_referencia?: string
+  cliente_link_ubicacion?: string
+  origen: string
+  status: string
+  pago_status: string
+  metodo_envio: string
+  metodo_pago?: string
+  comprobante_pago_url?: string[]
+  costo_envio?: number
+  descuento?: number
+  subtotal: number
+  total: number
+  items: ManualPedidoItem[]
+}
+
+export async function createManualPedido(args: CreateManualPedidoArgs) {
+  const supabase = createClient()
+
+  // 1. Crear registro de cliente nuevo (si o si)
+  const { data: newClient, error: clientError } = await supabase
+    .from("clientes")
+    .insert({
+      nombre: args.cliente_nombre,
+      telefono: args.cliente_telefono,
+      dni: args.cliente_dni,
+      email: args.cliente_email || null,
+      direccion: args.cliente_direccion,
+      departamento: args.cliente_departamento,
+      provincia: args.cliente_provincia,
+      distrito: args.cliente_distrito,
+      referencia: args.cliente_referencia || null,
+      link_ubicacion: args.cliente_link_ubicacion || null
+    })
+    .select("id")
+    .single()
+
+  if (clientError) throw clientError
+  const clienteId = newClient.id
+
+  const generatedShalomPin = (
+    args.metodo_envio?.toLowerCase() === "provincia" ||
+    args.metodo_envio?.toLowerCase().includes("provincia") ||
+    args.metodo_envio?.toLowerCase().includes("shalom")
+  )
+    ? Math.floor(1000 + Math.random() * 9000).toString()
+    : null
+
+  // 2. Crear registro de pedido
+  const { data: newPedido, error: pedidoError } = await supabase
+    .from("pedidos")
+    .insert({
+      cliente_id: clienteId,
+      nombre_contacto: args.cliente_nombre,
+      dni_contacto: args.cliente_dni,
+      telefono_contacto: args.cliente_telefono,
+      email_contacto: args.cliente_email || null,
+      departamento: args.cliente_departamento,
+      provincia: args.cliente_provincia,
+      distrito: args.cliente_distrito,
+      direccion_calle: args.cliente_direccion,
+      referencia_direccion: args.cliente_referencia || null,
+      link_ubicacion: args.cliente_link_ubicacion || null,
+      origen: args.origen as any,
+      status: args.status as any,
+      pago_status: args.pago_status as any,
+      metodo_envio: args.metodo_envio,
+      culqi_charge_id: args.metodo_pago || "manual",
+      comprobante_pago_url: args.comprobante_pago_url || null,
+      descuento: args.descuento || 0,
+      subtotal: args.subtotal,
+      total: args.total,
+      shalom_pin: generatedShalomPin
+    })
+    .select("id")
+    .single()
+
+  if (pedidoError) throw pedidoError
+  const pedidoId = newPedido.id
+
+  // 3. Crear registros de pedido_items
+  const orderItems = args.items.map(item => ({
+    pedido_id: pedidoId,
+    producto_id: item.producto_id,
+    producto_variante_id: item.producto_variante_id || null,
+    precio_unitario: item.precio_unitario,
+    producto_nombre: item.producto_nombre,
+    variante_nombre: item.variante_nombre || null,
+    cantidad: item.cantidad
+  }))
+
+  const { error: itemsError } = await supabase
+    .from("pedido_items")
+    .insert(orderItems)
+
+  if (itemsError) throw itemsError
+
+  // 4. Procesar descuento de stock si el estado inicial lo requiere
+  const deducirStatuses = ["Confirmado", "Preparando", "Enviado", "Entregado"]
+  if (deducirStatuses.includes(args.status)) {
+    const { error: rpcError } = await supabase.rpc('admin_procesar_descuento_stock', {
+      p_pedido_id: pedidoId,
+      p_revertir: false
+    })
+    if (rpcError) {
+      console.error("Error al procesar descuento de stock automático:", rpcError)
+    } else {
+      await supabase
+        .from("pedidos")
+        .update({ stock_descontado: true })
+        .eq("id", pedidoId)
+    }
+  }
+
+  // 5. Registrar log de auditoría del sistema
+  try {
+    await supabase.from("pedido_logs").insert({
+      pedido_id: pedidoId,
+      accion: "Creado Manualmente",
+      detalles: `Pedido creado manualmente desde el panel de administración. Origen: ${args.origen}.`
+    })
+  } catch (err) {
+    console.error("Error al registrar log de pedido manual:", err)
+  }
+
+  return { pedidoId }
+}

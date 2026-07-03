@@ -5,7 +5,7 @@ import { m, AnimatePresence } from "framer-motion"
 import { createClient } from "@/lib/supabase.client"
 import { useRoleGuard } from "@/hooks/use-role-guard"
 import { AccessDenied } from "@/features/admin/components/access-denied"
-import { RefreshCw, Box, Download, Eye, LayoutDashboard, Loader2 } from "lucide-react"
+import { RefreshCw, Box, Download, Eye, LayoutDashboard, Loader2, PlusCircle } from "lucide-react"
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query"
 import { 
     fetchPedidosForRole, 
@@ -32,6 +32,7 @@ import { AlertCircle, CheckCircle2 } from "lucide-react"
 import { OrdersFilterBar } from "@/features/admin/components/orders/orders-filter-bar"
 import { OrdersBulkActions } from "@/features/admin/components/orders/orders-bulk-actions"
 import { OrdersTable } from "@/features/admin/components/orders/orders-table"
+import { CreateOrderModal } from "@/features/admin/components/orders/create-order-modal"
 
 function PedidosPageContent() {
     const [exportDropdownOpen, setExportDropdownOpen] = useState(false)
@@ -69,6 +70,7 @@ function PedidosPageContent() {
     const [stockErrorsList, setStockErrorsList] = useState<any[]>([])
     const [isExporting, setIsExporting] = useState(false)
     const [recentOrderIds, setRecentOrderIds] = useState<Set<number>>(new Set())
+    const [createModalOpen, setCreateModalOpen] = useState(false)
 
     const currentPage = Number(searchParams.get("page")) || 1
     const itemsPerPage = 10
@@ -392,6 +394,12 @@ function PedidosPageContent() {
                     >
                         {isFetching ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />} SINCRONIZAR
                     </Button>
+                    <Button
+                        className="flex-1 md:flex-none gap-2 h-14 px-8 rounded-2xl bg-indigo-600 text-white hover:bg-indigo-750 font-black tracking-tight shadow-xl shadow-indigo-100 hover:shadow-indigo-200 transition-all haptic-scale"
+                        onClick={() => setCreateModalOpen(true)}
+                    >
+                        <PlusCircle className="h-5 w-5" /> NUEVO PEDIDO
+                    </Button>
                 </m.div>
             </div>
 
@@ -486,6 +494,12 @@ function PedidosPageContent() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <CreateOrderModal 
+                open={createModalOpen}
+                onOpenChange={setCreateModalOpen}
+                onSuccess={() => queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })}
+            />
         </div>
     )
 }

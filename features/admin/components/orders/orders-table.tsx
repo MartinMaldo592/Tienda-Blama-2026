@@ -7,8 +7,58 @@ import {
     TableHeader,
     TableRow
 } from "@/components/ui/table"
-import { Search, Eye, ChevronLeft, ChevronRight, UserPlus, ArrowRight } from "lucide-react"
+import { Search, Eye, ChevronLeft, ChevronRight, UserPlus, ArrowRight, Globe, MessageCircle, Instagram, MessageSquare, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
+
+function renderOriginBadge(origen: string | null) {
+    const orig = String(origen || 'Web').toLowerCase()
+    
+    switch (orig) {
+        case 'tiktok':
+            return (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider uppercase bg-slate-900 text-white border border-slate-800 shadow-sm">
+                    <span className="w-1 h-1 rounded-full bg-cyan-400 animate-pulse" />
+                    TikTok
+                </span>
+            )
+        case 'instagram':
+            return (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider uppercase bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 text-white shadow-sm">
+                    <Instagram size={8} className="stroke-[3]" />
+                    Insta
+                </span>
+            )
+        case 'whatsapp':
+            return (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider uppercase bg-emerald-50 text-emerald-700 border border-emerald-100 shadow-sm">
+                    <MessageCircle size={8} className="fill-emerald-600 stroke-none" />
+                    WSP
+                </span>
+            )
+        case 'messenger':
+            return (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider uppercase bg-blue-50 text-blue-700 border border-blue-100 shadow-sm">
+                    <MessageSquare size={8} className="fill-blue-600 stroke-none" />
+                    FB Msg
+                </span>
+            )
+        case 'manual':
+            return (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider uppercase bg-slate-100 text-slate-700 border border-slate-200 shadow-sm">
+                    <User size={8} className="stroke-[3]" />
+                    Manual
+                </span>
+            )
+        case 'web':
+        default:
+            return (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black tracking-wider uppercase bg-indigo-50 text-indigo-700 border border-indigo-100 shadow-sm">
+                    <Globe size={8} className="stroke-[3]" />
+                    Web
+                </span>
+            )
+    }
+}
 import {
     Select,
     SelectContent,
@@ -100,6 +150,7 @@ export function OrdersTable({
                             />
                         </TableHead>
                         <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">ID Orden</TableHead>
+                        <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Canal</TableHead>
                         <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Cliente & Contacto</TableHead>
                         <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Fecha</TableHead>
                         <TableHead className="h-16 font-bold text-slate-400 uppercase tracking-widest text-[10px]">Inversión Total</TableHead>
@@ -114,7 +165,7 @@ export function OrdersTable({
                         <OrderRowSkeleton count={10} />
                     ) : totalItems === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={(userRole === 'admin' || userRole === 'superadmin') ? 9 : 8} className="text-center py-20">
+                            <TableCell colSpan={(userRole === 'admin' || userRole === 'superadmin') ? 10 : 9} className="text-center py-20">
                                 <div className="flex flex-col items-center gap-4 text-slate-300">
                                     <Search size={48} strokeWidth={1} />
                                     <p className="text-lg font-medium">No se encontraron pedidos con los filtros actuales.</p>
@@ -161,6 +212,9 @@ export function OrdersTable({
                                                     <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                                                 </span>
                                             )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {renderOriginBadge(pedido.origen)}
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex flex-col">
