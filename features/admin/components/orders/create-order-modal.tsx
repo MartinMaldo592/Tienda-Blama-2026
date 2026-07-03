@@ -9,7 +9,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { 
     Search, Plus, Trash2, Loader2, AlertCircle, 
-    UploadCloud, User, MapPin, ShoppingCart, CreditCard 
+    UploadCloud, User, MapPin, ShoppingCart, CreditCard,
+    CheckCircle2
 } from "lucide-react"
 import { toast } from "sonner"
 import { 
@@ -19,6 +20,7 @@ import {
 } from "@/features/admin/services/pedidos.client"
 import { uploadToR2 } from "@/features/admin/services/storage.client"
 import { formatCurrency } from "@/lib/utils"
+import usePlacesAutocomplete from "use-places-autocomplete"
 
 interface CreateOrderModalProps {
     open: boolean
@@ -75,6 +77,106 @@ export function CreateOrderModal({ open, onOpenChange, onSuccess }: CreateOrderM
     const [uploadingVoucher, setUploadingVoucher] = useState(false)
     const [uploadProgress, setUploadProgress] = useState(0)
 
+    const [googleMapsLoaded, setGoogleMapsLoaded] = useState(false)
+    const [manualMode, setManualMode] = useState(false)
+
+    const loadGoogleMapsScript = () => {
+        if (typeof window === "undefined") return
+        if (window.google?.maps) {
+            setGoogleMapsLoaded(true)
+            return
+        }
+        const existingScript = document.getElementById("google-maps-sdk")
+        if (existingScript) {
+            const handleLoad = () => setGoogleMapsLoaded(true)
+            existingScript.addEventListener("load", handleLoad)
+            return
+        }
+        const script = document.createElement("script")
+        script.id = "google-maps-sdk"
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}&libraries=places&language=es&region=pe`
+        script.async = true
+        script.defer = true
+        script.onload = () => setGoogleMapsLoaded(true)
+        document.head.appendChild(script)
+    }
+
+    useEffect(() => {
+        if (typeof window !== "undefined" && window.google?.maps) {
+            setGoogleMapsLoaded(true)
+        }
+    }, [])
+
+    const {
+        ready,
+        value,
+        setValue,
+        suggestions: { status: suggestionsStatus, data: suggestionsData },
+        clearSuggestions,
+        init,
+    } = usePlacesAutocomplete({
+        requestOptions: {
+            componentRestrictions: { country: "pe" },
+            language: "es",
+            region: "pe",
+        },
+        debounce: 300,
+        initOnMount: false,
+    })
+
+    useEffect(() => {
+        if (googleMapsLoaded) {
+            init()
+        }
+    }, [googleMapsLoaded, init])
+
+    const handleAddressSelect = async (addr: string) => {
+        setValue(addr, false)
+        clearSuggestions()
+        setClienteDireccion(addr)
+
+        try {
+            const { getGeocode } = await import("use-places-autocomplete");
+            const results = await getGeocode({ address: addr })
+            const addressComponents = results[0].address_components;
+
+            let prop_department = "";
+            let prop_province = "";
+            let prop_district = "";
+
+            addressComponents.forEach((component: any) => {
+                const types = component.types;
+                if (types.includes("administrative_area_level_1")) {
+                    prop_department = component.long_name;
+                }
+                if (types.includes("administrative_area_level_2")) {
+                    prop_province = component.long_name;
+                }
+                if (types.includes("locality") || types.includes("sublocality")) {
+                    prop_district = component.long_name;
+                }
+            });
+
+            if (prop_department) setClienteDepartamento(prop_department);
+            if (prop_province) setClienteProvincia(prop_province);
+            if (prop_district) setClienteDistrito(prop_district);
+
+            // Generar enlace de Google Maps con las coordenadas
+            try {
+                const { getLatLng } = await import("use-places-autocomplete");
+                const { lat, lng } = await getLatLng(results[0])
+                setClienteLinkUbicacion(`https://www.google.com/maps/?q=${lat},${lng}`)
+            } catch (geoErr) {
+                const encoded = encodeURIComponent(addr)
+                setClienteLinkUbicacion(`https://www.google.com/maps/search/?api=1&query=${encoded}`)
+            }
+        } catch (error) {
+            console.error("Error Quick Geocoding Manual Order:", error)
+            const encoded = encodeURIComponent(addr)
+            setClienteLinkUbicacion(`https://www.google.com/maps/search/?api=1&query=${encoded}`)
+        }
+    }
+
     useEffect(() => {
         if (open) {
             loadProducts()
@@ -117,6 +219,8 @@ export function CreateOrderModal({ open, onOpenChange, onSuccess }: CreateOrderM
         setVouchers([])
         setSearchTerm("")
         setShowResults(false)
+        setValue("")
+        clearSuggestions()
     }
 
     // Filter products based on search term
@@ -367,13 +471,56 @@ export function CreateOrderModal({ open, onOpenChange, onSuccess }: CreateOrderM
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="text-xs font-bold text-slate-500 uppercase">Dirección (Calle, Av., Mz/Lt) *</label>
-                                <input 
-                                    type="text" 
-                                    className="w-full mt-1 px-4 h-12 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:border-indigo-500"
-                                    value={clienteDireccion} onChange={e => setClienteDireccion(e.target.value)} required
-                                />
+                            <div className="relative space-y-1">
+                                <div className="flex justify-between items-center">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Dirección (Calle, Av., Mz/Lt) *</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setManualMode(!manualMode)}
+                                        className="text-[10px] font-black text-indigo-600 hover:text-indigo-800 transition-colors uppercase tracking-wider cursor-pointer"
+                                    >
+                                        {manualMode ? "⚡ Usar buscador Maps" : "✍️ Escribir Manual"}
+                                    </button>
+                                </div>
+                                <div className="relative group mt-1">
+                                    <input 
+                                        type="text" 
+                                        className="w-full px-4 h-12 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:border-indigo-500"
+                                        value={manualMode ? clienteDireccion : value}
+                                        onChange={e => {
+                                            if (manualMode) {
+                                                setClienteDireccion(e.target.value)
+                                            } else {
+                                                setValue(e.target.value)
+                                                setClienteDireccion(e.target.value)
+                                            }
+                                        }}
+                                        onFocus={loadGoogleMapsScript}
+                                        required
+                                        placeholder={manualMode ? "Escribe la dirección completa..." : "Escribe dirección para buscar..."}
+                                        autoComplete={manualMode ? "street-address" : "off"}
+                                    />
+                                    {clienteDireccion && (
+                                        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                            <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                {!manualMode && suggestionsStatus === "OK" && (
+                                    <ul className="absolute z-50 w-full bg-white border border-slate-100 rounded-xl shadow-xl mt-1 max-h-48 overflow-auto divide-y divide-slate-50">
+                                        {suggestionsData.map(({ place_id, description }) => (
+                                            <li
+                                                key={place_id}
+                                                onClick={() => handleAddressSelect(description)}
+                                                className="px-4 py-3 hover:bg-slate-50 cursor-pointer text-sm flex items-start gap-2 transition-colors text-slate-700"
+                                            >
+                                                <MapPin className="h-4 w-4 mt-0.5 text-slate-400 shrink-0" />
+                                                <span>{description}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
                             </div>
                             <div>
                                 <label className="text-xs font-bold text-slate-500 uppercase">Referencia de Dirección</label>
