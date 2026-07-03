@@ -8,7 +8,7 @@ import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/sonner";
 import { createClient } from "@supabase/supabase-js";
 import { SmoothScroll } from "@/components/smooth-scroll";
-import { AttributionTracker } from "@/components/attribution-tracker";
+import { MarketingPixels } from "@/components/marketing-pixels";
 import NextTopLoader from "nextjs-toploader";
 
 
@@ -121,18 +121,6 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-background`}
       >
-        {/* Polyfill temprano para prevenir ReferenceErrors de ttq en GTM si no carga el píxel base */}
-        <Script id="pixel-fallbacks" strategy="beforeInteractive">
-          {`
-            window.ttq = window.ttq || [];
-            window.ttq.methods = window.ttq.methods || [];
-            window.ttq.instance = window.ttq.instance || function() { return window.ttq; };
-            window.ttq.load = window.ttq.load || function() {};
-            window.ttq.page = window.ttq.page || function() {};
-            window.ttq.track = window.ttq.track || function() {};
-          `}
-        </Script>
-        
         {/* Barra de progreso de carga de navegación superior premium */}
         <NextTopLoader
           color="#1e3a8a"
@@ -146,24 +134,8 @@ export default async function RootLayout({
           shadow="0 0 10px #1e3a8a,0 0 5px #1e3a8a"
         />
 
-        <Script id="gtm-script" strategy="lazyOnload">
-          {`
-            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-            })(window,document,'script','dataLayer','${GTM_ID}');
-          `}
-        </Script>
-        <noscript>
-          <iframe
-            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
-            height="0"
-            width="0"
-            style={{ display: "none", visibility: "hidden" }}
-          />
-        </noscript>
-        <AttributionTracker />
+        {/* Píxeles y Atribución (Ocultos en rutas /admin) */}
+        <MarketingPixels />
         <Providers>
 
           <SmoothScroll>
