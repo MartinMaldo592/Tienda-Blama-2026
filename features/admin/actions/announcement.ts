@@ -1,7 +1,7 @@
 "use server"
 
 import { validateAdminAction } from "@/features/admin/services/admin.server"
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 
 type AnnouncementBarConfig = {
   enabled: boolean
@@ -68,6 +68,7 @@ export async function updateAnnouncementBarConfigAction(config: AnnouncementBarC
     
     if (error) throw error
 
+    revalidateTag("announcement", { expire: 0 } as any)
     revalidatePath("/")
     return { ok: true }
   } catch (e: any) {
