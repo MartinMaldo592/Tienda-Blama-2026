@@ -59,13 +59,14 @@ export default function LoginPage() {
 
             if (result.error) {
                 setErrorMsg(result.error)
+                setLoading(false)
             } else if (result.success) {
                 // Login exitoso
                 router.push("/admin/dashboard") 
+                // Evitamos llamar a setLoading(false) aquí ya que el componente se desmontará al navegar
             }
         } catch (error: any) {
             setErrorMsg("Error interno procesando el inicio de sesión.")
-        } finally {
             setLoading(false)
         }
     }
