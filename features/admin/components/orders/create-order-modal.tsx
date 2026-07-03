@@ -275,7 +275,10 @@ export function CreateOrderModal({ open, onOpenChange, onSuccess }: CreateOrderM
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-[2rem] p-8 border-slate-100 bg-white">
+            <DialogContent 
+                className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-[2rem] p-8 border-slate-100 bg-white"
+                data-lenis-prevent
+            >
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                         <Plus className="h-6 w-6 text-indigo-600" /> Crear Pedido Manual
