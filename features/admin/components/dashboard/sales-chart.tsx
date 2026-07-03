@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
     Area,
     AreaChart,
@@ -30,6 +30,11 @@ interface SalesChartProps {
 
 export function SalesChart({ data, loading, period, onPeriodChange }: SalesChartProps) {
     const [focusData, setFocusData] = useState<SalesDataPoint | null>(null)
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     if (loading) {
         return (
@@ -86,73 +91,87 @@ export function SalesChart({ data, loading, period, onPeriodChange }: SalesChart
                 </div>
             </CardHeader>
             <CardContent className="px-2 sm:px-8 pb-8 flex-1">
-                <div className="h-[350px] w-full mt-4">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart
-                            data={data}
-                            margin={{ top: 20, right: 0, left: 0, bottom: 0 }}
-                            onMouseMove={(e: any) => {
-                                if (e.activePayload) {
-                                    setFocusData(e.activePayload[0].payload)
-                                }
-                            }}
-                            onMouseLeave={() => setFocusData(null)}
-                        >
-                            <defs>
-                                <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <XAxis
-                                dataKey="date"
-                                tickLine={false}
-                                axisLine={false}
-                                tickMargin={20}
-                                tickFormatter={formatDate}
-                                style={{ fontSize: '12px', fill: '#94a3b8', fontWeight: 500 }}
-                                minTickGap={50}
-                                dy={-10}
-                            />
-                            <Tooltip
-                                cursor={{ stroke: '#3b82f6', strokeWidth: 1, strokeDasharray: '4 4' }}
-                                content={({ active, payload }) => {
-                                    if (active && payload && payload.length) {
-                                        const data = payload[0].payload
-                                        return (
-                                            <div className="rounded-xl border-0 bg-slate-900 text-white p-4 shadow-xl ring-4 ring-slate-100 dark:ring-slate-800 transform translate-y-[-10px]">
-                                                <div className="text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-2">
-                                                    {new Date(data.date).toLocaleDateString("es-PE", { weekday: 'long', day: 'numeric', month: 'long' })}
-                                                </div>
-                                                <div className="flex items-center gap-3">
-                                                    <div className="h-8 w-1 bg-blue-500 rounded-full"></div>
-                                                    <div>
-                                                        <span className="block text-2xl font-bold tracking-tight">
-                                                            {formatCurrency(data.total)}
-                                                        </span>
-                                                        <span className="text-xs font-medium text-slate-400">
-                                                            {data.orders} {data.orders === 1 ? 'pedido entregado' : 'pedidos entregados'}
-                                                        </span>
+                <div className="h-[350px] w-full mt-4 flex items-center justify-center">
+                    {mounted ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart
+                                data={data}
+                                margin={{ top: 20, right: 0, left: 0, bottom: 0 }}
+                                onMouseMove={(e: any) => {
+                                    if (e.activePayload) {
+                                        setFocusData(e.activePayload[0].payload)
+                                    }
+                                }}
+                                onMouseLeave={() => setFocusData(null)}
+                            >
+                                <defs>
+                                    <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <XAxis
+                                    dataKey="date"
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickMargin={12}
+                                    tickFormatter={(str) => {
+                                        if (period === "year") return str
+                                        const d = new Date(str + 'T00:00:00')
+                                        return d.toLocaleDateString("es-PE", { day: "numeric", month: "short" })
+                                    }}
+                                    className="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                                />
+                                <YAxis
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickMargin={12}
+                                    tickFormatter={(value) => `S/ ${value}`}
+                                    className="text-[10px] font-bold text-slate-400 uppercase tracking-wider"
+                                />
+                                <Tooltip
+                                    cursor={{ stroke: "#e2e8f0", strokeWidth: 1 }}
+                                    content={({ active, payload }) => {
+                                        if (active && payload && payload.length) {
+                                            const p = payload[0].payload
+                                            return (
+                                                <div className="bg-white border border-slate-100 p-4 rounded-2xl shadow-xl flex flex-col gap-1.5 animate-in fade-in slide-in-from-bottom-1 duration-200">
+                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                                                        {new Date(p.date + 'T00:00:00').toLocaleDateString("es-PE", { weekday: 'long', day: 'numeric', month: 'long' })}
+                                                    </span>
+                                                    <div className="flex items-center gap-4 mt-1">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ventas</span>
+                                                            <span className="text-sm font-black text-slate-900">{formatCurrency(p.total)}</span>
+                                                        </div>
+                                                        <div className="w-[1px] h-8 bg-slate-100" />
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pedidos</span>
+                                                            <span className="text-sm font-black text-slate-900">{p.orders}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        )
-                                    }
-                                    return null
-                                }}
-                            />
-                            <Area
-                                type="monotone"
-                                dataKey="total"
-                                stroke="#3b82f6"
-                                strokeWidth={3}
-                                fillOpacity={1}
-                                fill="url(#colorTotal)"
-                                animationDuration={1500}
-                                animationEasing="ease-out"
-                            />
-                        </AreaChart>
-                    </ResponsiveContainer>
+                                            )
+                                        }
+                                        return null
+                                    }}
+                                />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <Area
+                                    type="monotone"
+                                    dataKey="total"
+                                    stroke="#3b82f6"
+                                    strokeWidth={3}
+                                    fillOpacity={1}
+                                    fill="url(#colorTotal)"
+                                    animationDuration={1500}
+                                    animationEasing="ease-out"
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <Skeleton className="h-[350px] w-full rounded-xl" />
+                    )}
                 </div>
             </CardContent>
         </Card>
