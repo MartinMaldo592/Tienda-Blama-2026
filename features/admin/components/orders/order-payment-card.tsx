@@ -74,6 +74,7 @@ export function OrderPaymentCard({ pedido, isLocked, currentUser, userRole = 'wo
     // Upload hook for payment proof
     const comprobanteUpload = useFileUpload({
         bucketName: 'pagos',
+        compress: true,
         onUploadComplete: async (url) => {
             setComprobanteUrl(url)
         }

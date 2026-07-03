@@ -6,9 +6,10 @@ interface UseFileUploadProps {
     bucketName?: string
     onUploadComplete?: (url: string) => Promise<void> | void
     onDeleteComplete?: () => Promise<void> | void
+    compress?: boolean
 }
 
-export function useFileUpload({ onUploadComplete, onDeleteComplete }: UseFileUploadProps) {
+export function useFileUpload({ onUploadComplete, onDeleteComplete, compress = false }: UseFileUploadProps) {
     const [isUploading, setIsUploading] = useState(false)
 
     /**
@@ -24,7 +25,7 @@ export function useFileUpload({ onUploadComplete, onDeleteComplete }: UseFileUpl
                 : file
 
             // Subir el archivo a R2 (imágenes, PDFs o videos)
-            const publicUrl = await uploadToR2(fileToUpload)
+            const publicUrl = await uploadToR2(fileToUpload, undefined, compress)
 
             if (!publicUrl) {
                 throw new Error("No se pudo obtener la URL del archivo subido")

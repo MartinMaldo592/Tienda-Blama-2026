@@ -61,7 +61,8 @@ function compressImageInBrowser(file: File): Promise<File> {
 
 export function uploadToR2(
     file: File,
-    onProgress?: (percent: number, step: string) => void
+    onProgress?: (percent: number, step: string) => void,
+    compress: boolean = false
 ): Promise<string | null> {
     return new Promise(async (resolve) => {
         try {
@@ -69,13 +70,11 @@ export function uploadToR2(
             const isVideo = file.type.startsWith("video/")
 
             let fileToProcess = file
-            // Desactivamos la compresión en el navegador para conservar el tamaño y formato original
-            /*
-            if (isImage) {
-                if (onProgress) onProgress(0, "Optimizando imagen en el navegador...")
+            
+            if (compress && isImage) {
+                if (onProgress) onProgress(0, "Optimizando comprobante en el navegador...")
                 fileToProcess = await compressImageInBrowser(file)
             }
-            */
 
             // Subir todo directamente a R2 para evitar la compresión sharp y límites de Vercel
             const shouldUploadDirectly = true
@@ -88,8 +87,8 @@ export function uploadToR2(
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        filename: file.name,
-                        contentType: file.type
+                        filename: fileToProcess.name,
+                        contentType: fileToProcess.type
                     })
                 })
 
@@ -108,7 +107,7 @@ export function uploadToR2(
                 // 2. Subir directamente el archivo a Cloudflare R2 vía PUT con XMLHttpRequest para registrar progreso
                 const xhr = new XMLHttpRequest()
                 xhr.open("PUT", uploadUrl, true)
-                xhr.setRequestHeader("Content-Type", file.type)
+                xhr.setRequestHeader("Content-Type", fileToProcess.type)
 
                 xhr.upload.onprogress = (event) => {
                     if (event.lengthComputable) {
@@ -134,7 +133,7 @@ export function uploadToR2(
                     resolve(null)
                 }
 
-                xhr.send(file)
+                xhr.send(fileToProcess)
             } else {
                 // Imagen pequeña - Usar proxy con optimización sharp
                 if (onProgress) onProgress(0, "Preparando imagen y optimización...")

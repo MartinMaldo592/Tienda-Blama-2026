@@ -294,7 +294,7 @@ export function CreateOrderModal({ open, onOpenChange, onSuccess }: CreateOrderM
             const file = files[0]
             const url = await uploadToR2(file, (percent) => {
                 setUploadProgress(percent)
-            })
+            }, true)
 
             if (url) {
                 setVouchers([...vouchers, url])
