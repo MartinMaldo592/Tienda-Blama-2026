@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 import { createClient } from "@/lib/supabase.client"
-import { LayoutDashboard, ShoppingBag, Package, PackageOpen, Users, AlertCircle, LogOut, Percent, Star, MessageSquare, Megaphone, Share2, ShieldAlert } from "lucide-react"
+import { LayoutDashboard, ShoppingBag, Package, PackageOpen, Users, AlertCircle, LogOut, Percent, Star, MessageSquare, Megaphone, Share2, ShieldAlert, Activity } from "lucide-react"
 import { m } from "framer-motion"
 
 interface AdminSidebarProps {
@@ -33,6 +33,7 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
         { href: "/admin/preguntas", icon: MessageSquare, label: "Preguntas", roles: ["admin"] },
         { href: "/admin/usuarios", icon: Users, label: "Usuarios Sistema", roles: ["admin"] },
         { href: "/admin/redes-sociales", icon: Share2, label: "Redes Sociales", roles: ["admin"] },
+        { href: "/admin/marketing", icon: Activity, label: "Píxeles y Marketing", roles: ["admin"] },
         { href: "/admin/incidencias", icon: AlertCircle, label: "Incidencias", roles: ["admin", "worker"] },
         { href: "/admin/auditoria", icon: ShieldAlert, label: "Auditoría", roles: ["admin"] },
     ]
