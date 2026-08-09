@@ -740,8 +740,8 @@
     "semantic_hash": "b34124cdc2154bc6f724eeaaa3da17d3"
   },
   "features/admin/services/dashboard.client.ts": {
-    "mtime": 1786317067.6843915,
-    "ast_hash": "bd4af2ea0657cabbd963911cb1cff58a",
+    "mtime": 1786317301.5491717,
+    "ast_hash": "c7cb7681635d411a10965360a1a29d37",
     "semantic_hash": ""
   },
   "features/admin/services/incidencias.client.ts": {
@@ -1475,8 +1475,8 @@
     "semantic_hash": ""
   },
   "features/admin/components/dashboard/ezmart-dashboard.tsx": {
-    "mtime": 1786317089.4065714,
-    "ast_hash": "8293a78b0d8e73911648398421bb33d9",
+    "mtime": 1786317320.7692971,
+    "ast_hash": "1361e0c8354d8373787dac2de70cb62c",
     "semantic_hash": ""
   }
 }

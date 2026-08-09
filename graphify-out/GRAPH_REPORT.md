@@ -1,16 +1,16 @@
 # Graph Report - Tienda-Blama-2026  (2026-08-09)
 
 ## Corpus Check
-- 317 files · ~172,072 words
+- 317 files · ~172,145 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1498 nodes · 3311 edges · 164 communities (84 shown, 80 thin omitted)
+- 1498 nodes · 3311 edges · 165 communities (85 shown, 80 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 8 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `9a647659`
+- Built from commit: `091326d9`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -45,6 +45,8 @@
 - whatsapp/route.ts
 - dependencies
 - productos.client.ts
+- social-links.client.ts
+- @aws-sdk/client-s3
 - HTML Report Format
 - products.server.ts
 - class-variance-authority
@@ -162,7 +164,6 @@
 - _template.md
 - date-fns
 - Web Interface Guidelines
-- @builder.io/partytown
 - use-places-autocomplete
 - resend
 
@@ -193,7 +194,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (164 total, 80 thin omitted)
+## Communities (165 total, 80 thin omitted)
 
 ### Community 0 - "button.tsx"
 Cohesion: 0.09
@@ -268,8 +269,8 @@ Cohesion: 0.11
 Nodes (18): aliases, components, hooks, lib, ui, utils, iconLibrary, registries (+10 more)
 
 ### Community 18 - "createClient"
-Cohesion: 0.10
-Nodes (29): AuditPage(), AdminLayout(), AdminPreguntasPage(), AdminSocialLinksPage(), AdminResenasPage(), AdminSidebar(), AdminSidebarProps, AnnouncementBarConfig (+21 more)
+Cohesion: 0.12
+Nodes (24): AuditPage(), AdminLayout(), AdminPreguntasPage(), AdminResenasPage(), AdminSidebar(), AdminSidebarProps, AnnouncementBarConfig, AuditLog (+16 more)
 
 ### Community 19 - "formatCurrency"
 Cohesion: 0.25
@@ -309,11 +310,15 @@ Nodes (13): CheckoutBodySchema, CheckoutItemSchema, GET(), getEnv(), POST(), run
 
 ### Community 28 - "dependencies"
 Cohesion: 0.18
-Nodes (11): @aws-sdk/client-s3, @aws-sdk/s3-request-presigner, next, dependencies, @aws-sdk/client-s3, @aws-sdk/s3-request-presigner, next, @react-email/render (+3 more)
+Nodes (11): @aws-sdk/s3-request-presigner, @builder.io/partytown, next, dependencies, @aws-sdk/s3-request-presigner, @builder.io/partytown, next, @react-email/render (+3 more)
 
 ### Community 29 - "productos.client.ts"
 Cohesion: 0.12
 Nodes (21): IncidenciasPage(), EditarProductoPage(), ProductosPage(), deleteProductAction(), createIncidencia(), deleteIncidencia(), fetchIncidencias(), fetchPedidosForIncidencias() (+13 more)
+
+### Community 30 - "social-links.client.ts"
+Cohesion: 0.47
+Nodes (5): AdminSocialLinksPage(), deleteSocialLink(), fetchSocialLinks(), saveSocialLink(), SocialLink
 
 ### Community 32 - "HTML Report Format"
 Cohesion: 0.10
@@ -483,7 +488,7 @@ Nodes (4): Guidelines Source, How It Works, Usage, Web Interface Guidelines
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `createClient()` connect `createClient` to `button.tsx`, `pedidos/[id]/page.tsx`, `quick-checkout-modal.tsx`, `pedidos/page.tsx`, `label.tsx`, `success/page.tsx`, `ProductosClient.tsx`, `products.server.ts`, `useProductDetail.ts`, `header.tsx`, `products.ts`, `dashboard/page.tsx`, `utils.ts`, `CuponesAdminPage`, `marketing-pixels.tsx`, `productos.client.ts`?**
+- **Why does `createClient()` connect `createClient` to `button.tsx`, `pedidos/[id]/page.tsx`, `quick-checkout-modal.tsx`, `pedidos/page.tsx`, `label.tsx`, `success/page.tsx`, `ProductosClient.tsx`, `products.server.ts`, `useProductDetail.ts`, `header.tsx`, `products.ts`, `dashboard/page.tsx`, `utils.ts`, `CuponesAdminPage`, `marketing-pixels.tsx`, `productos.client.ts`, `social-links.client.ts`?**
   _High betweenness centrality (0.060) - this node is a cross-community bridge._
 - **Why does `Button()` connect `button.tsx` to `pedidos/[id]/page.tsx`, `products.server.ts`, `label.tsx`, `pedidos/page.tsx`, `success/page.tsx`, `ProductosClient.tsx`, `useProductDetail.ts`, `products.ts`, `dashboard/page.tsx`, `utils.ts`, `checkout-form.tsx`, `skeleton.tsx`, `formatCurrency`, `cn`?**
   _High betweenness centrality (0.037) - this node is a cross-community bridge._

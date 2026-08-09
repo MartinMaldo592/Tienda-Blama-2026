@@ -15,7 +15,7 @@ import { DashboardStatsSkeleton } from "@/features/admin/components/skeleton-pre
 import { m } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { SalesChart, type SalesDataPoint } from "@/features/admin/components/dashboard/sales-chart"
-import { fetchAdminSalesChart, fetchAdminRecentOrders } from "@/features/admin/services/dashboard.client"
+import { fetchAdminSalesChart, fetchAdminRecentOrders, fetchAdminTopProducts } from "@/features/admin/services/dashboard.client"
 import { EzMartDashboard } from "@/features/admin/components/dashboard/ezmart-dashboard"
 
 function useCurrentUserId() {
@@ -61,6 +61,7 @@ export default function AdminDashboard() {
     const [period, setPeriod] = useState<"week" | "month" | "year">("week")
     const [salesData, setSalesData] = useState<Array<{ date: string; total: number; orders: number }>>([])
     const [recentOrders, setRecentOrders] = useState<Array<any>>([])
+    const [topProducts, setTopProducts] = useState<Array<any>>([])
     const [chartLoading, setChartLoading] = useState(true)
 
     useEffect(() => {
@@ -68,11 +69,13 @@ export default function AdminDashboard() {
         setChartLoading(true)
         Promise.all([
             fetchAdminSalesChart(period),
-            fetchAdminRecentOrders()
-        ]).then(([chartRes, ordersRes]) => {
+            fetchAdminRecentOrders(),
+            fetchAdminTopProducts()
+        ]).then(([chartRes, ordersRes, productsRes]) => {
             if (mounted) {
                 setSalesData(chartRes)
                 setRecentOrders(ordersRes)
+                setTopProducts(productsRes)
                 setChartLoading(false)
             }
         })
@@ -124,6 +127,7 @@ export default function AdminDashboard() {
                             queryClient.invalidateQueries({ queryKey: ["admin-dashboard-stats"] })
                             fetchAdminSalesChart(period).then(setSalesData)
                             fetchAdminRecentOrders().then(setRecentOrders)
+                            fetchAdminTopProducts().then(setTopProducts)
                         }}
                         disabled={isLoading}
                     >
@@ -141,6 +145,7 @@ export default function AdminDashboard() {
                     stats={safeStats}
                     salesData={salesData}
                     recentOrders={recentOrders}
+                    topProducts={topProducts}
                     period={period}
                     onPeriodChange={setPeriod}
                 />

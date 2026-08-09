@@ -902,8 +902,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "app_admin_redes_sociales_page_adminsociallinkspage",
-      "community": 18,
-      "community_name": "createClient",
+      "community": 30,
+      "community_name": "social-links.client.ts",
       "norm_label": "adminsociallinkspage()"
     },
     {
@@ -4733,7 +4733,7 @@
       "label": "CorporateDashboardProps",
       "file_type": "code",
       "source_file": "features/admin/components/dashboard/ezmart-dashboard.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
@@ -4746,7 +4746,7 @@
       "label": "EzMartDashboard()",
       "file_type": "code",
       "source_file": "features/admin/components/dashboard/ezmart-dashboard.tsx",
-      "source_location": "L42",
+      "source_location": "L43",
       "_callable": true,
       "_origin": "ast",
       "id": "features_admin_components_dashboard_ezmart_dashboard_ezmartdashboard",
@@ -6992,8 +6992,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "features_admin_services_social_links_client",
-      "community": 18,
-      "community_name": "createClient",
+      "community": 30,
+      "community_name": "social-links.client.ts",
       "norm_label": "social-links.client.ts"
     },
     {
@@ -7005,8 +7005,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "features_admin_services_social_links_client_sociallink",
-      "community": 18,
-      "community_name": "createClient",
+      "community": 30,
+      "community_name": "social-links.client.ts",
       "norm_label": "sociallink"
     },
     {
@@ -7017,8 +7017,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "features_admin_services_social_links_client_fetchsociallinks",
-      "community": 18,
-      "community_name": "createClient",
+      "community": 30,
+      "community_name": "social-links.client.ts",
       "norm_label": "fetchsociallinks()"
     },
     {
@@ -7029,8 +7029,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "features_admin_services_social_links_client_savesociallink",
-      "community": 18,
-      "community_name": "createClient",
+      "community": 30,
+      "community_name": "social-links.client.ts",
       "norm_label": "savesociallink()"
     },
     {
@@ -7041,8 +7041,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "features_admin_services_social_links_client_deletesociallink",
-      "community": 18,
-      "community_name": "createClient",
+      "community": 30,
+      "community_name": "social-links.client.ts",
       "norm_label": "deletesociallink()"
     },
     {
@@ -11058,8 +11058,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "package_dependencies_aws_sdk_client_s3",
-      "community": 28,
-      "community_name": "dependencies",
+      "community": 31,
+      "community_name": "@aws-sdk/client-s3",
       "norm_label": "@aws-sdk/client-s3"
     },
     {
@@ -11069,8 +11069,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "aws_sdk_client_s3",
-      "community": 28,
-      "community_name": "dependencies",
+      "community": 31,
+      "community_name": "@aws-sdk/client-s3",
       "norm_label": "@aws-sdk/client-s3"
     },
     {
@@ -11102,8 +11102,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "package_dependencies_builder_io_partytown",
-      "community": 166,
-      "community_name": "@builder.io/partytown",
+      "community": 28,
+      "community_name": "dependencies",
       "norm_label": "@builder.io/partytown"
     },
     {
@@ -11113,8 +11113,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "builder_io_partytown",
-      "community": 166,
-      "community_name": "@builder.io/partytown",
+      "community": 28,
+      "community_name": "dependencies",
       "norm_label": "@builder.io/partytown"
     },
     {
@@ -33962,7 +33962,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "features/admin/components/dashboard/ezmart-dashboard.tsx",
-      "source_location": "L15",
+      "source_location": "L16",
       "weight": 1.0,
       "_origin": "ast",
       "source": "features_admin_components_dashboard_ezmart_dashboard",
@@ -34286,7 +34286,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "features/admin/components/dashboard/ezmart-dashboard.tsx",
-      "source_location": "L15",
+      "source_location": "L16",
       "weight": 1.0,
       "_origin": "ast",
       "source": "features_admin_components_dashboard_ezmart_dashboard",
@@ -39383,7 +39383,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "features/admin/components/dashboard/ezmart-dashboard.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "_origin": "ast",
       "source": "features_admin_components_dashboard_ezmart_dashboard",
@@ -39394,7 +39394,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "features/admin/components/dashboard/ezmart-dashboard.tsx",
-      "source_location": "L42",
+      "source_location": "L43",
       "weight": 1.0,
       "_origin": "ast",
       "source": "features_admin_components_dashboard_ezmart_dashboard",
@@ -39406,7 +39406,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "features/admin/components/dashboard/ezmart-dashboard.tsx",
-      "source_location": "L14",
+      "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
       "source": "features_admin_components_dashboard_ezmart_dashboard",
@@ -39418,7 +39418,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "features/admin/components/dashboard/ezmart-dashboard.tsx",
-      "source_location": "L14",
+      "source_location": "L15",
       "weight": 1.0,
       "_origin": "ast",
       "source": "features_admin_components_dashboard_ezmart_dashboard",
@@ -39431,7 +39431,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "features/admin/components/dashboard/ezmart-dashboard.tsx",
-      "source_location": "L85",
+      "source_location": "L94",
       "weight": 1.0,
       "_origin": "ast",
       "source": "features_admin_components_dashboard_ezmart_dashboard_ezmartdashboard",
@@ -55794,5 +55794,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "9a647659674b9c38f051af43caee529a2827a042"
+  "built_at_commit": "091326d9a93c48bfae6f598b2d456c8616770890"
 }

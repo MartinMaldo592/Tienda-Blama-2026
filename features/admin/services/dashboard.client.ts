@@ -161,3 +161,18 @@ export async function fetchAdminRecentOrders() {
   return (data as any[]) || []
 }
 
+export async function fetchAdminTopProducts() {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from("productos")
+    .select("id, nombre, precio, stock, imagen_url, categoria")
+    .order("stock", { ascending: false })
+    .limit(5)
+
+  if (error) {
+    console.error("Error fetching top products:", error)
+    return []
+  }
+  return (data as any[]) || []
+}
+

@@ -6,7 +6,7 @@ import {
     DollarSign, ShoppingBag, Users, Package, ClipboardList,
     CheckCircle2, ArrowRight, TrendingUp, BarChart3, LineChart,
     ArrowUpRight, AlertTriangle, ShieldCheck, Activity, CreditCard,
-    PlusCircle, Tag, ShoppingCart, Truck
+    PlusCircle, Tag, ShoppingCart, Truck, Boxes, Flame
 } from "lucide-react"
 import {
     BarChart, Bar, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -36,11 +36,19 @@ interface CorporateDashboardProps {
         canal?: string
         clientes?: { nombre?: string; telefono?: string }
     }>
+    topProducts?: Array<{
+        id: string
+        nombre: string
+        precio: number
+        stock: number
+        imagen_url?: string
+        categoria?: string
+    }>
     period: "week" | "month" | "year"
     onPeriodChange: (p: "week" | "month" | "year") => void
 }
 
-export function EzMartDashboard({ stats, salesData, recentOrders = [], period, onPeriodChange }: CorporateDashboardProps) {
+export function EzMartDashboard({ stats, salesData, recentOrders = [], topProducts = [], period, onPeriodChange }: CorporateDashboardProps) {
     const [chartType, setChartType] = useState<"bar" | "area">("bar")
 
     const totalOrdersCount = stats.pedidosPendientes + stats.pedidosEnProceso + stats.pedidosEntregados
@@ -362,6 +370,62 @@ export function EzMartDashboard({ stats, salesData, recentOrders = [], period, o
                     </div>
                 </m.div>
             </div>
+
+            {/* ================= TOP PRODUCTS & INVENTORY ROTATION MODULE ================= */}
+            <m.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.28 }}
+                className="bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-[2.5rem] p-7 shadow-xs space-y-6"
+            >
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                    <div>
+                        <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                            <Flame className="h-5 w-5 text-amber-500" />
+                            Top Productos & Rotación de Almacén
+                        </h3>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">Disponibilidad y rendimiento de catálogo</p>
+                    </div>
+                    <Link href="/admin/productos" className="text-xs font-extrabold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
+                        Gestionar Inventario <ArrowUpRight className="h-3.5 w-3.5" />
+                    </Link>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                    {topProducts.length > 0 ? (
+                        topProducts.map((prod) => (
+                            <div key={prod.id} className="bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 rounded-2xl p-4 flex flex-col justify-between space-y-3 group hover:border-blue-400/60 transition-all">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-md">
+                                        {prod.categoria || "Catálogo"}
+                                    </span>
+                                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${prod.stock < 5 ? "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300" : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"}`}>
+                                        {prod.stock} unids
+                                    </span>
+                                </div>
+
+                                <div>
+                                    <h4 className="text-xs font-black text-slate-900 dark:text-white line-clamp-2 group-hover:text-blue-600 transition-colors">
+                                        {prod.nombre}
+                                    </h4>
+                                    <p className="text-sm font-black text-slate-900 dark:text-white mt-1">{formatCurrency(prod.precio)}</p>
+                                </div>
+
+                                <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                    <div
+                                        className={`h-full rounded-full ${prod.stock < 5 ? "bg-rose-500" : "bg-blue-600"}`}
+                                        style={{ width: `${Math.min(100, (prod.stock / 20) * 100)}%` }}
+                                    />
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="col-span-5 py-6 text-center text-slate-400 font-semibold text-xs">
+                            No hay productos en catálogo registrados aún.
+                        </div>
+                    )}
+                </div>
+            </m.div>
 
             {/* ================= RECENT OPERATIONS & ACTION HUB ================= */}
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
