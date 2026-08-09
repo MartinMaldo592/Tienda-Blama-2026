@@ -20,8 +20,8 @@
     "semantic_hash": ""
   },
   "app/admin/clientes/page.tsx": {
-    "mtime": 1786299637.38493,
-    "ast_hash": "02265335b037c31dcc52487625eab3e6",
+    "mtime": 1786301331.4282434,
+    "ast_hash": "20e1caf04fa07b2902be1a2d482841d1",
     "semantic_hash": ""
   },
   "app/admin/cupones/page.tsx": {
@@ -65,8 +65,8 @@
     "semantic_hash": "87867885e70fa9cc054b94f2e627a66b"
   },
   "app/admin/inventario/page.tsx": {
-    "mtime": 1786299646.387847,
-    "ast_hash": "8bc8e0c8cbcbe984c6182525d54148f2",
+    "mtime": 1786303573.7495708,
+    "ast_hash": "8305602268f12eeccc2ff4720505bafa",
     "semantic_hash": ""
   },
   "app/admin/layout.tsx": {

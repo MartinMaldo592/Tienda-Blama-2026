@@ -90,29 +90,90 @@ export default function InventarioPage() {
                 </div>
             </m.div>
 
-            <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.3}} className="bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
+            <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.3}} className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-[0_10px_40px_rgba(0,0,0,0.04)] border border-slate-200/80 dark:border-slate-800 overflow-hidden">
                 <Table>
-                    <TableHeader className="bg-slate-50/50">
-                        <TableRow className="h-16 hover:bg-transparent border-slate-100">
-                            {["Producto / Variante","Stock Actual","Estado"].map((h,i)=>(<TableHead key={h} className={`font-black text-[11px] uppercase tracking-widest text-slate-400 ${i===0?'pl-8':i===1?'text-right':i===2?'pr-8':''}`}>{h}</TableHead>))}
+                    <TableHeader className="bg-slate-100/70 dark:bg-slate-800/60 border-b border-slate-200/60 dark:border-slate-800">
+                        <TableRow className="h-16 hover:bg-transparent border-none">
+                            {["Producto / Variante", "Stock Disponible", "Estado Almacén", "Acciones"].map((h, i) => (
+                                <TableHead key={h} className={`font-black text-[11px] uppercase tracking-widest text-slate-500 dark:text-slate-400 ${i === 0 ? 'pl-8' : i === 1 ? 'text-center' : i === 2 ? 'text-center' : 'pr-8 text-right'}`}>
+                                    {h}
+                                </TableHead>
+                            ))}
                         </TableRow>
                     </TableHeader>
-                    <TableBody>
+                    <TableBody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                         <AnimatePresence mode="popLayout">
-                            {filtered.map((item:any,i:number)=>(
-                                <m.tr key={`${item.producto_id}_${item.variante_id}`} initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} exit={{opacity:0,scale:0.95}} transition={{delay:i*0.03}} className="h-16 group hover:bg-slate-50/80 transition-colors border-slate-50">
-                                    <TableCell className="pl-8 font-bold text-slate-700 text-sm">{item.nombre}</TableCell>
-                                    <TableCell className="text-right"><span className={`text-2xl font-black tabular-nums ${item.stock<=0?'text-rose-600':item.stock<=5?'text-amber-600':'text-slate-900'}`}>{item.stock}</span></TableCell>
-                                    <TableCell className="pr-8">
-                                        {item.stock>5?<Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-0 font-black text-[10px] uppercase tracking-wider px-3 py-1 rounded-full">Adecuado</Badge>:item.stock>0?<Badge className="bg-amber-100 text-amber-700 hover:bg-amber-200 border-0 font-black text-[10px] uppercase tracking-wider px-3 py-1 rounded-full">Stock Bajo</Badge>:<Badge className="bg-rose-100 text-rose-700 hover:bg-rose-200 border-0 font-black text-[10px] uppercase tracking-wider px-3 py-1 rounded-full">Agotado</Badge>}
+                            {filtered.map((item: any, i: number) => (
+                                <m.tr key={`${item.producto_id}_${item.variante_id}`} initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} exit={{opacity:0,scale:0.95}} transition={{delay:i*0.025}} className="h-20 group hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors border-none">
+                                    <TableCell className="pl-8">
+                                        <div className="flex items-center gap-3.5">
+                                            <div className="h-11 w-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60 flex items-center justify-center font-black text-sm shrink-0">
+                                                <Warehouse className="h-5 w-5" />
+                                            </div>
+                                            <div className="flex flex-col min-w-0">
+                                                <span className="font-extrabold text-sm text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors truncate">
+                                                    {item.nombre}
+                                                </span>
+                                                <span className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                                                    ID: #{item.producto_id} {item.variante_id ? `• Var: #${item.variante_id}` : ""}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                        <span className={`text-2xl font-black tabular-nums tracking-tight ${item.stock <= 0 ? 'text-rose-600 dark:text-rose-400' : item.stock <= 5 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-white'}`}>
+                                            {item.stock} <span className="text-xs font-bold text-slate-400 dark:text-slate-500">unidades</span>
+                                        </span>
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                        {item.stock > 5 ? (
+                                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100/70 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
+                                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                Adecuado
+                                            </span>
+                                        ) : item.stock > 0 ? (
+                                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100/70 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
+                                                <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-ping" />
+                                                Stock Bajo
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-100/70 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300 border border-rose-200/60 dark:border-rose-800/60">
+                                                <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                                                Agotado
+                                            </span>
+                                        )}
+                                    </TableCell>
+                                    <TableCell className="pr-8 text-right">
+                                        <Button variant="outline" size="sm" className="gap-2 rounded-xl border-slate-200 dark:border-slate-800 font-bold text-xs hover:bg-emerald-50 dark:hover:bg-slate-800 hover:text-emerald-600 transition-all haptic-scale h-9 px-3.5 shadow-sm" asChild>
+                                            <Link href={`/admin/productos/${item.producto_id}`}>Ver Producto</Link>
+                                        </Button>
                                     </TableCell>
                                 </m.tr>
                             ))}
                         </AnimatePresence>
-                        {filtered.length===0&&<TableRow><TableCell colSpan={3} className="text-center py-20 text-slate-400">No se encontraron productos.</TableCell></TableRow>}
+                        {filtered.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={4} className="text-center py-20 text-slate-400">
+                                    <div className="flex flex-col items-center gap-3">
+                                        <PackageOpen className="h-10 w-10 stroke-1 text-slate-300" />
+                                        <p className="text-base font-medium">No se encontraron productos en el inventario.</p>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
-                {filtered.length>0&&<div className="px-8 py-5 bg-slate-50/50 border-t border-slate-100"><p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Mostrando {filtered.length} de {stats.total} ítems</p></div>}
+                {filtered.length > 0 && (
+                    <div className="px-8 py-5 bg-slate-50/70 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <p className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                            Mostrando {filtered.length} de {stats.total} ítems en almacén
+                        </p>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-100/60 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            Kardex Sincronizado
+                        </span>
+                    </div>
+                )}
             </m.div>
         </m.div>
     )
