@@ -217,13 +217,18 @@ export function OrdersTable({
                                             {renderOriginBadge(pedido.origen)}
                                         </TableCell>
                                         <TableCell>
-                                            <div className="flex flex-col">
-                                                <span className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                                                    {pedido.nombre_contacto || pedido.clientes?.nombre || 'Anónimo'}
-                                                </span>
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                                    {pedido.telefono_contacto || pedido.clientes?.telefono || 'Sin teléfono'}
-                                                </span>
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-sm border border-blue-400/20 uppercase">
+                                                    {(pedido.nombre_contacto || pedido.clientes?.nombre || 'A').charAt(0)}
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                                                        {pedido.nombre_contacto || pedido.clientes?.nombre || 'Anónimo'}
+                                                    </span>
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                                        {pedido.telefono_contacto || pedido.clientes?.telefono || 'Sin teléfono'}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-slate-500 text-xs font-medium">
