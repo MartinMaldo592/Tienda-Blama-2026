@@ -58,36 +58,40 @@ export default function ClientesPage() {
     if (guard.accessDenied) return <AccessDenied />
 
     return (
-        <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:0.4}} className="space-y-10 max-w-[1600px] mx-auto pb-20">
+        <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:0.4}} className="space-y-8 max-w-[1600px] mx-auto pb-20">
             <AdminPageHeader icon={<Users size={28} strokeWidth={1.5}/>} iconColor="bg-gradient-to-tr from-violet-600 via-indigo-600 to-violet-700" iconShadow="shadow-violet-500/20" title="Clientes" subtitle="Base de datos de compradores" totalItems={stats.total} totalLabel="clientes registrados" isFetching={isFetching} dotColor="bg-violet-500"
-                actions={<Button variant="outline" className="gap-2 haptic-scale shadow-sm rounded-xl h-11 px-5 font-bold border-slate-200 dark:border-slate-800" onClick={()=>qc.invalidateQueries({queryKey:["adminClientes"]})} disabled={isFetching}><RefreshCw className={`h-4 w-4 ${isFetching?'animate-spin':''}`}/>Sincronizar</Button>}
+                actions={<Button className="gap-2 haptic-scale shadow-md rounded-xl h-11 px-5 font-bold bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-blue-600 dark:hover:bg-blue-600 dark:hover:text-white transition-all" onClick={()=>qc.invalidateQueries({queryKey:["adminClientes"]})} disabled={isFetching}><RefreshCw className={`h-4 w-4 ${isFetching?'animate-spin':''}`}/>Sincronizar</Button>}
             />
 
-            {/* Tarjetas de Estadísticas */}
+            {/* Tarjetas de Estadísticas con Alto Contraste */}
             <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.1}} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {[{l:"Total Clientes",v:stats.total,icon:Users,c:"text-violet-600",bg:"bg-violet-50"},{l:"Con Correo",v:stats.conEmail,icon:UserCheck,c:"text-blue-600",bg:"bg-blue-50"},{l:"Sin Dirección",v:stats.sinDireccion,icon:UserX,c:"text-orange-600",bg:"bg-orange-50"}].map((s,i)=>(
-                    <m.div key={s.l} initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.15+i*0.05}} className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8">
+                {[
+                    {l:"Total Clientes",v:stats.total,icon:Users,c:"text-violet-700 dark:text-violet-400",bg:"bg-violet-100/70 dark:bg-violet-950/40 border border-violet-200/80 dark:border-violet-900/40"},
+                    {l:"Con Correo",v:stats.conEmail,icon:UserCheck,c:"text-blue-700 dark:text-blue-400",bg:"bg-blue-100/70 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/40"},
+                    {l:"Sin Dirección",v:stats.sinDireccion,icon:UserX,c:"text-amber-700 dark:text-amber-400",bg:"bg-amber-100/70 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/40"}
+                ].map((s,i)=>(
+                    <m.div key={s.l} initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.15+i*0.05}} className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-sm hover:shadow-md border border-slate-200/90 dark:border-slate-800 p-7 transition-all">
                         <div className="flex items-center justify-between">
-                            <div><p className="text-slate-400 font-bold text-xs uppercase tracking-widest">{s.l}</p><p className="text-4xl font-black text-slate-900 mt-2">{s.v}</p></div>
-                            <div className={`h-14 w-14 ${s.bg} rounded-2xl flex items-center justify-center`}><s.icon className={`h-7 w-7 ${s.c}`}/></div>
+                            <div><p className="text-slate-500 dark:text-slate-400 font-extrabold text-xs uppercase tracking-widest">{s.l}</p><p className="text-4xl font-black text-slate-900 dark:text-white mt-2">{s.v}</p></div>
+                            <div className={`h-14 w-14 ${s.bg} rounded-2xl flex items-center justify-center shadow-xs`}><s.icon className={`h-7 w-7 ${s.c}`}/></div>
                         </div>
                     </m.div>
                 ))}
             </m.div>
 
-            {/* Barra de Búsqueda */}
-            <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.15}} className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-6">
-                <div className="relative"><Search className="absolute left-4 top-3.5 h-4 w-4 text-slate-300"/><Input placeholder="Buscar por nombre, teléfono, DNI, correo o distrito..." className="pl-10 rounded-xl h-12 border-slate-200" value={searchTerm} onChange={e=>setSearchTerm(e.target.value)}/></div>
+            {/* Barra de Búsqueda con Definición de Borde */}
+            <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.15}} className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-sm border border-slate-200/90 dark:border-slate-800 p-5">
+                <div className="relative"><Search className="absolute left-4 top-3.5 h-4 w-4 text-slate-400"/><Input placeholder="Buscar por nombre, teléfono, DNI, correo o distrito..." className="pl-10 rounded-xl h-12 border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-950 text-slate-900 dark:text-white placeholder:text-slate-400 font-medium focus:bg-white" value={searchTerm} onChange={e=>setSearchTerm(e.target.value)}/></div>
             </m.div>
 
-            {/* Tabla de Clientes con Scroll Adaptable y Estilo Enterprise */}
-            <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.2}} className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-[0_10px_40px_rgba(0,0,0,0.04)] border border-slate-200/80 dark:border-slate-800 overflow-hidden">
+            {/* Tabla de Clientes con Encabezado Oscuro y Definición Nítida */}
+            <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.2}} className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-sm border border-slate-200/90 dark:border-slate-800 overflow-hidden">
                 <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent">
                     <Table className="min-w-[1100px] w-full">
-                        <TableHeader className="bg-slate-100/70 dark:bg-slate-800/60 border-b border-slate-200/60 dark:border-slate-800">
+                        <TableHeader className="bg-slate-100/90 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
                             <TableRow className="h-16 hover:bg-transparent border-none">
                                 {["ID", "Cliente & Contacto", "DNI / RUC", "Ubicación", "Dirección de Entrega", "Mapa", "Acciones"].map((h, i) => (
-                                    <TableHead key={h} className={`text-slate-500 dark:text-slate-400 font-black text-[11px] uppercase tracking-widest ${i === 0 ? 'pl-8' : ''} ${i === 6 ? 'pr-8 text-right' : ''}`}>
+                                    <TableHead key={h} className={`text-slate-800 dark:text-slate-200 font-black text-[11px] uppercase tracking-widest ${i === 0 ? 'pl-8' : ''} ${i === 6 ? 'pr-8 text-right' : ''}`}>
                                         {h}
                                     </TableHead>
                                 ))}
