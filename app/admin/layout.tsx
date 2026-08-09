@@ -128,7 +128,7 @@ export default function AdminLayout({
                         </SheetContent>
                     </Sheet>
                     <span className="font-bold text-lg bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        CRM Pro
+                        CRM
                     </span>
                 </div>
             </div>

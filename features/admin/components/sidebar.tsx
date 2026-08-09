@@ -92,21 +92,16 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
 
             {/* Header / Logo */}
             <div className="p-5 border-b border-slate-800/60 shrink-0 flex items-center justify-between bg-slate-950/80 backdrop-blur-md">
-                <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 font-black text-lg">
-                        B
+                <div>
+                    <div className="flex items-center gap-2">
+                        <h2 className="text-2xl font-black tracking-tight bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
+                            CRM
+                        </h2>
+                        <span className="text-[9px] font-extrabold uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30 px-1.5 py-0.5 rounded">v2.5</span>
                     </div>
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <h2 className="text-xl font-black tracking-tight bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
-                                CRM Pro
-                            </h2>
-                            <span className="text-[9px] font-extrabold uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30 px-1.5 py-0.5 rounded">v2.5</span>
-                        </div>
-                        <p className="text-[11px] font-medium text-slate-400">
-                            {role === 'superadmin' ? 'Panel Propietario' : role === 'admin' ? 'Panel Administración' : 'Panel Trabajador'}
-                        </p>
-                    </div>
+                    <p className="text-[11px] font-medium text-slate-400">
+                        {role === 'superadmin' ? 'Panel Propietario' : role === 'admin' ? 'Panel Administración' : 'Panel Trabajador'}
+                    </p>
                 </div>
             </div>
 
