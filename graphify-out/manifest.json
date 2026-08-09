@@ -20,8 +20,8 @@
     "semantic_hash": ""
   },
   "app/admin/clientes/page.tsx": {
-    "mtime": 1786306064.6969564,
-    "ast_hash": "20e1caf04fa07b2902be1a2d482841d1",
+    "mtime": 1786315920.2460268,
+    "ast_hash": "07c104374778fa3f39cb23c19d12b4c0",
     "semantic_hash": ""
   },
   "app/admin/cupones/page.tsx": {
@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "app/admin/layout.tsx": {
-    "mtime": 1786315673.1442828,
-    "ast_hash": "2551d6953761d750efba02ae797b9ae6",
+    "mtime": 1786315867.0565531,
+    "ast_hash": "87aefc6c2defa7f22eff9ae9da820316",
     "semantic_hash": ""
   },
   "app/admin/marketing/page.tsx": {
@@ -685,8 +685,8 @@
     "semantic_hash": "93e09cec73c9f0d7893f626273c2a328"
   },
   "features/admin/components/sidebar.tsx": {
-    "mtime": 1786315662.9224677,
-    "ast_hash": "fd6356833d26dba65af552a13726cec5",
+    "mtime": 1786315890.869184,
+    "ast_hash": "40a98a7a27f4610125948517daea5667",
     "semantic_hash": ""
   },
   "features/admin/components/skeleton-previews.tsx": {

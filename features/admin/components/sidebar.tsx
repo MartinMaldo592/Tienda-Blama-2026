@@ -1,6 +1,5 @@
 "use client"
 
-import { useRef } from "react"
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 import { createClient } from "@/lib/supabase.client"
@@ -15,26 +14,6 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
     const supabase = createClient()
     const router = useRouter()
     const pathname = usePathname()
-    const navRef = useRef<HTMLElement>(null)
-
-    const handleWheel = (e: React.WheelEvent) => {
-        const nav = navRef.current
-        if (!nav) {
-            window.scrollBy({ top: e.deltaY })
-            return
-        }
-        const isScrollable = nav.scrollHeight > nav.clientHeight
-        if (!isScrollable) {
-            window.scrollBy({ top: e.deltaY })
-        } else {
-            const atTop = nav.scrollTop <= 0 && e.deltaY < 0
-            const atBottom = nav.scrollTop + nav.clientHeight >= nav.scrollHeight - 1 && e.deltaY > 0
-            if (atTop || atBottom) {
-                window.scrollBy({ top: e.deltaY })
-            }
-        }
-    }
-
     const handleLogout = async () => {
         await supabase.auth.signOut()
         router.push("/auth/login")
@@ -85,7 +64,7 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
     }
 
     return (
-        <div onWheel={handleWheel} className="w-full h-full bg-[#0f172a] text-slate-100 flex flex-col border-r border-slate-800/80 shadow-2xl relative overflow-hidden select-none">
+        <div className="w-full h-full bg-[#0f172a] text-slate-100 flex flex-col border-r border-slate-800/80 shadow-2xl relative overflow-hidden select-none">
             {/* Header / Logo */}
             <div className="p-5 border-b border-slate-800/80 shrink-0 flex items-center justify-between bg-[#0f172a]/90 backdrop-blur-md">
                 <div>
@@ -102,7 +81,7 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
             </div>
 
             {/* Navigation items */}
-            <nav ref={navRef} className="flex-1 px-3.5 py-5 space-y-6 overflow-y-auto overscroll-auto scrollbar-thin scrollbar-thumb-slate-800">
+            <nav className="flex-1 px-3.5 py-5 space-y-6 overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-slate-800">
                 {menuSections.map((section, idx) => {
                     const visibleItems = section.items.filter(item => 
                         item.roles.includes(role) || (role === "superadmin" && item.roles.includes("admin"))
