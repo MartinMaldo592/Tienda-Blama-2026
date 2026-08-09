@@ -52,13 +52,13 @@ export async function POST(req: NextRequest) {
         }
 
         // Verificar rol de staff (admin o worker)
-        const { data: usuario } = await supabase
+        const { data: profile } = await supabase
             .from("usuarios")
             .select("role")
             .eq("id", user.id)
             .single()
 
-        if (!usuario || !["admin", "worker", "superadmin"].includes(usuario.role)) {
+        if (!profile || !profile.role || !["admin", "superadmin", "worker"].includes(profile.role)) {
             return NextResponse.json(
                 { error: "Acceso denegado. Solo el personal puede subir archivos." },
                 { status: 403 }

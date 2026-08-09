@@ -54,7 +54,7 @@ export async function POST(req: Request) {
         return NextResponse.json({
             success: true,
             codigo: data.codigo,
-            fecha: format(new Date(data.created_at), "dd/MM/yyyy HH:mm")
+            fecha: format(new Date(data.created_at || Date.now()), "dd/MM/yyyy HH:mm")
         });
 
     } catch (err: any) {

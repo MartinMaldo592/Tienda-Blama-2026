@@ -61,7 +61,7 @@ export function MarketingPixels() {
     return (
         <>
             {/* Polyfill temprano para prevenir ReferenceErrors de ttq en GTM */}
-            <Script id="pixel-fallbacks" strategy="beforeInteractive">
+            <Script id="pixel-fallbacks" strategy="afterInteractive">
                 {`
                     window.ttq = window.ttq || [];
                     window.ttq.methods = window.ttq.methods || [];

@@ -36,13 +36,21 @@ Toda la documentación oficial se encuentra actualizada y modularizada según el
 Si eres desarrollador y necesitas levantar este proyecto en 2 minutos:
 
 ```bash
-# 1. Instala las dependencias
+# 1. Instala las dependencias de Node.js
 npm install
 
 # 2. Clona el archivo de entorno (Asegúrate de llenar las credenciales leyendo INTEGRATIONS.md)
 cp .env.example .env.local
 
-# 3. Arranca el servidor de desarrollo (Webpack habilitado de forma predeterminada para soporte completo de subrutas)
+# 3. Herramientas de IA y Arquitectura (Skills & Graphify)
+# Install Graphify for codebase knowledge graphs:
+py -m pip install graphifyy
+py -m graphify update .
+
+# Install Vercel Skills CLI & find-skills:
+npx skills add https://github.com/vercel-labs/skills --skill find-skills
+
+# 4. Arranca el servidor de desarrollo
 npm run dev
 ```
 

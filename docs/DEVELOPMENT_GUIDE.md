@@ -19,6 +19,38 @@ Esta guía contiene los estándares técnicos, flujos de datos y la arquitectura
 
 ---
 
+## 🧠 1.1 Herramientas de IA y Grafo de Conocimiento (Graphify & Vercel Skills)
+
+Este proyecto está preparado para trabajar de forma óptima con agentes de IA y herramientas de análisis de arquitectura:
+
+### A. Graphify (Grafo de Conocimiento del Código)
+Graphify analiza el AST del proyecto y genera un mapa de arquitectura relacional en `graphify-out/`.
+- **Instalación en nuevo equipo:**
+  ```bash
+  py -m pip install graphifyy
+  ```
+- **Actualizar grafo tras cambios:**
+  ```bash
+  py -m graphify update .
+  ```
+- **Consultar arquitectura o relaciones:**
+  ```bash
+  py -m graphify query "¿Cómo funciona el checkout engine?"
+  ```
+
+### B. Vercel Skills CLI & `find-skills`
+Permite buscar e instalar skills de IA directamente en el repositorio:
+- **Instalar la herramienta de búsqueda de skills:**
+  ```bash
+  npx skills add https://github.com/vercel-labs/skills --skill find-skills
+  ```
+- **Buscar y agregar nuevas habilidades de IA:**
+  ```bash
+  npx skills find <concepto>
+  ```
+
+---
+
 ## 🛠️ 2. Tecnologías Clave e Integraciones Recientes
 
 ### A. Píxeles de Marketing y Google Tag Manager (GTM)
