@@ -49,7 +49,7 @@
   "47": "privacidad/page.tsx",
   "48": "robots.ts",
   "49": "terminos/page.tsx",
-  "50": "@builder.io/partytown",
+  "50": "@aws-sdk/client-s3",
   "51": "skeleton.tsx",
   "52": "clsx",
   "53": "database.types.ts",

@@ -1,16 +1,16 @@
 # Graph Report - Tienda-Blama-2026  (2026-08-09)
 
 ## Corpus Check
-- 316 files · ~170,276 words
+- 316 files · ~170,666 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1496 nodes · 3301 edges · 170 communities (91 shown, 79 thin omitted)
+- 1496 nodes · 3301 edges · 171 communities (92 shown, 79 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 8 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `976e618c`
+- Built from commit: `ebbffee7`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -29,7 +29,7 @@
 - compilerOptions
 - dashboard/page.tsx
 - utils.ts
-- button.tsx
+- checkout-form.tsx
 - order-notes-card.tsx
 - email.ts
 - components.json
@@ -58,7 +58,7 @@
 - checkout/culqi/route.ts
 - proxy.ts
 - webhooks/culqi/route.ts
-- @aws-sdk/client-s3
+- button.tsx
 - skeleton.tsx
 - clsx
 - database.types.ts
@@ -167,6 +167,7 @@
 - _template.md
 - date-fns
 - Web Interface Guidelines
+- @builder.io/partytown
 - marketing/page.tsx
 - not-found.tsx
 - use-places-autocomplete
@@ -199,7 +200,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (170 total, 79 thin omitted)
+## Communities (171 total, 79 thin omitted)
 
 ### Community 0 - "useRoleGuard"
 Cohesion: 0.07
@@ -257,9 +258,9 @@ Nodes (17): AdminDashboard(), DashboardSalesChart(), useCurrentUserId(), SalesCh
 Cohesion: 0.17
 Nodes (16): ProductoDetalleClient(), ProductoDetalleClientProps, Product, ProductCard(), ProductCardProps, ProductImageCarousel(), ProductImageCarouselProps, ProductSocialProof() (+8 more)
 
-### Community 14 - "button.tsx"
-Cohesion: 0.10
-Nodes (16): OrderLabelGenerator, Button(), buttonVariants, OrderLabelGeneratorProps, CheckoutAddress(), CheckoutCustomer(), CheckoutCustomerProps, CheckoutFormProps (+8 more)
+### Community 14 - "checkout-form.tsx"
+Cohesion: 0.13
+Nodes (13): CheckoutAddress(), CheckoutCustomer(), CheckoutCustomerProps, CheckoutFormProps, FormContent(), libraries, CheckoutShipping(), CheckoutShippingProps (+5 more)
 
 ### Community 15 - "order-notes-card.tsx"
 Cohesion: 0.32
@@ -278,8 +279,8 @@ Cohesion: 0.10
 Nodes (25): AdminPreguntasPage(), AdminSocialLinksPage(), AdminResenasPage(), ForgotPasswordPage(), AdminSidebar(), AdminSidebarProps, AnnouncementBarConfig, AuditLog (+17 more)
 
 ### Community 19 - "input.tsx"
-Cohesion: 0.19
-Nodes (10): Input(), Label(), MediaManager(), MediaManagerProps, UploadProgressInfo, CheckoutAddressProps, CheckoutShippingProps, QuickAddressProps (+2 more)
+Cohesion: 0.22
+Nodes (9): Input(), Label(), MediaManager(), MediaManagerProps, UploadProgressInfo, CheckoutAddressProps, QuickAddressProps, QuickCustomerProps (+1 more)
 
 ### Community 20 - "rate-limit.ts"
 Cohesion: 0.17
@@ -315,7 +316,7 @@ Nodes (13): CheckoutBodySchema, CheckoutItemSchema, GET(), getEnv(), POST(), run
 
 ### Community 28 - "dependencies"
 Cohesion: 0.18
-Nodes (11): @aws-sdk/s3-request-presigner, @builder.io/partytown, next, dependencies, @aws-sdk/s3-request-presigner, @builder.io/partytown, next, @react-email/render (+3 more)
+Nodes (11): @aws-sdk/client-s3, @aws-sdk/s3-request-presigner, next, dependencies, @aws-sdk/client-s3, @aws-sdk/s3-request-presigner, next, @react-email/render (+3 more)
 
 ### Community 29 - "uploadToR2"
 Cohesion: 0.22
@@ -360,6 +361,10 @@ Nodes (9): 1. Query Performance (query), 2. Connection Management (conn), 3. Sec
 ### Community 40 - "checkout/culqi/route.ts"
 Cohesion: 0.24
 Nodes (8): CheckoutItemSchema, CulqiCheckoutSchema, getEnv(), POST(), runtime, addressSchema, checkoutBaseFields, identitySchema
+
+### Community 50 - "button.tsx"
+Cohesion: 0.25
+Nodes (4): OrderLabelGenerator, Button(), buttonVariants, OrderLabelGeneratorProps
 
 ### Community 51 - "skeleton.tsx"
 Cohesion: 0.27
@@ -517,11 +522,11 @@ Nodes (3): NotFound(), Home(), getHomePageData()
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `createClient()` connect `createClient` to `useRoleGuard`, `order-payment-card.tsx`, `useCheckoutForm.ts`, `pedidos/page.tsx`, `formatCurrency`, `cart-button.tsx`, `header.tsx`, `products.ts`, `dashboard/page.tsx`, `button.tsx`, `order-notes-card.tsx`, `uploadToR2`, `input.tsx`, `admin/types.ts`, `app/layout.tsx`, `pedidos/[id]/page.tsx`, `ProductosClient.tsx`, `product-social-proof.tsx`?**
+- **Why does `createClient()` connect `createClient` to `useRoleGuard`, `order-payment-card.tsx`, `useCheckoutForm.ts`, `pedidos/page.tsx`, `formatCurrency`, `cart-button.tsx`, `header.tsx`, `products.ts`, `dashboard/page.tsx`, `order-notes-card.tsx`, `button.tsx`, `input.tsx`, `uploadToR2`, `admin/types.ts`, `app/layout.tsx`, `pedidos/[id]/page.tsx`, `ProductosClient.tsx`, `product-social-proof.tsx`?**
   _High betweenness centrality (0.069) - this node is a cross-community bridge._
-- **Why does `Button()` connect `button.tsx` to `useRoleGuard`, `order-payment-card.tsx`, `product-form.tsx`, `useProductDetail.ts`, `cart-button.tsx`, `dashboard/page.tsx`, `utils.ts`, `order-notes-card.tsx`, `input.tsx`, `admin/types.ts`, `app/page.tsx`, `ProductosClient.tsx`, `pedidos/page.tsx`, `marketing/page.tsx`, `not-found.tsx`, `skeleton.tsx`, `cn`, `formatCurrency`, `order-file-card.tsx`, `pedidos/[id]/page.tsx`, `product-social-proof.tsx`?**
+- **Why does `Button()` connect `button.tsx` to `useRoleGuard`, `order-payment-card.tsx`, `product-form.tsx`, `useProductDetail.ts`, `cart-button.tsx`, `dashboard/page.tsx`, `utils.ts`, `checkout-form.tsx`, `order-notes-card.tsx`, `input.tsx`, `admin/types.ts`, `app/page.tsx`, `ProductosClient.tsx`, `pedidos/page.tsx`, `marketing/page.tsx`, `not-found.tsx`, `skeleton.tsx`, `cn`, `formatCurrency`, `order-file-card.tsx`, `pedidos/[id]/page.tsx`, `product-social-proof.tsx`?**
   _High betweenness centrality (0.025) - this node is a cross-community bridge._
-- **Why does `formatCurrency()` connect `formatCurrency` to `useRoleGuard`, `order-payment-card.tsx`, `useCheckoutForm.ts`, `pedidos/page.tsx`, `useProductDetail.ts`, `cart-button.tsx`, `header.tsx`, `dashboard/page.tsx`, `utils.ts`, `button.tsx`, `cn`, `input.tsx`, `pedidos/[id]/page.tsx`?**
+- **Why does `formatCurrency()` connect `formatCurrency` to `useRoleGuard`, `order-payment-card.tsx`, `useCheckoutForm.ts`, `pedidos/page.tsx`, `useProductDetail.ts`, `cart-button.tsx`, `header.tsx`, `dashboard/page.tsx`, `utils.ts`, `checkout-form.tsx`, `cn`, `input.tsx`, `pedidos/[id]/page.tsx`?**
   _High betweenness centrality (0.022) - this node is a cross-community bridge._
 - **What connects `CouponType`, `CouponRow`, `PROCESS_STATUSES` to the rest of the system?**
   _615 weakly-connected nodes found - possible documentation gaps or missing edges._

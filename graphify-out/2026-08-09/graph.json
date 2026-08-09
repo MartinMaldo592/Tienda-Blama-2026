@@ -8232,8 +8232,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "features_checkout_store_whatsapp",
-      "community": 9,
-      "community_name": "header.tsx",
+      "community": 2,
+      "community_name": "useCheckoutForm.ts",
       "norm_label": "store/whatsapp.ts"
     },
     {
@@ -8245,8 +8245,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "features_checkout_store_whatsapp_whatsappstate",
-      "community": 9,
-      "community_name": "header.tsx",
+      "community": 2,
+      "community_name": "useCheckoutForm.ts",
       "norm_label": "whatsappstate"
     },
     {
@@ -11034,8 +11034,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "package_dependencies_aws_sdk_client_s3",
-      "community": 28,
-      "community_name": "dependencies",
+      "community": 50,
+      "community_name": "@aws-sdk/client-s3",
       "norm_label": "@aws-sdk/client-s3"
     },
     {
@@ -11045,8 +11045,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "aws_sdk_client_s3",
-      "community": 28,
-      "community_name": "dependencies",
+      "community": 50,
+      "community_name": "@aws-sdk/client-s3",
       "norm_label": "@aws-sdk/client-s3"
     },
     {
@@ -11078,8 +11078,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "package_dependencies_builder_io_partytown",
-      "community": 50,
-      "community_name": "@builder.io/partytown",
+      "community": 28,
+      "community_name": "dependencies",
       "norm_label": "@builder.io/partytown"
     },
     {
@@ -11089,8 +11089,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "builder_io_partytown",
-      "community": 50,
-      "community_name": "@builder.io/partytown",
+      "community": 28,
+      "community_name": "dependencies",
       "norm_label": "@builder.io/partytown"
     },
     {
@@ -40768,7 +40768,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "features/admin/components/orders/orders-table.tsx",
-      "source_location": "L234",
+      "source_location": "L239",
       "weight": 1.0,
       "_origin": "ast",
       "source": "features_admin_components_orders_orders_table_orderstable",
@@ -55651,5 +55651,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "06a3008923a26845988aac335699634236fc4c24"
+  "built_at_commit": "976e618c76fefe39657b8dcb8f367a4fb25e6805"
 }
