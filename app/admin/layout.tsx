@@ -154,7 +154,7 @@ export default function AdminLayout({
                                 const e = new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true })
                                 document.dispatchEvent(e)
                             }}
-                            className="flex items-center gap-3 px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200/70 text-slate-500 text-xs font-medium border border-slate-200/60 dark:border-slate-800 transition-all"
+                            className="flex items-center gap-3 px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200/70 text-slate-500 text-xs font-medium border border-slate-200/60 dark:border-slate-800 transition-all cursor-pointer"
                         >
                             <span>Buscar o ejecutar comando...</span>
                             <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-white dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 shadow-2xs">
@@ -162,17 +162,11 @@ export default function AdminLayout({
                             </kbd>
                         </button>
 
-                        {/* Realtime dot */}
-                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/40 text-xs font-bold">
-                            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span>En Vivo</span>
-                        </div>
-
                         {/* View Store button */}
                         <Link
                             href="/"
                             target="_blank"
-                            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-blue-600 font-bold text-xs shadow-sm transition-all haptic-scale"
+                            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-blue-600 dark:hover:bg-blue-600 dark:hover:text-white font-bold text-xs shadow-sm transition-all haptic-scale"
                         >
                             <span>Tienda</span>
                             <ArrowRight className="h-3.5 w-3.5 -rotate-45" />

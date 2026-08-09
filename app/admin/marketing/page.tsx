@@ -149,9 +149,6 @@ export default function AdminMarketingPage() {
           <div className="space-y-1.5 flex-1">
             <div className="flex items-center gap-2">
               <h4 className="text-base sm:text-lg font-black tracking-tight text-white">Gestión Dinámica de Scripts y Píxeles</h4>
-              <span className="bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                En vivo
-              </span>
             </div>
             <p className="text-xs sm:text-sm text-blue-100/80 leading-relaxed max-w-4xl font-normal">
               Desde este panel controlas qué píxeles de rastreo y scripts analíticos están activos en tu tienda online. 

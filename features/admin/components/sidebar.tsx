@@ -85,28 +85,24 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
     }
 
     return (
-        <div onWheel={handleWheel} className="w-full h-full bg-slate-950 text-slate-100 flex flex-col border-r border-slate-800/60 shadow-2xl relative overflow-hidden select-none">
-            {/* Ambient subtle glow gradient overlay */}
-            <div className="absolute -top-24 -left-24 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
-
+        <div onWheel={handleWheel} className="w-full h-full bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col border-r border-slate-200/80 dark:border-slate-800/80 shadow-xs relative overflow-hidden select-none">
             {/* Header / Logo */}
-            <div className="p-5 border-b border-slate-800/60 shrink-0 flex items-center justify-between bg-slate-950/80 backdrop-blur-md">
+            <div className="p-5 border-b border-slate-200/80 dark:border-slate-800/80 shrink-0 flex items-center justify-between bg-white/90 dark:bg-slate-950/90 backdrop-blur-md">
                 <div>
                     <div className="flex items-center gap-2">
-                        <h2 className="text-2xl font-black tracking-tight bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
+                        <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                             CRM
                         </h2>
-                        <span className="text-[9px] font-extrabold uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30 px-1.5 py-0.5 rounded">v2.5</span>
+                        <span className="text-[9px] font-extrabold uppercase bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded-md">v2.5</span>
                     </div>
-                    <p className="text-[11px] font-medium text-slate-400">
+                    <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500">
                         {role === 'superadmin' ? 'Panel Propietario' : role === 'admin' ? 'Panel Administración' : 'Panel Trabajador'}
                     </p>
                 </div>
             </div>
 
             {/* Navigation items */}
-            <nav ref={navRef} className="flex-1 px-3 py-4 space-y-6 overflow-y-auto overscroll-auto scrollbar-thin scrollbar-thumb-slate-800">
+            <nav ref={navRef} className="flex-1 px-3 py-4 space-y-6 overflow-y-auto overscroll-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
                 {menuSections.map((section, idx) => {
                     const visibleItems = section.items.filter(item => 
                         item.roles.includes(role) || (role === "superadmin" && item.roles.includes("admin"))
@@ -116,7 +112,7 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
 
                     return (
                         <div key={idx} className="space-y-1">
-                            <div className="px-3 pb-1 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                            <div className="px-3 pb-1.5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                                 {section.title}
                             </div>
                             {visibleItems.map((item) => {
@@ -125,31 +121,22 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
                                     <Link
                                         key={item.href}
                                         href={item.href}
-                                        className={`relative flex items-center gap-3.5 px-3 py-2 text-xs rounded-xl transition-all duration-200 group font-semibold ${
+                                        className={`relative flex items-center gap-3.5 px-3.5 py-2.5 text-xs rounded-xl transition-all duration-200 group font-bold ${
                                             active
-                                                ? 'text-white font-bold'
-                                                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/80'
+                                                ? 'text-white dark:text-slate-900 shadow-sm'
+                                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-900'
                                         }`}
                                     >
-                                        {/* Animated active background pill */}
+                                        {/* Minimalist active background pill */}
                                         {active && (
                                             <m.div
                                                 layoutId="sidebar-active-pill"
-                                                className="absolute inset-0 bg-gradient-to-r from-blue-600/25 via-indigo-600/20 to-purple-600/25 border border-blue-500/30 rounded-xl shadow-inner backdrop-blur-sm"
-                                                transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                                                className="absolute inset-0 bg-slate-900 dark:bg-slate-100 rounded-xl shadow-md"
+                                                transition={{ type: "spring", stiffness: 400, damping: 35 }}
                                             />
                                         )}
 
-                                        {/* Active left accent bar */}
-                                        {active && (
-                                            <m.div
-                                                layoutId="sidebar-active-bar"
-                                                className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-5 bg-gradient-to-b from-blue-400 to-indigo-500 rounded-r-full shadow-md shadow-blue-500/50"
-                                                transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                                            />
-                                        )}
-
-                                        <item.icon className={`relative z-10 h-4 w-4 transition-transform duration-300 ${active ? 'text-blue-400 scale-110' : 'text-slate-400 group-hover:text-slate-200 group-hover:scale-105'}`} />
+                                        <item.icon className={`relative z-10 h-4 w-4 transition-transform duration-200 ${active ? 'text-white dark:text-slate-900 scale-105' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-800 dark:group-hover:text-slate-200 group-hover:scale-105'}`} />
                                         <span className="relative z-10 tracking-tight">{item.label}</span>
                                     </Link>
                                 )
@@ -161,20 +148,20 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
 
             {/* Role Badge */}
             <div className="px-4 pb-3 shrink-0">
-                <div className={`px-3 py-2 rounded-xl text-xs font-bold text-center backdrop-blur-md shadow-sm ${
-                    role === 'superadmin' ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30' :
-                    role === 'admin' ? 'bg-blue-500/10 text-blue-300 border border-blue-500/30' :
-                    'bg-slate-900 text-slate-300 border border-slate-800'
+                <div className={`px-3 py-2 rounded-xl text-xs font-bold text-center border transition-all ${
+                    role === 'superadmin' ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200/60 dark:border-amber-900/40' :
+                    role === 'admin' ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200/60 dark:border-blue-900/40' :
+                    'bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200/60 dark:border-slate-800'
                     }`}>
                     {role === 'superadmin' ? '⭐ Propietario' : role === 'admin' ? '👑 Administrador' : '👤 Trabajador'}
                 </div>
             </div>
 
             {/* Logout Footer */}
-            <div className="p-3 border-t border-slate-800/60 shrink-0 bg-slate-950/80">
+            <div className="p-3 border-t border-slate-200/80 dark:border-slate-800/80 shrink-0 bg-slate-50/50 dark:bg-slate-950">
                 <button
                     onClick={handleLogout}
-                    className="flex items-center gap-3 px-3.5 py-2.5 w-full text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all duration-200 font-semibold group"
+                    className="flex items-center gap-3 px-3.5 py-2.5 w-full text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition-all duration-200 font-semibold group"
                 >
                     <LogOut className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
                     <span>Cerrar Sesión</span>
