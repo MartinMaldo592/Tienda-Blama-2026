@@ -13,8 +13,7 @@ stateDiagram-v2
     Pendiente --> Confirmado : Admin aprueba pago (Voucher/Culqi)
     Pendiente --> Fallido : Transacción rechazada / Cliente no paga
     
-    Confirmado --> Preparando : Trabajador arma el paquete
-    Preparando --> Enviado : Entregado a Courier (Shalom / Motorizado)
+    Confirmado --> Enviado : Entregado a Courier (Shalom / Motorizado)
     
     Enviado --> Entregado : Cliente recibe producto
     Enviado --> Devuelto : Cliente rechaza / Dirección errónea

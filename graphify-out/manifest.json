@@ -740,8 +740,8 @@
     "semantic_hash": "b34124cdc2154bc6f724eeaaa3da17d3"
   },
   "features/admin/services/dashboard.client.ts": {
-    "mtime": 1786317489.858132,
-    "ast_hash": "7ebfbb7584847553d119190f870cb7a5",
+    "mtime": 1786318378.0299618,
+    "ast_hash": "7e7dda2bf1ded58ee06d712a570254e8",
     "semantic_hash": ""
   },
   "features/admin/services/incidencias.client.ts": {
@@ -1165,8 +1165,8 @@
     "semantic_hash": ""
   },
   "docs/BUSINESS_LOGIC.md": {
-    "mtime": 1786239905.545652,
-    "ast_hash": "137160686258eba92503a150c5ae0db3",
+    "mtime": 1786318630.9757261,
+    "ast_hash": "0f9d4a7687adad778e42c505f48f4cf6",
     "semantic_hash": ""
   },
   "docs/DEVELOPMENT_GUIDE.md": {
@@ -1177,11 +1177,6 @@
   "docs/INTEGRATIONS.md": {
     "mtime": 1786239905.545652,
     "ast_hash": "4c6e9c7e50625c411454b9339d4a138f",
-    "semantic_hash": ""
-  },
-  "docs/RESUMEN_MEJORAS.md": {
-    "mtime": 1786239905.545652,
-    "ast_hash": "d31dcf458b8f3a95df0b80a906043067",
     "semantic_hash": ""
   },
   "docs/USER_MANUAL.md": {
