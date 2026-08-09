@@ -879,7 +879,7 @@ BEGIN
         cantidad, 
         costo_unitario,
         referencia,
-        notes
+        notas
     ) VALUES (
         v_item.producto_id,
         v_item.producto_variante_id,
@@ -981,7 +981,12 @@ ALTER TABLE public.usuarios ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pedido_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.system_audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pedido_pagos ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.pedido_notes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pedido_notas ENABLE ROW LEVEL SECURITY;
+
+-- 🛡️ Políticas para: pedido_notas
+CREATE POLICY "Permitir borrado admin" ON public.pedido_notas FOR DELETE USING (public.is_admin());
+CREATE POLICY "Permitir lectura staff" ON public.pedido_notas FOR SELECT TO authenticated USING (public.can_access_pedido(pedido_id));
+CREATE POLICY "Permitir escritura staff" ON public.pedido_notas FOR INSERT TO authenticated WITH CHECK (public.can_access_pedido(pedido_id));
 ALTER TABLE public.libro_reclamaciones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.almacenes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.inventario_movimientos ENABLE ROW LEVEL SECURITY;
@@ -1110,9 +1115,9 @@ CREATE POLICY "Admins y workers pueden ver pagos" ON public.pedido_pagos FOR SEL
 CREATE POLICY "Admins y workers pueden insertar pagos" ON public.pedido_pagos FOR INSERT TO authenticated WITH CHECK (public.can_access_pedido(pedido_id));
 
 -- 🛡️ Políticas para: pedido_notas
-CREATE POLICY "Permitir borrado admin" ON public.pedido_notes FOR DELETE USING (public.is_admin());
-CREATE POLICY "Permitir lectura staff" ON public.pedido_notes FOR SELECT TO authenticated USING (public.can_access_pedido(pedido_id));
-CREATE POLICY "Permitir escritura staff" ON public.pedido_notes FOR INSERT TO authenticated WITH CHECK (public.can_access_pedido(pedido_id));
+CREATE POLICY "Permitir borrado admin" ON public.pedido_notas FOR DELETE USING (public.is_admin());
+CREATE POLICY "Permitir lectura staff" ON public.pedido_notas FOR SELECT TO authenticated USING (public.can_access_pedido(pedido_id));
+CREATE POLICY "Permitir escritura staff" ON public.pedido_notas FOR INSERT TO authenticated WITH CHECK (public.can_access_pedido(pedido_id));
 
 -- 🛡️ Políticas para: libro_reclamaciones
 CREATE POLICY "Enable read for service role only" ON public.libro_reclamaciones FOR SELECT TO service_role USING (true);
