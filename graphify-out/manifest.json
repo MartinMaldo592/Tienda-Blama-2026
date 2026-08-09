@@ -30,8 +30,8 @@
     "semantic_hash": ""
   },
   "app/admin/dashboard/page.tsx": {
-    "mtime": 1786306064.7015836,
-    "ast_hash": "db93310aceabdaf7845674be758c1dd4",
+    "mtime": 1786316518.7654493,
+    "ast_hash": "2dc06de35342118833e2ef9443ef95ac",
     "semantic_hash": ""
   },
   "app/admin/dashboard/pedidos-en-proceso/page.tsx": {
@@ -1472,6 +1472,11 @@
   ".agents/skills/web-design-guidelines/SKILL.md": {
     "mtime": 1786306064.689155,
     "ast_hash": "8d96a7f6f0c5e1908bab8faf8cd2f9b4",
+    "semantic_hash": ""
+  },
+  "features/admin/components/dashboard/ezmart-dashboard.tsx": {
+    "mtime": 1786316422.3657022,
+    "ast_hash": "d18d4d7d7d8f66d2c3d7a3cff814e196",
     "semantic_hash": ""
   }
 }

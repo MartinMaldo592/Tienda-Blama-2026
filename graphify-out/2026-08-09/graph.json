@@ -716,7 +716,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "app_admin_pedidos_id_page_orderlabelgenerator",
-      "community": 14,
+      "community": 50,
       "community_name": "button.tsx",
       "norm_label": "orderlabelgenerator"
     },
@@ -3096,7 +3096,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_newsletter_section",
-      "community": 14,
+      "community": 50,
       "community_name": "button.tsx",
       "norm_label": "newsletter-section.tsx"
     },
@@ -3108,7 +3108,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "components_newsletter_section_newslettersection",
-      "community": 14,
+      "community": 50,
       "community_name": "button.tsx",
       "norm_label": "newslettersection()"
     },
@@ -3430,7 +3430,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_ui_button",
-      "community": 14,
+      "community": 50,
       "community_name": "button.tsx",
       "norm_label": "button.tsx"
     },
@@ -3441,7 +3441,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "components_ui_button_buttonvariants",
-      "community": 14,
+      "community": 50,
       "community_name": "button.tsx",
       "norm_label": "buttonvariants"
     },
@@ -3453,7 +3453,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "components_ui_button_button",
-      "community": 14,
+      "community": 50,
       "community_name": "button.tsx",
       "norm_label": "button()"
     },
@@ -5109,7 +5109,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "features_admin_components_orders_order_label_generator",
-      "community": 14,
+      "community": 50,
       "community_name": "button.tsx",
       "norm_label": "order-label-generator.tsx"
     },
@@ -5122,7 +5122,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "features_admin_components_orders_order_label_generator_orderlabelgeneratorprops",
-      "community": 14,
+      "community": 50,
       "community_name": "button.tsx",
       "norm_label": "orderlabelgeneratorprops"
     },
@@ -5134,7 +5134,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "features_admin_components_orders_order_label_generator_orderlabelgenerator",
-      "community": 14,
+      "community": 50,
       "community_name": "button.tsx",
       "norm_label": "orderlabelgenerator()"
     },
@@ -5261,7 +5261,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "features_admin_components_orders_order_shipping_card",
-      "community": 14,
+      "community": 50,
       "community_name": "button.tsx",
       "norm_label": "order-shipping-card.tsx"
     },
@@ -5286,7 +5286,7 @@
       "_callable": true,
       "_origin": "ast",
       "id": "features_admin_components_orders_order_shipping_card_fieldgroup",
-      "community": 14,
+      "community": 50,
       "community_name": "button.tsx",
       "norm_label": "fieldgroup()"
     },
@@ -5905,7 +5905,7 @@
       "label": "AdminSidebarProps",
       "file_type": "code",
       "source_file": "features/admin/components/sidebar.tsx",
-      "source_location": "L10",
+      "source_location": "L9",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
@@ -5918,7 +5918,7 @@
       "label": "AdminSidebar()",
       "file_type": "code",
       "source_file": "features/admin/components/sidebar.tsx",
-      "source_location": "L14",
+      "source_location": "L13",
       "_callable": true,
       "_origin": "ast",
       "id": "features_admin_components_sidebar_adminsidebar",
@@ -7526,7 +7526,7 @@
       "_origin": "ast",
       "id": "features_checkout_components_checkout_address_checkoutaddress",
       "community": 14,
-      "community_name": "button.tsx",
+      "community_name": "checkout-form.tsx",
       "norm_label": "checkoutaddress()"
     },
     {
@@ -7537,7 +7537,7 @@
       "_origin": "ast",
       "id": "features_checkout_components_checkout_customer",
       "community": 14,
-      "community_name": "button.tsx",
+      "community_name": "checkout-form.tsx",
       "norm_label": "checkout-customer.tsx"
     },
     {
@@ -7550,7 +7550,7 @@
       "_origin": "ast",
       "id": "features_checkout_components_checkout_customer_checkoutcustomerprops",
       "community": 14,
-      "community_name": "button.tsx",
+      "community_name": "checkout-form.tsx",
       "norm_label": "checkoutcustomerprops"
     },
     {
@@ -7562,7 +7562,7 @@
       "_origin": "ast",
       "id": "features_checkout_components_checkout_customer_checkoutcustomer",
       "community": 14,
-      "community_name": "button.tsx",
+      "community_name": "checkout-form.tsx",
       "norm_label": "checkoutcustomer()"
     },
     {
@@ -7574,7 +7574,7 @@
       "_origin": "ast",
       "id": "features_checkout_components_checkout_customer_iconinput",
       "community": 14,
-      "community_name": "button.tsx",
+      "community_name": "checkout-form.tsx",
       "norm_label": "iconinput()"
     },
     {
@@ -7585,7 +7585,7 @@
       "_origin": "ast",
       "id": "features_checkout_components_checkout_form",
       "community": 14,
-      "community_name": "button.tsx",
+      "community_name": "checkout-form.tsx",
       "norm_label": "checkout-form.tsx"
     },
     {
@@ -7596,7 +7596,7 @@
       "_origin": "ast",
       "id": "features_checkout_components_checkout_form_libraries",
       "community": 14,
-      "community_name": "button.tsx",
+      "community_name": "checkout-form.tsx",
       "norm_label": "libraries"
     },
     {
@@ -7609,7 +7609,7 @@
       "_origin": "ast",
       "id": "features_checkout_components_checkout_form_checkoutformprops",
       "community": 14,
-      "community_name": "button.tsx",
+      "community_name": "checkout-form.tsx",
       "norm_label": "checkoutformprops"
     },
     {
@@ -7633,7 +7633,7 @@
       "_origin": "ast",
       "id": "features_checkout_components_checkout_form_formcontent",
       "community": 14,
-      "community_name": "button.tsx",
+      "community_name": "checkout-form.tsx",
       "norm_label": "formcontent()"
     },
     {
@@ -7679,8 +7679,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "features_checkout_components_checkout_shipping",
-      "community": 19,
-      "community_name": "input.tsx",
+      "community": 14,
+      "community_name": "checkout-form.tsx",
       "norm_label": "checkout-shipping.tsx"
     },
     {
@@ -7692,8 +7692,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "features_checkout_components_checkout_shipping_checkoutshippingprops",
-      "community": 19,
-      "community_name": "input.tsx",
+      "community": 14,
+      "community_name": "checkout-form.tsx",
       "norm_label": "checkoutshippingprops"
     },
     {
@@ -7705,7 +7705,7 @@
       "_origin": "ast",
       "id": "features_checkout_components_checkout_shipping_checkoutshipping",
       "community": 14,
-      "community_name": "button.tsx",
+      "community_name": "checkout-form.tsx",
       "norm_label": "checkoutshipping()"
     },
     {
@@ -7716,7 +7716,7 @@
       "_origin": "ast",
       "id": "features_checkout_components_checkout_summary",
       "community": 14,
-      "community_name": "button.tsx",
+      "community_name": "checkout-form.tsx",
       "norm_label": "checkout-summary.tsx"
     },
     {
@@ -7729,7 +7729,7 @@
       "_origin": "ast",
       "id": "features_checkout_components_checkout_summary_checkoutsummaryprops",
       "community": 14,
-      "community_name": "button.tsx",
+      "community_name": "checkout-form.tsx",
       "norm_label": "checkoutsummaryprops"
     },
     {
@@ -7740,7 +7740,7 @@
       "_origin": "ast",
       "id": "features_checkout_components_checkout_summary_checkoutsummary",
       "community": 14,
-      "community_name": "button.tsx",
+      "community_name": "checkout-form.tsx",
       "norm_label": "checkoutsummary"
     },
     {
@@ -7751,7 +7751,7 @@
       "_origin": "ast",
       "id": "features_checkout_components_culqi_payment_button",
       "community": 14,
-      "community_name": "button.tsx",
+      "community_name": "checkout-form.tsx",
       "norm_label": "culqi-payment-button.tsx"
     },
     {
@@ -7764,7 +7764,7 @@
       "_origin": "ast",
       "id": "features_checkout_components_culqi_payment_button_culqibuttonprops",
       "community": 14,
-      "community_name": "button.tsx",
+      "community_name": "checkout-form.tsx",
       "norm_label": "culqibuttonprops"
     },
     {
@@ -7777,7 +7777,7 @@
       "_origin": "ast",
       "id": "features_checkout_components_culqi_payment_button_window",
       "community": 14,
-      "community_name": "button.tsx",
+      "community_name": "checkout-form.tsx",
       "norm_label": "window"
     },
     {
@@ -7789,7 +7789,7 @@
       "_origin": "ast",
       "id": "features_checkout_components_culqi_payment_button_culqipaymentbutton",
       "community": 14,
-      "community_name": "button.tsx",
+      "community_name": "checkout-form.tsx",
       "norm_label": "culqipaymentbutton()"
     },
     {
@@ -11034,8 +11034,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "package_dependencies_aws_sdk_client_s3",
-      "community": 50,
-      "community_name": "@aws-sdk/client-s3",
+      "community": 28,
+      "community_name": "dependencies",
       "norm_label": "@aws-sdk/client-s3"
     },
     {
@@ -11045,8 +11045,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "aws_sdk_client_s3",
-      "community": 50,
-      "community_name": "@aws-sdk/client-s3",
+      "community": 28,
+      "community_name": "dependencies",
       "norm_label": "@aws-sdk/client-s3"
     },
     {
@@ -11078,8 +11078,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "package_dependencies_builder_io_partytown",
-      "community": 28,
-      "community_name": "dependencies",
+      "community": 166,
+      "community_name": "@builder.io/partytown",
       "norm_label": "@builder.io/partytown"
     },
     {
@@ -11089,8 +11089,8 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "builder_io_partytown",
-      "community": 28,
-      "community_name": "dependencies",
+      "community": 166,
+      "community_name": "@builder.io/partytown",
       "norm_label": "@builder.io/partytown"
     },
     {
@@ -41555,7 +41555,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "features/admin/components/sidebar.tsx",
-      "source_location": "L14",
+      "source_location": "L13",
       "weight": 1.0,
       "_origin": "ast",
       "source": "features_admin_components_sidebar",
@@ -41566,7 +41566,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "features/admin/components/sidebar.tsx",
-      "source_location": "L10",
+      "source_location": "L9",
       "weight": 1.0,
       "_origin": "ast",
       "source": "features_admin_components_sidebar",
@@ -41578,7 +41578,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "features/admin/components/sidebar.tsx",
-      "source_location": "L6",
+      "source_location": "L5",
       "weight": 1.0,
       "_origin": "ast",
       "source": "features_admin_components_sidebar",
@@ -41590,7 +41590,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "features/admin/components/sidebar.tsx",
-      "source_location": "L6",
+      "source_location": "L5",
       "weight": 1.0,
       "_origin": "ast",
       "source": "features_admin_components_sidebar",
@@ -41603,7 +41603,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "features/admin/components/sidebar.tsx",
-      "source_location": "L15",
+      "source_location": "L14",
       "weight": 1.0,
       "_origin": "ast",
       "source": "features_admin_components_sidebar_adminsidebar",
@@ -55651,5 +55651,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "976e618c76fefe39657b8dcb8f367a4fb25e6805"
+  "built_at_commit": "ebbffee767cf4d4192f6f665fc02bea7e1d3457c"
 }

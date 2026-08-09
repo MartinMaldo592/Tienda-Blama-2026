@@ -106,15 +106,15 @@ export default function AdminDashboard() {
             {/* --- UNIFIED ADMIN PAGE HEADER --- */}
             <AdminPageHeader
                 icon={<LayoutDashboard size={28} strokeWidth={1.5} />}
-                iconColor="bg-gradient-to-tr from-amber-500 via-amber-600 to-orange-600"
-                iconShadow="shadow-amber-500/20"
+                iconColor="bg-gradient-to-tr from-blue-600 via-indigo-600 to-blue-700"
+                iconShadow="shadow-blue-500/20"
                 title={userRole === 'admin' || userRole === 'superadmin' ? 'Dashboard' : 'Mi Panel'}
                 subtitle={userRole === 'admin' || userRole === 'superadmin' ? 'Visión global de tu negocio' : 'Resumen de tus operaciones'}
                 isFetching={isLoading}
-                dotColor="bg-amber-500"
+                dotColor="bg-emerald-500"
                 actions={
                     <Button
-                        className="flex-1 md:flex-none gap-2 h-11 px-6 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-[#ff7a00] font-extrabold tracking-tight shadow-md transition-all haptic-scale"
+                        className="flex-1 md:flex-none gap-2 h-11 px-6 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-blue-600 font-extrabold tracking-tight shadow-md transition-all haptic-scale"
                         onClick={() => {
                             queryClient.invalidateQueries({ queryKey: ["admin-dashboard-stats"] })
                             fetchAdminSalesChart(period).then(setSalesData)

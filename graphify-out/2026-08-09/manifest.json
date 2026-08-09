@@ -685,8 +685,8 @@
     "semantic_hash": "93e09cec73c9f0d7893f626273c2a328"
   },
   "features/admin/components/sidebar.tsx": {
-    "mtime": 1786315890.869184,
-    "ast_hash": "40a98a7a27f4610125948517daea5667",
+    "mtime": 1786316140.1761494,
+    "ast_hash": "0a6e6b1ecbac64493fed629a57ef6199",
     "semantic_hash": ""
   },
   "features/admin/components/skeleton-previews.tsx": {
