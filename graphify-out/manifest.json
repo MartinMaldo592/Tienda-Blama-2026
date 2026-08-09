@@ -10,9 +10,9 @@
     "semantic_hash": "ce60bad98d65909e2f183acf094d4a0c"
   },
   "app/admin/announcement-bar/page.tsx": {
-    "mtime": 1786239905.3021772,
-    "ast_hash": "80eb6bc9e07abe199523591142ba2a6e",
-    "semantic_hash": "80eb6bc9e07abe199523591142ba2a6e"
+    "mtime": 1786299663.0221555,
+    "ast_hash": "f3231f22126c32e155184c106fbb10a5",
+    "semantic_hash": ""
   },
   "app/admin/auditoria/page.tsx": {
     "mtime": 1786239905.3046198,
@@ -20,14 +20,14 @@
     "semantic_hash": "5dd6e0646ccdac2503df598428fe1561"
   },
   "app/admin/clientes/page.tsx": {
-    "mtime": 1786239905.3064084,
-    "ast_hash": "d958bbd66a3093886cfde5317107c3d9",
-    "semantic_hash": "d958bbd66a3093886cfde5317107c3d9"
+    "mtime": 1786299637.38493,
+    "ast_hash": "02265335b037c31dcc52487625eab3e6",
+    "semantic_hash": ""
   },
   "app/admin/cupones/page.tsx": {
-    "mtime": 1786239905.3064084,
-    "ast_hash": "f0f64dbfa6f12a67be99a0e83c5ecf7a",
-    "semantic_hash": "f0f64dbfa6f12a67be99a0e83c5ecf7a"
+    "mtime": 1786299654.947292,
+    "ast_hash": "768245187c117e3a93f6749dbedd0ec9",
+    "semantic_hash": ""
   },
   "app/admin/dashboard/page.tsx": {
     "mtime": 1786299477.9304733,
@@ -65,9 +65,9 @@
     "semantic_hash": "87867885e70fa9cc054b94f2e627a66b"
   },
   "app/admin/inventario/page.tsx": {
-    "mtime": 1786239905.3245335,
-    "ast_hash": "fef03f9004ca490b1240bf59124c9993",
-    "semantic_hash": "fef03f9004ca490b1240bf59124c9993"
+    "mtime": 1786299646.387847,
+    "ast_hash": "8bc8e0c8cbcbe984c6182525d54148f2",
+    "semantic_hash": ""
   },
   "app/admin/layout.tsx": {
     "mtime": 1786239905.3259914,
@@ -95,9 +95,9 @@
     "semantic_hash": "cbb00e834d676c15a35b07e82adbdb04"
   },
   "app/admin/pedidos/page.tsx": {
-    "mtime": 1786239905.333832,
-    "ast_hash": "51ef78093062f90bb1f3c01415ddbd83",
-    "semantic_hash": "51ef78093062f90bb1f3c01415ddbd83"
+    "mtime": 1786299605.5599637,
+    "ast_hash": "2c35363c92d2e3d951ee38f4fdc1d99e",
+    "semantic_hash": ""
   },
   "app/admin/preguntas/page.tsx": {
     "mtime": 1786239905.334987,
@@ -115,9 +115,9 @@
     "semantic_hash": "5a6d9fb5d5d00a87f305e32aee29a509"
   },
   "app/admin/productos/page.tsx": {
-    "mtime": 1786239905.3422863,
-    "ast_hash": "0052d3cb64b004db0be597d2426e8365",
-    "semantic_hash": "0052d3cb64b004db0be597d2426e8365"
+    "mtime": 1786299619.7314937,
+    "ast_hash": "0f0609cebcbaa15dc732d3bf7af1db7c",
+    "semantic_hash": ""
   },
   "app/admin/redes-sociales/page.tsx": {
     "mtime": 1786239905.3440514,

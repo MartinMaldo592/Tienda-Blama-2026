@@ -30,9 +30,9 @@
     "semantic_hash": "f0f64dbfa6f12a67be99a0e83c5ecf7a"
   },
   "app/admin/dashboard/page.tsx": {
-    "mtime": 1786239905.31276,
-    "ast_hash": "8bb7bf0c44e4453c81399d6d7cd415d8",
-    "semantic_hash": "8bb7bf0c44e4453c81399d6d7cd415d8"
+    "mtime": 1786299477.9304733,
+    "ast_hash": "db93310aceabdaf7845674be758c1dd4",
+    "semantic_hash": ""
   },
   "app/admin/dashboard/pedidos-en-proceso/page.tsx": {
     "mtime": 1786239905.31276,
@@ -75,9 +75,9 @@
     "semantic_hash": "1f7be5f4d789f4eed273c76fadf65f62"
   },
   "app/admin/marketing/page.tsx": {
-    "mtime": 1786239905.3273332,
-    "ast_hash": "16550bfeff9972201d75673cace8c92e",
-    "semantic_hash": "16550bfeff9972201d75673cace8c92e"
+    "mtime": 1786299433.165042,
+    "ast_hash": "21a115dc57d85b6f2be3fcc87a3ecadd",
+    "semantic_hash": ""
   },
   "app/admin/page.tsx": {
     "mtime": 1786239905.328536,
@@ -630,9 +630,9 @@
     "semantic_hash": "4dff50042aafb3c34e648c3e05610024"
   },
   "features/admin/components/page-header.tsx": {
-    "mtime": 1786239905.5898883,
-    "ast_hash": "7a17e60de1bafc53f47b66977844bf86",
-    "semantic_hash": "7a17e60de1bafc53f47b66977844bf86"
+    "mtime": 1786299415.2616541,
+    "ast_hash": "53d20a2d425b61b2eea2928fbe02bd2a",
+    "semantic_hash": ""
   },
   "features/admin/components/page-skeleton.tsx": {
     "mtime": 1786239905.5898883,
@@ -685,8 +685,8 @@
     "semantic_hash": "93e09cec73c9f0d7893f626273c2a328"
   },
   "features/admin/components/sidebar.tsx": {
-    "mtime": 1786298557.2681746,
-    "ast_hash": "5dda5ab02aa28a13f9576ef3b06cefa8",
+    "mtime": 1786299398.6631966,
+    "ast_hash": "22a5a682fb7db0246c8fbe3eb38f0280",
     "semantic_hash": ""
   },
   "features/admin/components/skeleton-previews.tsx": {
@@ -1457,6 +1457,21 @@
   ".agents/skills/supabase-postgres-best-practices/references/security-rls-performance.md": {
     "mtime": 1786295994.3665981,
     "ast_hash": "ad2ccf01dfd325527b18256c3e25b842",
+    "semantic_hash": ""
+  },
+  ".agents/skills/kpi-dashboard-design/SKILL.md": {
+    "mtime": 1786299325.425138,
+    "ast_hash": "b559ea04c658c08a63bd9bf7064a71be",
+    "semantic_hash": ""
+  },
+  ".agents/skills/kpi-dashboard-design/references/details.md": {
+    "mtime": 1786299325.427148,
+    "ast_hash": "de088d34970b2cd8aacb34dd53eb4e68",
+    "semantic_hash": ""
+  },
+  ".agents/skills/web-design-guidelines/SKILL.md": {
+    "mtime": 1786299308.4589405,
+    "ast_hash": "98087aedd18375666dbb093c859b2949",
     "semantic_hash": ""
   }
 }
