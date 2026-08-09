@@ -315,9 +315,9 @@
     "semantic_hash": "35fa92dc3f07660bcaf573cf3ff70d7c"
   },
   "app/sitemap.ts": {
-    "mtime": 1786239905.4174483,
-    "ast_hash": "b70e2379a74c7fc958b75dbfe6826087",
-    "semantic_hash": "b70e2379a74c7fc958b75dbfe6826087"
+    "mtime": 1786298273.088789,
+    "ast_hash": "e19422c9b7caaaa07eec07ba750cdba7",
+    "semantic_hash": ""
   },
   "app/terminos/page.tsx": {
     "mtime": 1786239905.421163,
@@ -685,9 +685,9 @@
     "semantic_hash": "93e09cec73c9f0d7893f626273c2a328"
   },
   "features/admin/components/sidebar.tsx": {
-    "mtime": 1786239905.6068833,
-    "ast_hash": "42395d893355bf09312bedb917ca212f",
-    "semantic_hash": "42395d893355bf09312bedb917ca212f"
+    "mtime": 1786298557.2681746,
+    "ast_hash": "5dda5ab02aa28a13f9576ef3b06cefa8",
+    "semantic_hash": ""
   },
   "features/admin/components/skeleton-previews.tsx": {
     "mtime": 1786239905.6068833,
@@ -1457,11 +1457,6 @@
   ".agents/skills/supabase-postgres-best-practices/references/security-rls-performance.md": {
     "mtime": 1786295994.3665981,
     "ast_hash": "ad2ccf01dfd325527b18256c3e25b842",
-    "semantic_hash": ""
-  },
-  "docs/adr/ADR-0001-unified-checkout-engine.md": {
-    "mtime": 1786297370.2397132,
-    "ast_hash": "7dc07a8556ccc9e4f6d520cea1b99f10",
     "semantic_hash": ""
   }
 }
