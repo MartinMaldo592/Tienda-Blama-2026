@@ -30,8 +30,8 @@
     "semantic_hash": ""
   },
   "app/admin/dashboard/page.tsx": {
-    "mtime": 1786316792.335914,
-    "ast_hash": "28ff427f29f2d8fe6e9c83b5e20a4915",
+    "mtime": 1786317128.911505,
+    "ast_hash": "b6cd49a32678f68ce8d9e53be542e26a",
     "semantic_hash": ""
   },
   "app/admin/dashboard/pedidos-en-proceso/page.tsx": {
@@ -740,9 +740,9 @@
     "semantic_hash": "b34124cdc2154bc6f724eeaaa3da17d3"
   },
   "features/admin/services/dashboard.client.ts": {
-    "mtime": 1786239905.6256428,
-    "ast_hash": "d929792990794f87339dcdc41561e486",
-    "semantic_hash": "d929792990794f87339dcdc41561e486"
+    "mtime": 1786317067.6843915,
+    "ast_hash": "bd4af2ea0657cabbd963911cb1cff58a",
+    "semantic_hash": ""
   },
   "features/admin/services/incidencias.client.ts": {
     "mtime": 1786239905.6256428,
@@ -1475,8 +1475,8 @@
     "semantic_hash": ""
   },
   "features/admin/components/dashboard/ezmart-dashboard.tsx": {
-    "mtime": 1786316766.9461498,
-    "ast_hash": "6a75de8452aca654a5040dabcbf6d98a",
+    "mtime": 1786317089.4065714,
+    "ast_hash": "8293a78b0d8e73911648398421bb33d9",
     "semantic_hash": ""
   }
 }

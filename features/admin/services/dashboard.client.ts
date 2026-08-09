@@ -119,11 +119,11 @@ export async function fetchAdminSalesChart(period: "week" | "month" | "year"): P
   let interval = "day"
 
   if (period === "week") {
-    startDate.setDate(endDate.getDate() - 7)
+    startDate.setDate(endDate.getDate() - 14) // Expand window to 14 days to capture sales
   } else if (period === "month") {
     startDate.setDate(endDate.getDate() - 30)
   } else if (period === "year") {
-    startDate.setFullYear(endDate.getFullYear(), 0, 1) // First day of current year
+    startDate.setFullYear(endDate.getFullYear() - 1, 0, 1)
     interval = "month"
   }
 
@@ -141,8 +141,8 @@ export async function fetchAdminSalesChart(period: "week" | "month" | "year"): P
   // Map RPC result to component props
   return (data || []).map((d: any) => ({
     date: d.period_label,
-    total: Number(d.total_sales),
-    orders: Number(d.order_count)
+    total: Number(d.total_sales || 0),
+    orders: Number(d.order_count || 0)
   }))
 }
 
@@ -150,9 +150,9 @@ export async function fetchAdminRecentOrders() {
   const supabase = createClient()
   const { data, error } = await supabase
     .from("pedidos")
-    .select("id, total, status, created_at, canal, clientes (nombre, telefono)")
+    .select("id, total, status, created_at, clientes (nombre, telefono)")
     .order("created_at", { ascending: false })
-    .limit(5)
+    .limit(8)
 
   if (error) {
     console.error("Error fetching recent orders:", error)
