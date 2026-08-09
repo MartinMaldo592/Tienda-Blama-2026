@@ -146,3 +146,18 @@ export async function fetchAdminSalesChart(period: "week" | "month" | "year"): P
   }))
 }
 
+export async function fetchAdminRecentOrders() {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from("pedidos")
+    .select("id, total, status, created_at, canal, clientes (nombre, telefono)")
+    .order("created_at", { ascending: false })
+    .limit(5)
+
+  if (error) {
+    console.error("Error fetching recent orders:", error)
+    return []
+  }
+  return (data as any[]) || []
+}
+

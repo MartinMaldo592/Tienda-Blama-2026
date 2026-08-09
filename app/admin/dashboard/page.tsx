@@ -15,7 +15,7 @@ import { DashboardStatsSkeleton } from "@/features/admin/components/skeleton-pre
 import { m } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { SalesChart, type SalesDataPoint } from "@/features/admin/components/dashboard/sales-chart"
-import { fetchAdminSalesChart } from "@/features/admin/services/dashboard.client"
+import { fetchAdminSalesChart, fetchAdminRecentOrders } from "@/features/admin/services/dashboard.client"
 import { EzMartDashboard } from "@/features/admin/components/dashboard/ezmart-dashboard"
 
 function useCurrentUserId() {
@@ -60,14 +60,19 @@ export default function AdminDashboard() {
 
     const [period, setPeriod] = useState<"week" | "month" | "year">("week")
     const [salesData, setSalesData] = useState<Array<{ date: string; total: number; orders: number }>>([])
+    const [recentOrders, setRecentOrders] = useState<Array<any>>([])
     const [chartLoading, setChartLoading] = useState(true)
 
     useEffect(() => {
         let mounted = true
         setChartLoading(true)
-        fetchAdminSalesChart(period).then((res) => {
+        Promise.all([
+            fetchAdminSalesChart(period),
+            fetchAdminRecentOrders()
+        ]).then(([chartRes, ordersRes]) => {
             if (mounted) {
-                setSalesData(res)
+                setSalesData(chartRes)
+                setRecentOrders(ordersRes)
                 setChartLoading(false)
             }
         })
@@ -118,6 +123,7 @@ export default function AdminDashboard() {
                         onClick={() => {
                             queryClient.invalidateQueries({ queryKey: ["admin-dashboard-stats"] })
                             fetchAdminSalesChart(period).then(setSalesData)
+                            fetchAdminRecentOrders().then(setRecentOrders)
                         }}
                         disabled={isLoading}
                     >
@@ -134,6 +140,7 @@ export default function AdminDashboard() {
                 <EzMartDashboard
                     stats={safeStats}
                     salesData={salesData}
+                    recentOrders={recentOrders}
                     period={period}
                     onPeriodChange={setPeriod}
                 />
