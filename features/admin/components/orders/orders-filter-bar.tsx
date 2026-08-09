@@ -139,13 +139,44 @@ export function OrdersFilterBar({
         return `${selectedPagoStatuses.length} pagos sel.`
     }
 
+    const quickTabs = [
+        { label: "Todos", value: "all" },
+        { label: "Pendientes", value: "Pendiente" },
+        { label: "Preparando", value: "Preparando" },
+        { label: "Enviados", value: "Enviado" },
+        { label: "Entregados", value: "Entregado" },
+        { label: "Cancelados", value: "Cancelado" },
+    ]
+
     return (
         <m.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 p-6 bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100"
+            className="space-y-4"
         >
+            {/* Quick Filter Tabs */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                {quickTabs.map((tab) => {
+                    const active = statusFilter === tab.value
+                    return (
+                        <button
+                            key={tab.value}
+                            onClick={() => setStatusFilter(tab.value)}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 shrink-0 haptic-scale ${
+                                active
+                                    ? 'bg-slate-900 text-white shadow-md shadow-slate-900/10'
+                                    : 'bg-white text-slate-500 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/60'
+                            }`}
+                        >
+                            {tab.label}
+                        </button>
+                    )
+                })}
+            </div>
+
+            {/* Filter Bar Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 p-5 bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 dark:border-slate-800">
             {/* Campo de búsqueda */}
             <div className="relative group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 group-focus-within:text-slate-900 transition-colors" />
@@ -347,6 +378,7 @@ export function OrdersFilterBar({
                     </div>
                 )}
             </div>
-        </m.div>
-    )
+        </div>
+    </m.div>
+)
 }

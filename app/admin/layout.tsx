@@ -133,10 +133,54 @@ export default function AdminLayout({
                 </div>
             </div>
 
-            {/* Main Content */}
-            <main className="flex-1 w-full lg:pl-64 pt-20 lg:pt-0">
-                {/* pt-20 on mobile to account for fixed header, p-8 on desktop */}
-                <div className="p-4 lg:p-8 max-w-7xl mx-auto">
+            {/* Main Content Area */}
+            <main className="flex-1 w-full lg:pl-64 pt-16 lg:pt-0 flex flex-col min-h-screen">
+                {/* Topbar Header for Desktop & Tablet */}
+                <header className="sticky top-0 z-40 h-16 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 px-6 hidden lg:flex items-center justify-between shadow-xs">
+                    {/* Breadcrumbs */}
+                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        <span className="text-slate-400">Admin</span>
+                        <span>/</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100 capitalize">
+                            {pathname?.split('/').filter(Boolean).slice(1).join(' / ') || 'Dashboard'}
+                        </span>
+                    </div>
+
+                    {/* Right Action Bar */}
+                    <div className="flex items-center gap-3">
+                        {/* Search trigger */}
+                        <button
+                            onClick={() => {
+                                const e = new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true })
+                                document.dispatchEvent(e)
+                            }}
+                            className="flex items-center gap-3 px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200/70 text-slate-500 text-xs font-medium border border-slate-200/60 dark:border-slate-800 transition-all"
+                        >
+                            <span>Buscar o ejecutar comando...</span>
+                            <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-white dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 shadow-2xs">
+                                ⌘K
+                            </kbd>
+                        </button>
+
+                        {/* Realtime dot */}
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/40 text-xs font-bold">
+                            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>En Vivo</span>
+                        </div>
+
+                        {/* View Store button */}
+                        <Link
+                            href="/"
+                            target="_blank"
+                            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-blue-600 font-bold text-xs shadow-sm transition-all haptic-scale"
+                        >
+                            <span>Tienda</span>
+                            <ArrowRight className="h-3.5 w-3.5 -rotate-45" />
+                        </Link>
+                    </div>
+                </header>
+
+                <div className="p-4 lg:p-8 max-w-7xl mx-auto flex-1 w-full">
                     {children}
                 </div>
             </main>
