@@ -1,5 +1,6 @@
 "use client"
 
+import { useRef } from "react"
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 import { createClient } from "@/lib/supabase.client"
@@ -14,6 +15,25 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
     const supabase = createClient()
     const router = useRouter()
     const pathname = usePathname()
+    const navRef = useRef<HTMLElement>(null)
+
+    const handleWheel = (e: React.WheelEvent) => {
+        const nav = navRef.current
+        if (!nav) {
+            window.scrollBy({ top: e.deltaY })
+            return
+        }
+        const isScrollable = nav.scrollHeight > nav.clientHeight
+        if (!isScrollable) {
+            window.scrollBy({ top: e.deltaY })
+        } else {
+            const atTop = nav.scrollTop <= 0 && e.deltaY < 0
+            const atBottom = nav.scrollTop + nav.clientHeight >= nav.scrollHeight - 1 && e.deltaY > 0
+            if (atTop || atBottom) {
+                window.scrollBy({ top: e.deltaY })
+            }
+        }
+    }
 
     const handleLogout = async () => {
         await supabase.auth.signOut()
@@ -51,7 +71,7 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
     }
 
     return (
-        <div className="w-full h-full bg-sidebar text-sidebar-foreground flex flex-col overflow-hidden">
+        <div onWheel={handleWheel} className="w-full h-full bg-sidebar text-sidebar-foreground flex flex-col overflow-hidden">
             <div className="p-4 border-b border-border shrink-0">
                 <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
                     CRM Pro
@@ -61,7 +81,7 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
                 </p>
             </div>
 
-            <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto overscroll-contain">
+            <nav ref={navRef} className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto overscroll-auto">
                 {visibleMenuItems.map((item) => {
                     const active = isActive(item.href)
                     return (
