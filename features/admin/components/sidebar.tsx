@@ -71,34 +71,45 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
     }
 
     return (
-        <div onWheel={handleWheel} className="w-full h-full bg-sidebar text-sidebar-foreground flex flex-col overflow-hidden">
-            <div className="p-4 border-b border-border shrink-0">
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                    CRM Pro
-                </h2>
-                <p className="text-xs text-muted-foreground mt-1">
-                    {role === 'superadmin' ? 'Panel Propietario' : role === 'admin' ? 'Panel de Administración' : 'Panel de Trabajador'}
-                </p>
+        <div onWheel={handleWheel} className="w-full h-full bg-slate-950 text-slate-100 flex flex-col border-r border-slate-800/60 shadow-2xl relative overflow-hidden select-none">
+            {/* Ambient subtle glow gradient overlay */}
+            <div className="absolute -top-24 -left-24 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Header / Logo */}
+            <div className="p-5 border-b border-slate-800/60 shrink-0 flex items-center gap-3 bg-slate-950/80 backdrop-blur-md">
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 font-black text-lg">
+                    B
+                </div>
+                <div>
+                    <h2 className="text-xl font-black tracking-tight bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">
+                        CRM Pro
+                    </h2>
+                    <p className="text-[11px] font-medium text-slate-400">
+                        {role === 'superadmin' ? 'Panel Propietario' : role === 'admin' ? 'Panel Administración' : 'Panel Trabajador'}
+                    </p>
+                </div>
             </div>
 
-            <nav ref={navRef} className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto overscroll-auto">
+            {/* Navigation items */}
+            <nav ref={navRef} className="flex-1 px-3 py-4 space-y-1 overflow-y-auto overscroll-auto scrollbar-thin scrollbar-thumb-slate-800">
                 {visibleMenuItems.map((item) => {
                     const active = isActive(item.href)
                     return (
                         <Link
                             key={item.href}
                             href={item.href}
-                            className={`relative flex items-center gap-3 px-3 py-2.5 text-sm rounded-xl transition-all duration-200 group ${
+                            className={`relative flex items-center gap-3.5 px-3.5 py-2.5 text-sm rounded-xl transition-all duration-200 group font-medium ${
                                 active
-                                    ? 'text-sidebar-accent-foreground font-bold'
-                                    : 'text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'
+                                    ? 'text-white font-bold'
+                                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900/80'
                             }`}
                         >
                             {/* Animated active background pill */}
                             {active && (
                                 <m.div
                                     layoutId="sidebar-active-pill"
-                                    className="absolute inset-0 bg-sidebar-accent rounded-xl"
+                                    className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-xl shadow-inner"
                                     transition={{ type: "spring", stiffness: 350, damping: 30 }}
                                 />
                             )}
@@ -107,35 +118,36 @@ export function AdminSidebar({ role }: AdminSidebarProps) {
                             {active && (
                                 <m.div
                                     layoutId="sidebar-active-bar"
-                                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-blue-500 rounded-full"
+                                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 bg-gradient-to-b from-blue-400 to-indigo-500 rounded-r-full shadow-md shadow-blue-500/50"
                                     transition={{ type: "spring", stiffness: 350, damping: 30 }}
                                 />
                             )}
 
-                            <item.icon className={`relative z-10 h-4 w-4 transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:scale-105'}`} />
-                            <span className="relative z-10">{item.label}</span>
+                            <item.icon className={`relative z-10 h-4.5 w-4.5 transition-transform duration-300 ${active ? 'text-blue-400 scale-110' : 'text-slate-400 group-hover:text-slate-200 group-hover:scale-105'}`} />
+                            <span className="relative z-10 tracking-tight">{item.label}</span>
                         </Link>
                     )
                 })}
             </nav>
 
             {/* Role Badge */}
-            <div className="px-3 pb-3 shrink-0">
-                <div className={`px-3 py-2 rounded-xl text-xs font-bold text-center ${
-                    role === 'superadmin' ? 'bg-gradient-to-r from-amber-500/10 to-orange-500/10 text-amber-700 border border-amber-200/50' :
-                    role === 'admin' ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 text-blue-700 border border-blue-200/50' :
-                    'bg-accent/10 text-accent-foreground border border-border'
+            <div className="px-4 pb-3 shrink-0">
+                <div className={`px-3 py-2 rounded-xl text-xs font-bold text-center backdrop-blur-md shadow-sm ${
+                    role === 'superadmin' ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30' :
+                    role === 'admin' ? 'bg-blue-500/10 text-blue-300 border border-blue-500/30' :
+                    'bg-slate-900 text-slate-300 border border-slate-800'
                     }`}>
                     {role === 'superadmin' ? '⭐ Propietario' : role === 'admin' ? '👑 Administrador' : '👤 Trabajador'}
                 </div>
             </div>
 
-            <div className="p-3 border-t border-border shrink-0">
+            {/* Logout Footer */}
+            <div className="p-3 border-t border-slate-800/60 shrink-0 bg-slate-950/80">
                 <button
                     onClick={handleLogout}
-                    className="flex items-center gap-3 px-3 py-2.5 w-full text-sm text-destructive hover:bg-destructive/10 rounded-xl transition-all font-medium"
+                    className="flex items-center gap-3 px-3.5 py-2.5 w-full text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all duration-200 font-semibold group"
                 >
-                    <LogOut className="h-4 w-4" />
+                    <LogOut className="h-4 w-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
                     <span>Cerrar Sesión</span>
                 </button>
             </div>

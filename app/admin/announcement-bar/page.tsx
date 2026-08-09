@@ -63,8 +63,8 @@ export default function AdminAnnouncementBarPage() {
 
   return (
     <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:0.4}} className="space-y-10 max-w-[1600px] mx-auto">
-      <AdminPageHeader icon={<Megaphone size={28} strokeWidth={1.5}/>} iconColor="bg-rose-600" iconShadow="shadow-rose-200" title="Announcement Bar" subtitle="Configura los mensajes que aparecen arriba de la tienda" isFetching={isFetching} dotColor="bg-rose-500"
-        actions={<Button variant="outline" className="gap-2 haptic-scale shadow-sm rounded-2xl h-14 px-6 font-bold" onClick={()=>{setSynced(false);qc.invalidateQueries({queryKey:["announcementConfig"]})}} disabled={isFetching}><RefreshCw className={`h-4 w-4 ${isFetching?'animate-spin':''}`}/>Sincronizar</Button>}
+      <AdminPageHeader icon={<Megaphone size={28} strokeWidth={1.5}/>} iconColor="bg-gradient-to-tr from-rose-600 via-pink-600 to-rose-700" iconShadow="shadow-rose-500/20" title="Announcement Bar" subtitle="Configura los mensajes que aparecen arriba de la tienda" isFetching={isFetching} dotColor="bg-rose-500"
+        actions={<Button variant="outline" className="gap-2 haptic-scale shadow-sm rounded-xl h-11 px-5 font-bold border-slate-200 dark:border-slate-800" onClick={()=>{setSynced(false);qc.invalidateQueries({queryKey:["announcementConfig"]})}} disabled={isFetching}><RefreshCw className={`h-4 w-4 ${isFetching?'animate-spin':''}`}/>Sincronizar</Button>}
       />
 
       <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.1}} className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 space-y-6">

@@ -125,13 +125,13 @@ export default function ProductosPage() {
 
     return (
         <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:0.4}} className="space-y-10 pb-20 max-w-[1600px] mx-auto">
-            <AdminPageHeader icon={<Box size={28} strokeWidth={1.5}/>} iconColor="bg-blue-600" iconShadow="shadow-blue-200" title="Productos" subtitle="Catálogo principal de la tienda" totalItems={totalItems} totalLabel="productos registrados" isFetching={isFetching} dotColor="bg-blue-500"
+            <AdminPageHeader icon={<Box size={28} strokeWidth={1.5}/>} iconColor="bg-gradient-to-tr from-blue-600 via-indigo-600 to-blue-700" iconShadow="shadow-blue-500/20" title="Productos" subtitle="Catálogo principal de la tienda" totalItems={totalItems} totalLabel="productos registrados" isFetching={isFetching} dotColor="bg-blue-500"
                 actions={<>
-                    <Button variant="outline" className="gap-2 haptic-scale shadow-sm rounded-2xl h-14 px-6 font-bold" onClick={()=>qc.invalidateQueries({queryKey:["adminProductos"]})} disabled={isFetching}>
+                    <Button variant="outline" className="gap-2 haptic-scale shadow-sm rounded-xl h-11 px-5 font-bold border-slate-200 dark:border-slate-800" onClick={()=>qc.invalidateQueries({queryKey:["adminProductos"]})} disabled={isFetching}>
                         <RefreshCw className={`h-4 w-4 ${isFetching?'animate-spin':''}`}/>Sincronizar
                     </Button>
-                    <Button asChild className="gap-2 haptic-scale shadow-lg rounded-2xl h-14 px-6 font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700">
-                        <Link href="/admin/productos/nuevo"><Plus className="h-5 w-5"/>Nuevo Ítem</Link>
+                    <Button asChild className="gap-2 haptic-scale shadow-lg shadow-blue-600/20 rounded-xl h-11 px-5 font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700">
+                        <Link href="/admin/productos/nuevo"><Plus className="h-4 w-4"/>Nuevo Ítem</Link>
                     </Button>
                 </>}
             />

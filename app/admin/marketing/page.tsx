@@ -113,12 +113,12 @@ export default function AdminMarketingPage() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="space-y-10 max-w-[1600px] mx-auto"
+      className="space-y-8 max-w-[1600px] mx-auto"
     >
       <AdminPageHeader
         icon={<Activity size={28} strokeWidth={1.5} />}
-        iconColor="bg-blue-600"
-        iconShadow="shadow-blue-200"
+        iconColor="bg-gradient-to-tr from-blue-600 to-indigo-600"
+        iconShadow="shadow-blue-500/20"
         title="Píxeles y Marketing"
         totalItems={pixels.length}
         totalLabel="servicios integrados"
@@ -127,7 +127,7 @@ export default function AdminMarketingPage() {
         actions={
           <Button
             variant="outline"
-            className="gap-2 haptic-scale shadow-sm rounded-2xl h-14 px-6 font-bold"
+            className="gap-2 haptic-scale shadow-sm rounded-xl h-11 px-5 font-bold border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
             onClick={() => qc.invalidateQueries({ queryKey: ["marketingPixels"] })}
             disabled={isFetching}
           >
@@ -137,19 +137,33 @@ export default function AdminMarketingPage() {
         }
       />
 
-      <div className="bg-blue-50/50 border border-blue-100 rounded-3xl p-6 flex gap-4 items-start">
-        <Sparkles className="h-6 w-6 text-blue-500 shrink-0 mt-0.5" />
-        <div className="space-y-1">
-          <h4 className="text-sm font-black text-blue-900">Gestión Dinámica de Scripts</h4>
-          <p className="text-xs text-blue-700/80 leading-relaxed max-w-4xl">
-            Desde este panel puedes controlar qué píxeles de rastreo y scripts analíticos están activos en tu tienda online. 
-            Cualquier cambio se aplicará instantáneamente a los visitantes de la página web sin requerir reinicios o nuevos despliegues de código.
-            Por seguridad y privacidad de datos, <strong>ninguno de estos scripts se cargará mientras tú o tus trabajadores estén navegando en las páginas administrativas (/admin)</strong>.
-          </p>
+      {/* Hero Banner with Modern SaaS Ambient Gradient */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 p-6 sm:p-8 text-white shadow-2xl border border-blue-500/20">
+        <div className="absolute -right-12 -top-12 h-64 w-64 rounded-full bg-blue-500/20 blur-3xl pointer-events-none" />
+        <div className="absolute -left-12 -bottom-12 h-64 w-64 rounded-full bg-purple-500/20 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
+          <div className="h-12 w-12 rounded-2xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-300 shrink-0 shadow-inner">
+            <Sparkles className="h-6 w-6" />
+          </div>
+          <div className="space-y-1.5 flex-1">
+            <div className="flex items-center gap-2">
+              <h4 className="text-base sm:text-lg font-black tracking-tight text-white">Gestión Dinámica de Scripts y Píxeles</h4>
+              <span className="bg-blue-500/20 border border-blue-400/30 text-blue-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                En vivo
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-blue-100/80 leading-relaxed max-w-4xl font-normal">
+              Desde este panel controlas qué píxeles de rastreo y scripts analíticos están activos en tu tienda online. 
+              Cualquier cambio se aplicará de inmediato a tus clientes sin requerir reinicios.
+              Por seguridad, <strong>ninguno de estos scripts se cargará mientras tú navegues en el panel administrativo (/admin)</strong>.
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {/* Grid of Pixel Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {pixels.map((pixel) => {
           const vals = getPixelVal(pixel)
           const styles = getBrandStyle(pixel.clave)
@@ -158,32 +172,34 @@ export default function AdminMarketingPage() {
           return (
             <m.div
               key={pixel.id}
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
             >
-              <Card className="rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] bg-white/70 backdrop-blur-xl h-full flex flex-col justify-between">
-                <CardHeader className="space-y-4">
+              <Card className="rounded-3xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm hover:shadow-xl transition-all duration-300 bg-white dark:bg-slate-900 h-full flex flex-col justify-between overflow-hidden group">
+                <CardHeader className="space-y-4 pb-4 border-b border-slate-100 dark:border-slate-800/60">
                   <div className="flex items-center justify-between">
-                    <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border ${styles.bg}`}>
+                    <span className={`text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-lg border ${styles.bg}`}>
                       {pixel.clave}
                     </span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2.5 bg-slate-50 dark:bg-slate-800/50 px-3 py-1.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
                       <input
                         type="checkbox"
                         id={`status-${pixel.id}`}
                         checked={vals.enabled}
                         onChange={(e) => handleStatusChange(pixel.id, e.target.checked)}
-                        className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        className="h-4.5 w-4.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
                       />
-                      <Label htmlFor={`status-${pixel.id}`} className="text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer">
-                        {vals.enabled ? "Activo" : "Inactivo"}
+                      <Label htmlFor={`status-${pixel.id}`} className="text-xs font-black uppercase tracking-wider cursor-pointer select-none">
+                        <span className={vals.enabled ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}>
+                          {vals.enabled ? "Activo" : "Inactivo"}
+                        </span>
                       </Label>
                     </div>
                   </div>
                   <div>
-                    <CardTitle className="text-xl font-black text-slate-900">{pixel.nombre}</CardTitle>
-                    <CardDescription className="text-xs text-slate-400 mt-1">
+                    <CardTitle className="text-lg font-black text-slate-900 dark:text-white tracking-tight">{pixel.nombre}</CardTitle>
+                    <CardDescription className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                       {pixel.clave === "gtm" && "Integra contenedores completos de Google Tag Manager."}
                       {pixel.clave === "facebook" && "Rastrea visitas y conversiones de campañas de anuncios en Meta."}
                       {pixel.clave === "tiktok" && "Monitorea campañas publicitarias y atribuciones en TikTok."}
@@ -191,7 +207,7 @@ export default function AdminMarketingPage() {
                     </CardDescription>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-6 flex-1 flex flex-col justify-end">
+                <CardContent className="space-y-5 pt-5 flex-1 flex flex-col justify-end">
                   <div className="space-y-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                       ID del Píxel / Contenedor
@@ -203,23 +219,27 @@ export default function AdminMarketingPage() {
                       }
                       value={vals.pixel_id}
                       onChange={(e) => handleIdChange(pixel.id, e.target.value)}
-                      className="rounded-xl h-12 border-slate-200 focus-ring-premium"
+                      className="rounded-xl h-11 border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-950 font-mono text-sm font-semibold focus-ring-premium"
                     />
                   </div>
 
-                  <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold bg-slate-50 border border-slate-100 rounded-xl p-3">
-                    <AlertCircle className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                  <div className={`flex items-center gap-2.5 text-[11px] font-semibold rounded-xl p-3 border transition-colors ${
+                    vals.enabled
+                      ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
+                      : "bg-slate-50 dark:bg-slate-800/40 text-slate-400 border-slate-200/60 dark:border-slate-800"
+                  }`}>
+                    <AlertCircle className="h-4 w-4 shrink-0" />
                     <span>
                       {vals.enabled
-                        ? `El rastreador se inicializará con el ID: ${vals.pixel_id || "(vacío)"}`
-                        : "El script de este servicio no se cargará en el navegador de los clientes."}
+                        ? `El rastreador procesará eventos con ID: ${vals.pixel_id || "(sin ID)"}`
+                        : "Servicio desactivado: no se cargará en la tienda."}
                     </span>
                   </div>
 
                   <Button
                     onClick={() => handleSave(pixel)}
                     disabled={isPending}
-                    className="w-full haptic-scale shadow-md rounded-2xl h-12 font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 mt-2"
+                    className="w-full haptic-scale shadow-lg shadow-blue-600/20 rounded-xl h-11 font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white hover:from-blue-700 hover:to-indigo-700 active:scale-[0.99] transition-all"
                   >
                     {isPending ? (
                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />

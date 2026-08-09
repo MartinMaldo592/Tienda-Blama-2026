@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRoleGuard } from "@/hooks/use-role-guard"
 import { AccessDenied } from "@/features/admin/components/access-denied"
+import { AdminPageHeader } from "@/features/admin/components/page-header"
 import { DollarSign, ShoppingBag, Users, Package, ClipboardList, AlertTriangle, RefreshCw, LayoutDashboard, ArrowRight, CheckCircle2 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrency } from "@/lib/utils"
@@ -84,49 +85,27 @@ export default function AdminDashboard() {
     }
 
     return (
-        <div className="space-y-10 pb-20 max-w-[1600px] mx-auto animate-in fade-in duration-700">
-            {/* --- HEADER MATCHING PEDIDOS/PRODUCTOS --- */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 pt-4">
-                <m.div 
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="space-y-4"
-                >
-                    <div className="flex items-center gap-4">
-                        <div className="h-14 w-14 bg-blue-600 rounded-[1.25rem] flex items-center justify-center text-white shadow-2xl shadow-blue-200">
-                            <LayoutDashboard size={28} strokeWidth={1.5} />
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-3">
-                                <h1 className="text-5xl font-black text-slate-900 tracking-tight">
-                                    {userRole === 'admin' || userRole === 'superadmin' ? 'Dashboard' : 'Mi Panel'}
-                                </h1>
-                            </div>
-                            <div className="flex items-center gap-2 mt-1">
-                                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">
-                                    {userRole === 'admin' || userRole === 'superadmin' ? 'Visión global de tu negocio' : 'Resumen de tus operaciones'}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </m.div>
-
-                <m.div 
-                    initial={{ opacity: 0, x: 30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex flex-wrap gap-3 w-full lg:w-auto"
-                >
+        <div className="space-y-8 pb-20 max-w-[1600px] mx-auto animate-in fade-in duration-700">
+            {/* --- UNIFIED ADMIN PAGE HEADER --- */}
+            <AdminPageHeader
+                icon={<LayoutDashboard size={28} strokeWidth={1.5} />}
+                iconColor="bg-gradient-to-tr from-blue-600 via-indigo-600 to-blue-700"
+                iconShadow="shadow-blue-500/20"
+                title={userRole === 'admin' || userRole === 'superadmin' ? 'Dashboard' : 'Mi Panel'}
+                subtitle={userRole === 'admin' || userRole === 'superadmin' ? 'Visión global de tu negocio' : 'Resumen de tus operaciones'}
+                isFetching={isLoading}
+                dotColor="bg-emerald-500"
+                actions={
                     <Button
-                        className="flex-1 md:flex-none gap-2 h-14 px-8 rounded-2xl bg-slate-900 text-white hover:bg-blue-600 font-black tracking-tight shadow-xl shadow-slate-200 hover:shadow-blue-200 transition-all haptic-scale"
+                        className="flex-1 md:flex-none gap-2 h-11 px-6 rounded-xl bg-slate-900 text-white hover:bg-blue-600 font-bold tracking-tight shadow-md transition-all haptic-scale"
                         onClick={() => queryClient.invalidateQueries({ queryKey: ["admin-dashboard-stats"] })}
                         disabled={isLoading}
                     >
-                        <RefreshCw className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} />
-                        SINCRONIZAR
+                        <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                        Sincronizar
                     </Button>
-                </m.div>
-            </div>
+                }
+            />
 
             {/* --- MAIN STATS GRID --- */}
             {isLoading ? (

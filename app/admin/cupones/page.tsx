@@ -95,10 +95,10 @@ export default function CuponesAdminPage() {
 
   return (
     <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:0.4}} className="space-y-10 max-w-[1600px] mx-auto">
-      <AdminPageHeader icon={<Percent size={28} strokeWidth={1.5}/>} iconColor="bg-amber-600" iconShadow="shadow-amber-200" title="Cupones" totalItems={stats.total} totalLabel="cupones registrados" isFetching={isFetching} dotColor="bg-amber-500"
+      <AdminPageHeader icon={<Percent size={28} strokeWidth={1.5}/>} iconColor="bg-gradient-to-tr from-amber-600 via-orange-600 to-amber-700" iconShadow="shadow-amber-500/20" title="Cupones" totalItems={stats.total} totalLabel="cupones registrados" isFetching={isFetching} dotColor="bg-amber-500"
         actions={<>
-          <Button variant="outline" className="gap-2 haptic-scale shadow-sm rounded-2xl h-14 px-6 font-bold" onClick={()=>qc.invalidateQueries({queryKey:["adminCupones"]})} disabled={isFetching}><RefreshCw className={`h-4 w-4 ${isFetching?'animate-spin':''}`}/>Sincronizar</Button>
-          <Button className="gap-2 haptic-scale shadow-lg rounded-2xl h-14 px-6 font-bold bg-gradient-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700" onClick={openCreate}><Plus className="h-5 w-5"/>Nuevo Cupón</Button>
+          <Button variant="outline" className="gap-2 haptic-scale shadow-sm rounded-xl h-11 px-5 font-bold border-slate-200 dark:border-slate-800" onClick={()=>qc.invalidateQueries({queryKey:["adminCupones"]})} disabled={isFetching}><RefreshCw className={`h-4 w-4 ${isFetching?'animate-spin':''}`}/>Sincronizar</Button>
+          <Button className="gap-2 haptic-scale shadow-lg shadow-amber-600/20 rounded-xl h-11 px-5 font-bold bg-gradient-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700" onClick={openCreate}><Plus className="h-4 w-4"/>Nuevo Cupón</Button>
         </>}
       />
 

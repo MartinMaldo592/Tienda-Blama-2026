@@ -59,8 +59,8 @@ export default function ClientesPage() {
 
     return (
         <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:0.4}} className="space-y-10 max-w-[1600px] mx-auto pb-20">
-            <AdminPageHeader icon={<Users size={28} strokeWidth={1.5}/>} iconColor="bg-violet-600" iconShadow="shadow-violet-200" title="Clientes" subtitle="Base de datos de compradores" totalItems={stats.total} totalLabel="clientes registrados" isFetching={isFetching} dotColor="bg-violet-500"
-                actions={<Button variant="outline" className="gap-2 haptic-scale shadow-sm rounded-2xl h-14 px-6 font-bold" onClick={()=>qc.invalidateQueries({queryKey:["adminClientes"]})} disabled={isFetching}><RefreshCw className={`h-4 w-4 ${isFetching?'animate-spin':''}`}/>Sincronizar</Button>}
+            <AdminPageHeader icon={<Users size={28} strokeWidth={1.5}/>} iconColor="bg-gradient-to-tr from-violet-600 via-indigo-600 to-violet-700" iconShadow="shadow-violet-500/20" title="Clientes" subtitle="Base de datos de compradores" totalItems={stats.total} totalLabel="clientes registrados" isFetching={isFetching} dotColor="bg-violet-500"
+                actions={<Button variant="outline" className="gap-2 haptic-scale shadow-sm rounded-xl h-11 px-5 font-bold border-slate-200 dark:border-slate-800" onClick={()=>qc.invalidateQueries({queryKey:["adminClientes"]})} disabled={isFetching}><RefreshCw className={`h-4 w-4 ${isFetching?'animate-spin':''}`}/>Sincronizar</Button>}
             />
 
             {/* Tarjetas de Estadísticas */}

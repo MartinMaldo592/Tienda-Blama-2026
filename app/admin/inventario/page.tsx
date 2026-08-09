@@ -50,13 +50,13 @@ export default function InventarioPage() {
 
     return (
         <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:0.4}} className="space-y-10 pb-20 max-w-[1600px] mx-auto">
-            <AdminPageHeader icon={<Warehouse size={28} strokeWidth={1.5}/>} iconColor="bg-emerald-600" iconShadow="shadow-emerald-200" title="Inventario" subtitle={`${stats.total} ítems registrados`} totalItems={stats.total} totalLabel="ítems en almacén" isFetching={isFetching} dotColor="bg-emerald-500"
+            <AdminPageHeader icon={<Warehouse size={28} strokeWidth={1.5}/>} iconColor="bg-gradient-to-tr from-emerald-600 via-teal-600 to-emerald-700" iconShadow="shadow-emerald-500/20" title="Inventario" subtitle={`${stats.total} ítems registrados`} totalItems={stats.total} totalLabel="ítems en almacén" isFetching={isFetching} dotColor="bg-emerald-500"
                 actions={<>
-                    <Button variant="outline" className="h-14 px-8 rounded-2xl font-black haptic-scale shadow-sm" asChild>
+                    <Button variant="outline" className="h-11 px-5 rounded-xl font-bold haptic-scale shadow-sm border-slate-200 dark:border-slate-800" asChild>
                         <Link href="/admin/inventario/movimientos"><History className="h-4 w-4 mr-2" />VER KARDEX</Link>
                     </Button>
-                    <Button className="h-14 px-8 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black haptic-scale shadow-lg" onClick={()=>qc.invalidateQueries({queryKey:["adminInventory"]})} disabled={isFetching}>
-                        <RefreshCw className={`h-5 w-5 mr-2 ${isFetching?'animate-spin':''}`}/>SINCRONIZAR
+                    <Button className="h-11 px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold haptic-scale shadow-lg shadow-emerald-600/20" onClick={()=>qc.invalidateQueries({queryKey:["adminInventory"]})} disabled={isFetching}>
+                        <RefreshCw className={`h-4 w-4 mr-2 ${isFetching?'animate-spin':''}`}/>SINCRONIZAR
                     </Button>
                 </>}
             />

@@ -5,6 +5,7 @@ import { m, AnimatePresence } from "framer-motion"
 import { createClient } from "@/lib/supabase.client"
 import { useRoleGuard } from "@/hooks/use-role-guard"
 import { AccessDenied } from "@/features/admin/components/access-denied"
+import { AdminPageHeader } from "@/features/admin/components/page-header"
 import { RefreshCw, Box, Download, Eye, LayoutDashboard, Loader2, PlusCircle } from "lucide-react"
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query"
 import { 
@@ -323,85 +324,69 @@ function PedidosPageContent() {
 
     return (
         <div className="space-y-10 pb-20 max-w-[1600px] mx-auto animate-in fade-in duration-700">
-            {/* --- HEADER --- */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 pt-4">
-                <m.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
-                    <div className="flex items-center gap-4">
-                        <div className="h-14 w-14 bg-slate-900 rounded-[1.25rem] flex items-center justify-center text-white shadow-2xl shadow-slate-200">
-                            <Box size={28} strokeWidth={1.5} />
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-3">
-                                <h1 className="text-5xl font-black text-slate-900 tracking-tight">
-                                    {(userRole === 'admin' || userRole === 'superadmin') ? 'Pedidos' : 'Mis Entregas'}
-                                </h1>
-                                {isFetching && !loadingPedidos && (
-                                    <m.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="bg-blue-50 text-blue-600 p-2 rounded-xl">
-                                        <RefreshCw className="h-4 w-4 animate-spin" />
-                                    </m.div>
-                                )}
-                            </div>
-                            <div className="flex items-center gap-2 mt-1">
-                                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">
-                                    {totalItems} Órdenes registradas
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </m.div>
+            {/* --- UNIFIED HEADER --- */}
+            <AdminPageHeader
+                icon={<Box size={28} strokeWidth={1.5} />}
+                iconColor="bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-900"
+                iconShadow="shadow-slate-900/20"
+                title={(userRole === 'admin' || userRole === 'superadmin') ? 'Pedidos' : 'Mis Entregas'}
+                totalItems={totalItems}
+                totalLabel="órdenes registradas"
+                isFetching={isFetching && !loadingPedidos}
+                dotColor="bg-emerald-500"
+                actions={
+                    <>
+                        {(userRole === 'admin' || userRole === 'superadmin') && (
+                            <div className="relative" ref={exportDropdownRef}>
+                                <Button 
+                                    variant="outline" 
+                                    className={`gap-2 h-11 px-5 rounded-xl border-slate-200 dark:border-slate-800 font-bold tracking-tight shadow-sm transition-all haptic-scale ${exportDropdownOpen ? 'bg-slate-100 dark:bg-slate-800 border-slate-300' : 'bg-white dark:bg-slate-900 hover:bg-slate-50'}`} 
+                                    onClick={() => setExportDropdownOpen(!exportDropdownOpen)} 
+                                    disabled={totalItems === 0 || isExporting}
+                                >
+                                    <Download className={`h-4 w-4 ${isExporting ? 'animate-spin' : ''}`} />
+                                    EXPORTAR DATA
+                                </Button>
 
-                <m.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} className="flex flex-wrap gap-3 w-full lg:w-auto">
-                    {(userRole === 'admin' || userRole === 'superadmin') && (
-                        <div className="relative" ref={exportDropdownRef}>
-                            <Button 
-                                variant="outline" 
-                                className={`flex-1 md:flex-none gap-2 h-14 px-8 rounded-2xl border-slate-200 font-black tracking-tight shadow-sm transition-all haptic-scale ${exportDropdownOpen ? 'bg-slate-100 border-slate-300 ring-4 ring-slate-100' : 'bg-white hover:bg-slate-50'}`} 
-                                onClick={() => setExportDropdownOpen(!exportDropdownOpen)} 
-                                disabled={totalItems === 0 || isExporting}
-                            >
-                                <Download className={`h-4 w-4 ${isExporting ? 'animate-spin' : ''}`} />
-                                EXPORTAR DATA
-                            </Button>
-
-                            <AnimatePresence>
-                                {exportDropdownOpen && (
-                                    <m.div
-                                        initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                        className="absolute right-0 mt-3 w-72 bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-100 p-3 z-[60] overflow-hidden"
-                                    >
-                                        <div className="p-4 border-b border-slate-50 mb-2">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Formato Excel</p>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <button onClick={() => handleExportXlsx('page')} disabled={isExporting} className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group text-left">
-                                                <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all"><Eye size={18} /></div>
-                                                <div className="flex-1"><p className="text-xs font-black text-slate-900 uppercase">Página Actual</p><p className="text-[10px] text-slate-400 font-bold">{paginatedPedidos.length} pedidos</p></div>
-                                            </button>
-                                            <button onClick={() => handleExportXlsx('all')} disabled={isExporting} className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all group text-left">
-                                                <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all"><LayoutDashboard size={18} /></div>
-                                                <div className="flex-1"><p className="text-xs font-black text-slate-900 uppercase">Todo el Universo</p><p className="text-[10px] text-slate-400 font-bold">{totalItems} pedidos</p></div>
-                                            </button>
-                                        </div>
-                                    </m.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
-                    )}
-                    <Button
-                        className="flex-1 md:flex-none gap-2 h-14 px-8 rounded-2xl bg-slate-900 text-white hover:bg-blue-600 font-black tracking-tight shadow-xl shadow-slate-200 hover:shadow-blue-200 transition-all haptic-scale"
-                        onClick={() => queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })} disabled={isFetching}
-                    >
-                        {isFetching ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />} SINCRONIZAR
-                    </Button>
-                    <Button
-                        className="flex-1 md:flex-none gap-2 h-14 px-8 rounded-2xl bg-indigo-600 text-white hover:bg-indigo-750 font-black tracking-tight shadow-xl shadow-indigo-100 hover:shadow-indigo-200 transition-all haptic-scale"
-                        onClick={() => setCreateModalOpen(true)}
-                    >
-                        <PlusCircle className="h-5 w-5" /> NUEVO PEDIDO
-                    </Button>
-                </m.div>
-            </div>
+                                <AnimatePresence>
+                                    {exportDropdownOpen && (
+                                        <m.div
+                                            initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            className="absolute right-0 mt-3 w-72 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-3 z-[60] overflow-hidden"
+                                        >
+                                            <div className="p-3 border-b border-slate-100 dark:border-slate-800 mb-2">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Formato Excel</p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <button onClick={() => handleExportXlsx('page')} disabled={isExporting} className="w-full flex items-center gap-3.5 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all group text-left">
+                                                    <div className="h-9 w-9 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all"><Eye size={16} /></div>
+                                                    <div className="flex-1"><p className="text-xs font-bold text-slate-900 dark:text-white uppercase">Página Actual</p><p className="text-[10px] text-slate-400 font-semibold">{paginatedPedidos.length} pedidos</p></div>
+                                                </button>
+                                                <button onClick={() => handleExportXlsx('all')} disabled={isExporting} className="w-full flex items-center gap-3.5 p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all group text-left">
+                                                    <div className="h-9 w-9 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all"><LayoutDashboard size={16} /></div>
+                                                    <div className="flex-1"><p className="text-xs font-bold text-slate-900 dark:text-white uppercase">Todo el Universo</p><p className="text-[10px] text-slate-400 font-semibold">{totalItems} pedidos</p></div>
+                                                </button>
+                                            </div>
+                                        </m.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        )}
+                        <Button
+                            className="gap-2 h-11 px-5 rounded-xl bg-slate-900 dark:bg-slate-800 text-white hover:bg-blue-600 font-bold tracking-tight shadow-md transition-all haptic-scale"
+                            onClick={() => queryClient.invalidateQueries({ queryKey: ["adminPedidos"] })} disabled={isFetching}
+                        >
+                            {isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />} Sincronizar
+                        </Button>
+                        <Button
+                            className="gap-2 h-11 px-5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white hover:from-indigo-700 hover:to-blue-700 font-bold tracking-tight shadow-lg shadow-indigo-500/20 transition-all haptic-scale"
+                            onClick={() => setCreateModalOpen(true)}
+                        >
+                            <PlusCircle className="h-4 w-4" /> NUEVO PEDIDO
+                        </Button>
+                    </>
+                }
+            />
 
             <OrdersBulkActions 
                 selectedIds={selectedIds}
