@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js"
+import { createAdminClient } from "@/lib/supabase.server"
 import { slugify } from "@/lib/utils"
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.blama.shop'
@@ -6,16 +6,12 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.blama.shop'
 export const revalidate = 3600 // Revalidate every hour
 
 export default async function sitemap() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-    if (!supabaseUrl || !supabaseAnonKey) {
+    let supabase
+    try {
+        supabase = createAdminClient()
+    } catch {
         return []
     }
-
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-        auth: { persistSession: false }
-    })
 
     // 1. Static Pages
     const routes = [
@@ -36,11 +32,11 @@ export default async function sitemap() {
     // 2. Fetch Products
     const { data: products } = await supabase
         .from('productos')
-        .select('id, nombre, updated_at')
+        .select('id, nombre, created_at')
 
-    const productRoutes = (products || []).map((product) => ({
+    const productRoutes = (products || []).map((product: any) => ({
         url: `${BASE_URL}/productos/${slugify(product.nombre)}-${product.id}`,
-        lastModified: product.updated_at || new Date().toISOString(),
+        lastModified: product.created_at || new Date().toISOString(),
         changeFrequency: 'weekly' as const,
         priority: 0.9,
     }))
