@@ -99,8 +99,8 @@ export default function UsuariosPage() {
 
   return (
     <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:0.4}} className="space-y-10 max-w-[1600px] mx-auto">
-      <AdminPageHeader icon={<Users size={28} strokeWidth={1.5}/>} iconColor="bg-violet-600" iconShadow="shadow-violet-200" title="Usuarios" totalItems={stats.total} totalLabel="usuarios registrados" isFetching={isFetching} dotColor="bg-violet-500"
-        actions={<Button variant="outline" className="gap-2 haptic-scale shadow-sm rounded-2xl h-14 px-6 font-bold" onClick={()=>qc.invalidateQueries({queryKey:["adminProfiles"]})} disabled={isFetching}><RefreshCw className={`h-4 w-4 ${isFetching?'animate-spin':''}`}/>Sincronizar</Button>}
+      <AdminPageHeader icon={<Users size={28} strokeWidth={1.5}/>} iconColor="bg-gradient-to-tr from-violet-600 via-indigo-600 to-purple-700" iconShadow="shadow-violet-500/20" title="Usuarios" totalItems={stats.total} totalLabel="usuarios registrados" isFetching={isFetching} dotColor="bg-violet-500"
+        actions={<Button variant="outline" className="gap-2 haptic-scale shadow-sm rounded-xl h-11 px-5 font-bold border-slate-200 dark:border-slate-800" onClick={()=>qc.invalidateQueries({queryKey:["adminProfiles"]})} disabled={isFetching}><RefreshCw className={`h-4 w-4 ${isFetching?'animate-spin':''}`}/>Sincronizar</Button>}
       />
 
       <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.1}} className="grid grid-cols-1 md:grid-cols-3 gap-6">

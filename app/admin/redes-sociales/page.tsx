@@ -59,10 +59,10 @@ export default function AdminSocialLinksPage() {
 
   return (
     <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:0.4}} className="space-y-10 max-w-[1600px] mx-auto">
-      <AdminPageHeader icon={<Share2 size={28} strokeWidth={1.5}/>} iconColor="bg-cyan-600" iconShadow="shadow-cyan-200" title="Redes Sociales" totalItems={items.length} totalLabel="enlaces configurados" isFetching={isFetching} dotColor="bg-cyan-500"
+      <AdminPageHeader icon={<Share2 size={28} strokeWidth={1.5}/>} iconColor="bg-gradient-to-tr from-cyan-600 via-teal-600 to-blue-600" iconShadow="shadow-cyan-500/20" title="Redes Sociales" totalItems={items.length} totalLabel="enlaces configurados" isFetching={isFetching} dotColor="bg-cyan-500"
         actions={<>
-          <Button variant="outline" className="gap-2 haptic-scale shadow-sm rounded-2xl h-14 px-6 font-bold" onClick={()=>qc.invalidateQueries({queryKey:["socialLinks"]})} disabled={isFetching}><RefreshCw className={`h-4 w-4 ${isFetching?'animate-spin':''}`}/>Sincronizar</Button>
-          <Button className="gap-2 haptic-scale shadow-lg rounded-2xl h-14 px-6 font-bold bg-gradient-to-r from-cyan-600 to-blue-600 text-white hover:from-cyan-700 hover:to-blue-700" onClick={startCreate}><Plus className="h-5 w-5"/>Nuevo Enlace</Button>
+          <Button variant="outline" className="gap-2 haptic-scale shadow-sm rounded-xl h-11 px-5 font-bold border-slate-200 dark:border-slate-800" onClick={()=>qc.invalidateQueries({queryKey:["socialLinks"]})} disabled={isFetching}><RefreshCw className={`h-4 w-4 ${isFetching?'animate-spin':''}`}/>Sincronizar</Button>
+          <Button className="gap-2 haptic-scale shadow-lg rounded-xl h-11 px-5 font-bold bg-gradient-to-r from-cyan-600 to-blue-600 text-white hover:from-cyan-700 hover:to-blue-700" onClick={startCreate}><Plus className="h-4 w-4"/>Nuevo Enlace</Button>
         </>}
       />
 

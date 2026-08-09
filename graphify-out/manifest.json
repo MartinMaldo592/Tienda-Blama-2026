@@ -70,9 +70,9 @@
     "semantic_hash": ""
   },
   "app/admin/layout.tsx": {
-    "mtime": 1786239905.3259914,
-    "ast_hash": "1f7be5f4d789f4eed273c76fadf65f62",
-    "semantic_hash": "1f7be5f4d789f4eed273c76fadf65f62"
+    "mtime": 1786299793.7551773,
+    "ast_hash": "f5fe3e327dbf0f6792cd04351204746a",
+    "semantic_hash": ""
   },
   "app/admin/marketing/page.tsx": {
     "mtime": 1786299433.165042,
@@ -115,8 +115,8 @@
     "semantic_hash": "5a6d9fb5d5d00a87f305e32aee29a509"
   },
   "app/admin/productos/page.tsx": {
-    "mtime": 1786299619.7314937,
-    "ast_hash": "0f0609cebcbaa15dc732d3bf7af1db7c",
+    "mtime": 1786300057.2626882,
+    "ast_hash": "02b913550d5c80c30f9b897fda9fa2e7",
     "semantic_hash": ""
   },
   "app/admin/redes-sociales/page.tsx": {
@@ -615,9 +615,9 @@
     "semantic_hash": "41efe771aea384cad421c5f449d0882a"
   },
   "features/admin/components/orders/orders-filter-bar.tsx": {
-    "mtime": 1786239905.5898883,
-    "ast_hash": "5cf7d636c22c57552255114896e778ff",
-    "semantic_hash": "5cf7d636c22c57552255114896e778ff"
+    "mtime": 1786299832.8297193,
+    "ast_hash": "e7e6293de240155d4acbd81cbf78b837",
+    "semantic_hash": ""
   },
   "features/admin/components/orders/orders-table.tsx": {
     "mtime": 1786239905.5898883,
@@ -685,8 +685,8 @@
     "semantic_hash": "93e09cec73c9f0d7893f626273c2a328"
   },
   "features/admin/components/sidebar.tsx": {
-    "mtime": 1786299398.6631966,
-    "ast_hash": "22a5a682fb7db0246c8fbe3eb38f0280",
+    "mtime": 1786299779.38675,
+    "ast_hash": "76082c6633be280d497adbbe04a302a1",
     "semantic_hash": ""
   },
   "features/admin/components/skeleton-previews.tsx": {

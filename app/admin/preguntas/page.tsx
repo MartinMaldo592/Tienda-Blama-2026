@@ -76,8 +76,8 @@ export default function AdminPreguntasPage() {
 
   return (
     <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:0.4}} className="space-y-10 max-w-[1600px] mx-auto">
-      <AdminPageHeader icon={<MessageSquare size={28} strokeWidth={1.5}/>} iconColor="bg-indigo-600" iconShadow="shadow-indigo-200" title="Preguntas" totalItems={stats.total} totalLabel="preguntas recibidas" isFetching={isFetching} dotColor="bg-indigo-500"
-        actions={<Button variant="outline" className="gap-2 haptic-scale shadow-sm rounded-2xl h-14 px-6 font-bold" onClick={()=>qc.invalidateQueries({queryKey:["adminPreguntas"]})} disabled={isFetching}><RefreshCw className={`h-4 w-4 ${isFetching?'animate-spin':''}`}/>Sincronizar</Button>}
+      <AdminPageHeader icon={<MessageSquare size={28} strokeWidth={1.5}/>} iconColor="bg-gradient-to-tr from-indigo-600 via-purple-600 to-indigo-700" iconShadow="shadow-indigo-500/20" title="Preguntas" totalItems={stats.total} totalLabel="preguntas recibidas" isFetching={isFetching} dotColor="bg-indigo-500"
+        actions={<Button variant="outline" className="gap-2 haptic-scale shadow-sm rounded-xl h-11 px-5 font-bold border-slate-200 dark:border-slate-800" onClick={()=>qc.invalidateQueries({queryKey:["adminPreguntas"]})} disabled={isFetching}><RefreshCw className={`h-4 w-4 ${isFetching?'animate-spin':''}`}/>Sincronizar</Button>}
       />
 
       <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.1}} className="grid grid-cols-1 md:grid-cols-3 gap-6">

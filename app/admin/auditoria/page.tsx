@@ -92,12 +92,12 @@ export default function AuditPage() {
 
     return (
         <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="space-y-10 max-w-[1600px] mx-auto">
-            <AdminPageHeader icon={<ShieldAlert size={28} strokeWidth={1.5} />} iconColor="bg-slate-800" iconShadow="shadow-slate-300" title="Auditoría" subtitle="Monitoreo de actividad del sistema en tiempo real" totalItems={totalItems} totalLabel="logs totales" isFetching={isFetching} dotColor={isLive ? "bg-emerald-500" : "bg-slate-300"}
+            <AdminPageHeader icon={<ShieldAlert size={28} strokeWidth={1.5} />} iconColor="bg-gradient-to-tr from-slate-800 via-slate-900 to-zinc-900" iconShadow="shadow-slate-800/20" title="Auditoría" totalItems={totalItems} totalLabel="logs totales" isFetching={isFetching} dotColor={isLive ? "bg-emerald-500" : "bg-slate-300"}
                 actions={<>
-                    <Button variant={isLive ? "default" : "outline"} className={`gap-2 haptic-scale rounded-2xl h-14 px-6 font-bold ${isLive ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg' : ''}`} onClick={() => setIsLive(!isLive)}>
+                    <Button variant={isLive ? "default" : "outline"} className={`gap-2 haptic-scale rounded-xl h-11 px-5 font-bold ${isLive ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md' : ''}`} onClick={() => setIsLive(!isLive)}>
                         <Activity className={`h-4 w-4 ${isLive ? 'animate-pulse' : ''}`} />{isLive ? 'Live ON' : 'Live OFF'}
                     </Button>
-                    <Button variant="outline" className="gap-2 haptic-scale shadow-sm rounded-2xl h-14 px-6 font-bold" onClick={() => qc.invalidateQueries({ queryKey: ["auditLogs"] })} disabled={isFetching}>
+                    <Button variant="outline" className="gap-2 haptic-scale shadow-sm rounded-xl h-11 px-5 font-bold border-slate-200 dark:border-slate-800" onClick={() => qc.invalidateQueries({ queryKey: ["auditLogs"] })} disabled={isFetching}>
                         <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />Refrescar
                     </Button>
                 </>}
