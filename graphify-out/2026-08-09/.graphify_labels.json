@@ -29,6 +29,8 @@
   "27": "whatsapp/route.ts",
   "28": "dependencies",
   "29": "productos.client.ts",
+  "30": "social-links.client.ts",
+  "31": "@aws-sdk/client-s3",
   "32": "HTML Report Format",
   "33": "products.server.ts",
   "34": "class-variance-authority",
@@ -160,7 +162,6 @@
   "163": "_template.md",
   "164": "date-fns",
   "165": "Web Interface Guidelines",
-  "166": "@builder.io/partytown",
   "169": "use-places-autocomplete",
   "170": "resend"
 }

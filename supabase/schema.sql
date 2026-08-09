@@ -636,7 +636,7 @@ BEGIN
     'pedidosPendientes', (SELECT COUNT(*) FROM pedidos WHERE status = 'Pendiente'),
     'pedidosEnProceso', (SELECT COUNT(*) FROM pedidos WHERE status IN ('Confirmado', 'Enviado')),
     'pedidosEntregados', (SELECT COUNT(*) FROM pedidos WHERE status = 'Entregado'),
-    'pedidosAsignados', (SELECT COUNT(*) FROM pedidos WHERE asignado_a = p_user_id AND status NOT IN ('Fallido', 'Devuelto', 'Entregado')),
+    'pedidosAsignados', (SELECT COUNT(*) FROM pedidos WHERE p_user_id IS NOT NULL AND p_user_id <> '' AND asignado_a = p_user_id::uuid AND status NOT IN ('Fallido', 'Devuelto', 'Entregado')),
     'totalClientes', (SELECT COUNT(*) FROM clientes),
     'productosLowStock', (SELECT COUNT(*) FROM productos WHERE stock < 5)
   ) INTO v_result;

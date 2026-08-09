@@ -165,7 +165,7 @@ export async function fetchAdminTopProducts() {
   const supabase = createClient()
   const { data, error } = await supabase
     .from("productos")
-    .select("id, nombre, precio, stock, imagen_url, categoria")
+    .select("id, nombre, precio, stock, imagen_url, categorias (nombre)")
     .order("stock", { ascending: false })
     .limit(5)
 
@@ -173,6 +173,14 @@ export async function fetchAdminTopProducts() {
     console.error("Error fetching top products:", error)
     return []
   }
-  return (data as any[]) || []
+
+  return (data || []).map((p: any) => ({
+    id: p.id,
+    nombre: p.nombre,
+    precio: Number(p.precio || 0),
+    stock: Number(p.stock || 0),
+    imagen_url: p.imagen_url,
+    categoria: p.categorias?.nombre || "Catálogo"
+  }))
 }
 
