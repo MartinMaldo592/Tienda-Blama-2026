@@ -349,8 +349,8 @@ export async function updatePedidoStatusWithStock(args: { pedidoId: number; next
   const nextStatus = String(args.nextStatus || "")
   const isCurrentlyDeducted = args.stockDescontado
 
-  // 1. Logic for Deducting Stock (Pendiente -> Confirmado/Preparando/Enviado/Entregado)
-  const deducirStatuses = ["Confirmado", "Preparando", "Enviado", "Entregado"]
+  // 1. Logic for Deducting Stock (Pendiente -> Confirmado/Enviado/Entregado)
+  const deducirStatuses = ["Confirmado", "Enviado", "Entregado"]
   if (deducirStatuses.includes(nextStatus) && !isCurrentlyDeducted) {
     const { error: rpcError } = await supabase.rpc('admin_procesar_descuento_stock', {
       p_pedido_id: pedidoId,
@@ -380,7 +380,6 @@ export async function updatePedidoStatusWithStock(args: { pedidoId: number; next
   // 4. Trigger Status Update Email (in background securely)
   const notifyStatuses = [
     "Confirmado", 
-    "Preparando", 
     "Enviado", 
     "Llegó a Agencia", 
     "Entregado", 
@@ -550,7 +549,7 @@ export async function createManualPedido(args: CreateManualPedidoArgs) {
   if (itemsError) throw itemsError
 
   // 4. Procesar descuento de stock si el estado inicial lo requiere
-  const deducirStatuses = ["Confirmado", "Preparando", "Enviado", "Entregado"]
+  const deducirStatuses = ["Confirmado", "Enviado", "Entregado"]
   if (deducirStatuses.includes(args.status)) {
     const { error: rpcError } = await supabase.rpc('admin_procesar_descuento_stock', {
       p_pedido_id: pedidoId,

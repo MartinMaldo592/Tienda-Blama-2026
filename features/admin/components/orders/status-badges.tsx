@@ -2,7 +2,6 @@ export function StatusBadge({ status }: { status: string }) {
     const styles: Record<string, string> = {
         'Pendiente': 'bg-amber-50 text-amber-700 border-amber-100 shadow-[0_2px_10px_-3px_rgba(251,191,36,0.2)]',
         'Confirmado': 'bg-sky-50 text-sky-700 border-sky-100 shadow-[0_2px_10px_-3px_rgba(14,165,233,0.2)]',
-        'Preparando': 'bg-orange-50 text-orange-700 border-orange-100 shadow-[0_2px_10px_-3px_rgba(249,115,22,0.2)]',
         'Enviado': 'bg-indigo-50 text-indigo-700 border-indigo-100 shadow-[0_2px_10px_-3px_rgba(79,70,229,0.2)]',
         'Llegó a Agencia': 'bg-teal-50 text-teal-700 border-teal-100 shadow-[0_2px_10px_-3px_rgba(13,148,136,0.2)]',
         'Entregado': 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-[0_2px_10px_-3px_rgba(16,185,129,0.2)]',

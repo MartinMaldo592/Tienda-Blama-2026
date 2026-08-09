@@ -524,7 +524,6 @@ export default function PedidoDetallePage() {
                             <SelectTrigger className={`w-[160px] h-10 border-none shadow-none focus:ring-0 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all ${
                                 status === 'Pendiente' ? 'bg-amber-400 text-amber-950' :
                                 status === 'Confirmado' ? 'bg-sky-400 text-sky-950' :
-                                status === 'Preparando' ? 'bg-orange-400 text-orange-950' :
                                 status === 'Enviado' ? 'bg-indigo-400 text-indigo-950' :
                                 status === 'Llegó a Agencia' ? 'bg-teal-400 text-teal-950' :
                                 status === 'Entregado' ? 'bg-emerald-400 text-emerald-950' :
@@ -535,7 +534,7 @@ export default function PedidoDetallePage() {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="rounded-2xl shadow-2xl border-slate-100">
-                                {['Pendiente', 'Confirmado', 'Preparando', 'Enviado', 'Llegó a Agencia', 'Entregado', 'Devuelto', 'Fallido', 'Cancelado'].map(s => (
+                                {['Pendiente', 'Confirmado', 'Enviado', 'Llegó a Agencia', 'Entregado', 'Devuelto', 'Fallido', 'Cancelado'].map(s => (
                                     <SelectItem key={s} value={s} className="font-bold text-xs py-3">{s}</SelectItem>
                                 ))}
                             </SelectContent>

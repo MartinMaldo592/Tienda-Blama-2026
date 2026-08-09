@@ -233,7 +233,7 @@ function PedidosPageContent() {
     async function handleBulkStatusRequest(status: string) {
         setPendingBulkStatus(status)
         setStockError(null)
-        const deducirStatuses = ["Confirmado", "Preparando", "Enviado", "Entregado"]
+        const deducirStatuses = ["Confirmado", "Enviado", "Entregado"]
         if (deducirStatuses.includes(status)) {
             setIsCheckingStock(true)
             setBulkConfirmOpen(true)

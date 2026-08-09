@@ -18,7 +18,7 @@ interface OrderStatusProps {
 export function OrderStatusEmail({
     clienteNombre = "Cliente",
     pedidoId = 0,
-    status = "Preparando",
+    status = "Confirmado",
     trackingCode,
     keyRecojo,
     metodoEnvio,
@@ -31,17 +31,17 @@ export function OrderStatusEmail({
     // Determinar textos y colores según el estado
     let statusTitle = "Actualización de tu Pedido"
     let statusDescription = `El estado de tu pedido ${pedidoFormateado} ha cambiado.`
-    let badgeColor = "#eab308" // Amber para Preparando
-    let badgeText = "🟡 PREPARANDO"
+    let badgeColor = "#2563eb"
+    let badgeText = "✓ CONFIRMADO"
     let statusIcon = "📦"
 
     const currentStatus = String(status || "").toLowerCase().trim()
 
-    if (currentStatus === "preparando") {
-        statusTitle = "¡Tu pedido se está preparando!"
-        statusDescription = "Nuestro equipo está seleccionando y empaquetando tus productos con el máximo cuidado. Te avisaremos apenas lo entreguemos a la agencia de envíos."
-        badgeColor = "#d97706"
-        badgeText = "📦 EN PREPARACIÓN"
+    if (currentStatus === "confirmado") {
+        statusTitle = "¡Tu pedido ha sido confirmado!"
+        statusDescription = "Tu orden ha sido registrada con éxito y está siendo procesada para su posterior envío."
+        badgeColor = "#2563eb"
+        badgeText = "✓ CONFIRMADO"
         statusIcon = "📦"
     } else if (currentStatus === "enviado") {
         statusTitle = "¡Tu pedido está en camino!"
@@ -136,7 +136,7 @@ export function OrderStatusEmail({
                                 <div style={{ height: "2px", backgroundColor: step2Done ? "#10b981" : "#e5e7eb" }} />
                               </Column>
 
-                            {/* Paso 2: Preparando */}
+                            {/* Paso 2: Confirmado */}
                             <Column style={{ width: "26%", textAlign: "center" as const }}>
                                 <div style={{ 
                                     ...trackerDotStyle, 

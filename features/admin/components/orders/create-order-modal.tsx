@@ -723,7 +723,6 @@ export function CreateOrderModal({ open, onOpenChange, onSuccess }: CreateOrderM
                                         value={status} onChange={e => setStatus(e.target.value)}
                                     >
                                         <option value="Confirmado">Confirmado</option>
-                                        <option value="Preparando">Preparando</option>
                                         <option value="Enviado">Enviado</option>
                                         <option value="Llegó a Agencia">Llegó a Agencia</option>
                                         <option value="Entregado">Entregado</option>

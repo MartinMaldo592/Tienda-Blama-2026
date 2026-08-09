@@ -69,7 +69,6 @@ export function OrdersFilterBar({
     const allStatuses = [
         { value: "Pendiente", label: "Pendiente" },
         { value: "Confirmado", label: "Confirmado" },
-        { value: "Preparando", label: "Preparando" },
         { value: "Enviado", label: "Enviado" },
         { value: "Llegó a Agencia", label: "Llegó a Agencia" },
         { value: "Entregado", label: "Entregado" },
@@ -142,7 +141,6 @@ export function OrdersFilterBar({
     const quickTabs = [
         { label: "Todos", value: "all" },
         { label: "Pendientes", value: "Pendiente" },
-        { label: "Preparando", value: "Preparando" },
         { label: "Enviados", value: "Enviado" },
         { label: "Entregados", value: "Entregado" },
         { label: "Cancelados", value: "Cancelado" },

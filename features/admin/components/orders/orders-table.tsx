@@ -256,7 +256,6 @@ export function OrdersTable({
                                                     className={`h-9 px-4 text-[10px] font-black uppercase tracking-widest border-none shadow-none focus:ring-0 rounded-full transition-all ${
                                                         pedido.status === 'Pendiente' ? 'bg-amber-100 text-amber-700' :
                                                         pedido.status === 'Confirmado' ? 'bg-sky-100 text-sky-700' :
-                                                        pedido.status === 'Preparando' ? 'bg-orange-100 text-orange-700' :
                                                         pedido.status === 'Enviado' ? 'bg-indigo-100 text-indigo-700' :
                                                         pedido.status === 'Llegó a Agencia' ? 'bg-teal-100 text-teal-700' :
                                                         pedido.status === 'Entregado' ? 'bg-emerald-100 text-emerald-700' :
@@ -266,7 +265,7 @@ export function OrdersTable({
                                                     <SelectValue />
                                                 </SelectTrigger>
                                                 <SelectContent className="rounded-2xl border-slate-100 shadow-2xl">
-                                                    {['Pendiente', 'Confirmado', 'Preparando', 'Enviado', 'Llegó a Agencia', 'Entregado', 'Devuelto', 'Fallido', 'Cancelado'].map(s => (
+                                                    {['Pendiente', 'Confirmado', 'Enviado', 'Llegó a Agencia', 'Entregado', 'Devuelto', 'Fallido', 'Cancelado'].map(s => (
                                                         <SelectItem key={s} value={s} className="text-xs font-bold py-3 rounded-xl">{s}</SelectItem>
                                                     ))}
                                                 </SelectContent>

@@ -11,7 +11,7 @@ BEGIN
     'totalVentasReales', COALESCE((SELECT SUM(total) FROM pedidos WHERE status = 'Entregado'), 0),
     'ventasHoy', COALESCE((SELECT SUM(total) FROM pedidos WHERE status = 'Entregado' AND created_at >= CURRENT_DATE), 0),
     'pedidosPendientes', (SELECT COUNT(*) FROM pedidos WHERE status = 'Pendiente'),
-    'pedidosEnProceso', (SELECT COUNT(*) FROM pedidos WHERE status IN ('Confirmado', 'Enviado', 'Preparando')),
+    'pedidosEnProceso', (SELECT COUNT(*) FROM pedidos WHERE status IN ('Confirmado', 'Enviado')),
     'pedidosEntregados', (SELECT COUNT(*) FROM pedidos WHERE status = 'Entregado'),
     'pedidosAsignados', (SELECT COUNT(*) FROM pedidos WHERE asignado_a = p_user_id AND status NOT IN ('Fallido', 'Devuelto', 'Entregado')),
     'totalClientes', (SELECT COUNT(*) FROM clientes),

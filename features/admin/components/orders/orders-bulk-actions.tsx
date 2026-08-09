@@ -53,7 +53,6 @@ export function OrdersBulkActions({
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Confirmado">Marcar como Confirmado</SelectItem>
-                                <SelectItem value="Preparando">Marcar como Preparando</SelectItem>
                                 <SelectItem value="Enviado">Marcar como Enviado</SelectItem>
                                 <SelectItem value="Entregado">Marcar como Entregado</SelectItem>
                             </SelectContent>
