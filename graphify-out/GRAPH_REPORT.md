@@ -1,7 +1,7 @@
 # Graph Report - Tienda-Blama-2026  (2026-08-09)
 
 ## Corpus Check
-- 316 files · ~170,225 words
+- 316 files · ~170,276 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `06a30089`
+- Built from commit: `976e618c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -58,7 +58,7 @@
 - checkout/culqi/route.ts
 - proxy.ts
 - webhooks/culqi/route.ts
-- @builder.io/partytown
+- @aws-sdk/client-s3
 - skeleton.tsx
 - clsx
 - database.types.ts
@@ -210,8 +210,8 @@ Cohesion: 0.16
 Nodes (17): DialogContent, DialogDescription, DialogFooter(), DialogHeader(), DialogOverlay, DialogTitle, ItemData, OrderCustomerCardProps (+9 more)
 
 ### Community 2 - "useCheckoutForm.ts"
-Cohesion: 0.12
-Nodes (18): CheckoutDraft, useCheckoutDraft(), checkoutFormSchema, CheckoutFormValues, useCheckoutForm(), UseCheckoutFormOptions, isCouponRelatedError(), validateCoupon() (+10 more)
+Cohesion: 0.11
+Nodes (19): CheckoutDraft, useCheckoutDraft(), checkoutFormSchema, CheckoutFormValues, useCheckoutForm(), UseCheckoutFormOptions, isCouponRelatedError(), validateCoupon() (+11 more)
 
 ### Community 3 - "product-form.tsx"
 Cohesion: 0.15
@@ -238,8 +238,8 @@ Cohesion: 0.06
 Nodes (34): bodyStyle, checkCircleStyle, containerStyle, ctaButton, ctaSection, ctaText, dividerStyle, footerStyle (+26 more)
 
 ### Community 9 - "header.tsx"
-Cohesion: 0.13
-Nodes (12): AnnouncementBar(), AnnouncementBarProps, Footer(), SocialLink, Header(), AnnouncementData, LayoutShell(), LayoutShellProps (+4 more)
+Cohesion: 0.15
+Nodes (11): AnnouncementBar(), AnnouncementBarProps, Footer(), SocialLink, Header(), AnnouncementData, LayoutShell(), LayoutShellProps (+3 more)
 
 ### Community 10 - "products.ts"
 Cohesion: 0.07
@@ -315,7 +315,7 @@ Nodes (13): CheckoutBodySchema, CheckoutItemSchema, GET(), getEnv(), POST(), run
 
 ### Community 28 - "dependencies"
 Cohesion: 0.18
-Nodes (11): @aws-sdk/client-s3, @aws-sdk/s3-request-presigner, next, dependencies, @aws-sdk/client-s3, @aws-sdk/s3-request-presigner, next, @react-email/render (+3 more)
+Nodes (11): @aws-sdk/s3-request-presigner, @builder.io/partytown, next, dependencies, @aws-sdk/s3-request-presigner, @builder.io/partytown, next, @react-email/render (+3 more)
 
 ### Community 29 - "uploadToR2"
 Cohesion: 0.22
@@ -528,6 +528,6 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `useRoleGuard` be split into smaller, more focused modules?**
   _Cohesion score 0.07436527436527436 - nodes in this community are weakly interconnected._
 - **Should `useCheckoutForm.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.12433862433862433 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.11264367816091954 - nodes in this community are weakly interconnected._
 - **Should `product-form.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.1476923076923077 - nodes in this community are weakly interconnected._

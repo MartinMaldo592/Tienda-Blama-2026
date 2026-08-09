@@ -1,16 +1,16 @@
 # Graph Report - Tienda-Blama-2026  (2026-08-09)
 
 ## Corpus Check
-- 316 files · ~169,574 words
+- 316 files · ~170,225 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1496 nodes · 3301 edges · 171 communities (92 shown, 79 thin omitted)
+- 1496 nodes · 3301 edges · 170 communities (91 shown, 79 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 8 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `0e16e552`
+- Built from commit: `06a30089`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -29,7 +29,7 @@
 - compilerOptions
 - dashboard/page.tsx
 - utils.ts
-- checkout-form.tsx
+- button.tsx
 - order-notes-card.tsx
 - email.ts
 - components.json
@@ -49,7 +49,7 @@
 - productos/[id]/page.tsx
 - HTML Report Format
 - app/productos/page.tsx
-- button.tsx
+- class-variance-authority
 - pedidos/page.tsx
 - 🔑 Guía de Accesos y Automatización de Google Tag Manager (GTM)
 - opengraph-image.tsx
@@ -167,7 +167,6 @@
 - _template.md
 - date-fns
 - Web Interface Guidelines
-- @aws-sdk/client-s3
 - marketing/page.tsx
 - not-found.tsx
 - use-places-autocomplete
@@ -200,7 +199,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (171 total, 79 thin omitted)
+## Communities (170 total, 79 thin omitted)
 
 ### Community 0 - "useRoleGuard"
 Cohesion: 0.07
@@ -211,8 +210,8 @@ Cohesion: 0.16
 Nodes (17): DialogContent, DialogDescription, DialogFooter(), DialogHeader(), DialogOverlay, DialogTitle, ItemData, OrderCustomerCardProps (+9 more)
 
 ### Community 2 - "useCheckoutForm.ts"
-Cohesion: 0.11
-Nodes (19): CheckoutDraft, useCheckoutDraft(), checkoutFormSchema, CheckoutFormValues, useCheckoutForm(), UseCheckoutFormOptions, isCouponRelatedError(), validateCoupon() (+11 more)
+Cohesion: 0.12
+Nodes (18): CheckoutDraft, useCheckoutDraft(), checkoutFormSchema, CheckoutFormValues, useCheckoutForm(), UseCheckoutFormOptions, isCouponRelatedError(), validateCoupon() (+10 more)
 
 ### Community 3 - "product-form.tsx"
 Cohesion: 0.15
@@ -239,8 +238,8 @@ Cohesion: 0.06
 Nodes (34): bodyStyle, checkCircleStyle, containerStyle, ctaButton, ctaSection, ctaText, dividerStyle, footerStyle (+26 more)
 
 ### Community 9 - "header.tsx"
-Cohesion: 0.15
-Nodes (11): AnnouncementBar(), AnnouncementBarProps, Footer(), SocialLink, Header(), AnnouncementData, LayoutShell(), LayoutShellProps (+3 more)
+Cohesion: 0.13
+Nodes (12): AnnouncementBar(), AnnouncementBarProps, Footer(), SocialLink, Header(), AnnouncementData, LayoutShell(), LayoutShellProps (+4 more)
 
 ### Community 10 - "products.ts"
 Cohesion: 0.07
@@ -258,9 +257,9 @@ Nodes (17): AdminDashboard(), DashboardSalesChart(), useCurrentUserId(), SalesCh
 Cohesion: 0.17
 Nodes (16): ProductoDetalleClient(), ProductoDetalleClientProps, Product, ProductCard(), ProductCardProps, ProductImageCarousel(), ProductImageCarouselProps, ProductSocialProof() (+8 more)
 
-### Community 14 - "checkout-form.tsx"
-Cohesion: 0.13
-Nodes (13): CheckoutAddress(), CheckoutCustomer(), CheckoutCustomerProps, CheckoutFormProps, FormContent(), libraries, CheckoutShipping(), CheckoutShippingProps (+5 more)
+### Community 14 - "button.tsx"
+Cohesion: 0.10
+Nodes (16): OrderLabelGenerator, Button(), buttonVariants, OrderLabelGeneratorProps, CheckoutAddress(), CheckoutCustomer(), CheckoutCustomerProps, CheckoutFormProps (+8 more)
 
 ### Community 15 - "order-notes-card.tsx"
 Cohesion: 0.32
@@ -279,8 +278,8 @@ Cohesion: 0.10
 Nodes (25): AdminPreguntasPage(), AdminSocialLinksPage(), AdminResenasPage(), ForgotPasswordPage(), AdminSidebar(), AdminSidebarProps, AnnouncementBarConfig, AuditLog (+17 more)
 
 ### Community 19 - "input.tsx"
-Cohesion: 0.22
-Nodes (9): Input(), Label(), MediaManager(), MediaManagerProps, UploadProgressInfo, CheckoutAddressProps, QuickAddressProps, QuickCustomerProps (+1 more)
+Cohesion: 0.19
+Nodes (10): Input(), Label(), MediaManager(), MediaManagerProps, UploadProgressInfo, CheckoutAddressProps, CheckoutShippingProps, QuickAddressProps (+2 more)
 
 ### Community 20 - "rate-limit.ts"
 Cohesion: 0.17
@@ -316,7 +315,7 @@ Nodes (13): CheckoutBodySchema, CheckoutItemSchema, GET(), getEnv(), POST(), run
 
 ### Community 28 - "dependencies"
 Cohesion: 0.18
-Nodes (11): @aws-sdk/s3-request-presigner, class-variance-authority, next, dependencies, @aws-sdk/s3-request-presigner, class-variance-authority, next, @react-email/render (+3 more)
+Nodes (11): @aws-sdk/client-s3, @aws-sdk/s3-request-presigner, next, dependencies, @aws-sdk/client-s3, @aws-sdk/s3-request-presigner, next, @react-email/render (+3 more)
 
 ### Community 29 - "uploadToR2"
 Cohesion: 0.22
@@ -337,10 +336,6 @@ Nodes (18): Call-graph collapse, Candidate card, Cross-section (good for layered
 ### Community 33 - "app/productos/page.tsx"
 Cohesion: 0.29
 Nodes (8): Loading(), metadata, PageProps, ProductosPage(), revalidate, ProductosClient(), listCategories, listProducts()
-
-### Community 34 - "button.tsx"
-Cohesion: 0.25
-Nodes (4): OrderLabelGenerator, Button(), buttonVariants, OrderLabelGeneratorProps
 
 ### Community 35 - "pedidos/page.tsx"
 Cohesion: 0.18
@@ -522,17 +517,17 @@ Nodes (3): NotFound(), Home(), getHomePageData()
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `createClient()` connect `createClient` to `useRoleGuard`, `order-payment-card.tsx`, `button.tsx`, `pedidos/page.tsx`, `formatCurrency`, `useCheckoutForm.ts`, `cart-button.tsx`, `header.tsx`, `products.ts`, `dashboard/page.tsx`, `order-notes-card.tsx`, `uploadToR2`, `input.tsx`, `admin/types.ts`, `app/layout.tsx`, `pedidos/[id]/page.tsx`, `ProductosClient.tsx`, `product-social-proof.tsx`?**
+- **Why does `createClient()` connect `createClient` to `useRoleGuard`, `order-payment-card.tsx`, `useCheckoutForm.ts`, `pedidos/page.tsx`, `formatCurrency`, `cart-button.tsx`, `header.tsx`, `products.ts`, `dashboard/page.tsx`, `button.tsx`, `order-notes-card.tsx`, `uploadToR2`, `input.tsx`, `admin/types.ts`, `app/layout.tsx`, `pedidos/[id]/page.tsx`, `ProductosClient.tsx`, `product-social-proof.tsx`?**
   _High betweenness centrality (0.069) - this node is a cross-community bridge._
-- **Why does `Button()` connect `button.tsx` to `useRoleGuard`, `order-payment-card.tsx`, `product-form.tsx`, `useProductDetail.ts`, `cart-button.tsx`, `dashboard/page.tsx`, `utils.ts`, `checkout-form.tsx`, `order-notes-card.tsx`, `input.tsx`, `admin/types.ts`, `app/page.tsx`, `ProductosClient.tsx`, `pedidos/page.tsx`, `marketing/page.tsx`, `not-found.tsx`, `skeleton.tsx`, `cn`, `formatCurrency`, `order-file-card.tsx`, `pedidos/[id]/page.tsx`, `product-social-proof.tsx`?**
+- **Why does `Button()` connect `button.tsx` to `useRoleGuard`, `order-payment-card.tsx`, `product-form.tsx`, `useProductDetail.ts`, `cart-button.tsx`, `dashboard/page.tsx`, `utils.ts`, `order-notes-card.tsx`, `input.tsx`, `admin/types.ts`, `app/page.tsx`, `ProductosClient.tsx`, `pedidos/page.tsx`, `marketing/page.tsx`, `not-found.tsx`, `skeleton.tsx`, `cn`, `formatCurrency`, `order-file-card.tsx`, `pedidos/[id]/page.tsx`, `product-social-proof.tsx`?**
   _High betweenness centrality (0.025) - this node is a cross-community bridge._
-- **Why does `formatCurrency()` connect `formatCurrency` to `useRoleGuard`, `order-payment-card.tsx`, `useCheckoutForm.ts`, `pedidos/page.tsx`, `useProductDetail.ts`, `cart-button.tsx`, `header.tsx`, `dashboard/page.tsx`, `utils.ts`, `checkout-form.tsx`, `cn`, `input.tsx`, `pedidos/[id]/page.tsx`?**
+- **Why does `formatCurrency()` connect `formatCurrency` to `useRoleGuard`, `order-payment-card.tsx`, `useCheckoutForm.ts`, `pedidos/page.tsx`, `useProductDetail.ts`, `cart-button.tsx`, `header.tsx`, `dashboard/page.tsx`, `utils.ts`, `button.tsx`, `cn`, `input.tsx`, `pedidos/[id]/page.tsx`?**
   _High betweenness centrality (0.022) - this node is a cross-community bridge._
 - **What connects `CouponType`, `CouponRow`, `PROCESS_STATUSES` to the rest of the system?**
   _615 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `useRoleGuard` be split into smaller, more focused modules?**
   _Cohesion score 0.07436527436527436 - nodes in this community are weakly interconnected._
 - **Should `useCheckoutForm.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.11264367816091954 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.12433862433862433 - nodes in this community are weakly interconnected._
 - **Should `product-form.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.1476923076923077 - nodes in this community are weakly interconnected._

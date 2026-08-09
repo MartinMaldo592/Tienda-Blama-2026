@@ -620,9 +620,9 @@
     "semantic_hash": ""
   },
   "features/admin/components/orders/orders-table.tsx": {
-    "mtime": 1786239905.5898883,
-    "ast_hash": "3606dd72cd9fae3bd2ae42994c996669",
-    "semantic_hash": "3606dd72cd9fae3bd2ae42994c996669"
+    "mtime": 1786300807.8747168,
+    "ast_hash": "3e7f67287f18a6e6d9c67eb8bd0e8344",
+    "semantic_hash": ""
   },
   "features/admin/components/orders/status-badges.tsx": {
     "mtime": 1786239905.5898883,
