@@ -80,79 +80,148 @@ export default function ClientesPage() {
                 <div className="relative"><Search className="absolute left-4 top-3.5 h-4 w-4 text-slate-300"/><Input placeholder="Buscar por nombre, teléfono, DNI, correo o distrito..." className="pl-10 rounded-xl h-12 border-slate-200" value={searchTerm} onChange={e=>setSearchTerm(e.target.value)}/></div>
             </m.div>
 
-            {/* Tabla de Clientes con Scroll Adaptable */}
-            <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.2}} className="bg-white rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
-                <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
-                    <Table className="min-w-[1200px]">
-                        <TableHeader className="bg-slate-50/50">
-                            <TableRow className="h-16 hover:bg-transparent border-slate-100">
-                                {["ID","Nombre","Contacto","DNI","Ubicación","Dirección","Mapa","Acciones"].map((h,i)=>(<TableHead key={h} className={`text-slate-400 font-black text-[11px] uppercase tracking-widest ${i===0?'pl-8':''} ${i===7?'pr-8 text-right':''}`}>{h}</TableHead>))}
+            {/* Tabla de Clientes con Scroll Adaptable y Estilo Enterprise */}
+            <m.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:0.2}} className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-[0_10px_40px_rgba(0,0,0,0.04)] border border-slate-200/80 dark:border-slate-800 overflow-hidden">
+                <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700 scrollbar-track-transparent">
+                    <Table className="min-w-[1100px] w-full">
+                        <TableHeader className="bg-slate-100/70 dark:bg-slate-800/60 border-b border-slate-200/60 dark:border-slate-800">
+                            <TableRow className="h-16 hover:bg-transparent border-none">
+                                {["ID", "Cliente & Contacto", "DNI / RUC", "Ubicación", "Dirección de Entrega", "Mapa", "Acciones"].map((h, i) => (
+                                    <TableHead key={h} className={`text-slate-500 dark:text-slate-400 font-black text-[11px] uppercase tracking-widest ${i === 0 ? 'pl-8' : ''} ${i === 6 ? 'pr-8 text-right' : ''}`}>
+                                        {h}
+                                    </TableHead>
+                                ))}
                             </TableRow>
                         </TableHeader>
-                        <TableBody>
+                        <TableBody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                             <AnimatePresence mode="popLayout">
-                                {filteredClientes.map((cliente:any,i:number)=>(
-                                    <m.tr key={cliente.id} initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} exit={{opacity:0,scale:0.95}} transition={{delay:i*0.03}} className="h-[76px] hover:bg-slate-50/80 transition-colors border-slate-50 group">
-                                        <TableCell className="pl-8"><span className="font-mono text-[10px] font-black text-slate-400 bg-slate-100 px-2 py-1 rounded-lg">#{cliente.id}</span></TableCell>
-                                        <TableCell className="max-w-[200px]"><span className="font-black text-sm text-slate-800 line-clamp-2 leading-snug">{cliente.nombre}</span></TableCell>
-                                        <TableCell className="max-w-[220px]">
-                                            <div className="space-y-1">
-                                                {cliente.email && (
-                                                    <div className="flex items-center gap-2 text-xs text-slate-500">
-                                                        <Mail className="h-3.5 w-3.5 text-slate-300 flex-shrink-0"/>
-                                                        <span className="truncate" title={cliente.email}>{cliente.email}</span>
+                                {filteredClientes.map((cliente: any, i: number) => (
+                                    <m.tr key={cliente.id} initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} exit={{opacity:0,scale:0.95}} transition={{delay:i*0.025}} className="h-[76px] hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors border-none group">
+                                        {/* ID */}
+                                        <TableCell className="pl-8 font-mono text-xs font-bold text-slate-500">
+                                            <span className="bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg text-slate-700 dark:text-slate-300 font-mono text-[11px] font-black border border-slate-200/60 dark:border-slate-700">
+                                                #{cliente.id}
+                                            </span>
+                                        </TableCell>
+
+                                        {/* Cliente & Contacto */}
+                                        <TableCell className="min-w-[240px]">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-violet-600 via-indigo-600 to-purple-600 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-md shadow-violet-500/20 uppercase border border-violet-400/30">
+                                                    {(cliente.nombre || 'C').charAt(0)}
+                                                </div>
+                                                <div className="flex flex-col min-w-0">
+                                                    <span className="font-extrabold text-sm text-slate-900 dark:text-white group-hover:text-violet-600 transition-colors truncate" title={cliente.nombre}>
+                                                        {cliente.nombre || "Sin Nombre"}
+                                                    </span>
+                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                        {cliente.email && (
+                                                            <span className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1 truncate max-w-[160px]" title={cliente.email}>
+                                                                <Mail className="h-3 w-3 shrink-0 text-slate-400" />
+                                                                {cliente.email}
+                                                            </span>
+                                                        )}
+                                                        <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1 shrink-0">
+                                                            <Phone className="h-3 w-3 shrink-0 text-slate-400" />
+                                                            {cliente.telefono || "—"}
+                                                        </span>
                                                     </div>
-                                                )}
-                                                <div className="flex items-center gap-2 text-xs text-slate-500">
-                                                    <Phone className="h-3.5 w-3.5 text-slate-300 flex-shrink-0"/>
-                                                    <span className="tabular-nums">{cliente.telefono || '—'}</span>
                                                 </div>
                                             </div>
                                         </TableCell>
-                                        <TableCell><span className="text-sm font-bold text-slate-600 tabular-nums">{cliente.dni||<span className="text-slate-300">—</span>}</span></TableCell>
-                                        <TableCell className="max-w-[180px]">
+
+                                        {/* DNI */}
+                                        <TableCell>
+                                            <span className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
+                                                {cliente.dni || <span className="text-slate-300">—</span>}
+                                            </span>
+                                        </TableCell>
+
+                                        {/* Ubicación */}
+                                        <TableCell className="min-w-[160px]">
                                             <div className="space-y-0.5">
-                                                {cliente.departamento && <p className="text-xs font-bold text-slate-700 truncate" title={cliente.departamento}>{cliente.departamento}</p>}
-                                                <p className="text-[10px] text-slate-400 truncate" title={[cliente.provincia, cliente.distrito].filter(Boolean).join(' / ')}>
+                                                <p className="text-xs font-black text-slate-800 dark:text-slate-200 truncate" title={cliente.departamento}>
+                                                    {cliente.departamento || "—"}
+                                                </p>
+                                                <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 truncate" title={[cliente.provincia, cliente.distrito].filter(Boolean).join(' / ')}>
                                                     {[cliente.provincia, cliente.distrito].filter(Boolean).join(' / ') || '—'}
                                                 </p>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="max-w-[280px]">
-                                            <div className="flex items-start gap-2 text-xs text-slate-500">
-                                                <MapPin className="h-3.5 w-3.5 mt-0.5 text-slate-300 flex-shrink-0" />
-                                                <div className="min-w-0">
-                                                    <span className="break-words line-clamp-2 block font-medium" title={cleanDireccion(cliente.direccion)}>
+
+                                        {/* Dirección de Entrega */}
+                                        <TableCell className="min-w-[260px] max-w-[340px]">
+                                            <div className="flex items-start gap-2 text-xs text-slate-600 dark:text-slate-300">
+                                                <MapPin className="h-4 w-4 mt-0.5 text-violet-500 shrink-0" />
+                                                <div className="min-w-0 flex-1">
+                                                    <span className="break-words line-clamp-2 font-semibold text-slate-800 dark:text-slate-200" title={cleanDireccion(cliente.direccion)}>
                                                         {cleanDireccion(cliente.direccion)}
                                                     </span>
                                                     {cliente.referencia && (
-                                                        <p className="text-[10px] text-slate-400 italic mt-0.5 truncate" title={cliente.referencia}>
+                                                        <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 italic mt-0.5 truncate" title={cliente.referencia}>
                                                             Ref: {cliente.referencia}
                                                         </p>
                                                     )}
                                                 </div>
                                             </div>
                                         </TableCell>
+
+                                        {/* Mapa */}
                                         <TableCell>
                                             {cliente.link_ubicacion ? (
-                                                <a href={cliente.link_ubicacion} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-violet-600 hover:text-violet-800 text-xs font-black uppercase tracking-wider bg-violet-50 hover:bg-violet-100 px-3.5 py-2 rounded-full transition-all duration-300 hover:shadow-sm">
-                                                    <ExternalLink className="h-3.5 w-3.5"/>Mapa
+                                                <a 
+                                                    href={cliente.link_ubicacion} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer" 
+                                                    className="inline-flex items-center gap-1.5 text-violet-600 dark:text-violet-400 hover:text-white text-[10px] font-black uppercase tracking-wider bg-violet-50 dark:bg-violet-950/60 border border-violet-200 dark:border-violet-800/60 hover:bg-violet-600 px-3 py-1.5 rounded-xl transition-all duration-300 shadow-sm"
+                                                >
+                                                    <ExternalLink className="h-3 w-3" />
+                                                    Mapa
                                                 </a>
                                             ) : (
-                                                <span className="text-slate-300 text-xs">—</span>
+                                                <span className="text-slate-300 dark:text-slate-600 text-xs font-mono">—</span>
                                             )}
                                         </TableCell>
+
+                                        {/* Acciones */}
                                         <TableCell className="pr-8 text-right">
-                                            <Button variant="outline" size="sm" className="gap-2 rounded-xl border-slate-200 font-black text-[10px] uppercase tracking-wider hover:bg-slate-100 hover:border-slate-300 transition-all haptic-scale h-9">
-                                                <History className="h-3.5 w-3.5 text-slate-400"/>Pedidos
+                                            <Button 
+                                                variant="outline" 
+                                                size="sm" 
+                                                className="gap-2 rounded-xl border-slate-200 dark:border-slate-800 font-bold text-xs hover:bg-violet-50 dark:hover:bg-slate-800 hover:text-violet-600 hover:border-violet-200 transition-all haptic-scale h-9 px-3.5 shadow-sm"
+                                            >
+                                                <History className="h-3.5 w-3.5 text-violet-500" />
+                                                Historial
                                             </Button>
                                         </TableCell>
                                     </m.tr>
                                 ))}
                             </AnimatePresence>
-                            {filteredClientes.length===0&&<TableRow><TableCell colSpan={8} className="text-center py-20 text-slate-400">No se encontraron clientes.</TableCell></TableRow>}
+                            {filteredClientes.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={7} className="text-center py-20 text-slate-400">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <Search className="h-10 w-10 stroke-1 text-slate-300" />
+                                            <p className="text-base font-medium">No se encontraron clientes.</p>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
                     </Table>
+                </div>
+
+                {/* Status bar inferior */}
+                <div className="px-8 py-5 bg-slate-50/70 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <p className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                        Mostrando {filteredClientes.length} de {stats.total} clientes registrados
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-violet-100/60 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 border border-violet-200/50">
+                            <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
+                            Base de Clientes Activa
+                        </span>
+                    </div>
                 </div>
             </m.div>
         </m.div>
