@@ -126,39 +126,39 @@ export function Header() {
             {!isOverlayHeader && (
                 <div className="h-0.5 w-full bg-gradient-to-r from-[#FF6FA7] via-[#FFB6C9] to-[#FF6FA7]" />
             )}
-            <div className="container mx-auto px-4 md:px-6 h-18 flex items-center justify-between relative">
+            <div className="container mx-auto px-3 md:px-6 h-14 md:h-16 flex items-center justify-between relative">
 
                 {/* --- STANDARD NAVBAR CONTENT (Hides smoothly when search is activated) --- */}
                 <div className={`w-full flex items-center justify-between transition-all duration-300 ${
                     showDesktopSearch ? "opacity-0 scale-95 pointer-events-none" : "opacity-100 scale-100 pointer-events-auto"
                 }`}>
                     {/* Left Area: Mobile Menu Trigger, Mobile Search & Desktop Navigation */}
-                    <div className="flex items-center justify-start gap-1.5 md:gap-4 md:w-1/3">
+                    <div className="flex items-center justify-start gap-1 md:gap-4 md:w-1/3">
                         <button
                             type="button"
-                            className={`md:hidden p-2 rounded-full active:scale-95 transition-all inline-flex items-center justify-center ${
+                            className={`md:hidden p-1.5 rounded-full active:scale-95 transition-all inline-flex items-center justify-center ${
                                 isOverlayHeader ? "text-white hover:bg-white/20 drop-shadow-sm" : "text-[#2D2D2D] hover:text-[#FF6FA7] hover:bg-[#FFE6EF]"
                             }`}
                             aria-label="Abrir menú"
                             onClick={() => setMobileMenuOpen(true)}
                         >
-                            <Menu className="h-6 w-6" />
+                            <Menu className="h-5 w-5" />
                         </button>
 
                         {/* Mobile Search Trigger */}
                         <button
                             type="button"
                             onClick={() => setShowDesktopSearch(true)}
-                            className={`md:hidden p-2 rounded-full transition-all shrink-0 active:scale-95 flex items-center justify-center ${
+                            className={`md:hidden p-1.5 rounded-full transition-all shrink-0 active:scale-95 flex items-center justify-center ${
                                 isOverlayHeader ? "text-white hover:bg-white/20 drop-shadow-sm" : "text-[#2D2D2D] hover:text-[#FF6FA7] hover:bg-[#FFE6EF]"
                             }`}
                             aria-label="Buscar"
                         >
-                            <Search className="h-5.5 w-5.5" />
+                            <Search className="h-5 w-5" />
                         </button>
 
                         {/* Desktop Navigation links */}
-                        <nav className={`hidden md:flex items-center gap-7 text-xs uppercase font-black tracking-widest ${
+                        <nav className={`hidden md:flex items-center gap-6 text-[11px] uppercase font-black tracking-widest ${
                             isOverlayHeader ? "text-white drop-shadow-md" : "text-[#7C6A72]"
                         }`}>
                             {navLinks.map((link) => {
@@ -167,7 +167,7 @@ export function Header() {
                                     <Link
                                         key={link.href}
                                         href={link.href}
-                                        className={`relative py-1.5 transition-colors duration-200 ${
+                                        className={`relative py-1 transition-colors duration-200 ${
                                             isOverlayHeader
                                                 ? "hover:text-[#FFB6C9] " + (isActive ? "text-[#FFB6C9]" : "")
                                                 : "hover:text-[#FF6FA7] " + (isActive ? "text-[#FF6FA7]" : "")
@@ -187,23 +187,23 @@ export function Header() {
 
                     {/* Center Area: Logo & Brand Tagline */}
                     <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center justify-center pointer-events-auto">
-                        <Link href="/" className="group flex flex-col items-center select-none py-1">
-                            <div className="flex items-center gap-2">
+                        <Link href="/" className="group flex flex-col items-center select-none py-0.5">
+                            <div className="flex items-center gap-1.5">
                                 {/* Lotus / Pilates Brand Icon */}
-                                <svg className={`w-5 h-5 md:w-6 md:h-6 transition-transform duration-300 group-hover:scale-110 ${
+                                <svg className={`w-4 h-4 md:w-5 md:h-5 transition-transform duration-300 group-hover:scale-110 ${
                                     isOverlayHeader ? "text-[#FFB6C9] drop-shadow-md" : "text-[#FF6FA7]"
                                 }`} viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M12 2C10 5 7 8 7 12c0 3 2.5 5 5 5s5-2 5-5c0-4-3-7-5-10zm0 13c-1.6 0-3-1.3-3-3 0-2.2 1.8-4.5 3-6.5 1.2 2 3 4.3 3 6.5 0 1.7-1.4 3-3 3z" />
                                     <path d="M6 14c-2 0-4-1-5-3 2 0 4.5.5 6 2 1.5 1.5 1.5 3 1.5 3s-.5-2-2.5-2z" opacity="0.7"/>
                                     <path d="M18 14c2 0 4-1 5-3-2 0-4.5.5-6 2-1.5 1.5-1.5 3-1.5 3s-.5-2 2.5-2z" opacity="0.7"/>
                                 </svg>
-                                <span className={`text-2xl md:text-3xl font-black lowercase tracking-wider font-serif leading-none ${
+                                <span className={`text-xl md:text-2xl font-black lowercase tracking-wider font-serif leading-none ${
                                     isOverlayHeader ? "text-white drop-shadow-md" : "text-[#FF6FA7]"
                                 }`}>
                                     blama
                                 </span>
                             </div>
-                            <span className={`text-[7.5px] md:text-[8.5px] font-black tracking-[0.3em] uppercase mt-0.5 ${
+                            <span className={`text-[6.5px] md:text-[7.5px] font-black tracking-[0.25em] uppercase mt-0.5 ${
                                 isOverlayHeader ? "text-white/90 drop-shadow-xs" : "text-[#2D2D2D] opacity-90"
                             }`}>
                                 FITNESS • PILATES • LIFESTYLE
@@ -212,12 +212,12 @@ export function Header() {
                     </div>
 
                     {/* Right Area: Actions (Search on Desktop, User, Cart) */}
-                    <div className="flex items-center justify-end gap-1.5 md:gap-2 md:w-1/3 z-10">
+                    <div className="flex items-center justify-end gap-1 md:gap-2 md:w-1/3 z-10">
                         {/* Search Trigger (Desktop) */}
                         <button
                             type="button"
                             onClick={() => setShowDesktopSearch(true)}
-                            className={`hidden md:flex p-2.5 rounded-full transition-all shrink-0 active:scale-95 ${
+                            className={`hidden md:flex p-2 rounded-full transition-all shrink-0 active:scale-95 ${
                                 isOverlayHeader ? "text-white hover:bg-white/20" : "text-[#2D2D2D] hover:text-[#FF6FA7] hover:bg-[#FFE6EF]"
                             }`}
                             aria-label="Buscar"
@@ -228,12 +228,12 @@ export function Header() {
                         {/* User Account Link */}
                         <Link
                             href="/auth/login"
-                            className={`p-2 rounded-full transition-all shrink-0 active:scale-95 flex items-center justify-center ${
+                            className={`p-1.5 md:p-2 rounded-full transition-all shrink-0 active:scale-95 flex items-center justify-center ${
                                 isOverlayHeader ? "text-white hover:bg-white/20" : "text-[#2D2D2D] hover:text-[#FF6FA7] hover:bg-[#FFE6EF]"
                             }`}
                             aria-label="Mi Cuenta"
                         >
-                            <User className="h-5.5 w-5.5 md:h-5 md:w-5" />
+                            <User className="h-5 w-5" />
                         </Link>
 
                         {/* Cart Button */}
@@ -245,7 +245,7 @@ export function Header() {
 
                 {/* --- MORPHED SEARCH BAR (Replaces Navbar in-place smoothly) --- */}
                 <div
-                    className={`absolute inset-0 h-18 w-full flex items-center justify-between px-3 md:px-6 transition-all duration-300 z-20 ${
+                    className={`absolute inset-0 h-14 md:h-16 w-full flex items-center justify-between px-3 md:px-6 transition-all duration-300 z-20 ${
                         showDesktopSearch
                             ? "opacity-100 scale-100 pointer-events-auto"
                             : "opacity-0 scale-95 pointer-events-none"
