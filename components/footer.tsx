@@ -106,7 +106,7 @@ export function Footer() {
             <NewsletterSection />
 
             {/* 2. HIGH-AMPLITUDE ANIMATED FLUID TSUNAMI WAVE DIVIDER FOR THE DARK FOOTER */}
-            <div className="relative w-full overflow-hidden leading-none z-20 pointer-events-none -mt-16 md:-mt-28 lg:-mt-36 bg-transparent border-none">
+            <div className="relative w-full overflow-hidden leading-none z-20 pointer-events-none -mt-20 md:-mt-32 lg:-mt-40 bg-transparent border-none">
                 <svg
                     className="relative block w-[200%] h-24 md:h-36 lg:h-44 animate-wave-slow"
                     viewBox="0 0 1400 150"

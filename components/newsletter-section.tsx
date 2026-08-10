@@ -71,7 +71,7 @@ export function NewsletterSection() {
     }
 
     return (
-        <section className="w-full relative bg-gradient-to-r from-[#FF6FA7] via-[#FF85B3] to-[#FF6FA7] text-white pt-16 pb-20 px-6 overflow-hidden shadow-none m-0 border-none">
+        <section className="w-full relative bg-gradient-to-r from-[#FF6FA7] via-[#FF85B3] to-[#FF6FA7] text-white pt-16 pb-32 md:pb-44 lg:pb-52 px-6 overflow-hidden shadow-none m-0 border-none">
             {/* Glowing background circle */}
             <div className="absolute top-0 right-0 w-80 h-80 bg-white/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
