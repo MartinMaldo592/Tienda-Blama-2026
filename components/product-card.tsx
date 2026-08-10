@@ -97,7 +97,7 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
                     </h3>
                 </Link>
 
-                <div className="mt-auto space-y-4">
+                <div className="mt-auto pt-2">
                     {/* Price Row */}
                     <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-3xl font-black text-[#FF6FA7] tracking-tight">
@@ -115,18 +115,6 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
                             </div>
                         )}
                     </div>
-
-                    {/* Stock Availability Box */}
-                    <div className="flex items-center justify-between bg-[#FFF7F9] border border-[#FFD4E2] rounded-2xl p-3 h-[52px]">
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Disponibilidad</span>
-                            <span className="text-[10px] font-black text-[#FF6FA7] uppercase tracking-widest leading-none">¡Stock Disponible!</span>
-                        </div>
-                        <div className="text-[#FF6FA7] font-bold text-[11px] tracking-wide uppercase">
-                            Envío inmediato
-                        </div>
-                    </div>
-
                 </div>
             </div>
         </div>
