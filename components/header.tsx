@@ -43,7 +43,7 @@ export function Header() {
 
     useEffect(() => {
         const queryStr = searchQuery.trim()
-        if (queryStr.length < 2) {
+        if (queryStr.length < 1) {
             setAutocompleteResults([])
             return
         }
@@ -126,7 +126,7 @@ export function Header() {
             {!isOverlayHeader && (
                 <div className="h-0.5 w-full bg-gradient-to-r from-[#FF6FA7] via-[#FFB6C9] to-[#FF6FA7]" />
             )}
-            <div className="container mx-auto px-4 md:px-6 h-18 flex items-center justify-between relative overflow-hidden">
+            <div className="container mx-auto px-4 md:px-6 h-18 flex items-center justify-between relative">
 
                 {/* --- STANDARD NAVBAR CONTENT (Hides smoothly when search is activated) --- */}
                 <div className={`w-full flex items-center justify-between transition-all duration-300 ${
@@ -291,8 +291,8 @@ export function Header() {
                         </form>
 
                         {/* Autocomplete Dropdown List */}
-                        {showDesktopSearch && searchQuery.trim().length >= 2 && (
-                            <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white text-[#2D2D2D] rounded-3xl border border-[#FFD4E2] shadow-2xl overflow-hidden z-[70] animate-in fade-in slide-in-from-top-2 duration-200">
+                        {showDesktopSearch && searchQuery.trim().length >= 1 && (
+                            <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white text-[#2D2D2D] rounded-3xl border border-[#FFD4E2] shadow-2xl overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
                                 {isSearching ? (
                                     <div className="p-5 text-center text-sm text-[#7C6A72] flex items-center justify-center gap-2">
                                         <div className="h-4 w-4 border-2 border-[#FF6FA7] border-t-transparent rounded-full animate-spin" />

@@ -300,9 +300,9 @@ export async function getAutocompleteResults(q: string): Promise<any[]> {
     if (!queryStr) return []
     const { data, error } = await supabase
         .from("productos")
-        .select("id, nombre, precio, precio_antes, imagenes, imagen_url")
-        .ilike("nombre", `%${queryStr}%`)
-        .limit(5)
+        .select("id, nombre, precio, precio_antes, imagenes, imagen_url, slug")
+        .or(`nombre.ilike.%${queryStr}%,descripcion.ilike.%${queryStr}%`)
+        .limit(6)
     if (error) {
         console.error("Autocomplete search error:", error)
         return []
