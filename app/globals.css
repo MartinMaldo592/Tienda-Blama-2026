@@ -198,38 +198,33 @@ html.lenis, html.lenis body {
   overflow: hidden;
 }
 
-/* Tsunami / Fluid wave animation for Newsletter & Footer transition */
+/* Tsunami / High-Amplitude Fluid Ocean Wave Animation for Footer */
 @keyframes waveFlowSlow {
   0% {
-    transform: translateX(0) translateZ(0) scaleY(1);
-  }
-  50% {
-    transform: translateX(-25%) translateZ(0) scaleY(1.15);
+    transform: translateX(0);
   }
   100% {
-    transform: translateX(-50%) translateZ(0) scaleY(1);
+    transform: translateX(-50%);
   }
 }
 
 @keyframes waveFlowFast {
   0% {
-    transform: translateX(-50%) translateZ(0) scaleY(1);
-  }
-  50% {
-    transform: translateX(-25%) translateZ(0) scaleY(0.88);
+    transform: translateX(-50%);
   }
   100% {
-    transform: translateX(0) translateZ(0) scaleY(1);
+    transform: translateX(0);
   }
 }
 
 .animate-wave-slow {
-  animation: waveFlowSlow 12s ease-in-out infinite;
+  animation: waveFlowSlow 16s linear infinite;
 }
 
 .animate-wave-fast {
-  animation: waveFlowFast 8s ease-in-out infinite;
+  animation: waveFlowFast 10s linear infinite;
 }
+
 
 
 .lenis.lenis-scrolling iframe {

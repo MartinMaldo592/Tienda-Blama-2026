@@ -105,20 +105,20 @@ export function Footer() {
             {/* 1. FLAT PINK NEWSLETTER SECTION */}
             <NewsletterSection />
 
-            {/* 2. REAL-TIME ANIMATED FLUID TSUNAMI WAVE DIVIDER FOR THE DARK FOOTER */}
-            <div className="relative w-full overflow-hidden leading-none z-20 pointer-events-none -mt-8 md:-mt-14 bg-transparent border-none">
+            {/* 2. HIGH-AMPLITUDE ANIMATED FLUID TSUNAMI WAVE DIVIDER FOR THE DARK FOOTER */}
+            <div className="relative w-full overflow-hidden leading-none z-20 pointer-events-none -mt-16 md:-mt-28 lg:-mt-36 bg-transparent border-none">
                 <svg
-                    className="relative block w-[200%] h-14 md:h-24 animate-wave-slow"
-                    viewBox="0 0 1200 120"
+                    className="relative block w-[200%] h-24 md:h-36 lg:h-44 animate-wave-slow"
+                    viewBox="0 0 1400 150"
                     preserveAspectRatio="none"
                 >
                     <path
-                        d="M0,0 C150,90 350,-40 500,50 C650,140 850,10 1000,60 C1150,110 1250,20 1400,70 L1400,120 L0,120 Z"
+                        d="M0,40 C80,110 170,-10 260,80 C310,120 350,40 350,40 C430,110 520,-10 610,80 C660,120 700,40 700,40 C780,110 870,-10 960,80 C1010,120 1050,40 1050,40 C1130,110 1220,-10 1310,80 C1360,120 1400,40 1400,40 L1400,150 L0,150 Z"
                         fill="#1C1819"
-                        opacity="0.4"
+                        opacity="0.35"
                     />
                     <path
-                        d="M0,25 C200,110 400,-10 600,65 C800,140 1000,30 1200,85 L1200,120 L0,120 Z"
+                        d="M0,70 C75,10 175,130 250,50 C300,10 350,70 350,70 C425,10 525,130 600,50 C650,10 700,70 700,70 C775,10 875,130 950,50 C1000,10 1050,70 1050,70 C1125,10 1225,130 1300,50 C1350,10 1400,70 1400,70 L1400,150 L0,150 Z"
                         fill="#1C1819"
                     />
                 </svg>
