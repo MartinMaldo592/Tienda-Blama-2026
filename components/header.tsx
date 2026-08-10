@@ -1,16 +1,21 @@
 "use client"
 
 import Link from 'next/link'
-import { Menu, Search, X, ShoppingBag, Sparkles, User } from "lucide-react"
+import { Menu, Search, X, ShoppingBag, Sparkles, User, ChevronRight, Phone } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useEffect, useRef, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { createPortal } from "react-dom"
 import { Input } from "@/components/ui/input"
 import { getAutocompleteResults } from "@/features/products/services/products.client"
 import { formatCurrency, slugify } from "@/lib/utils"
 import Image from "next/image"
 import { cloudinaryLoader } from "@/lib/cloudinary"
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+} from "@/components/ui/sheet"
 
 const CartButton = dynamic(() => import("@/components/cart-button").then(mod => mod.CartButton), {
     ssr: false,
@@ -371,78 +376,117 @@ export function Header() {
                 </div>
             </div>
 
-            {/* Mobile Drawer Navigation */}
-            {mobileMenuOpen && (
-                mounted ? createPortal(
-                    <>
-                        <div
-                            className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-xs animate-in fade-in duration-300"
-                            onClick={() => setMobileMenuOpen(false)}
-                            aria-hidden="true"
-                        />
-                        <div
-                            className="fixed inset-y-0 left-0 z-[80] w-[310px] bg-white shadow-2xl border-r border-[#FFD4E2] flex flex-col justify-between animate-in slide-in-from-left duration-300"
-                            role="dialog"
-                            aria-modal="true"
-                            aria-label="Menú BLAMA"
-                        >
-                            <div>
-                                <div className="p-6 border-b border-[#FFD4E2] flex items-center justify-between bg-[#FFF7F9]">
-                                    <div className="flex items-center gap-2">
-                                        <svg className="w-5 h-5 text-[#FF6FA7]" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M12 2C10 5 7 8 7 12c0 3 2.5 5 5 5s5-2 5-5c0-4-3-7-5-10zm0 13c-1.6 0-3-1.3-3-3 0-2.2 1.8-4.5 3-6.5 1.2 2 3 4.3 3 6.5 0 1.7-1.4 3-3 3z" />
-                                        </svg>
-                                        <span className="text-2xl font-black lowercase text-[#FF6FA7] font-serif">blama</span>
+            {/* Mobile Drawer Navigation (Ultra-Smooth Animation & Luxury Design) */}
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <SheetContent side="left" className="w-[320px] sm:w-[360px] flex flex-col justify-between p-0 bg-white border-r border-[#FFD4E2] shadow-2xl z-[100]">
+                    <SheetHeader className="sr-only">
+                        <SheetTitle>Menú BLAMA</SheetTitle>
+                    </SheetHeader>
+
+                    {/* Top Section */}
+                    <div className="flex flex-col flex-grow overflow-hidden">
+                        {/* Header bar in drawer */}
+                        <div className="p-5 border-b border-[#FFD4E2] flex items-center justify-between bg-gradient-to-r from-[#FFF7F9] to-white shrink-0">
+                            <Link 
+                                href="/" 
+                                onClick={() => setMobileMenuOpen(false)} 
+                                className="flex items-center gap-2 group"
+                            >
+                                <svg className="w-5 h-5 text-[#FF6FA7] transition-transform duration-300 group-hover:scale-110" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C10 5 7 8 7 12c0 3 2.5 5 5 5s5-2 5-5c0-4-3-7-5-10zm0 13c-1.6 0-3-1.3-3-3 0-2.2 1.8-4.5 3-6.5 1.2 2 3 4.3 3 6.5 0 1.7-1.4 3-3 3z" />
+                                    <path d="M6 14c-2 0-4-1-5-3 2 0 4.5.5 6 2 1.5 1.5 1.5 3 1.5 3s-.5-2 2.5-2z" opacity="0.7"/>
+                                    <path d="M18 14c2 0 4-1 5-3-2 0-4.5.5-6 2-1.5 1.5-1.5 3-1.5 3s-.5-2 2.5-2z" opacity="0.7"/>
+                                </svg>
+                                <span className="text-2xl font-black lowercase text-[#FF6FA7] font-serif tracking-wide">blama</span>
+                            </Link>
+                        </div>
+
+                        {/* Search & Navigation Links */}
+                        <div className="p-5 space-y-6 overflow-y-auto flex-grow">
+                            {/* Search Input */}
+                            <form onSubmit={handleSearch} className="relative">
+                                <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-[#7C6A72]" />
+                                <Input
+                                    type="search"
+                                    placeholder="Buscar bandas, mats, pesas..."
+                                    className="pl-10 pr-4 h-11 w-full bg-[#FFF7F9] border-[#FFD4E2] rounded-full focus-visible:ring-[#FF6FA7] text-sm placeholder:text-slate-400 font-medium transition-all"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </form>
+
+                            {/* Menu Links List */}
+                            <nav className="flex flex-col space-y-1.5">
+                                {navLinks.map((link) => {
+                                    const isActive = pathname === link.href
+                                    return (
+                                        <Link
+                                            key={link.href}
+                                            href={link.href}
+                                            className={`flex items-center justify-between px-4 py-3.5 rounded-2xl text-xs font-black transition-all ${
+                                                isActive
+                                                    ? "bg-[#FFE6EF] text-[#FF6FA7] shadow-xs"
+                                                    : "text-[#2D2D2D] hover:bg-[#FFF7F9] hover:text-[#FF6FA7]"
+                                            }`}
+                                            onClick={() => setMobileMenuOpen(false)}
+                                        >
+                                            <span className="tracking-widest uppercase">{link.name}</span>
+                                            <div className="flex items-center gap-1.5">
+                                                {isActive && (
+                                                    <span className="h-2 w-2 rounded-full bg-[#FF6FA7] animate-pulse" />
+                                                )}
+                                                <ChevronRight className={`w-4 h-4 transition-transform ${isActive ? "text-[#FF6FA7]" : "text-slate-300"}`} />
+                                            </div>
+                                        </Link>
+                                    )
+                                })}
+                            </nav>
+
+                            {/* Divider & Direct Shortcuts */}
+                            <div className="pt-4 border-t border-[#FFD4E2]/60 space-y-2">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-[#FF6FA7] px-2">
+                                    Mi Cuenta & Ayuda
+                                </span>
+                                <Link
+                                    href="/auth/login"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold text-[#2D2D2D] bg-[#FFF7F9] border border-[#FFD4E2]/50 hover:bg-[#FFE6EF] hover:text-[#FF6FA7] transition-all"
+                                >
+                                    <div className="flex items-center gap-2.5">
+                                        <User className="w-4 h-4 text-[#FF6FA7]" />
+                                        <span>Mi Cuenta / Iniciar Sesión</span>
                                     </div>
-                                    <button
-                                        type="button"
-                                        className="h-9 w-9 rounded-full border border-[#FFD4E2] bg-white text-[#2D2D2D] hover:bg-[#FFE6EF] hover:text-[#FF6FA7] transition-all inline-flex items-center justify-center"
-                                        aria-label="Cerrar menú"
-                                        onClick={() => setMobileMenuOpen(false)}
-                                    >
-                                        <X className="h-4 w-4" />
-                                    </button>
-                                </div>
+                                    <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                                </Link>
 
-                                <div className="p-5">
-                                    <form onSubmit={handleSearch} className="relative mb-6">
-                                        <Search className="absolute left-3.5 top-3 h-4 w-4 text-[#7C6A72]" />
-                                        <Input
-                                            type="search"
-                                            placeholder="Buscar bandas, mats, pesas..."
-                                            className="pl-10 h-11 w-full bg-[#FFF7F9] border-[#FFD4E2] rounded-full focus-visible:ring-[#FF6FA7] text-sm"
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                        />
-                                    </form>
-
-                                    <nav className="flex flex-col gap-2">
-                                        {navLinks.map((link) => (
-                                            <Link
-                                                key={link.href}
-                                                href={link.href}
-                                                className="flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-extrabold text-[#2D2D2D] hover:bg-[#FFE6EF] hover:text-[#FF6FA7] transition-all"
-                                                onClick={() => setMobileMenuOpen(false)}
-                                            >
-                                                <span>{link.name}</span>
-                                                <Sparkles className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 text-[#FF6FA7]" />
-                                            </Link>
-                                        ))}
-                                    </nav>
-                                </div>
-                            </div>
-
-                            <div className="p-6 border-t border-[#FFD4E2] bg-[#FFF7F9] text-center space-y-2">
-                                <p className="text-xs font-bold text-[#FF6FA7] font-serif italic">"tu mejor versión, todos los días. ♡"</p>
-                                <div className="py-1 px-4 rounded-full bg-[#FFE6EF] text-[#FF6FA7] text-[10px] font-extrabold uppercase tracking-widest inline-block">
-                                    FUERTE • SEGURA • IMPARABLE
-                                </div>
+                                <a
+                                    href="https://wa.me/51900000000?text=Hola%20Blama%20Shop,%20tengo%20una%20consulta"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold text-[#2D2D2D] bg-[#FFF7F9] border border-[#FFD4E2]/50 hover:bg-[#FFE6EF] hover:text-[#FF6FA7] transition-all"
+                                >
+                                    <div className="flex items-center gap-2.5">
+                                        <Phone className="w-4 h-4 text-emerald-500" />
+                                        <span>Atención por WhatsApp</span>
+                                    </div>
+                                    <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                                </a>
                             </div>
                         </div>
-                    </>,
-                    document.body
-                ) : null
-            )}
+                    </div>
+
+                    {/* Bottom Luxury Footer Card */}
+                    <div className="p-5 border-t border-[#FFD4E2] bg-gradient-to-b from-[#FFF7F9] to-[#FFE6EF]/40 text-center space-y-2 shrink-0">
+                        <p className="text-xs font-bold text-[#FF6FA7] font-serif italic">
+                            &quot;tu mejor versión, todos los días. ♡&quot;
+                        </p>
+                        <div className="py-1 px-4 rounded-full bg-[#FFE6EF] border border-[#FFD4E2] text-[#FF6FA7] text-[9.5px] font-black uppercase tracking-widest inline-block shadow-2xs">
+                            FITNESS • PILATES • LIFESTYLE
+                        </div>
+                    </div>
+                </SheetContent>
+            </Sheet>
         </header>
     )
 }
