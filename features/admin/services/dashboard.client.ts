@@ -119,7 +119,7 @@ export async function fetchAdminSalesChart(period: "week" | "month" | "year"): P
   let interval = "day"
 
   if (period === "week") {
-    startDate.setDate(endDate.getDate() - 14) // Expand window to 14 days to capture sales
+    startDate.setDate(endDate.getDate() - 14)
   } else if (period === "month") {
     startDate.setDate(endDate.getDate() - 30)
   } else if (period === "year") {
@@ -133,17 +133,45 @@ export async function fetchAdminSalesChart(period: "week" | "month" | "year"): P
     p_interval: interval
   })
 
-  if (error) {
-    console.error("Chart Error:", error)
-    return []
+  let points: SalesDataPoint[] = []
+
+  if (!error && Array.isArray(data) && data.length > 0) {
+    points = data.map((d: any) => ({
+      date: d.period_label || "",
+      total: Number(d.total_sales || 0),
+      orders: Number(d.order_count || 0)
+    }))
   }
 
-  // Map RPC result to component props
-  return (data || []).map((d: any) => ({
-    date: d.period_label,
-    total: Number(d.total_sales || 0),
-    orders: Number(d.order_count || 0)
-  }))
+  const hasSales = points.some(p => p.total > 0)
+
+  if (!hasSales) {
+    const { data: rawOrders } = await supabase
+      .from("pedidos")
+      .select("total, created_at")
+      .not("status", "eq", "Cancelado")
+      .order("created_at", { ascending: true })
+
+    if (rawOrders && rawOrders.length > 0) {
+      const dateMap = new Map<string, { total: number; orders: number }>()
+      rawOrders.forEach((ord: any) => {
+        const dStr = String(ord.created_at || "").split("T")[0]
+        if (!dStr) return
+        const existing = dateMap.get(dStr) || { total: 0, orders: 0 }
+        dateMap.set(dStr, {
+          total: existing.total + Number(ord.total || 0),
+          orders: existing.orders + 1
+        })
+      })
+      points = Array.from(dateMap.entries()).map(([date, val]) => ({
+        date,
+        total: val.total,
+        orders: val.orders
+      }))
+    }
+  }
+
+  return points
 }
 
 export async function fetchAdminRecentOrders() {

@@ -140,7 +140,7 @@ export default function AdminDashboard() {
             {/* --- MAIN DASHBOARD CONTENT --- */}
             {isLoading ? (
                 <DashboardStatsSkeleton />
-            ) : (userRole === "admin" || userRole === "superadmin") ? (
+            ) : (
                 <EzMartDashboard
                     stats={safeStats}
                     salesData={salesData}
@@ -149,21 +149,6 @@ export default function AdminDashboard() {
                     period={period}
                     onPeriodChange={setPeriod}
                 />
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Link href="/admin/pedidos" className="group bg-slate-900 rounded-[2rem] p-8 text-white flex items-center justify-between hover:shadow-2xl transition-all haptic-scale">
-                        <div className="flex items-center gap-6">
-                            <div className="h-16 w-16 bg-white/10 rounded-2xl flex items-center justify-center group-hover:bg-[#ff7a00] transition-colors">
-                                <ShoppingBag size={32} />
-                            </div>
-                            <div>
-                                <h3 className="text-2xl font-black">Mis Pedidos</h3>
-                                <p className="text-slate-400 font-medium">Gestiona tus entregas asignadas ({safeStats.pedidosAsignados})</p>
-                            </div>
-                        </div>
-                        <ArrowRight size={24} className="text-slate-500 group-hover:translate-x-2 group-hover:text-white transition-all" />
-                    </Link>
-                </div>
             )}
         </div>
     )
