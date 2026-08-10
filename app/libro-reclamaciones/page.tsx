@@ -138,18 +138,21 @@ export default function LibroReclamacionesPage() {
     }
 
     return (
-        <div className="container mx-auto max-w-4xl py-10 px-4">
+        <div className="container mx-auto max-w-4xl py-12 px-4">
             <div className="mb-8 text-center space-y-2">
-                <h1 className="text-3xl font-bold uppercase tracking-tight">Libro de Reclamaciones Virtual</h1>
-                <p className="text-muted-foreground">Conforme a lo establecido en el Código de Protección y Defensa del Consumidor</p>
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFE6EF] text-[#FF6FA7] text-xs font-black mb-2 border border-[#FFD4E2] uppercase tracking-wider">
+                    <span>Atención al Consumidor</span>
+                </div>
+                <h1 className="text-3xl md:text-4xl font-black text-[#2D2D2D] uppercase tracking-tight font-serif">Libro de Reclamaciones Virtual</h1>
+                <p className="text-sm text-[#7C6A72]">Conforme a lo establecido en el Código de Protección y Defensa del Consumidor del Perú</p>
             </div>
 
-            <Card>
-                <CardHeader className="bg-muted/20 border-b">
-                    <CardTitle className="text-xl">Hoja de Reclamación</CardTitle>
-                    <CardDescription>
-                        <span className="font-bold">RAZÓN SOCIAL:</span> MALDONADO QUINTANA KENNETH MARTIN<br />
-                        <span className="font-bold">RUC:</span> 10724108453
+            <Card className="border-[#FFD4E2] rounded-3xl shadow-sm overflow-hidden">
+                <CardHeader className="bg-gradient-to-r from-[#FFF7F9] to-white border-b border-[#FFD4E2] p-6 md:p-8">
+                    <CardTitle className="text-xl font-black text-[#FF6FA7]">Hoja de Reclamación Virtual</CardTitle>
+                    <CardDescription className="text-xs text-[#7C6A72] mt-1 space-y-0.5">
+                        <span className="font-bold text-[#2D2D2D]">RAZÓN SOCIAL:</span> MALDONADO QUINTANA KENNETH MARTIN<br />
+                        <span className="font-bold text-[#2D2D2D]">RUC:</span> 10724108453 • <span className="font-bold text-[#2D2D2D]">MARCA REGISTRADA:</span> BLAMA SHOP
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
