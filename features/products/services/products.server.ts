@@ -245,7 +245,7 @@ export async function getHomePageData(opts: {
         [cacheKey],
         {
             tags: ['products', 'home-page'],
-            revalidate: 0
+            revalidate: 1
         }
     )()
 }
@@ -414,7 +414,7 @@ export async function listProducts(params: ListProductsParams, allCategories?: C
         [cacheKey],
         { 
             tags: ['products'], 
-            revalidate: 0
+            revalidate: 1
         }
     )()
 }
