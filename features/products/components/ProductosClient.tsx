@@ -113,27 +113,117 @@ export function ProductosClient({
         }
     }
 
+    const activeCatParam = searchParams?.get('categoria') || searchParams?.get('cat') || initialParams.cat
+    const activeCategoryObj = initialCategories.find(
+        (c) => c.slug === activeCatParam || String(c.id) === activeCatParam
+    )
+
+    const categoryHeaderInfo = (() => {
+        const slug = activeCategoryObj?.slug || activeCatParam
+        if (slug === 'equipamiento-pilates') {
+            return {
+                badge: "PILATES & HOME WORKOUT 🧘‍♀️",
+                title: "Equipamiento & Pilates",
+                highlight: "Premium 🧘‍♀️",
+                description: "Mats TPE antideslizantes, aros de pilates flex ring, pesas tobilleras y bandas de resistencia diseñadas para potenciar tu entrenamiento en casa o estudio."
+            }
+        }
+        if (slug === 'suplementos-femeninos') {
+            return {
+                badge: "NUTRICIÓN FEMENINA 💖",
+                title: "Suplementación & Nutrición",
+                highlight: "Femenina 💖",
+                description: "Colágeno hidrolizado enriquecido con biotina, proteína ISO-Whey 0% azúcar, creatina micronizada pura y multivitamínicos para tonificar y cuidar tu piel."
+            }
+        }
+        if (slug === 'accesorios-gym') {
+            return {
+                badge: "ESTILO DE VIDA GYM 🥤",
+                title: "Accesorios & Estilo",
+                highlight: "de Vida Gym 🥤",
+                description: "Tomatodos térmicos de acero inoxidable, shakers antigrumos, bolsos impermeables duffle bag y scrunchies de satén que elevan tu estilo diario."
+            }
+        }
+        if (slug === 'kits-bundles') {
+            return {
+                badge: "KITS AHORRO EXCLUSIVOS 🎁",
+                title: "Kits & Combos Ahorro",
+                highlight: "con Descuento 💖",
+                description: "Paquetes completos de entrenamiento y nutrición con descuento directo. La forma más fácil de iniciar o equipar tu rutina con regalos incluidos."
+            }
+        }
+        return {
+            badge: "Colección BLAMA ♡",
+            title: "Tu Mejor Versión",
+            highlight: "Todos los Días. ♡",
+            description: "Equipamiento de pilates, resistencia, mats, suplementación femenina y accesorios diseñados para acompañarte a tu propio ritmo, en casa o en el gym."
+        }
+    })()
+
     return (
         <div className="min-h-screen bg-[#fafafa]">
             {/* --- HERO HEADER --- */}
-            <div className="relative pt-20 pb-16 overflow-hidden">
+            <div className="relative pt-16 pb-12 overflow-hidden bg-gradient-to-b from-[#FFF7F9] to-[#fafafa]">
                 <div className="container mx-auto px-6 relative z-10">
                     <m.div 
-                        initial={{ opacity: 0, y: 20 }}
+                        key={categoryHeaderInfo.title}
+                        initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
                         className="max-w-3xl"
                     >
-                        <div className="flex items-center gap-2 mb-4">
+                        <div className="flex items-center gap-2 mb-3">
                             <span className="h-px w-8 bg-[#FF6FA7]" />
-                            <span className="text-[10px] font-extrabold uppercase tracking-[0.3em] text-[#FF6FA7]">Colección BLAMA ♡</span>
+                            <span className="text-[11px] font-extrabold uppercase tracking-[0.25em] text-[#FF6FA7]">
+                                {categoryHeaderInfo.badge}
+                            </span>
                         </div>
-                        <h1 className="text-5xl md:text-7xl font-black text-[#2D2D2D] leading-[0.95] tracking-tighter mb-6 font-serif">
-                            Tu Mejor Versión <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF6FA7] via-[#FF85B3] to-[#FF6FA7]">Todos los Días. ♡</span>
+                        <h1 className="text-4xl md:text-6xl font-black text-[#2D2D2D] leading-[0.98] tracking-tighter mb-4 font-serif">
+                            {categoryHeaderInfo.title} <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF6FA7] via-[#FF85B3] to-[#FF6FA7]">
+                                {categoryHeaderInfo.highlight}
+                            </span>
                         </h1>
-                        <p className="text-lg text-[#7C6A72] font-medium leading-relaxed max-w-xl">
-                            Equipamiento de pilates, resistencia, mats y accesorios diseñados para acompañarte a tu propio ritmo, en casa o en el gym.
+                        <p className="text-base md:text-lg text-[#7C6A72] font-medium leading-relaxed max-w-2xl">
+                            {categoryHeaderInfo.description}
                         </p>
                     </m.div>
+
+                    {/* --- QUICK CATEGORY PILLS BAR --- */}
+                    <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-8 no-scrollbar">
+                        <button
+                            type="button"
+                            onClick={() => updateUrl({ cat: undefined, categoria: undefined, subcat: undefined, page: undefined }, 'replace')}
+                            className={`px-5 py-2.5 rounded-full text-xs font-black tracking-wider uppercase transition-all duration-200 shrink-0 ${
+                                !activeCatParam || activeCatParam === 'all'
+                                    ? "bg-[#FF6FA7] text-white shadow-md shadow-[#FF6FA7]/20 scale-105"
+                                    : "bg-white text-[#7C6A72] border border-[#FFD4E2] hover:border-[#FF6FA7] hover:text-[#FF6FA7]"
+                            }`}
+                        >
+                            Todas las Categorías
+                        </button>
+                        {initialCategories.filter(c => !c.parent_id).map((cat) => {
+                            const isSelected = activeCatParam === cat.slug || activeCatParam === String(cat.id)
+                            return (
+                                <button
+                                    key={cat.id}
+                                    type="button"
+                                    onClick={() => updateUrl({ cat: cat.slug, categoria: cat.slug, subcat: undefined, page: undefined }, 'replace')}
+                                    className={`px-5 py-2.5 rounded-full text-xs font-black tracking-wider uppercase transition-all duration-200 shrink-0 flex items-center gap-1.5 ${
+                                        isSelected
+                                            ? "bg-[#FF6FA7] text-white shadow-md shadow-[#FF6FA7]/20 scale-105"
+                                            : "bg-white text-[#7C6A72] border border-[#FFD4E2] hover:border-[#FF6FA7] hover:text-[#FF6FA7]"
+                                    }`}
+                                >
+                                    {cat.slug === 'kits-bundles' && <span>🎁</span>}
+                                    {cat.slug === 'suplementos-femeninos' && <span>💖</span>}
+                                    {cat.slug === 'equipamiento-pilates' && <span>🧘‍♀️</span>}
+                                    {cat.slug === 'accesorios-gym' && <span>🥤</span>}
+                                    {cat.nombre}
+                                </button>
+                            )
+                        })}
+                    </div>
                 </div>
                 {/* Decorative Element */}
                 <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-[#FFE6EF]/50 to-transparent pointer-events-none" />
