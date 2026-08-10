@@ -115,10 +115,11 @@ export function Header() {
 
     const navLinks = [
         { name: "Inicio", href: "/" },
-        { name: "Catálogo", href: "/productos" },
-        { name: "Pilates & Gym", href: "/productos?cat=pilates-yoga" },
-        { name: "Quiénes Somos", href: "/nosotros" },
-        { name: "Contacto", href: "/contacto" },
+        { name: "Equipamiento & Pilates", href: "/productos?categoria=equipamiento-pilates" },
+        { name: "Suplementación", href: "/productos?categoria=suplementos-femeninos" },
+        { name: "Accesorios Gym", href: "/productos?categoria=accesorios-gym" },
+        { name: "Kits Ahorro 💖", href: "/productos?categoria=kits-bundles" },
+        { name: "Promociones", href: "/promociones" },
     ]
 
     return (

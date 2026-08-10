@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { Flame } from "lucide-react"
+import { Flame, Sparkles } from "lucide-react"
 import { formatCurrency, slugify } from "@/lib/utils"
 import { Database } from "@/types/database.types"
 import { useEffect, useState } from "react"
@@ -87,10 +87,17 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
             {/* --- CONTENT --- */}
             <div className="p-5 flex flex-col flex-grow">
                 {/* Badge */}
-                <div className="bg-[#FF6FA7] text-white text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full flex items-center gap-1.5 w-fit mb-2.5 shadow-xs">
-                    <Flame size={12} className="text-white" fill="currentColor" />
-                    COLECCIÓN BLAMA
-                </div>
+                {product.categoria_id === 4 || product.nombre.toLowerCase().includes("kit") ? (
+                    <div className="bg-gradient-to-r from-[#FF6FA7] to-[#FF85B3] text-white text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full flex items-center gap-1.5 w-fit mb-2.5 shadow-xs">
+                        <Sparkles size={12} className="text-white" fill="currentColor" />
+                        KIT AHORRO 💖
+                    </div>
+                ) : (
+                    <div className="bg-[#FF6FA7] text-white text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full flex items-center gap-1.5 w-fit mb-2.5 shadow-xs">
+                        <Flame size={12} className="text-white" fill="currentColor" />
+                        COLECCIÓN BLAMA
+                    </div>
+                )}
                 <Link href={productHref} prefetch={false} className="mb-2 block">
                     <h3 className="text-[17px] font-black text-[#2D2D2D] leading-tight line-clamp-2 h-[42px] overflow-hidden hover:text-[#FF6FA7] transition-colors">
                         {product.nombre}

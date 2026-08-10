@@ -19,7 +19,8 @@ interface PageProps {
 export default async function ProductosPage({ searchParams }: PageProps) {
     const resolvedParams = await searchParams
     
-    const cat = typeof resolvedParams.cat === 'string' ? resolvedParams.cat : 'all'
+    const rawCat = typeof resolvedParams.categoria === 'string' ? resolvedParams.categoria : (typeof resolvedParams.cat === 'string' ? resolvedParams.cat : 'all')
+    const cat = rawCat
     const subcat = typeof resolvedParams.subcat === 'string' ? resolvedParams.subcat : 'all'
     const q = typeof resolvedParams.q === 'string' ? resolvedParams.q : ''
     const s = typeof resolvedParams.sort === 'string' ? resolvedParams.sort : 'name-asc'

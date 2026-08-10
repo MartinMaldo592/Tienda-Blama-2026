@@ -30,7 +30,7 @@ export function CategoryGrid({ categories }: { categories: Category[] }) {
                 {mainCategories.map((cat, i) => (
                     <Link
                         key={cat.id}
-                        href={`/productos?cat=${cat.id}`}
+                        href={`/productos?categoria=${cat.slug}`}
                         prefetch={false}
                         className="group shrink-0 relative flex items-center gap-2.5 px-6 py-3 rounded-full bg-white border border-[#FFD4E2] hover:border-[#FF6FA7] hover:bg-[#FF6FA7] hover:text-white transition-all duration-300 shadow-sm hover:shadow-md active:scale-95 snap-start text-[#2D2D2D]"
                     >
