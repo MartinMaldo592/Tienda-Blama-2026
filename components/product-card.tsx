@@ -37,24 +37,8 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
         ? `/productos/${slug}`
         : `/productos/${slugify(product.nombre)}-${product.id}`
 
-    // Countdown logic
-    const [timeLeft, setTimeLeft] = useState({ m: 14, s: 59 })
     const [isHovered, setIsHovered] = useState(false)
     const [imageLoading, setImageLoading] = useState(true)
-
-    useEffect(() => {
-        const randomMinutes = Math.floor(Math.random() * 15) + 5
-        setTimeLeft({ m: randomMinutes, s: 59 })
-
-        const interval = setInterval(() => {
-            setTimeLeft((prev) => {
-                if (prev.s > 0) return { ...prev, s: prev.s - 1 }
-                if (prev.m > 0) return { m: prev.m - 1, s: 59 }
-                return { m: 0, s: 0 }
-            })
-        }, 1000)
-        return () => clearInterval(interval)
-    }, [])
 
     return (
         <div 
@@ -132,30 +116,16 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
                         )}
                     </div>
 
-                    {/* Timer Box / Stock Availability Box (Uniform height h-[58px]) */}
-                    {hasSale ? (
-                        <div className="flex items-center justify-between bg-[#FFF7F9] border border-[#FFD4E2] rounded-2xl p-3 h-[58px]">
-                            <div className="flex flex-col">
-                                <span className="text-[10px] font-black text-[#FF6FA7] uppercase tracking-widest leading-none mb-1">Oferta Especial</span>
-                                <span className="text-[10px] font-black text-[#7C6A72] uppercase tracking-widest leading-none">Expira en :</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 text-[#FF6FA7] font-black text-xl tracking-wider">
-                                <span>{timeLeft.m < 10 ? `0${timeLeft.m}` : timeLeft.m}</span>
-                                <span className="animate-pulse">:</span>
-                                <span>{timeLeft.s < 10 ? `0${timeLeft.s}` : timeLeft.s}</span>
-                            </div>
+                    {/* Stock Availability Box */}
+                    <div className="flex items-center justify-between bg-[#FFF7F9] border border-[#FFD4E2] rounded-2xl p-3 h-[52px]">
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Disponibilidad</span>
+                            <span className="text-[10px] font-black text-[#FF6FA7] uppercase tracking-widest leading-none">¡Stock Disponible!</span>
                         </div>
-                    ) : (
-                        <div className="flex items-center justify-between bg-[#fcfcfc] border border-slate-100 rounded-2xl p-3 h-[58px] opacity-90">
-                            <div className="flex flex-col">
-                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Disponibilidad</span>
-                                <span className="text-[10px] font-black text-green-600 uppercase tracking-widest leading-none">¡Stock Disponible!</span>
-                            </div>
-                            <div className="text-slate-400 font-bold text-[11px] tracking-wide uppercase">
-                                Envío inmediato
-                            </div>
+                        <div className="text-[#FF6FA7] font-bold text-[11px] tracking-wide uppercase">
+                            Envío inmediato
                         </div>
-                    )}
+                    </div>
 
                 </div>
             </div>
