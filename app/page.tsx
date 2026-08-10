@@ -135,19 +135,19 @@ export default async function Home(props: HomePageProps) {
 
 
 
-      {/* Newsletter */}
-      <HomeScrollReveal direction="up" delay={120}>
-        <NewsletterSection />
-      </HomeScrollReveal>
-
       {/* Benefits Bar */}
-      <HomeScrollReveal direction="up" delay={130}>
+      <HomeScrollReveal direction="up" delay={120}>
         <BenefitsBar />
       </HomeScrollReveal>
 
       {/* Contact Section */}
-      <HomeScrollReveal direction="up" delay={150}>
+      <HomeScrollReveal direction="up" delay={130}>
         <ContactSection />
+      </HomeScrollReveal>
+
+      {/* Newsletter Section — Al final, arriba del Footer */}
+      <HomeScrollReveal direction="up" delay={150}>
+        <NewsletterSection />
       </HomeScrollReveal>
     </main>
   )
