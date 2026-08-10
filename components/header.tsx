@@ -128,9 +128,8 @@ export function Header() {
             )}
 
             <div className="container mx-auto px-4 md:px-6 h-18 flex items-center justify-between relative">
-
-                {/* Left Area: Mobile Menu Trigger & Desktop Navigation */}
-                <div className="flex items-center justify-start gap-4 md:w-1/3">
+                {/* Left Area: Mobile Menu Trigger, Mobile Search & Desktop Navigation */}
+                <div className="flex items-center justify-start gap-1.5 md:gap-4 md:w-1/3">
                     <button
                         type="button"
                         className={`md:hidden p-2 rounded-full active:scale-95 transition-all inline-flex items-center justify-center ${
@@ -140,6 +139,18 @@ export function Header() {
                         onClick={() => setMobileMenuOpen(true)}
                     >
                         <Menu className="h-6 w-6" />
+                    </button>
+
+                    {/* Mobile Search Trigger (Placed next to Hamburger menu on left) */}
+                    <button
+                        type="button"
+                        onClick={() => setShowDesktopSearch(true)}
+                        className={`md:hidden p-2 rounded-full transition-all shrink-0 active:scale-95 flex items-center justify-center ${
+                            isOverlayHeader ? "text-white hover:bg-white/20 drop-shadow-sm" : "text-[#2D2D2D] hover:text-[#FF6FA7] hover:bg-[#FFE6EF]"
+                        }`}
+                        aria-label="Buscar"
+                    >
+                        <Search className="h-5.5 w-5.5" />
                     </button>
 
                     {/* Desktop Navigation links */}
@@ -171,7 +182,7 @@ export function Header() {
                 </div>
 
                 {/* Center Area: Logo & Brand Tagline */}
-                <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center justify-center">
+                <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center justify-center pointer-events-auto">
                     <Link href="/" className="group flex flex-col items-center select-none py-1">
                         <div className="flex items-center gap-2">
                             {/* Lotus / Pilates Brand Icon */}
@@ -196,13 +207,13 @@ export function Header() {
                     </Link>
                 </div>
 
-                {/* Right Area: Actions (Search, Account, Cart) */}
+                {/* Right Area: Actions (Search on Desktop, User, Cart) */}
                 <div className="flex items-center justify-end gap-1.5 md:gap-2 md:w-1/3 z-10">
-                    {/* Search Trigger */}
+                    {/* Search Trigger (Desktop only) */}
                     <button
                         type="button"
                         onClick={() => setShowDesktopSearch(true)}
-                        className={`p-2.5 rounded-full transition-all shrink-0 active:scale-95 ${
+                        className={`hidden md:flex p-2.5 rounded-full transition-all shrink-0 active:scale-95 ${
                             isOverlayHeader ? "text-white hover:bg-white/20" : "text-[#2D2D2D] hover:text-[#FF6FA7] hover:bg-[#FFE6EF]"
                         }`}
                         aria-label="Buscar"
@@ -213,12 +224,12 @@ export function Header() {
                     {/* User Account Link / Trigger */}
                     <Link
                         href="/auth/login"
-                        className={`p-2.5 rounded-full transition-all shrink-0 active:scale-95 flex items-center justify-center ${
+                        className={`p-2 rounded-full transition-all shrink-0 active:scale-95 flex items-center justify-center ${
                             isOverlayHeader ? "text-white hover:bg-white/20" : "text-[#2D2D2D] hover:text-[#FF6FA7] hover:bg-[#FFE6EF]"
                         }`}
                         aria-label="Mi Cuenta"
                     >
-                        <User className="h-5 w-5" />
+                        <User className="h-5.5 w-5.5 md:h-5 md:w-5" />
                     </Link>
 
                     {/* Cart Button */}
