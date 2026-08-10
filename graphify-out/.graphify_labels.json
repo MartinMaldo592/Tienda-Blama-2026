@@ -1,6 +1,6 @@
 {
   "0": "button.tsx",
-  "1": "create-order-modal.tsx",
+  "1": "order-file-card.tsx",
   "2": "useCheckoutForm.ts",
   "3": "product-form.tsx",
   "4": "newsletter-welcome.tsx",
@@ -96,6 +96,7 @@
   "94": "build_migration.py",
   "95": "playwright.config.ts",
   "96": "checkout.spec.ts",
+  "97": "@aws-sdk/client-s3",
   "98": "Find Skills",
   "99": "app/productos/page.tsx",
   "100": "⚡ Casos de Falla Identificados & Propuestas de Solución",
@@ -117,7 +118,6 @@
   "125": "cn",
   "127": "product-social-proof.tsx",
   "129": "MarketingEventBusImpl",
-  "131": "lenis",
   "132": "advanced-full-text-search.md",
   "133": "advanced-jsonb-indexing.md",
   "134": "conn-idle-timeout.md",
@@ -156,6 +156,5 @@
   "168": "order-history-card.tsx",
   "169": "use-places-autocomplete",
   "170": "resend",
-  "173": "order-label-generator.tsx",
   "175": "@builder.io/partytown"
 }
