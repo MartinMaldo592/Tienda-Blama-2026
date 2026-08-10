@@ -378,7 +378,11 @@ export function Header() {
 
             {/* Mobile Drawer Navigation (Ultra-Smooth Animation & Luxury Design) */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                <SheetContent side="left" className="w-[320px] sm:w-[360px] flex flex-col justify-between p-0 bg-white border-r border-[#FFD4E2] shadow-2xl z-[100]">
+                <SheetContent 
+                    side="left" 
+                    onOpenAutoFocus={(e) => e.preventDefault()}
+                    className="w-[320px] sm:w-[360px] flex flex-col justify-between p-0 bg-white border-r border-[#FFD4E2] shadow-2xl z-[100]"
+                >
                     <SheetHeader className="sr-only">
                         <SheetTitle>Menú BLAMA</SheetTitle>
                     </SheetHeader>
