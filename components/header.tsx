@@ -212,7 +212,7 @@ export function Header() {
 
                     {/* Cart Button */}
                     <div className="shrink-0">
-                        <CartButton />
+                        <CartButton isOverlay={isOverlayHeader} />
                     </div>
                 </div>
 

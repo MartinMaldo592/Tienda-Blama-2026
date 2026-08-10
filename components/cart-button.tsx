@@ -43,7 +43,7 @@ const emptyCartAnimation = {
     ]
 }
 
-export function CartButton() {
+export function CartButton({ isOverlay }: { isOverlay?: boolean }) {
     // Use state to avoid hydration mismatch with persisted store
     const [mounted, setMounted] = useState(false)
     const [view, setView] = useState<'cart' | 'checkout' | 'success'>('cart')
@@ -180,14 +180,22 @@ export function CartButton() {
     return (
 
         <>
-
             <Sheet open={isCartOpen} onOpenChange={handleOpenChange} modal={view !== 'checkout'}>
                 <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" aria-label="Ver bolsa de compras" className={`relative h-10 w-10 rounded-full border border-border shadow-xs hover:bg-[#FFE6EF] hover:border-[#FFD4E2] transition-all hover:shadow-sm active:scale-95 flex items-center justify-center ${isBumping ? 'scale-110 bg-green-50/50 ring-2 ring-green-500 duration-100' : 'duration-300'}`}>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Ver bolsa de compras"
+                        className={`relative h-10 w-10 p-2.5 rounded-full border-0 bg-transparent transition-all active:scale-95 flex items-center justify-center ${
+                            isOverlay
+                                ? "text-white hover:bg-white/20"
+                                : "text-[#2D2D2D] hover:text-[#FF6FA7] hover:bg-[#FFE6EF]"
+                        } ${isBumping ? 'scale-110 duration-100' : 'duration-300'}`}
+                    >
                         <div className="relative flex items-center justify-center" ref={(el) => registerCartButton(el as any)}>
-                            <ShoppingBag className={`h-5 w-5 transition-colors ${isBumping ? 'text-green-600 animate-[bounce_0.2s_ease-in-out_2]' : (totalItems > 0 ? 'text-[#FF6FA7]' : 'text-foreground')}`} />
+                            <ShoppingBag className="h-5 w-5 transition-colors" />
                             {totalItems > 0 && (
-                                <span className="absolute -top-2 -right-2 h-4 w-4 bg-[#FF6FA7] rounded-full text-[10px] font-black text-white flex items-center justify-center animate-in zoom-in ring-2 ring-background shadow-xs">
+                                <span className="absolute -top-1.5 -right-1.5 h-4 w-4 bg-[#FF6FA7] rounded-full text-[10px] font-black text-white flex items-center justify-center animate-in zoom-in shadow-xs">
                                     {totalItems}
                                 </span>
                             )}
