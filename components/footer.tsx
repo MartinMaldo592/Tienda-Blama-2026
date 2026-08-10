@@ -101,12 +101,31 @@ export function Footer() {
     const showDefaults = !loading && socialLinks.length === 0
 
     return (
-        <footer className="w-full relative bg-[#1C1819] text-gray-300 m-0 p-0 border-none mt-20">
-            {/* 1. SEAMLESS NEWSLETTER INTEGRATION WITH TOP PINK WAVE & BOTTOM DARK WAVE */}
+        <footer className="w-full relative bg-[#1C1819] text-gray-300 m-0 p-0 border-none mt-16">
+            {/* 1. FLAT PINK NEWSLETTER SECTION */}
             <NewsletterSection />
 
-            {/* 2. FOOTER MAIN LINKS GRID */}
-            <div className="pt-12 pb-16">
+            {/* 2. REAL-TIME ANIMATED FLUID TSUNAMI WAVE DIVIDER FOR THE DARK FOOTER */}
+            <div className="relative w-full overflow-hidden leading-none z-20 pointer-events-none -mt-8 md:-mt-14 bg-transparent border-none">
+                <svg
+                    className="relative block w-[200%] h-14 md:h-24 animate-wave-slow"
+                    viewBox="0 0 1200 120"
+                    preserveAspectRatio="none"
+                >
+                    <path
+                        d="M0,0 C150,90 350,-40 500,50 C650,140 850,10 1000,60 C1150,110 1250,20 1400,70 L1400,120 L0,120 Z"
+                        fill="#1C1819"
+                        opacity="0.4"
+                    />
+                    <path
+                        d="M0,25 C200,110 400,-10 600,65 C800,140 1000,30 1200,85 L1200,120 L0,120 Z"
+                        fill="#1C1819"
+                    />
+                </svg>
+            </div>
+
+            {/* 3. FOOTER MAIN LINKS GRID */}
+            <div className="pt-4 pb-16 bg-[#1C1819] relative z-20 border-none">
                 <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
                 {/* Brand */}
                 <div className="space-y-4">
