@@ -22,12 +22,6 @@ export function MinimalHero() {
             </div>
 
             <div className="relative z-10 container mx-auto px-6 md:px-12 flex flex-col items-start text-left max-w-6xl">
-                {/* Brand Badge */}
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 text-white text-xs font-black uppercase tracking-[0.2em] mb-4 border border-white/30 backdrop-blur-md">
-                    <Sparkles className="w-3.5 h-3.5 text-[#FFB6C9]" />
-                    <span>Nuestros Más Vendidos • Colección 2026</span>
-                </div>
-
                 {/* Main Heading - Gymshark bold style */}
                 <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-white font-sans uppercase leading-[0.95] mb-3 drop-shadow-md">
                     FUERTE • SEGURA <br />
