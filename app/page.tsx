@@ -10,9 +10,6 @@ import dynamic from "next/dynamic"
 const ContactSection = dynamic(() => import("@/components/contact-section").then(mod => mod.ContactSection), {
   loading: () => <div className="h-[400px] w-full bg-muted animate-pulse rounded-[2.5rem]" />
 })
-const NewsletterSection = dynamic(() => import("@/components/newsletter-section").then(mod => mod.NewsletterSection), {
-  loading: () => <div className="h-[300px] w-full bg-muted animate-pulse rounded-3xl" />
-})
 import { HomeScrollReveal } from "@/components/home-scroll-reveal"
 import { CategoryGrid } from "@/components/category-grid"
 import { MinimalHero } from "@/components/minimal-hero"
@@ -143,11 +140,6 @@ export default async function Home(props: HomePageProps) {
       {/* Contact Section */}
       <HomeScrollReveal direction="up" delay={130}>
         <ContactSection />
-      </HomeScrollReveal>
-
-      {/* Newsletter Section — Al final, arriba del Footer */}
-      <HomeScrollReveal direction="up" delay={150}>
-        <NewsletterSection />
       </HomeScrollReveal>
     </main>
   )

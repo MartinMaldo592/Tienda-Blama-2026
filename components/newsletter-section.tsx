@@ -56,42 +56,61 @@ export function NewsletterSection() {
 
     if (isSubscribed) {
         return (
-            <section className="w-full relative bg-gradient-to-r from-[#FF6FA7] via-[#FF85B3] to-[#FF6FA7] text-white pt-24 pb-16 overflow-hidden">
-                {/* --- ANIMATED FLUID TSUNAMI WAVE TOP DIVIDER --- */}
-                <div className="absolute top-0 left-0 w-full overflow-hidden leading-none z-10 pointer-events-none -translate-y-[99%]">
+            <section className="w-full relative bg-gradient-to-r from-[#FF6FA7] via-[#FF85B3] to-[#FF6FA7] text-white pt-20 pb-20 overflow-hidden m-0">
+                {/* --- TOP ANIMATED FLUID TSUNAMI WAVE DIVIDER --- */}
+                <div className="absolute top-0 left-0 w-full overflow-hidden leading-none z-10 pointer-events-none -translate-y-[98%]">
                     <svg
                         className="relative block w-[200%] h-14 md:h-24 animate-wave-slow"
                         viewBox="0 0 1200 120"
                         preserveAspectRatio="none"
                     >
                         <path
-                            d="M0,0 C150,90 350,-40 500,50 C650,140 850,10 1000,60 C1150,110 1250,20 1400,70 L1400,120 L0,120 Z"
-                            fill="#FF6FA7"
+                            d="M0,10 C180,95 380,-20 580,55 C780,130 980,15 1180,65 C1380,115 1480,25 1600,75 L1600,120 L0,120 Z"
+                            fill="#FF85B3"
                             opacity="0.6"
                         />
                         <path
-                            d="M0,20 C200,110 400,-10 600,65 C800,140 1000,30 1200,80 L1200,120 L0,120 Z"
-                            fill="#FF85B3"
+                            d="M0,35 C220,115 420,10 620,70 C820,130 1020,35 1220,85 L1220,120 L0,120 Z"
+                            fill="#FF6FA7"
                         />
                     </svg>
                 </div>
 
-                <div className="relative z-10 container mx-auto text-center max-w-2xl px-6">
-                    <h3 className="text-3xl font-bold mb-4 font-serif">¡Ya formas parte de la comunidad!</h3>
-                    <p className="text-white/90 mb-4">
+                <div className="relative z-20 container mx-auto text-center max-w-2xl px-6">
+                    <h3 className="text-3xl font-bold mb-3 font-serif">¡Ya formas parte de la comunidad!</h3>
+                    <p className="text-white/90 mb-2 font-medium">
                         Revisa tu correo para ver tu código de descuento del 10% y empezar a comprar. ♡
                     </p>
                     <p className="text-xs text-white/70">
                         Gracias por suscribirte a nuestro boletín.
                     </p>
                 </div>
+
+                {/* --- BOTTOM ANIMATED FLUID TSUNAMI WAVE DIVIDER (INTO DARK FOOTER) --- */}
+                <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-10 pointer-events-none translate-y-[1px]">
+                    <svg
+                        className="relative block w-[200%] h-12 md:h-20 animate-wave-fast"
+                        viewBox="0 0 1200 120"
+                        preserveAspectRatio="none"
+                    >
+                        <path
+                            d="M0,0 C150,90 350,-40 500,50 C650,140 850,10 1000,60 C1150,110 1250,20 1400,70 L1400,120 L0,120 Z"
+                            fill="#1C1819"
+                            opacity="0.45"
+                        />
+                        <path
+                            d="M0,25 C200,110 400,-10 600,65 C800,140 1000,30 1200,85 L1220,120 L0,120 Z"
+                            fill="#1C1819"
+                        />
+                    </svg>
+                </div>
             </section>
         )
     }
 
     return (
-        <section className="w-full relative bg-gradient-to-r from-[#FF6FA7] via-[#FF85B3] to-[#FF6FA7] text-white pt-24 pb-20 overflow-hidden shadow-none mt-16">
-            {/* --- ANIMATED FLUID TSUNAMI WAVE TOP DIVIDER --- */}
+        <section className="w-full relative bg-gradient-to-r from-[#FF6FA7] via-[#FF85B3] to-[#FF6FA7] text-white pt-20 pb-24 overflow-hidden shadow-none m-0">
+            {/* --- TOP ANIMATED FLUID TSUNAMI WAVE DIVIDER (INTO LIGHT PAGE) --- */}
             <div className="absolute top-0 left-0 w-full overflow-hidden leading-none z-10 pointer-events-none -translate-y-[98%]">
                 <svg
                     className="relative block w-[200%] h-16 md:h-28 animate-wave-slow"
@@ -143,7 +162,25 @@ export function NewsletterSection() {
                     Únete a más de 5,000 mujeres activas en Perú.
                 </p>
             </div>
+
+            {/* --- BOTTOM ANIMATED FLUID TSUNAMI WAVE DIVIDER (INTO DARK FOOTER) --- */}
+            <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-10 pointer-events-none translate-y-[1px]">
+                <svg
+                    className="relative block w-[200%] h-14 md:h-24 animate-wave-fast"
+                    viewBox="0 0 1200 120"
+                    preserveAspectRatio="none"
+                >
+                    <path
+                        d="M0,0 C150,90 350,-40 500,50 C650,140 850,10 1000,60 C1150,110 1250,20 1400,70 L1400,120 L0,120 Z"
+                        fill="#1C1819"
+                        opacity="0.45"
+                    />
+                    <path
+                        d="M0,25 C200,110 400,-10 600,65 C800,140 1000,30 1200,85 L1200,120 L0,120 Z"
+                        fill="#1C1819"
+                    />
+                </svg>
+            </div>
         </section>
     )
 }
-
