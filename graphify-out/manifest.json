@@ -215,19 +215,19 @@
     "semantic_hash": "0bde4b9898b84416e0dd3511e240cedc"
   },
   "app/contacto/page.tsx": {
-    "mtime": 1786239905.3777814,
-    "ast_hash": "620a04cefaae96f8d5e0266d8a75de86",
-    "semantic_hash": "620a04cefaae96f8d5e0266d8a75de86"
+    "mtime": 1786324243.765755,
+    "ast_hash": "cc35a8bf66faf695f77dcd62a0ece5bc",
+    "semantic_hash": ""
   },
   "app/devoluciones/page.tsx": {
-    "mtime": 1786239905.3777814,
-    "ast_hash": "53c87466122a79b629528e60dee5494a",
-    "semantic_hash": "53c87466122a79b629528e60dee5494a"
+    "mtime": 1786324262.128624,
+    "ast_hash": "e1cd14dd5840eafca55a55584f387431",
+    "semantic_hash": ""
   },
   "app/envios/page.tsx": {
-    "mtime": 1786239905.388088,
-    "ast_hash": "40651dc247ce20466af3f1768bd55390",
-    "semantic_hash": "40651dc247ce20466af3f1768bd55390"
+    "mtime": 1786324252.5115798,
+    "ast_hash": "34fea7460dcdb8dc280cb3f14290de90",
+    "semantic_hash": ""
   },
   "app/layout.tsx": {
     "mtime": 1786239905.38909,
@@ -335,9 +335,9 @@
     "semantic_hash": "60cac9e3aa0678b49c966fc9649fee82"
   },
   "components/announcement-bar.tsx": {
-    "mtime": 1786239905.4227483,
-    "ast_hash": "8a2494fbc7f34b2d4c7ed0248d98c51c",
-    "semantic_hash": "8a2494fbc7f34b2d4c7ed0248d98c51c"
+    "mtime": 1786324199.458708,
+    "ast_hash": "da0b268578c197edd16ee2d1963a244c",
+    "semantic_hash": ""
   },
   "components/attribution-tracker.tsx": {
     "mtime": 1786239905.4227483,
@@ -355,14 +355,14 @@
     "semantic_hash": "5378794ce3da809c337193ab4415da05"
   },
   "components/category-grid.tsx": {
-    "mtime": 1786239905.4272778,
-    "ast_hash": "48b6005dd891b3922e9e8bd70d6d755d",
-    "semantic_hash": "48b6005dd891b3922e9e8bd70d6d755d"
+    "mtime": 1786324215.6799595,
+    "ast_hash": "7c26d4a90287855d238171a7800e082e",
+    "semantic_hash": ""
   },
   "components/contact-section.tsx": {
-    "mtime": 1786239905.4272778,
-    "ast_hash": "430e7cfd797902ae4ecbce01ee622980",
-    "semantic_hash": "430e7cfd797902ae4ecbce01ee622980"
+    "mtime": 1786324232.4760673,
+    "ast_hash": "f86d01766cbe9b0ce7d1140317a7c073",
+    "semantic_hash": ""
   },
   "components/footer.tsx": {
     "mtime": 1786323932.278035,
@@ -825,9 +825,9 @@
     "semantic_hash": "cd3901186efee45f127aaa6ac5a33fb9"
   },
   "features/checkout/components/checkout-form.tsx": {
-    "mtime": 1786239905.6581018,
-    "ast_hash": "34cf28150cfaa63bd1416a8ee14c6e86",
-    "semantic_hash": "34cf28150cfaa63bd1416a8ee14c6e86"
+    "mtime": 1786324359.9360514,
+    "ast_hash": "1e24cec7bf72d11eb4bde61c1e9cca0a",
+    "semantic_hash": ""
   },
   "features/checkout/components/checkout-payment.tsx": {
     "mtime": 1786239905.6581018,
@@ -840,9 +840,9 @@
     "semantic_hash": "66d6999ec103ef2332b55f3319d2be28"
   },
   "features/checkout/components/checkout-summary.tsx": {
-    "mtime": 1786239905.6581018,
-    "ast_hash": "22dfacdd44efb53cda94516ca0e4f385",
-    "semantic_hash": "22dfacdd44efb53cda94516ca0e4f385"
+    "mtime": 1786324378.8711486,
+    "ast_hash": "af1bbd52f38076efa8a64cf15092cb85",
+    "semantic_hash": ""
   },
   "features/checkout/components/culqi-payment-button.tsx": {
     "mtime": 1786239905.6581018,
@@ -955,9 +955,9 @@
     "semantic_hash": "dbcf14aa56d97278b2d4a32de23621cc"
   },
   "features/products/components/ProductosClient.tsx": {
-    "mtime": 1786239905.6989398,
-    "ast_hash": "b5eb48ec999b8dcda9fbd2ecafbbff67",
-    "semantic_hash": "b5eb48ec999b8dcda9fbd2ecafbbff67"
+    "mtime": 1786324281.4664397,
+    "ast_hash": "9515162c6b9154b2fb16b60f4b627686",
+    "semantic_hash": ""
   },
   "features/products/hooks/useProductDetail.ts": {
     "mtime": 1786239905.7013316,
