@@ -2,10 +2,10 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { Flame, Sparkles } from "lucide-react"
+import { Eye, ArrowUpRight } from "lucide-react"
 import { formatCurrency, slugify } from "@/lib/utils"
 import { Database } from "@/types/database.types"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { cloudinaryLoader } from "@/lib/cloudinary"
 
 type Product = Database['public']['Tables']['productos']['Row']
@@ -31,97 +31,112 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
             .slice(0, 10)
     )
     const fallbackImages = images.length > 0 ? images : product.imagen_url ? [product.imagen_url] : []
+    const hoverImage = fallbackImages.length > 1 ? fallbackImages[1] : null
 
     const slug = (product as any).slug
     const productHref = slug
         ? `/productos/${slug}`
         : `/productos/${slugify(product.nombre)}-${product.id}`
 
-    const [isHovered, setIsHovered] = useState(false)
     const [imageLoading, setImageLoading] = useState(true)
 
+    const isKit = product.categoria_id === 4 || product.nombre.toLowerCase().includes("kit")
+
     return (
-        <div 
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            className="group relative flex flex-col h-full bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm transition-all hover:shadow-md"
-        >
-            
-
-
+        <div className="group relative flex flex-col h-full bg-white rounded-2xl overflow-hidden border border-slate-100/80 shadow-xs hover:shadow-lg transition-all duration-500">
             {/* --- IMAGE SECTION --- */}
-            <Link href={productHref} prefetch={false} className="relative block w-full aspect-[3/4] bg-slate-100 dark:bg-slate-900 overflow-hidden">
-                <div className="w-full h-full transition-transform duration-500 group-hover:scale-105">
+            <Link href={productHref} prefetch={false} className="relative block w-full aspect-[4/5] bg-[#F9F7F8] overflow-hidden">
+                {/* Secondary image hover effect */}
+                <div className="w-full h-full relative transition-transform duration-700 group-hover:scale-105">
                     {fallbackImages.length > 0 ? (
                         <>
                             {imageLoading && (
-                                <div className="absolute inset-0 bg-slate-100 dark:bg-slate-800 animate-pulse z-20 flex items-center justify-center">
-                                    <div className="absolute inset-0 shimmer opacity-60" />
-                                </div>
+                                <div className="absolute inset-0 bg-slate-100 animate-pulse z-20" />
                             )}
                             <Image
                                 src={fallbackImages[0]}
                                 alt={product.nombre}
                                 fill
                                 loader={cloudinaryLoader}
-                                className={`object-cover transition-opacity duration-300 ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+                                className={`object-cover transition-all duration-500 ${hoverImage ? 'group-hover:opacity-0' : ''} ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
                                 priority={imagePriority}
-                                sizes="(max-width: 640px) 40vw, (max-width: 1200px) 33vw, 20vw"
-                                quality={75}
+                                sizes="(max-width: 640px) 45vw, (max-width: 1200px) 30vw, 20vw"
+                                quality={80}
                                 onLoad={() => setImageLoading(false)}
-                                ref={(img) => {
-                                    if (img && img.complete && imageLoading) {
-                                        setImageLoading(false);
-                                    }
-                                }}
                             />
+                            {hoverImage && (
+                                <Image
+                                    src={hoverImage}
+                                    alt={`${product.nombre} vista 2`}
+                                    fill
+                                    loader={cloudinaryLoader}
+                                    className="object-cover absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                                    sizes="(max-width: 640px) 45vw, (max-width: 1200px) 30vw, 20vw"
+                                    quality={80}
+                                />
+                            )}
                         </>
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-300">
-                            Sin imagen
+                        <div className="w-full h-full flex items-center justify-center text-slate-300 text-xs uppercase tracking-widest font-medium">
+                            BLAMA SHOP
                         </div>
                     )}
                 </div>
+
+                {/* --- FLOATING BADGES (TOP) --- */}
+                <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
+                    {isKit ? (
+                        <span className="bg-white/90 backdrop-blur-md text-[#1C1819] text-[9px] md:text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full shadow-xs border border-white/60">
+                            ✦ KIT AHORRO
+                        </span>
+                    ) : hasSale ? (
+                        <span className="bg-[#1C1819] text-white text-[9px] md:text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shadow-xs">
+                            -{discountPercent}% OFF
+                        </span>
+                    ) : (
+                        <span className="bg-white/80 backdrop-blur-md text-slate-700 text-[9px] md:text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shadow-xs">
+                            BLAMA
+                        </span>
+                    )}
+
+                    {isKit && hasSale && (
+                        <span className="bg-[#FF4081] text-white text-[9px] md:text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full shadow-xs">
+                            -{discountPercent}%
+                        </span>
+                    )}
+                </div>
+
+                {/* --- HOVER QUICK VIEW BUTTON (BOTTOM OF IMAGE) --- */}
+                <div className="absolute bottom-3 left-3 right-3 z-10 transform translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                    <span className="w-full py-2.5 bg-white/95 backdrop-blur-md text-[#1C1819] hover:bg-[#1C1819] hover:text-white transition-colors rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md">
+                        <span>Ver Detalle</span>
+                        <ArrowUpRight className="w-3.5 h-3.5" />
+                    </span>
+                </div>
             </Link>
 
-            {/* --- CONTENT --- */}
-            <div className="p-5 flex flex-col flex-grow">
-                {/* Badge */}
-                {product.categoria_id === 4 || product.nombre.toLowerCase().includes("kit") ? (
-                    <div className="bg-gradient-to-r from-[#FF6FA7] to-[#FF85B3] text-white text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full flex items-center gap-1.5 w-fit mb-2.5 shadow-xs">
-                        <Sparkles size={12} className="text-white" fill="currentColor" />
-                        KIT AHORRO 💖
+            {/* --- CONTENT SECTION --- */}
+            <div className="p-4 flex flex-col flex-grow justify-between bg-white">
+                <div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                        {isKit ? "Colección Pilates & Gym" : "Bienestar & Estilo"}
                     </div>
-                ) : (
-                    <div className="bg-[#FF6FA7] text-white text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full flex items-center gap-1.5 w-fit mb-2.5 shadow-xs">
-                        <Flame size={12} className="text-white" fill="currentColor" />
-                        COLECCIÓN BLAMA
-                    </div>
-                )}
-                <Link href={productHref} prefetch={false} className="mb-2 block">
-                    <h3 className="text-[17px] font-black text-[#2D2D2D] leading-tight line-clamp-2 h-[42px] overflow-hidden hover:text-[#FF6FA7] transition-colors">
-                        {product.nombre}
-                    </h3>
-                </Link>
+                    <Link href={productHref} prefetch={false} className="block group/title">
+                        <h3 className="text-sm md:text-base font-bold text-[#1C1819] leading-snug line-clamp-2 hover:text-[#FF4081] transition-colors">
+                            {product.nombre}
+                        </h3>
+                    </Link>
+                </div>
 
-                <div className="mt-auto pt-2">
-                    {/* Price Row */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-3xl font-black text-[#FF6FA7] tracking-tight">
-                            {formatCurrency(currentPrice)}
+                <div className="mt-3 pt-2 border-t border-slate-100 flex items-baseline gap-2">
+                    <span className="text-base md:text-lg font-extrabold text-[#1C1819] tracking-tight">
+                        {formatCurrency(currentPrice)}
+                    </span>
+                    {hasSale && (
+                        <span className="text-xs text-slate-400 line-through font-normal">
+                            {formatCurrency(beforePrice)}
                         </span>
-                        
-                        {hasSale && (
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm text-slate-400 line-through font-medium">
-                                    {formatCurrency(beforePrice)}
-                                </span>
-                                <div className="h-6 px-2 rounded-full bg-[#FFE6EF] border border-[#FFD4E2] text-[#FF6FA7] flex items-center justify-center text-[10px] font-bold">
-                                    -{discountPercent}%
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                    )}
                 </div>
             </div>
         </div>

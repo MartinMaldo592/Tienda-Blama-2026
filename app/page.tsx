@@ -86,18 +86,25 @@ export default async function Home(props: HomePageProps) {
       {/* Lo más vendido */}
       {bestSellers.length > 0 && (
         <HomeScrollReveal direction="up" delay={100}>
-          <section className="p-4 px-2" data-nosnippet>
-            <div className="flex justify-between items-center mb-4 px-2">
-              <div className="flex items-center gap-2">
-                <div className="w-1 h-6 bg-primary rounded-full" />
-                <h3 className="text-lg font-bold text-foreground">Lo más pedido hoy</h3>
+          <section className="py-10 px-6 max-w-7xl mx-auto" data-nosnippet>
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-2">
+              <div>
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#FF4081] mb-1 block">
+                  MÁS POPULARES
+                </span>
+                <h2 className="text-2xl md:text-3xl font-extrabold text-[#1C1819] tracking-tight font-serif">
+                  Lo Más Pedido Hoy
+                </h2>
               </div>
-              <Button asChild variant="link" size="sm" className="text-muted-foreground hover:text-primary">
-                <Link href="/productos">Ver todo</Link>
-              </Button>
+              <Link 
+                href="/productos" 
+                className="text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-[#1C1819] transition-colors"
+              >
+                Ver Todo el Catálogo →
+              </Link>
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              {bestSellers.slice(0, 6).map((product, idx) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+              {bestSellers.slice(0, 5).map((product, idx) => (
                 <ProductCard key={`bestseller-${product.id}`} product={product} imagePriority={idx < 4} />
               ))}
             </div>
@@ -108,21 +115,25 @@ export default async function Home(props: HomePageProps) {
       {/* Ofertas */}
       {offers.length > 0 && (
         <HomeScrollReveal direction="up" delay={100}>
-          <section className="p-4 px-2" data-nosnippet>
-            <div className="flex justify-between items-center mb-4 px-2">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-6 bg-gradient-to-b from-rose-500 to-orange-500 rounded-full" />
-                  <h3 className="text-lg font-bold text-foreground">Ofertas Exclusivas</h3>
-                </div>
-                <span className="text-xs text-muted-foreground ml-3">Descuentos por tiempo limitado en productos seleccionados</span>
+          <section className="py-10 px-6 max-w-7xl mx-auto" data-nosnippet>
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-2">
+              <div>
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#FF4081] mb-1 block">
+                  EDICIÓN LIMITADA
+                </span>
+                <h2 className="text-2xl md:text-3xl font-extrabold text-[#1C1819] tracking-tight font-serif">
+                  Ofertas Exclusivas
+                </h2>
               </div>
-              <Button asChild variant="link" size="sm" className="text-muted-foreground hover:text-primary">
-                <Link href="/productos">Ver todo</Link>
-              </Button>
+              <Link 
+                href="/productos" 
+                className="text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-[#1C1819] transition-colors"
+              >
+                Ver Todas las Ofertas →
+              </Link>
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              {offers.slice(0, 6).map((product, idx) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+              {offers.slice(0, 5).map((product, idx) => (
                 <ProductCard key={`offer-${product.id}`} product={product} imagePriority={false} />
               ))}
             </div>

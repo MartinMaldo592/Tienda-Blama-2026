@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowRight, LayoutGrid, Tag } from "lucide-react"
+import { Sparkles, ArrowRight } from "lucide-react"
 
 interface Category {
     id: number
@@ -13,37 +13,39 @@ interface Category {
 export function CategoryGrid({ categories }: { categories: Category[] }) {
     if (!categories || categories.length === 0) return null
 
-    // Ensure robust filtering on the client side as well
     const mainCategories = categories.filter(c => !c.parent_id)
 
     return (
-        <section className="py-8 px-4 max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                    <LayoutGrid className="w-5 h-5 text-[#FF6FA7]" />
-                    <h3 className="text-xl md:text-2xl font-bold tracking-tight text-[#2D2D2D]">Explora por Categoría</h3>
+        <section className="py-10 px-6 max-w-7xl mx-auto">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 gap-2">
+                <div>
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#FF4081] mb-1 block">
+                        COLECCIONES 2026
+                    </span>
+                    <h2 className="text-2xl md:text-3xl font-extrabold text-[#1C1819] tracking-tight font-serif">
+                        Explora por Categoría
+                    </h2>
                 </div>
+                <Link 
+                    href="/productos" 
+                    className="text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-[#1C1819] flex items-center gap-1 transition-colors"
+                >
+                    <span>Ver Todo el Catálogo</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
             </div>
 
-            {/* Modern "Chips" / "Pills" Layout - Horizontal Scroll */}
-            <div className="flex overflow-x-auto gap-4 py-4 -mx-4 px-4 snap-x">
-                {mainCategories.map((cat, i) => (
+            {/* Ultra-Clean Minimalist Chips Container */}
+            <div className="flex flex-wrap gap-3 py-2">
+                {mainCategories.map((cat) => (
                     <Link
                         key={cat.id}
                         href={`/productos?categoria=${cat.slug}`}
                         prefetch={false}
-                        className="group shrink-0 relative flex items-center gap-2.5 px-6 py-3 rounded-full bg-white border border-[#FFD4E2] hover:border-[#FF6FA7] hover:bg-[#FF6FA7] hover:text-white transition-all duration-300 shadow-sm hover:shadow-md active:scale-95 snap-start text-[#2D2D2D]"
+                        className="group flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-200/90 text-[#1C1819] hover:bg-[#1C1819] hover:text-white hover:border-[#1C1819] transition-all duration-300 shadow-2xs text-xs font-bold uppercase tracking-wider"
                     >
-                        <Tag className="w-4 h-4 text-[#FF6FA7] group-hover:text-white transition-colors" />
-                        <span className="text-sm font-bold tracking-wide whitespace-nowrap">{cat.nombre}</span>
-
-                        {/* Optional: New badge indicator */}
-                        {i < 2 && (
-                            <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF6FA7] opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-3 w-3 bg-[#FF6FA7]"></span>
-                            </span>
-                        )}
+                        <Sparkles className="w-3.5 h-3.5 text-[#FF4081] group-hover:text-white transition-colors" />
+                        <span>{cat.nombre}</span>
                     </Link>
                 ))}
             </div>

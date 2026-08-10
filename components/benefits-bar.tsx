@@ -1,61 +1,51 @@
 "use client"
-import { Truck, Banknote, ShieldCheck, CheckCircle } from "lucide-react"
+import { Truck, ShieldCheck, Sparkles, MessageCircleHeart } from "lucide-react"
 
 export function BenefitsBar() {
     const benefits = [
         {
             icon: Truck,
             title: "Envíos Rápidos Perú",
-            description: "Express en Lima & Agencia Shalom",
-            color: "text-[#FF6FA7]",
-            bgColor: "bg-[#FFE6EF]",
-        },
-        {
-            icon: Banknote,
-            title: "Contraentrega Disponible",
-            description: "Paga seguro al recibir tu paquete",
-            color: "text-[#FF6FA7]",
-            bgColor: "bg-[#FFE6EF]",
+            description: "Express Lima & Provincia Shalom",
         },
         {
             icon: ShieldCheck,
-            title: "Garantía & Calidad",
-            description: "Productos probados para tu entrenamiento",
-            color: "text-[#FF6FA7]",
-            bgColor: "bg-[#FFE6EF]",
+            title: "Pago 100% Seguro",
+            description: "Yape, PLIN & Contraentrega",
         },
         {
-            icon: CheckCircle,
-            title: "Gracias por elegir cuidarte",
-            description: "Asesoría personalizada por WhatsApp",
-            color: "text-[#FF6FA7]",
-            bgColor: "bg-[#FFE6EF]",
+            icon: Sparkles,
+            title: "Calidad Pilates & Gym",
+            description: "Materiales premium seleccionados",
+        },
+        {
+            icon: MessageCircleHeart,
+            title: "Asesoría por WhatsApp",
+            description: "Atención directa y cercana ♡",
         },
     ]
 
     return (
-        <section className="py-8 px-4">
-            <div className="container mx-auto">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    {benefits.map((benefit, index) => (
-                        <div
-                            key={index}
-                            className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-border shadow-sm hover:shadow-md transition-shadow dark:bg-card"
-                        >
-                            <div className={`p-3 rounded-xl ${benefit.bgColor}`}>
-                                <benefit.icon className={`w-6 h-6 ${benefit.color}`} />
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="font-bold text-sm text-foreground leading-tight">
-                                    {benefit.title}
-                                </span>
-                                <span className="text-xs text-muted-foreground mt-0.5">
-                                    {benefit.description}
-                                </span>
-                            </div>
+        <section className="py-12 px-6 max-w-7xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
+                {benefits.map((benefit, index) => (
+                    <div
+                        key={index}
+                        className="flex flex-col sm:flex-row items-start sm:items-center gap-3.5 p-5 rounded-2xl bg-[#F9F7F8] border border-slate-100 hover:border-[#FFD4E2] transition-colors"
+                    >
+                        <div className="p-3 rounded-xl bg-white text-[#FF4081] shadow-2xs shrink-0">
+                            <benefit.icon className="w-5 h-5" />
                         </div>
-                    ))}
-                </div>
+                        <div className="flex flex-col">
+                            <span className="font-bold text-xs md:text-sm text-[#1C1819] leading-tight uppercase tracking-wider">
+                                {benefit.title}
+                            </span>
+                            <span className="text-[11px] md:text-xs text-slate-500 mt-1 font-medium">
+                                {benefit.description}
+                            </span>
+                        </div>
+                    </div>
+                ))}
             </div>
         </section>
     )
