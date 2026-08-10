@@ -1,11 +1,11 @@
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowRight, ShoppingBag, Heart, Sparkles, Home, Dumbbell, UserCheck, ShieldCheck, Users } from "lucide-react"
+import { ArrowRight, ShoppingBag, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export function MinimalHero() {
     return (
-        <section className="relative overflow-hidden min-h-[620px] sm:min-h-[720px] w-full flex flex-col justify-end pb-12 sm:pb-16 pt-32 group">
+        <section className="relative overflow-hidden min-h-[560px] sm:min-h-[660px] w-full flex flex-col justify-end pb-12 sm:pb-16 pt-32 group">
             {/* Background Lifestyle Image of BLAMA Products - Gymshark Style */}
             <div className="absolute inset-0 z-0">
                 <Image
@@ -46,7 +46,7 @@ export function MinimalHero() {
                 </p>
 
                 {/* CTA Buttons — Clean Gymshark Pill Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mb-10">
+                <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                     <Button asChild size="lg" className="w-full sm:w-auto rounded-full px-10 h-14 text-sm sm:text-base font-black uppercase tracking-wider bg-white text-[#2D2D2D] hover:bg-[#FFE6EF] hover:text-[#FF6FA7] shadow-xl transition-all hover:scale-105">
                         <Link href="/productos">
                             <ShoppingBag className="mr-2.5 h-5 w-5 text-[#FF6FA7]" />
@@ -58,44 +58,6 @@ export function MinimalHero() {
                             Colección Pilates <ArrowRight className="ml-2.5 h-4 w-4" />
                         </Link>
                     </Button>
-                </div>
-
-                {/* 5 Pillars Ribbon */}
-                <div className="w-full bg-black/40 backdrop-blur-xl rounded-3xl p-4 sm:p-6 border border-white/20 shadow-2xl grid grid-cols-2 md:grid-cols-5 gap-4">
-                    <div className="flex flex-col items-center text-center p-2">
-                        <div className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center text-[#FFB6C9] mb-2 border border-white/20">
-                            <UserCheck size={18} />
-                        </div>
-                        <span className="text-[11px] font-black text-white uppercase tracking-wider">Para Mujeres como Tú</span>
-                    </div>
-
-                    <div className="flex flex-col items-center text-center p-2">
-                        <div className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center text-[#FFB6C9] mb-2 border border-white/20">
-                            <Dumbbell size={18} />
-                        </div>
-                        <span className="text-[11px] font-black text-white uppercase tracking-wider">Entrena a Tu Manera</span>
-                    </div>
-
-                    <div className="flex flex-col items-center text-center p-2">
-                        <div className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center text-[#FFB6C9] mb-2 border border-white/20">
-                            <Home size={18} />
-                        </div>
-                        <span className="text-[11px] font-black text-white uppercase tracking-wider">En Casa o En El Gym</span>
-                    </div>
-
-                    <div className="flex flex-col items-center text-center p-2">
-                        <div className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center text-[#FFB6C9] mb-2 border border-white/20">
-                            <ShieldCheck size={18} />
-                        </div>
-                        <span className="text-[11px] font-black text-white uppercase tracking-wider">Bienestar y Confianza</span>
-                    </div>
-
-                    <div className="flex flex-col items-center text-center p-2 col-span-2 md:col-span-1">
-                        <div className="w-10 h-10 rounded-full bg-white/15 flex items-center justify-center text-[#FFB6C9] mb-2 border border-white/20">
-                            <Users size={18} />
-                        </div>
-                        <span className="text-[11px] font-black text-white uppercase tracking-wider">Comunidad BLAMA</span>
-                    </div>
                 </div>
             </div>
         </section>
