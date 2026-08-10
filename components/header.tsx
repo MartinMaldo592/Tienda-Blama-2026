@@ -1,7 +1,7 @@
 "use client"
 
 import Link from 'next/link'
-import { Menu, Search, X, ShoppingBag, Sparkles, Heart } from "lucide-react"
+import { Menu, Search, X, ShoppingBag, Sparkles, Heart, User } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useEffect, useRef, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
@@ -196,8 +196,8 @@ export function Header() {
                     </Link>
                 </div>
 
-                {/* Right Area: Actions (Search, Cart) */}
-                <div className="flex items-center justify-end gap-2 md:w-1/3 z-10">
+                {/* Right Area: Actions (Search, Account, Cart) */}
+                <div className="flex items-center justify-end gap-1.5 md:gap-2 md:w-1/3 z-10">
                     {/* Search Trigger */}
                     <button
                         type="button"
@@ -209,6 +209,17 @@ export function Header() {
                     >
                         <Search className="h-5 w-5" />
                     </button>
+
+                    {/* User Account Link / Trigger */}
+                    <Link
+                        href="/auth/login"
+                        className={`p-2.5 rounded-full transition-all shrink-0 active:scale-95 flex items-center justify-center ${
+                            isOverlayHeader ? "text-white hover:bg-white/20" : "text-[#2D2D2D] hover:text-[#FF6FA7] hover:bg-[#FFE6EF]"
+                        }`}
+                        aria-label="Mi Cuenta"
+                    >
+                        <User className="h-5 w-5" />
+                    </Link>
 
                     {/* Cart Button */}
                     <div className="shrink-0">
