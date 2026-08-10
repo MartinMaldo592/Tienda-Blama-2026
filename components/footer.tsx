@@ -99,7 +99,26 @@ export function Footer() {
     const showDefaults = !loading && socialLinks.length === 0
 
     return (
-        <footer className="bg-[#1C1819] text-gray-300 py-16 m-0 border-none">
+        <footer className="relative bg-[#1C1819] text-gray-300 pt-20 pb-16 m-0 border-none mt-0">
+            {/* --- REAL-TIME ANIMATED FLUID TSUNAMI WAVE TOP DIVIDER --- */}
+            <div className="absolute top-0 left-0 w-full overflow-hidden leading-none z-10 pointer-events-none -translate-y-[99%]">
+                <svg
+                    className="relative block w-[200%] h-16 md:h-28 animate-wave-slow"
+                    viewBox="0 0 1200 120"
+                    preserveAspectRatio="none"
+                >
+                    <path
+                        d="M0,0 C150,90 350,-40 500,50 C650,140 850,10 1000,60 C1150,110 1250,20 1400,70 L1400,120 L0,120 Z"
+                        fill="#1C1819"
+                        opacity="0.45"
+                    />
+                    <path
+                        d="M0,25 C200,110 400,-10 600,65 C800,140 1000,30 1200,85 L1200,120 L0,120 Z"
+                        fill="#1C1819"
+                    />
+                </svg>
+            </div>
+
             <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
                 {/* Brand */}
                 <div className="space-y-4">
