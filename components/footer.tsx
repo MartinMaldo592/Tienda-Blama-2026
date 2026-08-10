@@ -99,7 +99,7 @@ export function Footer() {
     const showDefaults = !loading && socialLinks.length === 0
 
     return (
-        <footer className="bg-[#1C1819] text-gray-300 py-16 mt-auto border-t border-[#FFD4E2]/20">
+        <footer className="bg-[#1C1819] text-gray-300 py-16 m-0 border-none">
             <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
                 {/* Brand */}
                 <div className="space-y-4">

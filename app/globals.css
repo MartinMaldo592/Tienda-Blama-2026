@@ -198,6 +198,40 @@ html.lenis, html.lenis body {
   overflow: hidden;
 }
 
+/* Tsunami / Fluid wave animation for Newsletter & Footer transition */
+@keyframes waveFlowSlow {
+  0% {
+    transform: translateX(0) translateZ(0) scaleY(1);
+  }
+  50% {
+    transform: translateX(-25%) translateZ(0) scaleY(1.15);
+  }
+  100% {
+    transform: translateX(-50%) translateZ(0) scaleY(1);
+  }
+}
+
+@keyframes waveFlowFast {
+  0% {
+    transform: translateX(-50%) translateZ(0) scaleY(1);
+  }
+  50% {
+    transform: translateX(-25%) translateZ(0) scaleY(0.88);
+  }
+  100% {
+    transform: translateX(0) translateZ(0) scaleY(1);
+  }
+}
+
+.animate-wave-slow {
+  animation: waveFlowSlow 12s ease-in-out infinite;
+}
+
+.animate-wave-fast {
+  animation: waveFlowFast 8s ease-in-out infinite;
+}
+
+
 .lenis.lenis-scrolling iframe {
   pointer-events: none;
 }
