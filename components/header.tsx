@@ -1,7 +1,7 @@
 "use client"
 
 import Link from 'next/link'
-import { Menu, Search, X, ShoppingCart, Sparkles, Heart } from "lucide-react"
+import { Menu, Search, X, ShoppingBag, Sparkles, Heart } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useEffect, useRef, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
@@ -15,9 +15,8 @@ import { cloudinaryLoader } from "@/lib/cloudinary"
 const CartButton = dynamic(() => import("@/components/cart-button").then(mod => mod.CartButton), {
     ssr: false,
     loading: () => (
-        <div className="h-10 w-10 md:w-24 rounded-full border border-[#FFD4E2] bg-white flex items-center justify-center gap-1.5 px-2.5 md:px-3 text-[#FF6FA7] select-none shadow-xs">
-            <ShoppingCart className="h-4 w-4" />
-            <span className="font-extrabold text-xs mr-1 hidden md:inline">Carrito</span>
+        <div className="h-10 w-10 rounded-full border border-[#FFD4E2] bg-white flex items-center justify-center text-[#FF6FA7] select-none shadow-xs">
+            <ShoppingBag className="h-5 w-5" />
         </div>
     )
 })

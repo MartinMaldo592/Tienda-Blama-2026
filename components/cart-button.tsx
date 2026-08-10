@@ -4,7 +4,7 @@ import Image from "next/image"
 import { cloudinaryLoader } from "@/lib/cloudinary"
 import { useCartAnimationStore } from "@/features/cart/cart-animation"
 import { Button } from "@/components/ui/button"
-import { ShoppingCart, Trash2, Plus, Minus, Image as ImageIcon } from "lucide-react"
+import { ShoppingBag, Trash2, Plus, Minus, Image as ImageIcon } from "lucide-react"
 import { useCartStore } from "@/features/cart"
 import { useEffect, useState } from "react"
 import dynamic from "next/dynamic"
@@ -183,16 +183,15 @@ export function CartButton() {
 
             <Sheet open={isCartOpen} onOpenChange={handleOpenChange} modal={view !== 'checkout'}>
                 <SheetTrigger asChild>
-                    <Button variant="ghost" className={`relative hover:bg-popover flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 h-10 rounded-full border border-border shadow-sm transition-all hover:shadow-md active:scale-95 ${isBumping ? 'scale-110 bg-green-50/50 ring-2 ring-green-500 duration-100' : 'duration-300'}`}>
-                        <div className="relative flex items-center justify-center p-1" ref={(el) => registerCartButton(el as any)}>
-                            <ShoppingCart className={`h-5 w-5 transition-colors ${isBumping ? 'text-green-600 animate-[bounce_0.2s_ease-in-out_2]' : (totalItems > 0 ? 'text-foreground animate-[bounce_2s_infinite]' : 'text-foreground')}`} />
+                    <Button variant="ghost" size="icon" aria-label="Ver bolsa de compras" className={`relative h-10 w-10 rounded-full border border-border shadow-xs hover:bg-[#FFE6EF] hover:border-[#FFD4E2] transition-all hover:shadow-sm active:scale-95 flex items-center justify-center ${isBumping ? 'scale-110 bg-green-50/50 ring-2 ring-green-500 duration-100' : 'duration-300'}`}>
+                        <div className="relative flex items-center justify-center" ref={(el) => registerCartButton(el as any)}>
+                            <ShoppingBag className={`h-5 w-5 transition-colors ${isBumping ? 'text-green-600 animate-[bounce_0.2s_ease-in-out_2]' : (totalItems > 0 ? 'text-[#FF6FA7]' : 'text-foreground')}`} />
                             {totalItems > 0 && (
-                                <span className="absolute -top-1 -right-1.5 h-4 w-4 bg-red-600 rounded-full text-[10px] font-bold text-white flex items-center justify-center animate-in zoom-in ring-2 ring-background shadow-sm">
+                                <span className="absolute -top-2 -right-2 h-4 w-4 bg-[#FF6FA7] rounded-full text-[10px] font-black text-white flex items-center justify-center animate-in zoom-in ring-2 ring-background shadow-xs">
                                     {totalItems}
                                 </span>
                             )}
                         </div>
-                        <span className={`font-bold text-sm mr-1 transition-colors hidden md:inline ${isBumping ? 'text-green-700' : 'text-foreground'}`}>Carrito</span>
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="right" className="w-full sm:max-w-[400px] flex flex-col p-0">
@@ -241,8 +240,8 @@ export function CartButton() {
                         <>
                             <SheetHeader className="p-6 border-b bg-muted/10">
                                 <SheetTitle className="flex items-center gap-3 text-2xl font-extrabold tracking-tight">
-                                    <ShoppingCart className="h-7 w-7 text-primary" />
-                                    Mi Carrito ({totalItems})
+                                    <ShoppingBag className="h-7 w-7 text-[#FF6FA7]" />
+                                    Bolsa de Compras ({totalItems})
                                 </SheetTitle>
                             </SheetHeader>
 
