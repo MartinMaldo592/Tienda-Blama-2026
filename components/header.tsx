@@ -96,6 +96,19 @@ export function Header() {
         }
     }, [mobileMenuOpen])
 
+    const [isScrolled, setIsScrolled] = useState(false)
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 30)
+        }
+        window.addEventListener("scroll", handleScroll, { passive: true })
+        return () => window.removeEventListener("scroll", handleScroll)
+    }, [])
+
+    const isHome = pathname === "/"
+    const isOverlayHeader = isHome && !isScrolled
+
     const navLinks = [
         { name: "Inicio", href: "/" },
         { name: "Catálogo", href: "/productos" },
@@ -105,9 +118,15 @@ export function Header() {
     ]
 
     return (
-        <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-xl border-b border-[#FFD4E2]/70 shadow-[0_4px_20px_rgba(255,111,167,0.05)] transition-all">
-            {/* Subtle top pink glowing line */}
-            <div className="h-0.5 w-full bg-gradient-to-r from-[#FF6FA7] via-[#FFB6C9] to-[#FF6FA7]" />
+        <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+            isOverlayHeader
+                ? "bg-transparent border-b-0 shadow-none"
+                : "bg-white/95 backdrop-blur-xl border-b border-[#FFD4E2]/70 shadow-[0_4px_20px_rgba(255,111,167,0.05)]"
+        }`}>
+            {/* Subtle top pink glowing line (only when not transparent overlay) */}
+            {!isOverlayHeader && (
+                <div className="h-0.5 w-full bg-gradient-to-r from-[#FF6FA7] via-[#FFB6C9] to-[#FF6FA7]" />
+            )}
 
             <div className="container mx-auto px-4 md:px-6 h-18 flex items-center justify-between relative">
 
@@ -115,7 +134,9 @@ export function Header() {
                 <div className="flex items-center justify-start gap-4 md:w-1/3">
                     <button
                         type="button"
-                        className="md:hidden p-2 text-[#2D2D2D] hover:text-[#FF6FA7] hover:bg-[#FFE6EF] rounded-full active:scale-95 transition-all inline-flex items-center justify-center"
+                        className={`md:hidden p-2 rounded-full active:scale-95 transition-all inline-flex items-center justify-center ${
+                            isOverlayHeader ? "text-white hover:bg-white/20 drop-shadow-sm" : "text-[#2D2D2D] hover:text-[#FF6FA7] hover:bg-[#FFE6EF]"
+                        }`}
                         aria-label="Abrir menú"
                         onClick={() => setMobileMenuOpen(true)}
                     >
@@ -123,20 +144,26 @@ export function Header() {
                     </button>
 
                     {/* Desktop Navigation links */}
-                    <nav className="hidden md:flex items-center gap-7 text-xs uppercase font-extrabold tracking-widest text-[#7C6A72]">
+                    <nav className={`hidden md:flex items-center gap-7 text-xs uppercase font-black tracking-widest ${
+                        isOverlayHeader ? "text-white drop-shadow-md" : "text-[#7C6A72]"
+                    }`}>
                         {navLinks.map((link) => {
                             const isActive = pathname === link.href
                             return (
                                 <Link
                                     key={link.href}
                                     href={link.href}
-                                    className={`relative py-1.5 transition-colors duration-200 hover:text-[#FF6FA7] ${
-                                        isActive ? "text-[#FF6FA7]" : ""
+                                    className={`relative py-1.5 transition-colors duration-200 ${
+                                        isOverlayHeader
+                                            ? "hover:text-[#FFB6C9] " + (isActive ? "text-[#FFB6C9]" : "")
+                                            : "hover:text-[#FF6FA7] " + (isActive ? "text-[#FF6FA7]" : "")
                                     }`}
                                 >
                                     {link.name}
                                     {isActive && (
-                                        <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#FF6FA7] rounded-full animate-in fade-in duration-300" />
+                                        <span className={`absolute bottom-0 left-0 w-full h-0.5 rounded-full animate-in fade-in duration-300 ${
+                                            isOverlayHeader ? "bg-[#FFB6C9] shadow-xs" : "bg-[#FF6FA7]"
+                                        }`} />
                                     )}
                                 </Link>
                             )
@@ -149,16 +176,22 @@ export function Header() {
                     <Link href="/" className="group flex flex-col items-center select-none py-1">
                         <div className="flex items-center gap-2">
                             {/* Lotus / Pilates Brand Icon */}
-                            <svg className="w-5 h-5 md:w-6 md:h-6 text-[#FF6FA7] transition-transform duration-300 group-hover:scale-110" viewBox="0 0 24 24" fill="currentColor">
+                            <svg className={`w-5 h-5 md:w-6 md:h-6 transition-transform duration-300 group-hover:scale-110 ${
+                                isOverlayHeader ? "text-[#FFB6C9] drop-shadow-md" : "text-[#FF6FA7]"
+                            }`} viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12 2C10 5 7 8 7 12c0 3 2.5 5 5 5s5-2 5-5c0-4-3-7-5-10zm0 13c-1.6 0-3-1.3-3-3 0-2.2 1.8-4.5 3-6.5 1.2 2 3 4.3 3 6.5 0 1.7-1.4 3-3 3z" />
                                 <path d="M6 14c-2 0-4-1-5-3 2 0 4.5.5 6 2 1.5 1.5 1.5 3 1.5 3s-.5-2-2.5-2z" opacity="0.7"/>
                                 <path d="M18 14c2 0 4-1 5-3-2 0-4.5.5-6 2-1.5 1.5-1.5 3-1.5 3s.5-2 2.5-2z" opacity="0.7"/>
                             </svg>
-                            <span className="text-2xl md:text-3xl font-black lowercase tracking-wider text-[#FF6FA7] font-serif leading-none">
+                            <span className={`text-2xl md:text-3xl font-black lowercase tracking-wider font-serif leading-none ${
+                                isOverlayHeader ? "text-white drop-shadow-md" : "text-[#FF6FA7]"
+                            }`}>
                                 blama
                             </span>
                         </div>
-                        <span className="text-[7.5px] md:text-[8.5px] font-black tracking-[0.3em] text-[#2D2D2D] uppercase mt-0.5 opacity-90">
+                        <span className={`text-[7.5px] md:text-[8.5px] font-black tracking-[0.3em] uppercase mt-0.5 ${
+                            isOverlayHeader ? "text-white/90 drop-shadow-xs" : "text-[#2D2D2D] opacity-90"
+                        }`}>
                             FITNESS • PILATES • LIFESTYLE
                         </span>
                     </Link>
@@ -170,7 +203,9 @@ export function Header() {
                     <button
                         type="button"
                         onClick={() => setShowDesktopSearch(true)}
-                        className="p-2.5 hover:bg-[#FFE6EF] rounded-full text-[#2D2D2D] hover:text-[#FF6FA7] transition-all shrink-0 active:scale-95"
+                        className={`p-2.5 rounded-full transition-all shrink-0 active:scale-95 ${
+                            isOverlayHeader ? "text-white hover:bg-white/20" : "text-[#2D2D2D] hover:text-[#FF6FA7] hover:bg-[#FFE6EF]"
+                        }`}
                         aria-label="Buscar"
                     >
                         <Search className="h-5 w-5" />

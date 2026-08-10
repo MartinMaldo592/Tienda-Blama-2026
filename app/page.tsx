@@ -68,9 +68,9 @@ export default async function Home(props: HomePageProps) {
   return (
     <main className="pb-20 font-sans">
 
-      {/* Hero Banner */}
+      {/* Hero Banner Gymshark style */}
       <HomeScrollReveal direction="none" delay={0}>
-        <section className="p-0 sm:p-4">
+        <section className="p-0 -mt-9">
           <MinimalHero />
         </section>
       </HomeScrollReveal>

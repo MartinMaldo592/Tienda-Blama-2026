@@ -33,7 +33,8 @@ export function LayoutShell({ children, announcementData }: LayoutShellProps) {
     return announcementData?.enabled === true && announcementData.messages.length > 0
   }, [announcementData])
 
-  const headerHeight = isAdmin || isAuth ? 0 : (hasAnnouncement ? 100 : 64)
+  const isHome = pathname === "/"
+  const headerHeight = isAdmin || isAuth ? 0 : (isHome ? 36 : (hasAnnouncement ? 100 : 64))
 
   const headerRef = useRef<HTMLDivElement>(null)
   const prevScrollY = useRef(0)
@@ -85,10 +86,6 @@ export function LayoutShell({ children, announcementData }: LayoutShellProps) {
     return () => window.removeEventListener("scroll", onScroll)
   }, [isAdmin, isAuth])
 
-  const shouldShowAnnouncement = useMemo(() => {
-    return announcementData?.enabled === true && announcementData.messages.length > 0
-  }, [announcementData])
-
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "51999999999"
   const { customMessage } = useWhatsAppStore()
   const message = customMessage || encodeURIComponent("Hola, quisiera información sobre sus productos.")
@@ -130,7 +127,7 @@ export function LayoutShell({ children, announcementData }: LayoutShellProps) {
 
   return (
     <>
-      {/* Header FIJO — position fixed para compatibilidad con Lenis */}
+      {/* Header FIJO — position fixed con AnnouncementBar arriba */}
       <div
         ref={headerRef}
         className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ease-in-out ${
@@ -138,17 +135,15 @@ export function LayoutShell({ children, announcementData }: LayoutShellProps) {
         }`}
         aria-hidden={!visible}
       >
+        {/* 1. AnnouncementBar en la PARTE SUPERIOR */}
+        <AnnouncementBar
+          className="z-50"
+          intervalMs={announcementData?.intervalMs || 3500}
+          messages={announcementData?.messages}
+        />
 
-
+        {/* 2. Header (Navbar) justo debajo del AnnouncementBar */}
         <Header />
-
-        {shouldShowAnnouncement && announcementData && (
-          <AnnouncementBar
-            className="z-40"
-            intervalMs={announcementData.intervalMs}
-            messages={announcementData.messages}
-          />
-        )}
       </div>
 
       {/* Espaciador para compensar la altura del header fijo */}
