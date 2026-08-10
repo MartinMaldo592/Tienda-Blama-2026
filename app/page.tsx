@@ -21,26 +21,26 @@ import { BenefitsBar } from "@/components/benefits-bar"
 const HOME_PRODUCTS_LIMIT = 12
 
 export const metadata: Metadata = {
-  title: "Blama Shop | Todo lo que buscas en un solo lugar",
+  title: "BLAMA | Fitness • Pilates • Gym • Lifestyle",
   description:
-    "Descubre lo mejor en tecnología, hogar, moda y tendencias en Blama Shop. Envíos rápidos y seguros a todo el Perú.",
+    "Tu mejor versión, todos los días. ♡ Descubre equipamiento premium de pilates, mats, bandas de glúteos, pesas y accesorios deportivos en Perú.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Blama Shop | Todo lo que buscas",
+    title: "BLAMA | Fitness • Pilates • Lifestyle",
     description:
-      "Descubre lo mejor en tecnología, hogar, moda y tendencias en Blama Shop. Compra fácil y rápido.",
+      "Equipamiento de pilates, gym y bienestar diseñado para mujeres en Perú. Tu mejor versión, todos los días. ♡",
     url: "/",
     type: "website",
     locale: "es_ES",
-    siteName: "Blama.shop",
+    siteName: "BLAMA",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Blama.shop | Tienda Online Premium",
+    title: "BLAMA | Fitness • Pilates • Lifestyle",
     description:
-      "Tienda online en Perú con atención rápida por WhatsApp. Novedades, ofertas y envíos a domicilio.",
+      "Equipamiento premium de pilates y gym para mujeres en Perú. Envíos express a todo el país.",
   },
 }
 

@@ -124,31 +124,31 @@ export function ProductosClient({
                         className="max-w-3xl"
                     >
                         <div className="flex items-center gap-2 mb-4">
-                            <span className="h-px w-8 bg-blue-600" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-600">Catálogo Exclusivo</span>
+                            <span className="h-px w-8 bg-[#FF6FA7]" />
+                            <span className="text-[10px] font-extrabold uppercase tracking-[0.3em] text-[#FF6FA7]">Colección BLAMA ♡</span>
                         </div>
-                        <h1 className="text-5xl md:text-7xl font-black text-slate-900 leading-[0.9] tracking-tighter mb-6">
-                            Nuestra <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Colección.</span>
+                        <h1 className="text-5xl md:text-7xl font-black text-[#2D2D2D] leading-[0.95] tracking-tighter mb-6 font-serif">
+                            Tu Mejor Versión <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF6FA7] via-[#FF85B3] to-[#FF6FA7]">Todos los Días. ♡</span>
                         </h1>
-                        <p className="text-lg text-slate-500 font-medium leading-relaxed max-w-xl">
-                            Explora piezas seleccionadas por su diseño, calidad y carácter. Objetos que cuentan una historia en cada detalle.
+                        <p className="text-lg text-[#7C6A72] font-medium leading-relaxed max-w-xl">
+                            Equipamiento de pilates, resistencia, mats y accesorios diseñados para acompañarte a tu propio ritmo, en casa o en el gym.
                         </p>
                     </m.div>
                 </div>
                 {/* Decorative Element */}
-                <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-blue-50/50 to-transparent pointer-events-none" />
+                <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-[#FFE6EF]/50 to-transparent pointer-events-none" />
             </div>
 
             <div className="container mx-auto px-6 pb-20">
                 {/* --- CONTROLS BAR --- */}
-                <div className="sticky top-20 z-40 bg-white/80 backdrop-blur-xl border border-slate-200/60 rounded-[2rem] p-4 mb-12 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
+                <div className="sticky top-20 z-40 bg-white/90 backdrop-blur-xl border border-[#FFD4E2] rounded-[2rem] p-4 mb-12 shadow-sm">
                     <div className="flex flex-col lg:flex-row gap-4 items-center justify-between" suppressHydrationWarning>
                         {/* Search Field */}
                         <div className="relative w-full lg:max-w-md group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#7C6A72] group-focus-within:text-[#FF6FA7] transition-colors" />
                             <Input
-                                placeholder="Busca tu próximo favorito..."
-                                className="h-12 pl-11 bg-slate-50 border-transparent rounded-2xl focus:bg-white focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600 transition-all font-medium"
+                                placeholder="Busca tu banda, mat o accesorio..."
+                                className="h-12 pl-11 bg-[#FFF7F9] border-transparent rounded-2xl focus:bg-white focus:ring-4 focus:ring-[#FF6FA7]/10 focus:border-[#FF6FA7] transition-all font-medium"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />

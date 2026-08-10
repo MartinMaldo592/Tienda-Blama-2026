@@ -28,52 +28,52 @@ export function ContactSection() {
                         </div>
 
                         <div className="relative z-20 space-y-8 flex flex-col items-center">
-                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold tracking-widest uppercase">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FFE6EF] border border-[#FFD4E2] text-[#FF6FA7] text-xs font-bold tracking-widest uppercase">
                                 <span className="relative flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF6FA7] opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF6FA7]"></span>
                                 </span>
-                                Soporte VIP 24/7
+                                Atención Personalizada BLAMA ♡
                             </div>
 
-                            <h3 className="text-4xl md:text-6xl font-black text-foreground leading-[1.1] tracking-tight">
-                                ¿Tienes alguna <br />
-                                <span className="text-primary bg-clip-text text-transparent bg-gradient-to-r from-primary to-violet-600">
-                                    duda con tu pedido?
+                            <h3 className="text-4xl md:text-6xl font-black text-[#2D2D2D] leading-[1.1] tracking-tight">
+                                ¿Tienes dudas sobre <br />
+                                <span className="text-[#FF6FA7] bg-clip-text text-transparent bg-gradient-to-r from-[#FF6FA7] to-[#FF85B3]">
+                                    tu pedido de Pilates o Gym?
                                 </span>
                             </h3>
 
-                            <p className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed">
-                                Nuestro equipo de expertos está listo para asesorarte personalmente y asegurar que tu experiencia sea perfecta.
+                            <p className="text-lg md:text-xl text-[#7C6A72] max-w-xl mx-auto leading-relaxed">
+                                Nuestras asesoras están listas para ayudarte a elegir el equipamiento ideal para entrenar a tu manera.
                             </p>
 
                             <div className="flex flex-wrap justify-center gap-6 py-4">
-                                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                                    <div className="h-6 w-6 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                                        <CheckCircle className="h-4 w-4 text-emerald-500" />
+                                <div className="flex items-center gap-2 text-sm font-medium text-[#7C6A72]">
+                                    <div className="h-6 w-6 rounded-full bg-[#FFE6EF] flex items-center justify-center">
+                                        <CheckCircle className="h-4 w-4 text-[#FF6FA7]" />
                                     </div>
                                     <span>Respuestas inmediatas</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                                    <div className="h-6 w-6 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                                        <CheckCircle className="h-4 w-4 text-emerald-500" />
+                                <div className="flex items-center gap-2 text-sm font-medium text-[#7C6A72]">
+                                    <div className="h-6 w-6 rounded-full bg-[#FFE6EF] flex items-center justify-center">
+                                        <CheckCircle className="h-4 w-4 text-[#FF6FA7]" />
                                     </div>
-                                    <span>Seguimiento real</span>
+                                    <span>Asesoría personalizada</span>
                                 </div>
                             </div>
 
                             <Button
-                                className="group/btn relative mt-4 h-16 px-10 rounded-full bg-black text-white dark:bg-white dark:text-black font-black text-lg transition-all duration-300 hover:scale-105 hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.3)] flex items-center gap-3"
+                                className="group/btn relative mt-4 h-16 px-10 rounded-full bg-[#FF6FA7] hover:bg-[#E0528F] text-white font-black text-lg transition-all duration-300 hover:scale-105 shadow-lg shadow-[#FF6FA7]/30 flex items-center gap-3"
                                 onClick={() => {
                                     sendGTMEvent({
                                         event: 'click_whatsapp',
                                         whatsapp_type: 'seccion_contacto_global'
                                     })
-                                    window.open(`https://api.whatsapp.com/send/?phone=${process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "982432561"}&text=Hola%2C%20quisiera%20m%C3%A1s%20informaci%C3%B3n`, "_blank")
+                                    window.open(`https://api.whatsapp.com/send/?phone=${process.env.NEXT_PUBLIC_WHATSAPP_TIENDA || "958279604"}&text=Hola%20BLAMA%2C%20quisiera%20asesor%C3%ADa%20sobre%20sus%20productos%20de%20Pilates%20y%20Fitness`, "_blank")
                                 }}
                             >
-                                <span>Hablar con un asesor</span>
-                                <div className="bg-white/20 dark:bg-black/10 p-1 rounded-full transition-transform group-hover/btn:translate-x-1">
+                                <span>Hablar con una Asesora</span>
+                                <div className="bg-white/20 p-1 rounded-full transition-transform group-hover/btn:translate-x-1">
                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                     </svg>

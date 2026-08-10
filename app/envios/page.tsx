@@ -1,61 +1,42 @@
 
 export default function PoliticaEnviosPage() {
     return (
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-            <h1 className="text-3xl font-bold mb-2 uppercase tracking-tight">Política de Envíos</h1>
-            <p className="text-muted-foreground mb-8">Última actualización: Febrero 2026</p>
+        <div className="container mx-auto px-4 py-12 max-w-4xl">
+            <div className="text-center mb-10">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#FFE6EF] text-[#FF6FA7] text-xs font-bold mb-3 border border-[#FFD4E2]">
+                    <span>Información al Cliente</span>
+                </div>
+                <h1 className="text-4xl font-extrabold tracking-tight mb-2 text-[#2D2D2D]">Política de Envíos</h1>
+                <p className="text-sm text-[#7C6A72]">BLAMA Fitness • Pilates • Gym • Lifestyle — Última actualización: Febrero 2026</p>
+            </div>
 
-            <div className="prose prose-slate dark:prose-invert max-w-none space-y-8">
+            <div className="bg-white border border-[#FFD4E2] p-8 md:p-12 rounded-3xl shadow-xs space-y-8 text-[#2D2D2D]">
                 <section>
-                    <h2 className="text-xl font-bold mb-2">1. COBERTURA</h2>
-                    <p>
-                        Realizamos envíos a nivel nacional en todo el territorio peruano.
+                    <h2 className="text-xl font-bold mb-2 text-[#FF6FA7]">1. COBERTURA</h2>
+                    <p className="text-[#7C6A72]">
+                        Realizamos envíos a nivel nacional en todo el territorio peruano (Lima Metropolitana y Provincias).
                     </p>
                 </section>
 
                 <section>
-                    <h2 className="text-xl font-bold mb-2">2. TIEMPOS DE ENTREGA</h2>
-                    <ul className="list-disc pl-5 mt-2 space-y-1">
+                    <h2 className="text-xl font-bold mb-2 text-[#FF6FA7]">2. TIEMPOS DE ENTREGA</h2>
+                    <ul className="list-disc pl-5 mt-2 space-y-1 text-[#7C6A72]">
                         <li><strong>Lima Metropolitana:</strong> De 24 a 48 horas hábiles después de confirmado el pedido.</li>
-                        <li><strong>Provincias:</strong> De 2 a 5 días hábiles, dependiendo del destino y la accesibilidad de la zona.</li>
-                    </ul>
-                    <p className="mt-2">
-                        Los tiempos de entrega pueden variar en fechas de alta demanda (Cyber Days, Navidad, etc.).
-                    </p>
-                </section>
-
-                <section>
-                    <h2 className="text-xl font-bold mb-2">3. COSTOS DE ENVÍO</h2>
-                    <p>
-                        El costo de envío se calculará al momento de finalizar la compra, dependiendo del destino y el peso/volumen del paquete.
-                    </p>
-                    <ul className="list-disc pl-5 mt-2 space-y-1">
-                        <li><strong>Lima:</strong> Tarifa plana o variable según distrito.</li>
-                        <li><strong>Provincia:</strong> Pago en destino o tarifa calculada por agencia (Olva Courier / Shalom).</li>
+                        <li><strong>Provincias:</strong> De 2 a 5 días hábiles a través de agencias autorizadas (Olva Courier / Shalom).</li>
                     </ul>
                 </section>
 
                 <section>
-                    <h2 className="text-xl font-bold mb-2">4. PROCESO DE ENTREGA</h2>
-                    <p>
-                        Las entregas se realizan de lunes a sábado en horario de oficina. Es responsabilidad del cliente asegurarse de que haya una persona mayor de edad disponible para recibir el pedido en la dirección indicada.
-                    </p>
-                    <p className="mt-2">
-                        Si no se encuentra a nadie en el domicilio, la empresa de mensajería realizará un segundo intento o dejará un aviso para coordinar el recojo en agencia.
+                    <h2 className="text-xl font-bold mb-2 text-[#FF6FA7]">3. COSTOS DE ENVÍO Y PAGO CONTRAENTREGA</h2>
+                    <p className="text-[#7C6A72]">
+                        Ofrecemos servicio de <strong>pago contraentrega</strong> en Lima Metropolitana. En provincias, enviamos previa coordinación a agencia.
                     </p>
                 </section>
 
                 <section>
-                    <h2 className="text-xl font-bold mb-2">5. SEGUIMIENTO DE PEDIDO</h2>
-                    <p>
-                        Una vez despachado su pedido, recibirá un número de seguimiento (tracking) vía correo electrónico o WhatsApp para que pueda monitorear el estado de su envío.
-                    </p>
-                </section>
-
-                <section>
-                    <h2 className="text-xl font-bold mb-2">6. DAÑOS EN EL TRANSPORTE</h2>
-                    <p>
-                        Si recibe el paquete con signos visibles de daño o manipulación, por favor no lo reciba y contáctenos inmediatamente. Si el producto sufrió daños durante el transporte, gestionaremos el cambio sin costo adicional.
+                    <h2 className="text-xl font-bold mb-2 text-[#FF6FA7]">4. SEGUIMIENTO Y ATENCIÓN</h2>
+                    <p className="text-[#7C6A72]">
+                        Recibirás tu código de seguimiento e información de entrega en tiempo real a través de WhatsApp de nuestras asesoras BLAMA.
                     </p>
                 </section>
             </div>

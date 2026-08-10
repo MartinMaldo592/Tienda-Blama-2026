@@ -126,10 +126,23 @@ export function Header() {
                     </nav>
                 </div>
 
-                {/* Center Area: Logo */}
-                <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center">
-                    <Link href="/" className="text-xl md:text-2xl font-black uppercase tracking-widest text-primary whitespace-nowrap select-none hover:opacity-90 transition-opacity">
-                        BLAMA SHOP
+                {/* Center Area: Logo & Brand Tagline */}
+                <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center justify-center">
+                    <Link href="/" className="group flex flex-col items-center select-none">
+                        <div className="flex items-center gap-1.5">
+                            {/* Lotus / Pilates Brand Icon */}
+                            <svg className="w-5 h-5 md:w-6 md:h-6 text-[#FF6FA7] transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C10 5 7 8 7 12c0 3 2.5 5 5 5s5-2 5-5c0-4-3-7-5-10zm0 13c-1.6 0-3-1.3-3-3 0-2.2 1.8-4.5 3-6.5 1.2 2 3 4.3 3 6.5 0 1.7-1.4 3-3 3z" />
+                                <path d="M6 14c-2 0-4-1-5-3 2 0 4.5.5 6 2 1.5 1.5 1.5 3 1.5 3s-.5-2-2.5-2z" opacity="0.7"/>
+                                <path d="M18 14c2 0 4-1 5-3-2 0-4.5.5-6 2-1.5 1.5-1.5 3-1.5 3s.5-2 2.5-2z" opacity="0.7"/>
+                            </svg>
+                            <span className="text-xl md:text-2xl font-black lowercase tracking-wider text-[#FF6FA7] font-serif leading-none">
+                                blama
+                            </span>
+                        </div>
+                        <span className="text-[8px] md:text-[9px] font-extrabold tracking-[0.25em] text-[#2D2D2D] uppercase mt-0.5 opacity-90">
+                            Fitness • Pilates • Lifestyle
+                        </span>
                     </Link>
                 </div>
 

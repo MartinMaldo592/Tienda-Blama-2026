@@ -135,8 +135,8 @@ export const CheckoutSummary = memo(function CheckoutSummary({
             {customButton ? (
                 customButton
             ) : (
-                <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 h-14 text-lg font-bold shadow-sm" disabled={isSubmitting}>
-                    {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</> : "🛵  Confirmar Pedido"}
+                <Button type="submit" className="w-full bg-[#FF6FA7] hover:bg-[#E0528F] text-white h-14 text-lg font-black rounded-full shadow-md shadow-[#FF6FA7]/20" disabled={isSubmitting}>
+                    {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Procesando...</> : "🌸  Confirmar Pedido BLAMA"}
                 </Button>
             )}
         </div>

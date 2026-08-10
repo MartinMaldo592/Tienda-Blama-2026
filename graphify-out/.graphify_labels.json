@@ -1,6 +1,6 @@
 {
   "0": "button.tsx",
-  "1": "order-file-card.tsx",
+  "1": "create-order-modal.tsx",
   "2": "useCheckoutForm.ts",
   "3": "product-form.tsx",
   "4": "newsletter-welcome.tsx",
@@ -107,6 +107,7 @@
   "105": "📦 Instrucciones Paso a Paso",
   "106": "Arquitectura Técnica - Tienda Blama 2026",
   "107": "README.md",
+  "108": "order-label-generator.tsx",
   "109": "Lógica de Negocio y Flujo de Operaciones",
   "112": "Common KPIs by Department",
   "115": "Informe de Mejoras e Implementaciones - Tienda Blama 2026",

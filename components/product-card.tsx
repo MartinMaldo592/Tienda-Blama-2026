@@ -103,12 +103,12 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
             {/* --- CONTENT --- */}
             <div className="p-5 flex flex-col flex-grow">
                 {/* Badge */}
-                <div className="bg-black text-white text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full flex items-center gap-1.5 w-fit mb-2.5">
+                <div className="bg-[#FF6FA7] text-white text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full flex items-center gap-1.5 w-fit mb-2.5 shadow-xs">
                     <Flame size={12} className="text-white" fill="currentColor" />
-                    ¡LO MÁS VENDIDO!
+                    COLECCIÓN BLAMA
                 </div>
                 <Link href={productHref} prefetch={false} className="mb-2 block">
-                    <h3 className="text-[17px] font-black text-slate-900 leading-tight line-clamp-2 h-[42px] overflow-hidden hover:text-blue-600 transition-colors">
+                    <h3 className="text-[17px] font-black text-[#2D2D2D] leading-tight line-clamp-2 h-[42px] overflow-hidden hover:text-[#FF6FA7] transition-colors">
                         {product.nombre}
                     </h3>
                 </Link>
@@ -116,7 +116,7 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
                 <div className="mt-auto space-y-4">
                     {/* Price Row */}
                     <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-3xl font-black text-[#1e3a8a] tracking-tight">
+                        <span className="text-3xl font-black text-[#FF6FA7] tracking-tight">
                             {formatCurrency(currentPrice)}
                         </span>
                         
@@ -125,7 +125,7 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
                                 <span className="text-sm text-slate-400 line-through font-medium">
                                     {formatCurrency(beforePrice)}
                                 </span>
-                                <div className="h-6 w-6 rounded-full bg-green-50 border border-green-200 text-green-600 flex items-center justify-center text-[10px] font-bold">
+                                <div className="h-6 px-2 rounded-full bg-[#FFE6EF] border border-[#FFD4E2] text-[#FF6FA7] flex items-center justify-center text-[10px] font-bold">
                                     -{discountPercent}%
                                 </div>
                             </div>
@@ -134,12 +134,12 @@ export function ProductCard({ product, imagePriority = false }: ProductCardProps
 
                     {/* Timer Box / Stock Availability Box (Uniform height h-[58px]) */}
                     {hasSale ? (
-                        <div className="flex items-center justify-between bg-[#f4f8fe] border border-[#e2e8f0] rounded-2xl p-3 h-[58px]">
+                        <div className="flex items-center justify-between bg-[#FFF7F9] border border-[#FFD4E2] rounded-2xl p-3 h-[58px]">
                             <div className="flex flex-col">
-                                <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest leading-none mb-1">Oferta</span>
-                                <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest leading-none">Expira en :</span>
+                                <span className="text-[10px] font-black text-[#FF6FA7] uppercase tracking-widest leading-none mb-1">Oferta Especial</span>
+                                <span className="text-[10px] font-black text-[#7C6A72] uppercase tracking-widest leading-none">Expira en :</span>
                             </div>
-                            <div className="flex items-center gap-1.5 text-[#1e3a8a] font-black text-xl tracking-wider">
+                            <div className="flex items-center gap-1.5 text-[#FF6FA7] font-black text-xl tracking-wider">
                                 <span>{timeLeft.m < 10 ? `0${timeLeft.m}` : timeLeft.m}</span>
                                 <span className="animate-pulse">:</span>
                                 <span>{timeLeft.s < 10 ? `0${timeLeft.s}` : timeLeft.s}</span>

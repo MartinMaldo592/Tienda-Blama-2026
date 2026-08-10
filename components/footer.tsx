@@ -99,21 +99,36 @@ export function Footer() {
     const showDefaults = !loading && socialLinks.length === 0
 
     return (
-        <footer className="bg-[#09090b] text-gray-300 py-16 mt-auto border-t border-gray-800">
+        <footer className="bg-[#1C1819] text-gray-300 py-16 mt-auto border-t border-[#FFD4E2]/20">
             <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
                 {/* Brand */}
                 <div className="space-y-4">
-                    <h3 className="text-2xl font-bold text-white tracking-tight">BLAMA SHOP</h3>
-                    <p className="text-sm leading-relaxed text-gray-400">
-                        Tu tienda online favorita con la mejor variedad de productos en tendencia.
+                    <div className="flex flex-col items-start">
+                        <div className="flex items-center gap-2">
+                            <svg className="w-6 h-6 text-[#FF6FA7]" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C10 5 7 8 7 12c0 3 2.5 5 5 5s5-2 5-5c0-4-3-7-5-10zm0 13c-1.6 0-3-1.3-3-3 0-2.2 1.8-4.5 3-6.5 1.2 2 3 4.3 3 6.5 0 1.7-1.4 3-3 3z" />
+                                <path d="M6 14c-2 0-4-1-5-3 2 0 4.5.5 6 2 1.5 1.5 1.5 3 1.5 3s-.5-2-2.5-2z" opacity="0.7"/>
+                                <path d="M18 14c2 0 4-1 5-3-2 0-4.5.5-6 2-1.5 1.5-1.5 3-1.5 3s.5-2 2.5-2z" opacity="0.7"/>
+                            </svg>
+                            <span className="text-3xl font-black text-[#FF6FA7] font-serif lowercase">blama</span>
+                        </div>
+                        <span className="text-[9px] font-extrabold tracking-[0.25em] text-[#FFB6C9] uppercase mt-0.5">
+                            Fitness • Pilates • Lifestyle
+                        </span>
+                    </div>
+                    <p className="text-sm italic text-[#FFB6C9] font-serif">
+                        "tu mejor versión, todos los días. ♡"
                     </p>
-                    <div className="space-y-2 text-sm text-gray-400 pt-2">
+                    <p className="text-xs leading-relaxed text-gray-400">
+                        Equipamiento premium de pilates, gimnasio y accesorios deportivos diseñados para mujeres en Perú.
+                    </p>
+                    <div className="space-y-2 text-xs text-gray-400 pt-2">
                         <div className="flex items-center gap-2">
                             <span className="font-bold text-white shrink-0">Email:</span>
-                            <span>{["soporte", "blamashop.com"].join("@")}</span>
+                            <span>{["hola", "blama.shop"].join("@")}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="font-bold text-white shrink-0">Teléfono:</span>
+                            <span className="font-bold text-white shrink-0">WhatsApp:</span>
                             <span>+51 958 279 604</span>
                         </div>
                     </div>

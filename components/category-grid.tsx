@@ -20,8 +20,8 @@ export function CategoryGrid({ categories }: { categories: Category[] }) {
         <section className="py-8 px-4 max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
-                    <LayoutGrid className="w-5 h-5 text-primary" />
-                    <h3 className="text-xl md:text-2xl font-bold tracking-tight">Explora por Categoría</h3>
+                    <LayoutGrid className="w-5 h-5 text-[#FF6FA7]" />
+                    <h3 className="text-xl md:text-2xl font-bold tracking-tight text-[#2D2D2D]">Explora por Categoría</h3>
                 </div>
             </div>
 
@@ -32,16 +32,16 @@ export function CategoryGrid({ categories }: { categories: Category[] }) {
                         key={cat.id}
                         href={`/productos?cat=${cat.id}`}
                         prefetch={false}
-                        className="group shrink-0 relative flex items-center gap-2.5 px-6 py-3 rounded-full bg-white border border-gray-200 hover:border-gray-900 hover:bg-gray-900 hover:text-white transition-all duration-300 shadow-sm hover:shadow-md active:scale-95 snap-start"
+                        className="group shrink-0 relative flex items-center gap-2.5 px-6 py-3 rounded-full bg-white border border-[#FFD4E2] hover:border-[#FF6FA7] hover:bg-[#FF6FA7] hover:text-white transition-all duration-300 shadow-sm hover:shadow-md active:scale-95 snap-start text-[#2D2D2D]"
                     >
-                        <Tag className="w-4 h-4 text-gray-400 group-hover:text-white/90 transition-colors" />
+                        <Tag className="w-4 h-4 text-[#FF6FA7] group-hover:text-white transition-colors" />
                         <span className="text-sm font-bold tracking-wide whitespace-nowrap">{cat.nombre}</span>
 
-                        {/* Optional: New badge for first items if desired */}
+                        {/* Optional: New badge indicator */}
                         {i < 2 && (
                             <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-3 w-3 bg-sky-500"></span>
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF6FA7] opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-[#FF6FA7]"></span>
                             </span>
                         )}
                     </Link>

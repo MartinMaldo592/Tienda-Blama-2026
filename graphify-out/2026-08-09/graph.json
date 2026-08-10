@@ -692,8 +692,8 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "app_admin_pedidos_id_page_orderlabelgenerator",
-      "community": 173,
-      "community_name": "order-label-generator.tsx",
+      "community": 50,
+      "community_name": "pedidos/[id]/page.tsx",
       "norm_label": "orderlabelgenerator"
     },
     {
@@ -3535,8 +3535,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_ui_dialog",
-      "community": 1,
-      "community_name": "create-order-modal.tsx",
+      "community": 35,
+      "community_name": "pedidos/page.tsx",
       "norm_label": "dialog.tsx"
     },
     {
@@ -3546,8 +3546,8 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "components_ui_dialog_dialogoverlay",
-      "community": 1,
-      "community_name": "create-order-modal.tsx",
+      "community": 35,
+      "community_name": "pedidos/page.tsx",
       "norm_label": "dialogoverlay"
     },
     {
@@ -3557,8 +3557,8 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "components_ui_dialog_dialogcontent",
-      "community": 1,
-      "community_name": "create-order-modal.tsx",
+      "community": 35,
+      "community_name": "pedidos/page.tsx",
       "norm_label": "dialogcontent"
     },
     {
@@ -3569,8 +3569,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "components_ui_dialog_dialogheader",
-      "community": 1,
-      "community_name": "create-order-modal.tsx",
+      "community": 35,
+      "community_name": "pedidos/page.tsx",
       "norm_label": "dialogheader()"
     },
     {
@@ -3592,8 +3592,8 @@
       "source_location": "L84",
       "_origin": "ast",
       "id": "components_ui_dialog_dialogtitle",
-      "community": 1,
-      "community_name": "create-order-modal.tsx",
+      "community": 35,
+      "community_name": "pedidos/page.tsx",
       "norm_label": "dialogtitle"
     },
     {
@@ -3603,8 +3603,8 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "components_ui_dialog_dialogdescription",
-      "community": 1,
-      "community_name": "create-order-modal.tsx",
+      "community": 35,
+      "community_name": "pedidos/page.tsx",
       "norm_label": "dialogdescription"
     },
     {
@@ -4846,8 +4846,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "features_admin_components_orders_create_order_modal",
-      "community": 1,
-      "community_name": "create-order-modal.tsx",
+      "community": 35,
+      "community_name": "pedidos/page.tsx",
       "norm_label": "create-order-modal.tsx"
     },
     {
@@ -4859,8 +4859,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "features_admin_components_orders_create_order_modal_createordermodalprops",
-      "community": 1,
-      "community_name": "create-order-modal.tsx",
+      "community": 35,
+      "community_name": "pedidos/page.tsx",
       "norm_label": "createordermodalprops"
     },
     {
@@ -4872,8 +4872,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "features_admin_components_orders_create_order_modal_selecteditem",
-      "community": 1,
-      "community_name": "create-order-modal.tsx",
+      "community": 35,
+      "community_name": "pedidos/page.tsx",
       "norm_label": "selecteditem"
     },
     {
@@ -4944,7 +4944,7 @@
       "_origin": "ast",
       "id": "features_admin_components_orders_order_file_card",
       "community": 1,
-      "community_name": "create-order-modal.tsx",
+      "community_name": "order-file-card.tsx",
       "norm_label": "order-file-card.tsx"
     },
     {
@@ -4957,7 +4957,7 @@
       "_origin": "ast",
       "id": "features_admin_components_orders_order_file_card_orderfilecardprops",
       "community": 1,
-      "community_name": "create-order-modal.tsx",
+      "community_name": "order-file-card.tsx",
       "norm_label": "orderfilecardprops"
     },
     {
@@ -4968,7 +4968,7 @@
       "_origin": "ast",
       "id": "features_admin_components_orders_order_file_card_accent_map",
       "community": 1,
-      "community_name": "create-order-modal.tsx",
+      "community_name": "order-file-card.tsx",
       "norm_label": "accent_map"
     },
     {
@@ -4980,7 +4980,7 @@
       "_origin": "ast",
       "id": "features_admin_components_orders_order_file_card_inputid",
       "community": 1,
-      "community_name": "create-order-modal.tsx",
+      "community_name": "order-file-card.tsx",
       "norm_label": "inputid()"
     },
     {
@@ -4992,7 +4992,7 @@
       "_origin": "ast",
       "id": "features_admin_components_orders_order_file_card_isimage",
       "community": 1,
-      "community_name": "create-order-modal.tsx",
+      "community_name": "order-file-card.tsx",
       "norm_label": "isimage()"
     },
     {
@@ -5004,7 +5004,7 @@
       "_origin": "ast",
       "id": "features_admin_components_orders_order_file_card_ispdf",
       "community": 1,
-      "community_name": "create-order-modal.tsx",
+      "community_name": "order-file-card.tsx",
       "norm_label": "ispdf()"
     },
     {
@@ -5016,7 +5016,7 @@
       "_origin": "ast",
       "id": "features_admin_components_orders_order_file_card_orderfilecard",
       "community": 1,
-      "community_name": "create-order-modal.tsx",
+      "community_name": "order-file-card.tsx",
       "norm_label": "orderfilecard()"
     },
     {
@@ -5121,8 +5121,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "features_admin_components_orders_order_label_generator",
-      "community": 173,
-      "community_name": "order-label-generator.tsx",
+      "community": 50,
+      "community_name": "pedidos/[id]/page.tsx",
       "norm_label": "order-label-generator.tsx"
     },
     {
@@ -5134,8 +5134,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "features_admin_components_orders_order_label_generator_orderlabelgeneratorprops",
-      "community": 173,
-      "community_name": "order-label-generator.tsx",
+      "community": 50,
+      "community_name": "pedidos/[id]/page.tsx",
       "norm_label": "orderlabelgeneratorprops"
     },
     {
@@ -5146,8 +5146,8 @@
       "_callable": true,
       "_origin": "ast",
       "id": "features_admin_components_orders_order_label_generator_orderlabelgenerator",
-      "community": 173,
-      "community_name": "order-label-generator.tsx",
+      "community": 50,
+      "community_name": "pedidos/[id]/page.tsx",
       "norm_label": "orderlabelgenerator()"
     },
     {
@@ -5549,7 +5549,7 @@
       "_origin": "ast",
       "id": "features_admin_components_pdf_preview_modal",
       "community": 1,
-      "community_name": "create-order-modal.tsx",
+      "community_name": "order-file-card.tsx",
       "norm_label": "pdf-preview-modal.tsx"
     },
     {
@@ -5562,7 +5562,7 @@
       "_origin": "ast",
       "id": "features_admin_components_pdf_preview_modal_pdfpreviewmodalprops",
       "community": 1,
-      "community_name": "create-order-modal.tsx",
+      "community_name": "order-file-card.tsx",
       "norm_label": "pdfpreviewmodalprops"
     },
     {
@@ -5574,7 +5574,7 @@
       "_origin": "ast",
       "id": "features_admin_components_pdf_preview_modal_pdfpreviewmodal",
       "community": 1,
-      "community_name": "create-order-modal.tsx",
+      "community_name": "order-file-card.tsx",
       "norm_label": "pdfpreviewmodal()"
     },
     {
@@ -6498,7 +6498,7 @@
       "label": "fetchAdminRecentOrders()",
       "file_type": "code",
       "source_file": "features/admin/services/dashboard.client.ts",
-      "source_location": "L149",
+      "source_location": "L177",
       "_callable": true,
       "_origin": "ast",
       "id": "features_admin_services_dashboard_client_fetchadminrecentorders",
@@ -6510,7 +6510,7 @@
       "label": "fetchAdminTopProducts()",
       "file_type": "code",
       "source_file": "features/admin/services/dashboard.client.ts",
-      "source_location": "L164",
+      "source_location": "L192",
       "_callable": true,
       "_origin": "ast",
       "id": "features_admin_services_dashboard_client_fetchadmintopproducts",
@@ -6755,8 +6755,8 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "features_admin_services_pedidos_client_manualpedidoitem",
-      "community": 1,
-      "community_name": "create-order-modal.tsx",
+      "community": 35,
+      "community_name": "pedidos/page.tsx",
       "norm_label": "manualpedidoitem"
     },
     {
@@ -11070,8 +11070,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "package_dependencies_aws_sdk_client_s3",
-      "community": 28,
-      "community_name": "dependencies",
+      "community": 97,
+      "community_name": "@aws-sdk/client-s3",
       "norm_label": "@aws-sdk/client-s3"
     },
     {
@@ -11081,8 +11081,8 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "aws_sdk_client_s3",
-      "community": 28,
-      "community_name": "dependencies",
+      "community": 97,
+      "community_name": "@aws-sdk/client-s3",
       "norm_label": "@aws-sdk/client-s3"
     },
     {
@@ -11576,8 +11576,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "package_dependencies_lenis",
-      "community": 131,
-      "community_name": "lenis",
+      "community": 28,
+      "community_name": "dependencies",
       "norm_label": "lenis"
     },
     {
@@ -11587,8 +11587,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "lenis",
-      "community": 131,
-      "community_name": "lenis",
+      "community": 28,
+      "community_name": "dependencies",
       "norm_label": "lenis"
     },
     {
@@ -42074,7 +42074,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "features/admin/services/dashboard.client.ts",
-      "source_location": "L149",
+      "source_location": "L177",
       "weight": 1.0,
       "_origin": "ast",
       "source": "features_admin_services_dashboard_client",
@@ -42107,7 +42107,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "features/admin/services/dashboard.client.ts",
-      "source_location": "L164",
+      "source_location": "L192",
       "weight": 1.0,
       "_origin": "ast",
       "source": "features_admin_services_dashboard_client",
@@ -42296,7 +42296,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "features/admin/services/dashboard.client.ts",
-      "source_location": "L150",
+      "source_location": "L178",
       "weight": 1.0,
       "_origin": "ast",
       "source": "features_admin_services_dashboard_client_fetchadminrecentorders",
@@ -42308,7 +42308,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "features/admin/services/dashboard.client.ts",
-      "source_location": "L165",
+      "source_location": "L193",
       "weight": 1.0,
       "_origin": "ast",
       "source": "features_admin_services_dashboard_client_fetchadmintopproducts",
@@ -54555,5 +54555,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "bfa5ca47fff3fc17c8beb1a8017ec861d4fad5b6"
+  "built_at_commit": "7299b8f4cd943dc5e2f8c2a25ff78c87c4c33abd"
 }

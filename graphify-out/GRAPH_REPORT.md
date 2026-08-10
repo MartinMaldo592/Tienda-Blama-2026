@@ -1,22 +1,22 @@
 # Graph Report - Tienda-Blama-2026  (2026-08-09)
 
 ## Corpus Check
-- 316 files · ~167,435 words
+- 316 files · ~168,259 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1440 nodes · 3256 edges · 158 communities (79 shown, 79 thin omitted)
+- 1440 nodes · 3256 edges · 159 communities (79 shown, 80 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 8 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `7299b8f4`
+- Built from commit: `ea71eab4`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - button.tsx
-- order-file-card.tsx
+- create-order-modal.tsx
 - useCheckoutForm.ts
 - product-form.tsx
 - newsletter-welcome.tsx
@@ -109,6 +109,7 @@
 - 📦 Instrucciones Paso a Paso
 - Arquitectura Técnica - Tienda Blama 2026
 - README.md
+- order-label-generator.tsx
 - Lógica de Negocio y Flujo de Operaciones
 - Common KPIs by Department
 - Informe de Mejoras e Implementaciones - Tienda Blama 2026
@@ -187,15 +188,15 @@
 ## Import Cycles
 - None detected.
 
-## Communities (158 total, 79 thin omitted)
+## Communities (159 total, 80 thin omitted)
 
 ### Community 0 - "button.tsx"
 Cohesion: 0.07
 Nodes (81): AdminAnnouncementBarPage(), normalizeMessages(), parseBoolVal(), toBoolVal(), AuditPage(), ClientesPage(), CouponRow, CouponType (+73 more)
 
-### Community 1 - "order-file-card.tsx"
-Cohesion: 0.29
-Nodes (8): ACCENT_MAP, inputId(), isImage(), isPdf(), OrderFileCard(), OrderFileCardProps, PDFPreviewModal(), PDFPreviewModalProps
+### Community 1 - "create-order-modal.tsx"
+Cohesion: 0.16
+Nodes (16): DialogContent, DialogDescription, DialogHeader(), DialogOverlay, DialogTitle, CreateOrderModalProps, SelectedItem, ACCENT_MAP (+8 more)
 
 ### Community 2 - "useCheckoutForm.ts"
 Cohesion: 0.14
@@ -326,8 +327,8 @@ Cohesion: 0.16
 Nodes (19): SheetDescription(), ProductosClientProps, countProducts(), CountProductsParams, listCategories(), listProducts(), ListProductsParams, ListProductsResult (+11 more)
 
 ### Community 35 - "pedidos/page.tsx"
-Cohesion: 0.15
-Nodes (22): PedidosPageContent(), DialogContent, DialogDescription, DialogHeader(), DialogOverlay, DialogTitle, CreateOrderModal(), CreateOrderModalProps (+14 more)
+Cohesion: 0.21
+Nodes (14): PedidosPageContent(), CreateOrderModal(), OrdersBulkActions(), OrdersFilterBar(), assignPedidoToWorker(), BulkStockError, checkBulkStockSufficient(), createManualPedido() (+6 more)
 
 ### Community 36 - "🔑 Guía de Accesos y Automatización de Google Tag Manager (GTM)"
 Cohesion: 0.12
@@ -350,8 +351,8 @@ Cohesion: 0.33
 Nodes (11): buildDescription(), buildProductUrl(), generateMetadata(), generateStaticParams(), parseProductIdentifier(), ProductoDetallePage(), revalidate, createAnonServerClient() (+3 more)
 
 ### Community 50 - "pedidos/[id]/page.tsx"
-Cohesion: 0.11
-Nodes (22): OrderLabelGenerator, PedidoDetallePage(), PedidoTicketPage(), Tabs(), TabsContent(), TabsList(), tabsListVariants, TabsTrigger() (+14 more)
+Cohesion: 0.13
+Nodes (20): PedidoDetallePage(), PedidoTicketPage(), Tabs(), TabsContent(), TabsList(), tabsListVariants, TabsTrigger(), OrderCustomerCard() (+12 more)
 
 ### Community 51 - "success/page.tsx"
 Cohesion: 0.28
@@ -452,16 +453,16 @@ Nodes (5): ACTION_STYLES, getActionStyle(), OrderHistoryCard(), OrderHistoryCard
 ## Knowledge Gaps
 - **569 isolated node(s):** `CouponType`, `CouponRow`, `PROCESS_STATUSES`, `ProcessStatus`, `StatusFilter` (+564 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **79 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **80 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `createClient()` connect `createClient` to `button.tsx`, `ProductosClient.tsx`, `useCheckoutForm.ts`, `pedidos/page.tsx`, `cart-button.tsx`, `useProductDetail.ts`, `header.tsx`, `products.ts`, `dashboard/page.tsx`, `utils.ts`, `pedidos/[id]/page.tsx`, `success/page.tsx`, `supabase.client.ts`, `admin/types.ts`, `app/layout.tsx`, `uploadToR2`, `product-social-proof.tsx`?**
   _High betweenness centrality (0.066) - this node is a cross-community bridge._
-- **Why does `Button()` connect `button.tsx` to `order-file-card.tsx`, `product-form.tsx`, `sendGTMEvent`, `cart-button.tsx`, `dashboard/page.tsx`, `producto-detalle-client.tsx`, `utils.ts`, `libro-reclamaciones/page.tsx`, `formatCurrency`, `admin/types.ts`, `app/page.tsx`, `ProductosClient.tsx`, `pedidos/page.tsx`, `useProductDetail.ts`, `pedidos/[id]/page.tsx`, `success/page.tsx`, `not-found.tsx`, `cn`, `product-social-proof.tsx`?**
+- **Why does `Button()` connect `button.tsx` to `create-order-modal.tsx`, `product-form.tsx`, `sendGTMEvent`, `cart-button.tsx`, `dashboard/page.tsx`, `producto-detalle-client.tsx`, `utils.ts`, `libro-reclamaciones/page.tsx`, `formatCurrency`, `admin/types.ts`, `app/page.tsx`, `ProductosClient.tsx`, `pedidos/page.tsx`, `useProductDetail.ts`, `pedidos/[id]/page.tsx`, `success/page.tsx`, `not-found.tsx`, `order-label-generator.tsx`, `cn`, `product-social-proof.tsx`?**
   _High betweenness centrality (0.039) - this node is a cross-community bridge._
-- **Why does `formatCurrency()` connect `formatCurrency` to `button.tsx`, `useCheckoutForm.ts`, `pedidos/page.tsx`, `cart-button.tsx`, `useProductDetail.ts`, `header.tsx`, `products.ts`, `dashboard/page.tsx`, `producto-detalle-client.tsx`, `utils.ts`, `libro-reclamaciones/page.tsx`, `pedidos/[id]/page.tsx`, `success/page.tsx`, `cn`?**
+- **Why does `formatCurrency()` connect `formatCurrency` to `button.tsx`, `create-order-modal.tsx`, `useCheckoutForm.ts`, `pedidos/page.tsx`, `cart-button.tsx`, `useProductDetail.ts`, `header.tsx`, `products.ts`, `dashboard/page.tsx`, `producto-detalle-client.tsx`, `utils.ts`, `libro-reclamaciones/page.tsx`, `pedidos/[id]/page.tsx`, `success/page.tsx`, `cn`?**
   _High betweenness centrality (0.017) - this node is a cross-community bridge._
 - **What connects `CouponType`, `CouponRow`, `PROCESS_STATUSES` to the rest of the system?**
   _569 weakly-connected nodes found - possible documentation gaps or missing edges._
