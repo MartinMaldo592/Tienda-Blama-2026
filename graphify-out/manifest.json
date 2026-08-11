@@ -180,8 +180,8 @@
     "semantic_hash": ""
   },
   "app/api/webhooks/culqi/route.ts": {
-    "mtime": 1786406481.1709425,
-    "ast_hash": "0d8feb16cf8e8c62003ce8e200a84205",
+    "mtime": 1786407510.3650036,
+    "ast_hash": "b10d15bebb24a3b76665a1834ea1b5b9",
     "semantic_hash": ""
   },
   "app/auth/actions.ts": {
@@ -200,9 +200,9 @@
     "semantic_hash": "1123cdff5f94d101d7d46a435defb848"
   },
   "app/auth/login/page.tsx": {
-    "mtime": 1786239905.3757746,
-    "ast_hash": "24106b7b3c385df1806ddfaa40be71a3",
-    "semantic_hash": "24106b7b3c385df1806ddfaa40be71a3"
+    "mtime": 1786407896.0085957,
+    "ast_hash": "511a672f7cfb56d865040f0e81c3d19a",
+    "semantic_hash": ""
   },
   "app/auth/update-password/page.tsx": {
     "mtime": 1786239905.3777814,
@@ -210,7 +210,7 @@
     "semantic_hash": "f68c6893ae5a935e907873e0d034bcb5"
   },
   "app/checkout/page.tsx": {
-    "mtime": 1786404483.623257,
+    "mtime": 1786407510.367161,
     "ast_hash": "c855d7b3ba5e2b7cbb271e8871491186",
     "semantic_hash": ""
   },
@@ -350,7 +350,7 @@
     "semantic_hash": ""
   },
   "components/cart-button.tsx": {
-    "mtime": 1786404817.435293,
+    "mtime": 1786407510.3795624,
     "ast_hash": "925107e2259e43965d341122e9f36400",
     "semantic_hash": ""
   },
@@ -370,7 +370,7 @@
     "semantic_hash": ""
   },
   "components/header.tsx": {
-    "mtime": 1786404002.870509,
+    "mtime": 1786407510.3830605,
     "ast_hash": "f7638d8907f499c25ebd858158e94213",
     "semantic_hash": ""
   },
@@ -815,28 +815,28 @@
     "semantic_hash": "1e3da90cd4cb690fc754ba10a5d10626"
   },
   "features/checkout/components/checkout-address.tsx": {
-    "mtime": 1786406184.9353504,
-    "ast_hash": "323e2ebdb11f5e71ce818cf3739d9c8b",
+    "mtime": 1786407510.3860023,
+    "ast_hash": "b66e9b20097aa5fd7a4d911d828f1578",
     "semantic_hash": ""
   },
   "features/checkout/components/checkout-customer.tsx": {
-    "mtime": 1786405278.993898,
-    "ast_hash": "b86655cff154ad86e436d7eaf4eac9cb",
+    "mtime": 1786407510.3869898,
+    "ast_hash": "82f8d4a1dec6923b131a5f1fbae055cb",
     "semantic_hash": ""
   },
   "features/checkout/components/checkout-form.tsx": {
-    "mtime": 1786406685.4144585,
-    "ast_hash": "d23a1c871c199805d0fe2a936cfb331b",
+    "mtime": 1786408434.5809555,
+    "ast_hash": "cfd75ca336c591fac97dc4ba4710b449",
     "semantic_hash": ""
   },
   "features/checkout/components/checkout-payment.tsx": {
-    "mtime": 1786405311.921829,
-    "ast_hash": "4237cf81fafab60eca0d12d0cb490db3",
+    "mtime": 1786407510.394125,
+    "ast_hash": "e1fec39389c93d7e84ef32ec51655296",
     "semantic_hash": ""
   },
   "features/checkout/components/checkout-shipping.tsx": {
-    "mtime": 1786405227.4006326,
-    "ast_hash": "1e4bfb2175234c932f5240dd0fcd4530",
+    "mtime": 1786407510.394125,
+    "ast_hash": "ecd94693111a2128a85d3ea7aacc631b",
     "semantic_hash": ""
   },
   "features/checkout/components/checkout-summary.tsx": {
@@ -845,8 +845,8 @@
     "semantic_hash": ""
   },
   "features/checkout/components/culqi-payment-button.tsx": {
-    "mtime": 1786407349.6651468,
-    "ast_hash": "a84e8ecd42f0ebe9b231349895e3af5f",
+    "mtime": 1786407510.4012997,
+    "ast_hash": "8b3e91c9a3d3fdd9573e936254eed96f",
     "semantic_hash": ""
   },
   "features/checkout/components/quick-checkout-modal.tsx": {
@@ -875,8 +875,8 @@
     "semantic_hash": "047d20a75ffa173c1047734bae5f294b"
   },
   "features/checkout/hooks/useCheckoutForm.ts": {
-    "mtime": 1786406098.8183944,
-    "ast_hash": "7af7d5fcacac01c5015474cf97580ae5",
+    "mtime": 1786408450.3398788,
+    "ast_hash": "63d22b71945398ed7e03e7ea8ebd591e",
     "semantic_hash": ""
   },
   "features/checkout/index.ts": {
@@ -1090,12 +1090,12 @@
     "semantic_hash": "9d9a8f281813954dd6b1bda5dc87566a"
   },
   "types/database.types.ts": {
-    "mtime": 1786403912.8317225,
-    "ast_hash": "b67c1de78397d9958e4ff0582c813712",
+    "mtime": 1786407896.0114894,
+    "ast_hash": "40e69090446c98f3945ea877ac6028f1",
     "semantic_hash": ""
   },
   "features/checkout/engine/checkout-engine.ts": {
-    "mtime": 1786404048.0104473,
+    "mtime": 1786407510.4020581,
     "ast_hash": "c00021fda2e0552b882830ca91fb57c2",
     "semantic_hash": ""
   },
@@ -1475,23 +1475,23 @@
     "semantic_hash": ""
   },
   "app/cuenta/actions.ts": {
-    "mtime": 1786403920.2399743,
-    "ast_hash": "486a64647e94d4ad6df5127a85c6fc82",
+    "mtime": 1786407510.3688498,
+    "ast_hash": "aaa4dece471173d6a4493887ca2c3e88",
     "semantic_hash": ""
   },
   "app/cuenta/login/page.tsx": {
-    "mtime": 1786403927.2967422,
-    "ast_hash": "84a68bce0b004864f1f24e3e90bfb2fe",
+    "mtime": 1786407510.3688498,
+    "ast_hash": "34dbc6cc26c95f90d4d3995903c8826e",
     "semantic_hash": ""
   },
   "app/cuenta/registro/page.tsx": {
-    "mtime": 1786403934.3166144,
-    "ast_hash": "2928e7b70f64a54ce7b25c0f53c45709",
+    "mtime": 1786407510.3688498,
+    "ast_hash": "8ee5629ed8711d52e7aa5f286a1f9a45",
     "semantic_hash": ""
   },
   "app/mi-cuenta/page.tsx": {
-    "mtime": 1786403972.263492,
-    "ast_hash": "097751ee16c3f1507725d8ccd6179f83",
+    "mtime": 1786407510.3688498,
+    "ast_hash": "89f26e77475a29b5215e526ad1b285b8",
     "semantic_hash": ""
   },
   "app/promociones/page.tsx": {
@@ -1500,23 +1500,23 @@
     "semantic_hash": ""
   },
   "features/user-profile/components/orders-tab.tsx": {
-    "mtime": 1786403950.3456872,
-    "ast_hash": "4c2b7b9e180e85c92fbf489afd3449a3",
+    "mtime": 1786407510.4020581,
+    "ast_hash": "ac21d78fe8f3c8aa81dfc2ed8d906baf",
     "semantic_hash": ""
   },
   "features/user-profile/components/overview-tab.tsx": {
-    "mtime": 1786403942.5748172,
-    "ast_hash": "b97650cffa0934f0dcf42c75af42abf5",
+    "mtime": 1786407510.4020581,
+    "ast_hash": "c5c3fd14733f09c8a7040547a5e44dd8",
     "semantic_hash": ""
   },
   "features/user-profile/components/points-tab.tsx": {
-    "mtime": 1786403963.7840257,
-    "ast_hash": "8a18f13591ea7ac93175c2c20cdab03b",
+    "mtime": 1786407510.421112,
+    "ast_hash": "82fb3f1e3805dba963a335cbc859ae40",
     "semantic_hash": ""
   },
   "features/user-profile/components/profile-tab.tsx": {
-    "mtime": 1786403957.462186,
-    "ast_hash": "cef9f692a7690c86398de1cb1d847f7c",
+    "mtime": 1786407510.421112,
+    "ast_hash": "d9ffeee8afbed5b7fdc47dbb4216eea8",
     "semantic_hash": ""
   },
   "favicon/apple-touch-icon.png": {
@@ -1570,18 +1570,18 @@
     "semantic_hash": ""
   },
   "features/checkout/components/checkout-shopify-summary.tsx": {
-    "mtime": 1786405248.0576878,
-    "ast_hash": "694c183c9ae488cac50982b86670394e",
+    "mtime": 1786407510.394125,
+    "ast_hash": "27234087ba0bf7c19389e8943d0d62b5",
     "semantic_hash": ""
   },
   "features/checkout/components/checkout-stepper.tsx": {
-    "mtime": 1786405236.9250228,
-    "ast_hash": "8a658d96502172f4ee8a06ea4ca47ca1",
+    "mtime": 1786407510.394125,
+    "ast_hash": "44aaba8ff1263a427e325f508a803139",
     "semantic_hash": ""
   },
   "app/api/checkout/culqi/order/route.ts": {
-    "mtime": 1786406449.9277043,
-    "ast_hash": "35a41c5e6a680d7cffcd0ce06ca4f9b2",
+    "mtime": 1786407510.3621235,
+    "ast_hash": "6f3818d89db198a695f08077b717f3bd",
     "semantic_hash": ""
   }
 }

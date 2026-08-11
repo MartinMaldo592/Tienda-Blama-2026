@@ -63,7 +63,7 @@ export function CheckoutAddress({
                     <Input
                         id="address"
                         placeholder="Ej: Av. Larco 1234, Dpto 501"
-                        disabled={disabled || !addressReady}
+                        disabled={disabled}
                         className={cn(
                             "pl-11 pr-10 h-12 bg-slate-50 border-slate-200 transition-all rounded-xl font-medium text-slate-900 focus-visible:border-[#FF6FA7] focus-visible:ring-[#FF6FA7]/20",
                             isAddressValid ? "border-emerald-500/60" : ""
