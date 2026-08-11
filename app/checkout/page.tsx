@@ -105,7 +105,7 @@ export default function CheckoutPage() {
     }
 
     return (
-        <div className="max-w-3xl mx-auto p-4 animate-in fade-in duration-300">
+        <div className="min-h-screen bg-slate-50 animate-in fade-in duration-300">
             <CheckoutForm
                 items={items}
                 total={total}

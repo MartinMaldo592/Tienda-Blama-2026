@@ -79,9 +79,41 @@ export function useCheckoutForm({ items, total, onComplete, onCompleteCulqi }: U
 
     const { register, handleSubmit, trigger, control, watch, getValues, setValue: setFormValue, formState: { errors } } = form
 
+    const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1)
+
     const paymentMethod = watch("paymentMethod")
     const shippingMethod = watch("shippingMethod")
     const department = watch("department")
+
+    const validateStep1 = async () => {
+        const isValid = await trigger(["name", "phone", "dni"])
+        if (isValid) {
+            setCurrentStep(2)
+            if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" })
+            return true
+        } else {
+            toast.error("Por favor completa tu Nombre, Celular y DNI válidos.")
+            return false
+        }
+    }
+
+    const validateStep2 = async () => {
+        const isFieldsValid = await trigger(["department", "province", "district"])
+        const isAddressValid = Boolean(value && value.trim().length > 0)
+        if (isFieldsValid && isAddressValid) {
+            setCurrentStep(3)
+            if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" })
+            return true
+        } else {
+            toast.error("Por favor completa tu Departamento, Provincia, Distrito y Dirección.")
+            return false
+        }
+    }
+
+    const goToStep = (step: 1 | 2 | 3) => {
+        setCurrentStep(step)
+        if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" })
+    }
 
     // Google Maps Places Autocomplete
     const {
@@ -97,6 +129,33 @@ export function useCheckoutForm({ items, total, onComplete, onCompleteCulqi }: U
             region: "pe",
         },
     })
+
+    const [currentUser, setCurrentUser] = useState<any>(null)
+
+    // Load user profile if logged in
+    useEffect(() => {
+        let isMounted = true
+        import("@/app/cuenta/actions").then(async ({ getCustomerProfileAction }) => {
+            try {
+                const res = await getCustomerProfileAction()
+                if (isMounted && res.profile) {
+                    setCurrentUser(res.profile)
+                    if (res.profile.nombre && !getValues("name")) setFormValue("name", res.profile.nombre)
+                    if (res.profile.email && !getValues("email")) setFormValue("email", res.profile.email)
+                    if (res.profile.telefono && !getValues("phone")) setFormValue("phone", res.profile.telefono)
+                    if (res.profile.dni && !getValues("dni")) setFormValue("dni", res.profile.dni)
+                    if (res.profile.departamento && !getValues("department")) setFormValue("department", res.profile.departamento)
+                    if (res.profile.provincia && !getValues("province")) setFormValue("province", res.profile.provincia)
+                    if (res.profile.distrito && !getValues("district")) setFormValue("district", res.profile.distrito)
+                    if (res.profile.referencia && !getValues("reference")) setFormValue("reference", res.profile.referencia)
+                    if (res.profile.direccion && !value) setValue(res.profile.direccion, false)
+                }
+            } catch (err) {
+                // Silencioso si no hay sesión
+            }
+        })
+        return () => { isMounted = false }
+    }, [setFormValue, getValues, value, setValue])
 
     // Load draft when ready
     useEffect(() => {
@@ -126,23 +185,6 @@ export function useCheckoutForm({ items, total, onComplete, onCompleteCulqi }: U
         return () => clearTimeout(timeout)
     }, [paymentMethod, shippingMethod, value, loaded, saveDraft, getValues])
 
-    // Auto-ajustar a Provincia si el departamento no es Lima o Callao
-    useEffect(() => {
-        if (!loaded) return
-        const deptClean = (department || "").trim().toLowerCase()
-        if (deptClean.length > 2) {
-            const isLimaOrCallao = deptClean.includes("lima") || deptClean.includes("callao")
-            const currentShipping = getValues("shippingMethod")
-
-            if (!isLimaOrCallao && currentShipping === "Lima") {
-                setFormValue("shippingMethod", "Provincia", { shouldValidate: true })
-                toast.info("Ajuste de Cobertura", {
-                    description: `Detectamos que tu dirección está en ${department}. El método de envío se ha configurado automáticamente a Provincia.`,
-                    duration: 6000
-                })
-            }
-        }
-    }, [department, loaded, setFormValue, getValues])
 
     // Selection handler from google maps
     const handleSelect = async (address: string) => {
@@ -462,6 +504,12 @@ export function useCheckoutForm({ items, total, onComplete, onCompleteCulqi }: U
     }
 
     return {
+        currentStep,
+        setCurrentStep,
+        validateStep1,
+        validateStep2,
+        goToStep,
+        currentUser,
         register,
         handleSubmit,
         trigger,

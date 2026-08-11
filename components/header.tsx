@@ -233,7 +233,7 @@ export function Header() {
 
                         {/* User Account Link */}
                         <Link
-                            href="/auth/login"
+                            href="/mi-cuenta"
                             className={`p-1.5 md:p-2 rounded-full transition-all shrink-0 active:scale-95 flex items-center justify-center ${
                                 isOverlayHeader ? "text-white hover:bg-white/20" : "text-[#2D2D2D] hover:text-[#FF6FA7] hover:bg-[#FFE6EF]"
                             }`}
@@ -453,7 +453,7 @@ export function Header() {
                                     Mi Cuenta & Ayuda
                                 </span>
                                 <Link
-                                    href="/auth/login"
+                                    href="/mi-cuenta"
                                     onClick={() => setMobileMenuOpen(false)}
                                     className="flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold text-[#2D2D2D] bg-[#FFF7F9] border border-[#FFD4E2]/50 hover:bg-[#FFE6EF] hover:text-[#FF6FA7] transition-all"
                                 >

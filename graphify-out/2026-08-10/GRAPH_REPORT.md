@@ -1,11 +1,11 @@
 # Graph Report - Tienda-Blama-2026  (2026-08-10)
 
 ## Corpus Check
-- 329 files · ~237,422 words
+- 329 files · ~237,346 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1478 nodes · 3403 edges · 159 communities (78 shown, 81 thin omitted)
+- 1478 nodes · 3405 edges · 160 communities (79 shown, 81 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 8 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
@@ -17,11 +17,11 @@
 ## Community Hubs (Navigation)
 - cn
 - pedidos/page.tsx
-- quick-checkout-modal.tsx
+- whatsapp/route.ts
 - product-form.tsx
 - newsletter-welcome.tsx
 - useCheckoutForm.ts
-- cart-button.tsx
+- ProductosClient.tsx
 - devDependencies
 - order-confirmation.tsx
 - app/layout.tsx
@@ -44,18 +44,18 @@
 - formatCurrency
 - checkout/index.ts
 - dependencies
-- checkout/types.ts
+- checkout/culqi/route.ts
 - checkout-form.tsx
 - app/page.tsx
 - HTML Report Format
-- ProductosClient.tsx
+- products.server.ts
 - order-file-card.tsx
 - gtm.ts
 - 🔑 Guía de Accesos y Automatización de Google Tag Manager (GTM)
 - opengraph-image.tsx
 - twitter-image.tsx
 - Section Definitions
-- products.server.ts
+- productos/[id]/page.tsx
 - proxy.ts
 - webhooks/culqi/route.ts
 - devoluciones/page.tsx
@@ -63,7 +63,7 @@
 - productos.client.ts
 - order-history-card.tsx
 - clsx
-- success/page.tsx
+- quick-checkout-modal.tsx
 - eslint.config.mjs
 - exceljs
 - framer-motion
@@ -89,7 +89,7 @@
 - @react-google-maps/api
 - react-hook-form
 - recharts
-- database.types.ts
+- cart/types.ts
 - sharp
 - sonner
 - @supabase/ssr
@@ -100,7 +100,7 @@
 - zod
 - zustand
 - postcss.config.mjs
-- utils/whatsapp.ts
+- social-links.client.ts
 - Find Skills
 - app/productos/page.tsx
 - ⚡ Casos de Falla Identificados & Propuestas de Solución
@@ -116,7 +116,8 @@
 - resend
 - MarketingEventBusImpl
 - Common KPIs by Department
-- @aws-sdk/client-s3
+- class-variance-authority
+- not-found.tsx
 - Informe de Mejoras e Implementaciones - Tienda Blama 2026
 - questions/actions/submit.ts
 - order-label-generator.tsx
@@ -167,7 +168,7 @@
 1. `createClient()` - 110 edges
 2. `cn()` - 83 edges
 3. `Button()` - 75 edges
-4. `formatCurrency()` - 50 edges
+4. `formatCurrency()` - 51 edges
 5. `useRoleGuard()` - 48 edges
 6. `Input()` - 47 edges
 7. `Label()` - 33 edges
@@ -190,19 +191,19 @@
 ## Import Cycles
 - None detected.
 
-## Communities (159 total, 81 thin omitted)
+## Communities (160 total, 81 thin omitted)
 
 ### Community 0 - "cn"
-Cohesion: 0.06
-Nodes (98): ClientesPage(), CouponRow, CouponType, PROCESS_STATUSES, ProcessStatus, StatusFilter, Tipo, TipoFilter (+90 more)
+Cohesion: 0.05
+Nodes (103): ClientesPage(), CouponRow, CouponType, PROCESS_STATUSES, ProcessStatus, StatusFilter, Tipo, TipoFilter (+95 more)
 
 ### Community 1 - "pedidos/page.tsx"
-Cohesion: 0.15
-Nodes (19): PedidosPageContent(), CreateOrderModal(), CreateOrderModalProps, SelectedItem, OrdersFilterBar(), assignPedidoToWorker(), BulkStockError, checkBulkStockSufficient() (+11 more)
+Cohesion: 0.16
+Nodes (18): PedidosPageContent(), CreateOrderModal(), CreateOrderModalProps, SelectedItem, OrdersFilterBar(), assignPedidoToWorker(), BulkStockError, checkBulkStockSufficient() (+10 more)
 
-### Community 2 - "quick-checkout-modal.tsx"
-Cohesion: 0.22
-Nodes (8): QuickCheckoutModal, QuickCheckoutModal, SuccessCheckmark(), QuickCheckoutModal(), QuickCheckoutModalProps, QuickAddress(), QuickAddressProps, QuickSummary()
+### Community 2 - "whatsapp/route.ts"
+Cohesion: 0.38
+Nodes (6): CheckoutBodySchema, CheckoutItemSchema, GET(), getEnv(), POST(), runtime
 
 ### Community 3 - "product-form.tsx"
 Cohesion: 0.13
@@ -213,12 +214,12 @@ Cohesion: 0.08
 Nodes (24): bodyStyle, containerStyle, contentSection, couponBox, couponBoxSection, couponCode, couponExpiry, couponLabel (+16 more)
 
 ### Community 5 - "useCheckoutForm.ts"
-Cohesion: 0.20
-Nodes (13): ContactoPage(), ContactSection(), FormContent(), QuickForm(), CheckoutDraft, useCheckoutDraft(), checkoutFormSchema, CheckoutFormValues (+5 more)
+Cohesion: 0.12
+Nodes (22): FormContent(), QuickForm(), CheckoutDraft, useCheckoutDraft(), checkoutFormSchema, CheckoutFormValues, useCheckoutForm(), UseCheckoutFormOptions (+14 more)
 
-### Community 6 - "cart-button.tsx"
+### Community 6 - "ProductosClient.tsx"
 Cohesion: 0.18
-Nodes (15): AdminLayout(), emptyCartAnimation, Lottie, CartButton, Header(), Sheet(), SheetClose(), SheetContent() (+7 more)
+Nodes (16): AdminLayout(), emptyCartAnimation, Lottie, CartButton, Header(), Sheet(), SheetClose(), SheetContent() (+8 more)
 
 ### Community 7 - "devDependencies"
 Cohesion: 0.06
@@ -226,7 +227,7 @@ Nodes (35): eslint, eslint-config-next, googleapis, devDependencies, eslint, esl
 
 ### Community 8 - "order-confirmation.tsx"
 Cohesion: 0.06
-Nodes (34): bodyStyle, checkCircleStyle, containerStyle, ctaButton, ctaSection, ctaText, dividerStyle, footerStyle (+26 more)
+Nodes (36): bodyStyle, checkCircleStyle, containerStyle, ctaButton, ctaSection, ctaText, dividerStyle, footerStyle (+28 more)
 
 ### Community 9 - "app/layout.tsx"
 Cohesion: 0.07
@@ -241,12 +242,12 @@ Cohesion: 0.07
 Nodes (28): dom, dom.iterable, esnext, **/*.mts, .next/dev/types/**/*.ts, next-env.d.ts, .next/types/**/*.ts, node_modules (+20 more)
 
 ### Community 12 - "dashboard/page.tsx"
-Cohesion: 0.24
-Nodes (14): AdminDashboard(), useCurrentUserId(), SalesDataPoint, DashboardStatsSkeleton(), useDashboardStats(), useSalesChart(), fetchAdminDashboardStats(), fetchAdminRecentOrders() (+6 more)
+Cohesion: 0.18
+Nodes (18): AdminDashboard(), useCurrentUserId(), SalesDataPoint, DashboardStatsSkeleton(), useDashboardStats(), useSalesChart(), fetchAdminDashboardStats(), fetchAdminPedidosEnProceso() (+10 more)
 
 ### Community 13 - "producto-detalle-client.tsx"
-Cohesion: 0.16
-Nodes (16): ProductoDetalleClient(), ProductoDetalleClientProps, Product, ProductCard(), ProductCardProps, ProductImageCarousel(), ProductImageCarouselProps, ProductSocialProof() (+8 more)
+Cohesion: 0.19
+Nodes (15): ProductoDetalleClientProps, Product, ProductCard(), ProductCardProps, ProductImageCarousel(), ProductImageCarouselProps, ProductSocialProof(), QuestionRow (+7 more)
 
 ### Community 14 - "CuponesAdminPage"
 Cohesion: 0.31
@@ -257,20 +258,20 @@ Cohesion: 0.05
 Nodes (58): AdminAnnouncementBarPage(), normalizeMessages(), parseBoolVal(), toBoolVal(), AdminMarketingPage(), UsuariosPage(), POST(), POST() (+50 more)
 
 ### Community 16 - "email.ts"
-Cohesion: 0.18
-Nodes (15): POST(), runtime, NewsletterWelcomeEmail(), formatCurrency(), OrderConfirmationEmail(), OrderStatusEmail(), getResend(), OrderItem (+7 more)
+Cohesion: 0.20
+Nodes (13): POST(), runtime, NewsletterWelcomeEmail(), OrderStatusEmail(), getResend(), OrderItem, sendNewsletterWelcomeEmail(), SendNewsletterWelcomeParams (+5 more)
 
 ### Community 17 - "components.json"
 Cohesion: 0.11
 Nodes (18): aliases, components, hooks, lib, ui, utils, iconLibrary, registries (+10 more)
 
 ### Community 18 - "createClient"
-Cohesion: 0.10
-Nodes (29): AuditPage(), AdminPreguntasPage(), AdminSocialLinksPage(), AdminResenasPage(), ForgotPasswordPage(), AdminSidebar(), AdminSidebarProps, AnnouncementBarConfig (+21 more)
+Cohesion: 0.11
+Nodes (25): AuditPage(), AdminPreguntasPage(), AdminResenasPage(), ForgotPasswordPage(), AdminSidebar(), AdminSidebarProps, AnnouncementBarConfig, AuditLog (+17 more)
 
 ### Community 19 - "admin/types.ts"
-Cohesion: 0.09
-Nodes (25): OrderCustomerCardProps, OrderItemsCard(), OrderItemsCardProps, OrderPaymentCardProps, OrderShippingCard(), OrderShippingCardProps, OrdersBulkActions(), OrdersBulkActionsProps (+17 more)
+Cohesion: 0.12
+Nodes (19): PedidoTicketPage(), OrderCustomerCardProps, OrderItemsCard(), OrderItemsCardProps, OrderPaymentCardProps, OrderShippingCard(), OrderShippingCardProps, fetchPedidoDetail() (+11 more)
 
 ### Community 20 - "rate-limit.ts"
 Cohesion: 0.16
@@ -297,20 +298,20 @@ Cohesion: 0.12
 Nodes (15): 1. Concrete Transformation Patterns, 2. Error-First Structure, 3. Quantified Impact, 4. Self-Contained Examples, 5. Semantic Naming, Code Example Standards, Comments, Impact Level Guidelines (+7 more)
 
 ### Community 26 - "formatCurrency"
-Cohesion: 0.11
-Nodes (20): DashboardPedidosEnProcesoPage(), DashboardPedidosPendientesPage(), DashboardStockBajoPage(), DashboardVentasPage(), PedidoDetallePage(), PedidoTicketPage(), EzMartDashboard(), SalesChart() (+12 more)
+Cohesion: 0.14
+Nodes (12): DashboardPedidosEnProcesoPage(), DashboardPedidosPendientesPage(), DashboardStockBajoPage(), DashboardVentasPage(), ProductoDetalleClient(), EzMartDashboard(), SalesChart(), OrdersTable() (+4 more)
 
 ### Community 27 - "checkout/index.ts"
-Cohesion: 0.12
-Nodes (21): CheckoutItemSchema, CulqiCheckoutSchema, getEnv(), POST(), runtime, CheckoutBodySchema, CheckoutItemSchema, GET() (+13 more)
+Cohesion: 0.30
+Nodes (7): CheckoutEngine, CheckoutEngineItem, CheckoutEngineOptions, CheckoutEnginePayload, CheckoutEngineResult, OrderChannel, validateAndCalculateTotals()
 
 ### Community 28 - "dependencies"
 Cohesion: 0.18
-Nodes (11): @aws-sdk/s3-request-presigner, class-variance-authority, next, dependencies, @aws-sdk/s3-request-presigner, class-variance-authority, next, @react-email/render (+3 more)
+Nodes (11): @aws-sdk/client-s3, @aws-sdk/s3-request-presigner, next, dependencies, @aws-sdk/client-s3, @aws-sdk/s3-request-presigner, next, @react-email/render (+3 more)
 
-### Community 29 - "checkout/types.ts"
+### Community 29 - "checkout/culqi/route.ts"
 Cohesion: 0.24
-Nodes (8): isCouponRelatedError(), validateCoupon(), CheckoutItem, CreateOrderError, CreateOrderPayload, CreateOrderResponse, CreateOrderSuccess, ValidateCouponResult
+Nodes (8): CheckoutItemSchema, CulqiCheckoutSchema, getEnv(), POST(), runtime, addressSchema, checkoutBaseFields, identitySchema
 
 ### Community 30 - "checkout-form.tsx"
 Cohesion: 0.11
@@ -324,9 +325,9 @@ Nodes (13): ContactSection, HomePageProps, metadata, revalidate, BenefitsBar(), 
 Cohesion: 0.10
 Nodes (18): Call-graph collapse, Candidate card, Cross-section (good for layered shallowness), Diagram patterns, Hand-built boxes-and-arrows (when Mermaid's layout fights you), Header, HTML Report Format, Mass diagram (good for "interface as wide as implementation") (+10 more)
 
-### Community 33 - "ProductosClient.tsx"
-Cohesion: 0.19
-Nodes (15): ProductosClientProps, countProducts(), CountProductsParams, listCategories(), listProducts(), ListProductsParams, ListProductsResult, ProductDetailResult (+7 more)
+### Community 33 - "products.server.ts"
+Cohesion: 0.15
+Nodes (19): ProductosClientProps, countProducts(), CountProductsParams, listCategories(), listProducts(), ListProductsParams, ListProductsResult, ProductDetailResult (+11 more)
 
 ### Community 34 - "order-file-card.tsx"
 Cohesion: 0.29
@@ -352,49 +353,49 @@ Nodes (3): contentType, runtime, size
 Cohesion: 0.20
 Nodes (9): 1. Query Performance (query), 2. Connection Management (conn), 3. Security & RLS (security), 4. Schema Design (schema), 5. Concurrency & Locking (lock), 6. Data Access Patterns (data), 7. Monitoring & Diagnostics (monitor), 8. Advanced Features (advanced) (+1 more)
 
-### Community 40 - "products.server.ts"
-Cohesion: 0.19
-Nodes (18): NotFound(), Home(), buildDescription(), buildProductUrl(), generateMetadata(), generateStaticParams(), parseProductIdentifier(), ProductoDetallePage() (+10 more)
+### Community 40 - "productos/[id]/page.tsx"
+Cohesion: 0.33
+Nodes (11): buildDescription(), buildProductUrl(), generateMetadata(), generateStaticParams(), parseProductIdentifier(), ProductoDetallePage(), revalidate, createAnonServerClient() (+3 more)
 
 ### Community 42 - "webhooks/culqi/route.ts"
 Cohesion: 0.67
 Nodes (3): POST(), procesarPedidoPagado(), runtime
 
 ### Community 50 - "productos.client.ts"
-Cohesion: 0.14
-Nodes (18): IncidenciasPage(), ProductosPage(), deleteProductAction(), createIncidencia(), deleteIncidencia(), fetchIncidencias(), fetchPedidosForIncidencias(), uploadIncidenciaImages() (+10 more)
+Cohesion: 0.10
+Nodes (24): IncidenciasPage(), PedidoDetallePage(), ProductosPage(), deleteProductAction(), OrderPaymentCard(), createIncidencia(), deleteIncidencia(), fetchIncidencias() (+16 more)
 
 ### Community 51 - "order-history-card.tsx"
 Cohesion: 0.47
 Nodes (5): ACTION_STYLES, getActionStyle(), OrderHistoryCard(), OrderHistoryCardProps, PedidoLog
 
-### Community 53 - "success/page.tsx"
-Cohesion: 0.27
-Nodes (4): SuccessPage(), isMobileDevice(), buildWhatsAppFinalMessage(), buildWhatsAppUrl()
+### Community 53 - "quick-checkout-modal.tsx"
+Cohesion: 0.14
+Nodes (11): QuickCheckoutModal, QuickCheckoutModal, SuccessPage(), QuickCheckoutModal(), QuickCheckoutModalProps, QuickAddress(), QuickAddressProps, QuickSummary() (+3 more)
 
 ### Community 59 - "2. Correos de Autenticación — Resend SMTP + Supabase"
 Cohesion: 0.40
 Nodes (5): 2. Correos de Autenticación — Resend SMTP + Supabase, Arquitectura, Configuración SMTP en Supabase Dashboard, Plantillas de Email, Requisitos DNS (Resend)
 
-### Community 79 - "database.types.ts"
-Cohesion: 0.27
-Nodes (6): CartItem, CartState, Product, ProductVariant, Database, Json
+### Community 79 - "cart/types.ts"
+Cohesion: 0.38
+Nodes (4): CartItem, CartState, Product, ProductVariant
 
 ### Community 85 - "KPI Dashboard Design"
 Cohesion: 0.11
 Nodes (17): 1. KPI Framework, 2. SMART KPIs, 3. Dashboard Hierarchy, Alert thresholds fire constantly, team ignores them, Best Practices, Core Concepts, Dashboard shows green but product team reports users complaining, Detailed worked examples and patterns (+9 more)
 
-### Community 97 - "utils/whatsapp.ts"
-Cohesion: 0.40
-Nodes (4): buildWhatsAppPreviewMessage(), normalizeDigits(), normalizeDni(), setLastOrderSuccessMarker()
+### Community 97 - "social-links.client.ts"
+Cohesion: 0.47
+Nodes (5): AdminSocialLinksPage(), deleteSocialLink(), fetchSocialLinks(), saveSocialLink(), SocialLink
 
 ### Community 98 - "Find Skills"
 Cohesion: 0.14
 Nodes (13): Common Skill Categories, Find Skills, How to Help Users Find Skills, Step 1: Understand What They Need, Step 2: Check the Leaderboard First, Step 3: Search for Skills, Step 4: Verify Quality Before Recommending, Step 5: Present Options to the User (+5 more)
 
 ### Community 99 - "app/productos/page.tsx"
-Cohesion: 0.20
-Nodes (11): Loading(), metadata, PageProps, ProductosPage(), revalidate, metadata, PromocionesPage(), revalidate (+3 more)
+Cohesion: 0.18
+Nodes (12): Loading(), metadata, PageProps, ProductosPage(), revalidate, metadata, PromocionesPage(), revalidate (+4 more)
 
 ### Community 100 - "⚡ Casos de Falla Identificados & Propuestas de Solución"
 Cohesion: 0.15
@@ -436,6 +437,10 @@ Nodes (6): 🔐 Descuento Atómico de Stock (El problema de concurrencia), 📦 
 Cohesion: 0.14
 Nodes (13): Common KPIs by Department, Dashboard Layout Patterns, Finance KPIs, Implementation Patterns, kpi-dashboard-design — detailed worked examples, Marketing KPIs, Pattern 1: Executive Summary, Pattern 2: SaaS Metrics Dashboard (+5 more)
 
+### Community 114 - "not-found.tsx"
+Cohesion: 0.50
+Nodes (4): NotFound(), Home(), getHomePageData(), getHomePageDataRaw()
+
 ### Community 115 - "Informe de Mejoras e Implementaciones - Tienda Blama 2026"
 Cohesion: 0.40
 Nodes (4): 🚀 Despliegue en Producción, Informe de Mejoras e Implementaciones - Tienda Blama 2026, 🚦 Pruebas de Calidad Ejecutadas, 📈 Resumen General del Estado del Proyecto
@@ -453,8 +458,8 @@ Cohesion: 0.40
 Nodes (4): Guidelines Source, How It Works, Usage, Web Interface Guidelines
 
 ### Community 166 - "useProductDetail.ts"
-Cohesion: 0.18
-Nodes (13): CheckoutPage(), ProductoDetalleClient(), CartButton(), AnimationItem, CartAnimationState, useCartAnimationStore, useCartStore, parseProductIdentifier() (+5 more)
+Cohesion: 0.16
+Nodes (16): CheckoutPage(), ContactoPage(), ProductoDetalleClient(), CartButton(), ContactSection(), AnimationItem, CartAnimationState, useCartAnimationStore (+8 more)
 
 ## Knowledge Gaps
 - **571 isolated node(s):** `CouponType`, `CouponRow`, `PROCESS_STATUSES`, `ProcessStatus`, `StatusFilter` (+566 more)
@@ -464,16 +469,16 @@ Nodes (13): CheckoutPage(), ProductoDetalleClient(), CartButton(), AnimationItem
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `createClient()` connect `createClient` to `cn`, `pedidos/page.tsx`, `ProductosClient.tsx`, `product-form.tsx`, `cart-button.tsx`, `useProductDetail.ts`, `app/layout.tsx`, `dashboard/page.tsx`, `producto-detalle-client.tsx`, `CuponesAdminPage`, `createClient`, `productos.client.ts`, `admin/types.ts`, `button.tsx`, `success/page.tsx`, `formatCurrency`, `checkout/types.ts`?**
+- **Why does `createClient()` connect `createClient` to `cn`, `pedidos/page.tsx`, `social-links.client.ts`, `product-form.tsx`, `products.server.ts`, `useCheckoutForm.ts`, `ProductosClient.tsx`, `useProductDetail.ts`, `app/layout.tsx`, `dashboard/page.tsx`, `producto-detalle-client.tsx`, `CuponesAdminPage`, `createClient`, `productos.client.ts`, `admin/types.ts`, `button.tsx`, `quick-checkout-modal.tsx`?**
   _High betweenness centrality (0.057) - this node is a cross-community bridge._
-- **Why does `Button()` connect `button.tsx` to `cn`, `pedidos/page.tsx`, `order-file-card.tsx`, `product-form.tsx`, `ProductosClient.tsx`, `cart-button.tsx`, `products.server.ts`, `app/layout.tsx`, `mi-cuenta/page.tsx`, `dashboard/page.tsx`, `producto-detalle-client.tsx`, `admin/types.ts`, `success/page.tsx`, `order-label-generator.tsx`, `formatCurrency`, `checkout-form.tsx`, `app/page.tsx`?**
-  _High betweenness centrality (0.045) - this node is a cross-community bridge._
+- **Why does `Button()` connect `button.tsx` to `cn`, `pedidos/page.tsx`, `order-file-card.tsx`, `product-form.tsx`, `ProductosClient.tsx`, `app/layout.tsx`, `mi-cuenta/page.tsx`, `dashboard/page.tsx`, `producto-detalle-client.tsx`, `not-found.tsx`, `admin/types.ts`, `quick-checkout-modal.tsx`, `order-label-generator.tsx`, `formatCurrency`, `checkout-form.tsx`, `app/page.tsx`?**
+  _High betweenness centrality (0.044) - this node is a cross-community bridge._
 - **Why does `createClient()` connect `createClient` to `mi-cuenta/page.tsx`?**
   _High betweenness centrality (0.018) - this node is a cross-community bridge._
 - **What connects `CouponType`, `CouponRow`, `PROCESS_STATUSES` to the rest of the system?**
   _571 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `cn` be split into smaller, more focused modules?**
-  _Cohesion score 0.056489430777000214 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05377066810055115 - nodes in this community are weakly interconnected._
 - **Should `product-form.tsx` be split into smaller, more focused modules?**
   _Cohesion score 0.1349206349206349 - nodes in this community are weakly interconnected._
 - **Should `newsletter-welcome.tsx` be split into smaller, more focused modules?**

@@ -15,12 +15,11 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Invalid JSON" }, { status: 400 })
         }
 
-        // Si no es un evento oficial de Culqi, ignoramos (para evitar ruido)
         if (eventData.object !== "event") {
             return NextResponse.json({ ok: true, message: "No es un evento procesable." })
         }
 
-        // 2. Extraer Variables de Entorno (Claves de Seguridad)
+        // 2. Extraer Variables de Entorno
         const culqiSecret = process.env.CULQI_SECRET_KEY
         const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
         const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -30,126 +29,160 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Server Configuration Error" }, { status: 500 })
         }
 
-        // Instanciar cliente de base de datos con permisos de Servidor
         const supabase = createClient(url, serviceRole)
+        const tipoEvento = eventData.type
+        const payloadData = eventData.data
 
-        // 3. Capturar los datos del payload webhook enviado
-        const tipoEvento = eventData.type;
-        const dataChargeInfo = eventData.data;
-
-        // Intentar rescatar el ID del Pedido insertado en tu Base de datos local
-        const pedidoIdStr = dataChargeInfo?.metadata?.pedido_id
-        if (!pedidoIdStr) {
-            console.error("⚠️ Webhook Culqi: El Metadato del Cargo no incluye 'pedido_id'. Ignorando.")
-            return NextResponse.json({ ok: true, message: "Falta Pedido ID. Probablemente no originado aquí." })
-        }
-
-        const pedidoId = parseInt(pedidoIdStr.toString(), 10)
+        console.log(`🔔 Webhook Culqi Recibido: ${tipoEvento}`, payloadData?.id)
 
         // ==========================================
-        // 🚨 BLINDAJE DE SEGURIDAD (ANTI-SPOOFING) 🚨
+        // CASO A: PAGO CON TARJETA / CARGO INMEDIATO (charge.creation.succeeded)
         // ==========================================
-        // No confiaremos a ciegas en el JSON que llegó (podría ser un hacker simulándolo). 
-        // Vamos a conectarnos silenciosamente a los servidores reales de Culqi para preguntar: 
-        // "¿Es verdad que este ID de cargo (dataChargeInfo.id) acaba de suceder y tiene estos montos?"
-        const verifyRes = await fetch(`https://api.culqi.com/v2/charges/${dataChargeInfo.id}`, {
-            headers: {
-                "Authorization": `Bearer ${culqiSecret}`, // Tu llave privada real (Nadie más la tiene)
-                "Content-Type": "application/json"
-            }
-        });
-
-        if (!verifyRes.ok) {
-            console.error(`🚨 Webhook Culqi: Intento de suplantación. Cargo ${dataChargeInfo.id} no verificado directamente en Culqi.`)
-            return NextResponse.json({ error: "Verificación Fallida. Posible Fraude." }, { status: 401 })
-        }
-
-        // La respuesta OFICIAL de los servidores contables de Culqi
-        const cargoOficial = await verifyRes.json();
-
-        // Si es un Fraude / Spoofing de payload, cancelar.
-        if (cargoOficial.id !== dataChargeInfo.id) {
-            return NextResponse.json({ error: "Discrepancia de datos." }, { status: 400 })
-        }
-
-        // ==========================================
-        // 🛠️ MÁQUINA DE ESTADOS: PROCESAR EL EVENTO WEBHOOK
-        // ==========================================
-
         if (tipoEvento === "charge.creation.succeeded") {
-            console.log(`✅ Webhook Culqi: Aprobando PAGO SEGURO para Pedido #${pedidoId}`)
-
-            // 1. Confirmar el pedido general y obtener el estado del stock
-            const { data: currentPedido } = await supabase.from("pedidos")
-                .select("stock_descontado")
-                .eq("id", pedidoId)
-                .maybeSingle()
-
-            await supabase.from("pedidos").update({
-                status: "Confirmado",
-                pago_status: "Pagado Anticipado"
-            }).eq("id", pedidoId)
-
-            // ──────────────────────────────────────────────────────────────────────────
-            // 📦 LÓGICA DE STOCK SEGURA (Solo descontar si no se ha hecho antes)
-            // ──────────────────────────────────────────────────────────────────────────
-            if (!currentPedido?.stock_descontado) {
-                console.log(`📦 Webhook Culqi: Descontando stock faltante para el pedido #${pedidoId}...`)
-                const { error: rpcError } = await supabase.rpc('admin_procesar_descuento_stock', {
-                    p_pedido_id: pedidoId,
-                    p_revertir: false
-                })
-                if (rpcError) {
-                    console.error(`⚠️ Webhook Culqi: Error al descontar stock del pedido #${pedidoId}:`, rpcError.message)
-                } else {
-                    console.log(`📦 Webhook Culqi: Stock descontado automáticamente (RPC) para el pedido #${pedidoId}`)
-                }
+            const pedidoIdStr = payloadData?.metadata?.pedido_id
+            if (!pedidoIdStr) {
+                console.warn("⚠️ Webhook Culqi: El Metadato del Cargo no incluye 'pedido_id'. Ignorando.")
+                return NextResponse.json({ ok: true, message: "Falta Pedido ID." })
             }
 
-            // 2. Verificar si el Log de Finanzas ya está registrado (Si el celular del cliente sí logró guardar en BD a tiempo)
-            const { data: existingPayment } = await supabase.from("pedido_pagos")
-                .select("id")
-                .eq("pedido_id", pedidoId)
-                .ilike("nota", `%${cargoOficial.id}%`) // Buscamos si en la nota está apuntado este ID Transacción
-                .maybeSingle()
+            const pedidoId = parseInt(pedidoIdStr.toString(), 10)
 
-            // 3. Crear Registro de Pagos e inyectar nota únicamente si el Front-End falló en crearlo
-            if (!existingPayment) {
-                console.log(`💳 Webhook Culqi: Rellenando Finanzas faltantes del Pedido #${pedidoId}...`)
+            // Verificación Anti-Spoofing contra la API de Culqi
+            const verifyRes = await fetch(`https://api.culqi.com/v2/charges/${payloadData.id}`, {
+                headers: {
+                    "Authorization": `Bearer ${culqiSecret}`,
+                    "Content-Type": "application/json"
+                }
+            })
 
-                await Promise.allSettled([
-                    supabase.from("pedido_pagos").insert({
-                        pedido_id: pedidoId,
-                        monto: cargoOficial.amount / 100, // Culqi responde en céntimos
-                        metodo_pago: "Tarjeta",
-                        tipo_pago: "Pago Final",
-                        nota: `[Recuperado por Webhook] Culqi ID: ${cargoOficial.id} - Tarjeta ${cargoOficial.source?.iin?.card_brand || 'Desconocida'}`,
-                        registrado_por: "Sistema (Webhook Respaldo)",
-                    }),
-                    supabase.from("pedido_notas").insert({
-                        pedido_id: pedidoId,
-                        autor_id: "00000000-0000-0000-0000-000000000000",
-                        autor_nombre: "Sistema Inteligente (Respaldo)",
-                        contenido: `Pago recuperado automáticamente por Webhook de Culqi. ID Transacción: ${cargoOficial.id}. Tarjeta: ${cargoOficial.source?.iin?.card_brand || 'Desconocida'}.`,
-                        tipo: "info"
-                    })
-                ])
+            if (!verifyRes.ok) {
+                console.error(`🚨 Webhook Culqi: Intento de suplantación para Cargo ${payloadData.id}`)
+                return NextResponse.json({ error: "Verificación Fallida." }, { status: 401 })
+            }
+
+            const cargoOficial = await verifyRes.json()
+            if (cargoOficial.id !== payloadData.id) {
+                return NextResponse.json({ error: "Discrepancia de datos." }, { status: 400 })
+            }
+
+            await procesarPedidoPagado(supabase, pedidoId, cargoOficial.amount / 100, `Culqi Cargo ID: ${cargoOficial.id}`, "Tarjeta")
+        }
+
+        // ==========================================
+        // CASO B: PAGO CON BILLETERA MÓVIL / QR (order.status.changed)
+        // ==========================================
+        else if (tipoEvento === "order.status.changed") {
+            const orderId = payloadData?.id
+            if (!orderId) {
+                return NextResponse.json({ ok: true, message: "ID de Orden faltante." })
+            }
+
+            // Verificación de la Orden contra la API de Culqi
+            const verifyRes = await fetch(`https://api.culqi.com/v2/orders/${orderId}`, {
+                headers: {
+                    "Authorization": `Bearer ${culqiSecret}`,
+                    "Content-Type": "application/json"
+                }
+            })
+
+            if (!verifyRes.ok) {
+                console.error(`🚨 Webhook Culqi: No se pudo verificar la Orden ${orderId}`)
+                return NextResponse.json({ error: "Verificación de orden fallida." }, { status: 401 })
+            }
+
+            const ordenOficial = await verifyRes.json()
+            console.log(`📌 Estado oficial de Orden Culqi ${orderId}:`, ordenOficial.state)
+
+            if (ordenOficial.state === "paid") {
+                // Intentar obtener el pedido_id desde metadata u order_number
+                let pedidoId: number | null = null
+
+                if (ordenOficial.metadata?.pedido_id) {
+                    pedidoId = parseInt(ordenOficial.metadata.pedido_id.toString(), 10)
+                } else if (ordenOficial.order_number) {
+                    const cleanNum = ordenOficial.order_number.replace(/\D/g, '')
+                    if (cleanNum) pedidoId = parseInt(cleanNum, 10)
+                }
+
+                if (pedidoId && !isNaN(pedidoId)) {
+                    console.log(`✅ Webhook Culqi: Confirmando pago por Billetera Móvil (QR) para Pedido #${pedidoId}`)
+                    await procesarPedidoPagado(supabase, pedidoId, ordenOficial.amount / 100, `Culqi Order QR ID: ${orderId}`, "Billetera Móvil (QR)")
+                } else {
+                    console.warn("⚠️ Webhook Culqi: No se encontró pedido_id asociado a la orden pagada:", orderId)
+                }
             }
         }
         else if (tipoEvento === "charge.creation.failed") {
-            console.log(`❌ Webhook Culqi: Registrando rechazo de Banco para pedido #${pedidoId}`)
-            // Cambiar a Fallido, pero solo si actualmente está en Pendiente (Por si un admin lo actualizó manual a Confirmado antes)
-            await supabase.from("pedidos").update({
-                status: "Fallido",
-                pago_status: "Fallido"
-            }).eq("id", pedidoId).eq("status", "Pendiente")
+            const pedidoIdStr = payloadData?.metadata?.pedido_id
+            if (pedidoIdStr) {
+                const pedidoId = parseInt(pedidoIdStr.toString(), 10)
+                await supabase.from("pedidos").update({
+                    status: "Fallido",
+                    pago_status: "Fallido"
+                }).eq("id", pedidoId).eq("status", "Pendiente")
+            }
         }
 
-        // Finalización Correcta (Culqi dejará de enviarnos este evento porque respondimos HTTP 200 OK)
-        return NextResponse.json({ ok: true, message: "Evento Webhook Integrado y Resuelto" })
+        return NextResponse.json({ ok: true, message: "Evento Webhook Procesado" })
 
     } catch (error: any) {
-        console.error("🔥 Error General Rescatando Webhook:", error)
-        return NextResponse.json({ error: "Error fatal interno del servidor web." }, { status: 500 })
+        console.error("🔥 Error General Procesando Webhook Culqi:", error)
+        return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
+    }
+}
+
+// Helper reusable para marcar pedidos pagados y descontar stock de forma idéntica y segura
+async function procesarPedidoPagado(supabase: any, pedidoId: number, monto: number, notaTransaccion: string, metodo: string) {
+    // 1. Obtener estado del pedido y stock
+    const { data: currentPedido } = await supabase.from("pedidos")
+        .select("stock_descontado")
+        .eq("id", pedidoId)
+        .maybeSingle()
+
+    // 2. Actualizar estado del pedido
+    await supabase.from("pedidos").update({
+        status: "Confirmado",
+        pago_status: "Pagado Anticipado"
+    }).eq("id", pedidoId)
+
+    // 3. Descontar stock si aún no se había hecho
+    if (!currentPedido?.stock_descontado) {
+        console.log(`📦 Webhook Culqi: Descontando stock para el pedido #${pedidoId}...`)
+        const { error: rpcError } = await supabase.rpc('admin_procesar_descuento_stock', {
+            p_pedido_id: pedidoId,
+            p_revertir: false
+        })
+        if (rpcError) {
+            console.error(`⚠️ Webhook Culqi: Error descontando stock del pedido #${pedidoId}:`, rpcError.message)
+        } else {
+            console.log(`📦 Webhook Culqi: Stock descontado exitosamente para el pedido #${pedidoId}`)
+        }
+    }
+
+    // 4. Registrar en Finanzas / Pagos
+    const { data: existingPayment } = await supabase.from("pedido_pagos")
+        .select("id")
+        .eq("pedido_id", pedidoId)
+        .ilike("nota", `%${notaTransaccion}%`)
+        .maybeSingle()
+
+    if (!existingPayment) {
+        await Promise.allSettled([
+            supabase.from("pedido_pagos").insert({
+                pedido_id: pedidoId,
+                monto: monto,
+                metodo_pago: metodo,
+                tipo_pago: "Pago Final",
+                nota: `[Webhook Culqi] ${notaTransaccion}`,
+                registrado_por: "Sistema (Webhook Culqi)",
+            }),
+            supabase.from("pedido_notas").insert({
+                pedido_id: pedidoId,
+                autor_id: "00000000-0000-0000-0000-000000000000",
+                autor_nombre: "Sistema Culqi",
+                contenido: `Pago por ${metodo} verificado exitosamente vía Webhook Culqi. ${notaTransaccion}`,
+                tipo: "info"
+            })
+        ])
     }
 }
