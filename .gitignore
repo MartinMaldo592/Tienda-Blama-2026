@@ -80,3 +80,5 @@ pnpm-debug.log*
 
 # 📁 Carpetas Temporales de Desarrollo
 scratch/
+.vercel
+.env*
