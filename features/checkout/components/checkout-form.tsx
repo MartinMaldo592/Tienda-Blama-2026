@@ -120,27 +120,6 @@ function FormContent({ items, total, onBack, onComplete, onCompleteCulqi }: Chec
                         {/* Left Column: Active Step Form (7 Cols) */}
                         <div className="lg:col-span-7 space-y-6">
                             
-                            {/* User Account / Guest Banner */}
-                            {currentUser ? (
-                                <div className="p-3.5 bg-[#FFE6EF] border border-[#FF6FA7]/30 rounded-2xl flex items-center gap-3 text-xs text-slate-900 font-medium">
-                                    <div className="h-7 w-7 rounded-full bg-[#FF6FA7] text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                                        {currentUser.nombre ? currentUser.nombre.charAt(0).toUpperCase() : "U"}
-                                    </div>
-                                    <span>
-                                        ¡Hola, <strong>{currentUser.nombre}</strong>! Tus datos personales y dirección han sido autocompletados.
-                                    </span>
-                                </div>
-                            ) : (
-                                <div className="p-3.5 bg-slate-900 border border-slate-800 rounded-2xl flex flex-wrap items-center justify-between gap-2 text-xs text-white shadow-xs">
-                                    <span className="font-medium text-slate-300">
-                                        ¿Tienes cuenta en BLAMA? Inicia sesión para autocompletar tus datos.
-                                    </span>
-                                    <a href="/cuenta/login?redirect=/checkout" className="font-bold text-[#FF6FA7] hover:text-rose-300 underline">
-                                        Iniciar Sesión
-                                    </a>
-                                </div>
-                            )}
-
                             <AnimatePresence mode="wait">
                                 {/* PASO 1: DATOS PERSONALES */}
                                 {currentStep === 1 && (
