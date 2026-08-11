@@ -132,31 +132,6 @@ export function useCheckoutForm({ items, total, onComplete, onCompleteCulqi }: U
 
     const [currentUser, setCurrentUser] = useState<any>(null)
 
-    // Load user profile if logged in
-    useEffect(() => {
-        let isMounted = true
-        import("@/app/cuenta/actions").then(async ({ getCustomerProfileAction }) => {
-            try {
-                const res = await getCustomerProfileAction()
-                if (isMounted && res.profile) {
-                    setCurrentUser(res.profile)
-                    if (res.profile.nombre && !getValues("name")) setFormValue("name", res.profile.nombre)
-                    if (res.profile.email && !getValues("email")) setFormValue("email", res.profile.email)
-                    if (res.profile.telefono && !getValues("phone")) setFormValue("phone", res.profile.telefono)
-                    if (res.profile.dni && !getValues("dni")) setFormValue("dni", res.profile.dni)
-                    if (res.profile.departamento && !getValues("department")) setFormValue("department", res.profile.departamento)
-                    if (res.profile.provincia && !getValues("province")) setFormValue("province", res.profile.provincia)
-                    if (res.profile.distrito && !getValues("district")) setFormValue("district", res.profile.distrito)
-                    if (res.profile.referencia && !getValues("reference")) setFormValue("reference", res.profile.referencia)
-                    if (res.profile.direccion && !value) setValue(res.profile.direccion, false)
-                }
-            } catch (err) {
-                // Silencioso si no hay sesión
-            }
-        })
-        return () => { isMounted = false }
-    }, [setFormValue, getValues, value, setValue])
-
     // Load draft when ready
     useEffect(() => {
         if (loaded && draft) {
