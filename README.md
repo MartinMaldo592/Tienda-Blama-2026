@@ -1,75 +1,87 @@
-<div align="center">
-  <h1>🛍️ Tienda Blama 2026</h1>
-  <p><strong>Plataforma E-Commerce B2C con Sistema CRM Logístico Integrado</strong></p>
+# 🛍️ Tienda Blama 2026 - Modern E-Commerce Platform
 
-  [![Next.js](https://img.shields.io/badge/Next.js_16-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
-  [![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-  [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-</div>
+[![Next.js](https://img.shields.io/badge/Next.js-15.0-black?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Database-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
-<br />
-
-Tienda Blama es una plataforma de comercio electrónico diseñada para alto rendimiento y escalabilidad (Grado Enterprise). Construida sobre una arquitectura Serverless, no solo actúa como un punto de venta (Frontend), sino que cuenta con un robusto CRM administrativo para la gestión atómica de inventarios, roles de trabajadores y procesamiento de órdenes logísticas.
+**Tienda Blama 2026** es una plataforma de comercio electrónico de alta escala y rendimiento desarrollada con **Next.js (App Router)**, **TypeScript**, **Supabase (PostgreSQL + RLS)** e integración de pagos con **Culqi v4 (Pagos con tarjeta y QR/Yape)**.
 
 ---
 
-## 📚 Índice de Documentación
+## ✨ Características Principales
 
-Toda la documentación oficial se encuentra actualizada y modularizada según el rol o enfoque que necesites:
-
-| Rol / Enfoque | Documento | Descripción |
-| --- | --- | --- |
-| 📊 **Informe Global** | [Informe de Mejoras (INFORME_MEJORAS.md)](./INFORME_MEJORAS.md) | Resumen técnico consolidado de las optimizaciones, refactorizaciones y sistema de analíticas implementado. |
-| 🚀 **Mejoras del Core** | [Resumen de Mejoras (RESUMEN_MEJORAS.md)](./docs/RESUMEN_MEJORAS.md) | Historial y desglose detallado de las Fases 1 a 10 de optimización, seguridad, RLS, cookies de atribución y píxeles. |
-| 🧑‍💻 **Desarrolladores** | [Guía de Desarrollo (DEVELOPMENT_GUIDE.md)](./docs/DEVELOPMENT_GUIDE.md) | Guía de instalación local, estándares de código, uso de React Query y Git Workflow. |
-| 🏗️ **Arquitectos** | [Arquitectura (ARCHITECTURE.md)](./docs/ARCHITECTURE.md) | Topología Serverless, diagrama de flujo técnico (Next.js + Supabase) y estructura de carpetas. |
-| 📈 **Analistas** | [Lógica de Negocio (BUSINESS_LOGIC.md)](./docs/BUSINESS_LOGIC.md) | Diagramas de estado logístico, seguridad Zero-Trust en el carrito y lógica transaccional. |
-| 👷 **Administradores** | [Manual de Uso (USER_MANUAL.md)](./docs/USER_MANUAL.md) | Guía paso a paso sobre cómo gestionar pedidos diarios, envíos Shalom y devoluciones. |
-| ⚙️ **DevOps** | [Integraciones (INTEGRATIONS.md)](./docs/INTEGRATIONS.md) | Variables de entorno necesarias y activación de APIs externas (Google Maps, WhatsApp, GTM, Píxeles). |
-
+- ⚡ **Alto Rendimiento & SSR/ISR:** Renderizado ultra-rápido optimizado en Next.js.
+- 💳 **Pasarela de Pagos Integrada:** Pagos con tarjeta de crédito/débito y códigos QR (Culqi v4 RSA).
+- 🛡️ **Seguridad & Roles (RLS):** Control de acceso por roles (Admin, Worker, Customer) protegido con políticas RLS de Supabase.
+- 📦 **Gestión Logística Completa:** Módulos de stock atómico via RPC, guías de despacho, notas de pedidos e impresiones.
+- 📊 **Panel de Control & Analytics:** Gráficos de ventas en tiempo real, integración con Google Tag Manager (GTM) y TikTok Pixel.
+- 🧪 **Pruebas End-to-End (E2E):** Suite automatizada de pruebas de checkout con Playwright.
 
 ---
 
-## 🚀 Quick Start (Inicio Rápido)
+## 🛠️ Stack Tecnológico
 
-Si eres desarrollador y necesitas levantar este proyecto en 2 minutos:
+| Capa | Tecnologías |
+|------|-------------|
+| **Frontend** | Next.js (App Router), React, Tailwind CSS, TypeScript |
+| **Backend & Base de Datos** | Supabase (PostgreSQL), Procedimientos Almacenados (RPC), RLS |
+| **Integraciones** | Culqi v4 (Pagos), Cloudinary (Imágenes), Cloudflare R2 |
+| **Analítica & Marketing** | Google Tag Manager (GTM), TikTok Pixel, Bus de Eventos |
+| **Testing & Calidad** | Playwright E2E Testing, ESLint, TypeScript Strict Mode |
 
+---
+
+## 🚀 Instalación y Configuración
+
+### 1. Clonar el repositorio
 ```bash
-# 1. Instala las dependencias de Node.js
-npm install
-
-# 2. Clona el archivo de entorno (Asegúrate de llenar las credenciales leyendo INTEGRATIONS.md)
-cp .env.example .env.local
-
-# 3. Herramientas de IA y Arquitectura (Skills & Graphify)
-# Install Graphify for codebase knowledge graphs:
-py -m pip install graphifyy
-py -m graphify update .
-
-# Install Vercel Skills CLI & find-skills:
-npx skills add https://github.com/vercel-labs/skills --skill find-skills
-
-# 4. Arranca el servidor de desarrollo
-npm run dev
+git clone https://github.com/MartinMaldo592/Tienda-Blama-2026.git
+cd Tienda-Blama-2026
 ```
 
-Visita `http://localhost:3000` para ver la tienda o entra a `http://localhost:3000/admin` para acceder al CRM Logístico.
+### 2. Instalar dependencias
+```bash
+npm install
+```
+
+### 3. Configurar Variables de Entorno
+Crea un archivo `.env.local` con las credenciales necesarias:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=tu_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key
+
+# Culqi Payment Gateway
+NEXT_PUBLIC_CULQI_PUBLIC_KEY=tu_culqi_public_key
+CULQI_SECRET_KEY=tu_culqi_secret_key
+```
+
+### 4. Iniciar Servidor de Desarrollo
+```bash
+npm run dev
+```
+Abre `http://localhost:3000` en tu navegador.
 
 ---
 
-## 🌀 Scroll Suave con Lenis
+## 🧪 Pruebas Automatizadas (E2E)
 
-La plataforma utiliza **Lenis** para mejorar la experiencia de usuario con un comportamiento de scroll premium y fluido en todo el catálogo y vistas de la tienda.
+Para ejecutar la suite de pruebas E2E con Playwright:
 
-### Características e Integridad:
-* **Accesibilidad Native Fallback:** Si el usuario tiene habilitada la preferencia del sistema operativo `prefers-reduced-motion: reduce`, Lenis se desactiva de forma automática y se utiliza el scroll nativo clásico del navegador.
-* **Integración con Next.js Routing:** Cada navegación de ruta (ej. cambiar entre productos o entrar a colecciones) limpia y restablece instantáneamente la posición de scroll en la cabecera (coordenada `0,0`) sin parpadeos visuales.
-* **Limpieza de Recursos:** Utiliza `requestAnimationFrame` asíncrono y se destruye correctamente la instancia mediante `.destroy()` al desmontar el componente para evitar fugas de memoria.
+```bash
+npx playwright test
+```
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más información.
 
 ---
 
 <div align="center">
-  <small><em>Desarrollado para la visión 2026. Auditado para alto rendimiento.</em></small>
+  <sub>Desarrollado por <a href="https://github.com/MartinMaldo592">Martin Maldonado</a></sub>
 </div>
-
