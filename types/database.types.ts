@@ -1282,6 +1282,30 @@ export type Database = {
         Args: { p_email: string; p_usuario_id: string }
         Returns: number
       }
+      admin_procesar_devolucion_parcial: {
+        Args: Record<string, unknown>
+        Returns: unknown
+      }
+      get_user_name_by_email: {
+        Args: { p_email: string }
+        Returns: string | null
+      }
+      get_admin_dashboard_stats: {
+        Args: Record<string, unknown>
+        Returns: unknown
+      }
+      get_sales_chart_data: {
+        Args: Record<string, unknown>
+        Returns: unknown
+      }
+      admin_procesar_descuento_stock: {
+        Args: { p_pedido_id: number; p_revertir?: boolean }
+        Returns: unknown
+      }
+      get_top_products: {
+        Args: Record<string, unknown>
+        Returns: unknown
+      }
     }
     Enums: {
       [_ in never]: never

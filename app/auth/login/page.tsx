@@ -37,7 +37,7 @@ export default function LoginPage() {
             const { data, error } = await supabase.rpc('get_user_name_by_email', { p_email: email })
             if (!error && data) {
                 // Si la BD devuelve el nombre real, lo guardamos
-                setFetchedName(data)
+                setFetchedName(typeof data === "string" ? data : null)
             } else {
                 setFetchedName(null)
             }
