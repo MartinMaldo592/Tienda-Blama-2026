@@ -134,7 +134,42 @@ export function CulqiPaymentButton({
         try {
             const amountInCents = Math.round(amount * 100)
 
-            // 1. Configurar Culqi Settings para la transacción
+            // Separar Nombre y Apellido
+            const nameParts = (name || "Cliente BLAMA").trim().split(" ")
+            const firstName = nameParts[0] || "Cliente"
+            const lastName = nameParts.slice(1).join(" ") || "BLAMA"
+            const cleanPhone = (phone || "").replace(/\D/g, "") || "900000000"
+
+            // 1. Generar Orden Culqi Backend para habilitar Billeteras Móviles y Código QR
+            let generatedOrderId = ""
+            try {
+                const orderRes = await fetch("/api/checkout/culqi/order", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        amount: amount,
+                        description: title,
+                        client_details: {
+                            first_name: firstName,
+                            last_name: lastName,
+                            email: email || "hola@blama.shop",
+                            phone_number: cleanPhone.length === 9 ? cleanPhone : "900000000",
+                        }
+                    })
+                })
+
+                const orderData = await orderRes.json()
+                if (orderRes.ok && orderData.orderId) {
+                    generatedOrderId = orderData.orderId
+                    console.log("✅ Orden Culqi creada para Billeteras QR:", generatedOrderId)
+                } else {
+                    console.warn("⚠️ No se pudo generar la orden para Billeteras QR:", orderData)
+                }
+            } catch (orderErr) {
+                console.warn("⚠️ Error solicitando orden Culqi:", orderErr)
+            }
+
+            // 2. Configurar Culqi Settings con la Orden y las Llaves RSA
             const culqiSettings: any = {
                 title: title,
                 currency: 'PEN',
@@ -142,7 +177,11 @@ export function CulqiPaymentButton({
                 email: email || 'cliente@blama.shop',
             }
 
-            // Llaves RSA para cifrado en Checkout v4
+            if (generatedOrderId) {
+                culqiSettings.order = generatedOrderId
+            }
+
+            // Llaves RSA obligatorias de Culqi v4 para cifrar la validación de órdenes QR
             if (process.env.NEXT_PUBLIC_CULQI_RSA_ID) {
                 culqiSettings.xculqirsaid = process.env.NEXT_PUBLIC_CULQI_RSA_ID
             }
@@ -150,16 +189,23 @@ export function CulqiPaymentButton({
                 culqiSettings.rsapublickey = process.env.NEXT_PUBLIC_CULQI_RSA_PUBLIC_KEY.replace(/\\n/g, "\n")
             }
 
+            console.log("⚙️ Culqi.settings configurado:", {
+                amount: culqiSettings.amount,
+                order: culqiSettings.order,
+                hasRsaId: Boolean(culqiSettings.xculqirsaid),
+                hasRsaPublic: Boolean(culqiSettings.rsapublickey)
+            })
+
             window.Culqi.settings(culqiSettings)
 
-            // 2. Configurar opciones de pago habilitando Billeteras Móviles / QR Code
+            // 3. Configurar opciones de pago habilitando Billeteras Móviles / QR Code
             window.Culqi.options({
                 lang: "es",
                 installments: false,
                 paymentMethods: {
                     tarjeta: true,
                     yape: true,
-                    billetera: true, // <-- Habilita la pestaña de Billeteras Digitales y Código QR nativamente en Checkout v4
+                    billetera: true, // <-- Muestra la pestaña Billeteras Digitales (Código QR)
                     bancaMovil: false,
                     agente: false,
                     cuotealo: false
@@ -170,7 +216,7 @@ export function CulqiPaymentButton({
                 }
             })
 
-            // 3. Abrir el modal de pago
+            // 4. Abrir el modal de pago
             window.Culqi.open()
 
             // Vigilante de cierre manual del modal
