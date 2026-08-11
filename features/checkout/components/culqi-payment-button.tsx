@@ -3,9 +3,7 @@
 import { useEffect, useState, useRef } from "react"
 import Script from "next/script"
 import { Button } from "@/components/ui/button"
-import { Loader2, CreditCard, QrCode, CheckCircle2, Copy } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { toast } from "sonner"
+import { Loader2, CreditCard } from "lucide-react"
 
 interface CulqiButtonProps {
     amount: number
@@ -42,12 +40,6 @@ export function CulqiPaymentButton({
     const [isScriptLoaded, setIsScriptLoaded] = useState(false)
     const [isProcessing, setIsProcessing] = useState(false)
 
-    // Modal para Código QR Yape / Plin
-    const [qrModalOpen, setQrModalOpen] = useState(false)
-    const [qrImageUrl, setQrImageUrl] = useState<string | null>(null)
-    const [qrOrderId, setQrOrderId] = useState<string | null>(null)
-    const [generatingQr, setGeneratingQr] = useState(false)
-
     const onTokenRef = useRef(onToken)
     const onErrorRef = useRef(onError)
 
@@ -66,7 +58,7 @@ export function CulqiPaymentButton({
                 paymentMethods: {
                     tarjeta: true,
                     yape: true,
-                    billetera: false,
+                    billetera: true, // <-- Billeteras Móviles y QR Code dentro del modal Culqi
                     bancaMovil: false,
                     agente: false,
                     cuotealo: false
@@ -87,7 +79,7 @@ export function CulqiPaymentButton({
 
     useEffect(() => {
         window.culqi = async () => {
-            console.log("🔔 Callback window.culqi ejecutado:", window.Culqi)
+            console.log("🔔 Callback window.culqi ejecutado. Objeto Culqi:", window.Culqi)
 
             if (window.Culqi.token) {
                 try {
@@ -104,6 +96,11 @@ export function CulqiPaymentButton({
                     if (window.Culqi.close) window.Culqi.close()
                     setIsProcessing(false)
                 }
+            } else if (window.Culqi.order) {
+                // Pago generado mediante orden/QR dentro del modal Culqi
+                console.log("✅ Orden/QR generado dentro de Culqi:", window.Culqi.order)
+                if (window.Culqi.close) window.Culqi.close()
+                setIsProcessing(false)
             } else if (window.Culqi.error) {
                 console.error('❌ Error Culqi:', window.Culqi.error)
                 const userMsg = window.Culqi.error.user_message || window.Culqi.error.merchant_message || "Error en el pago"
@@ -116,12 +113,11 @@ export function CulqiPaymentButton({
         }
     }, [email])
 
-    // Abrir Modal de Pagos con Tarjeta / Yape síncrono
-    const handlePayCard = async (e: React.MouseEvent) => {
+    const handlePay = async (e: React.MouseEvent) => {
         if (e) e.preventDefault()
 
         if (!isScriptLoaded || !window.Culqi) {
-            console.error("Culqi no está listo")
+            console.error("Culqi no está listo (Script no cargado)")
             return
         }
 
@@ -137,20 +133,47 @@ export function CulqiPaymentButton({
         try {
             const amountInCents = Math.round(amount * 100)
 
-            window.Culqi.settings({
+            // Configurar Culqi Settings con RSA Keys (sin pre-crear orden backend)
+            // Esto permite que Culqi v4 genere la orden internamente en estado 'created'
+            // y despliegue el Código QR dentro de su propio modal sin error CNP0183.
+            const culqiSettings: any = {
                 title: title,
                 currency: 'PEN',
                 amount: amountInCents,
                 email: email || 'cliente@blama.shop',
+            }
+
+            // Llaves RSA obligatorias para que el modal Culqi genere el QR internamente
+            if (process.env.NEXT_PUBLIC_CULQI_RSA_ID) {
+                culqiSettings.xculqirsaid = process.env.NEXT_PUBLIC_CULQI_RSA_ID
+            }
+
+            if (process.env.NEXT_PUBLIC_CULQI_RSA_PUBLIC_KEY) {
+                // Asegurar formato correcto de saltos de línea en la llave pública RSA
+                let rawRsa = process.env.NEXT_PUBLIC_CULQI_RSA_PUBLIC_KEY
+                rawRsa = rawRsa.replace(/\\n/g, "\n")
+                if (!rawRsa.includes("-----BEGIN PUBLIC KEY-----")) {
+                    rawRsa = `-----BEGIN PUBLIC KEY-----\n${rawRsa}\n-----END PUBLIC KEY-----`
+                }
+                culqiSettings.rsapublickey = rawRsa
+            }
+
+            console.log("⚙️ Culqi.settings configurado para modal integrado:", {
+                amount: culqiSettings.amount,
+                hasRsaId: Boolean(culqiSettings.xculqirsaid),
+                hasRsaPublic: Boolean(culqiSettings.rsapublickey)
             })
 
+            window.Culqi.settings(culqiSettings)
+
+            // Configurar opciones de pago habilitando Billeteras Móviles / QR Code
             window.Culqi.options({
                 lang: "es",
                 installments: false,
                 paymentMethods: {
                     tarjeta: true,
                     yape: true,
-                    billetera: false,
+                    billetera: true, // <-- Habilita la pestaña Billeteras Digitales (Código QR) dentro del modal
                     bancaMovil: false,
                     agente: false,
                     cuotealo: false
@@ -161,8 +184,10 @@ export function CulqiPaymentButton({
                 }
             })
 
+            // Abrir modal Culqi
             window.Culqi.open()
 
+            // Vigilante de cierre manual del modal
             const checkInterval = setInterval(() => {
                 const iframe = document.getElementById('culqi_checkout_frame')
                 if (!iframe && window.Culqi?.close) {
@@ -185,53 +210,6 @@ export function CulqiPaymentButton({
         }
     }
 
-    // Generar y desplegar Código QR Oficial Culqi (Yape / Plin)
-    const handleGenerateQr = async () => {
-        if (onBeforeOpen) {
-            const isValid = await onBeforeOpen()
-            if (!isValid) return
-        }
-
-        setGeneratingQr(true)
-        try {
-            const nameParts = (name || "Cliente BLAMA").trim().split(" ")
-            const firstName = nameParts[0] || "Cliente"
-            const lastName = nameParts.slice(1).join(" ") || "BLAMA"
-            const cleanPhone = (phone || "").replace(/\D/g, "") || "900000000"
-
-            const res = await fetch("/api/checkout/culqi/order", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    amount: amount,
-                    description: title,
-                    client_details: {
-                        first_name: firstName,
-                        last_name: lastName,
-                        email: email || "hola@blama.shop",
-                        phone_number: cleanPhone.length === 9 ? cleanPhone : "900000000",
-                    }
-                })
-            })
-
-            const data = await res.json()
-
-            if (res.ok && data.qr) {
-                setQrImageUrl(data.qr)
-                setQrOrderId(data.orderId)
-                setQrModalOpen(true)
-                toast.success("Código QR de Culqi generado exitosamente")
-            } else {
-                toast.error("No se pudo generar el código QR. Intenta con tarjeta o Yape directo.")
-            }
-        } catch (err) {
-            console.error("Error generando QR Culqi:", err)
-            toast.error("Error conectando con la pasarela de pago QR.")
-        } finally {
-            setGeneratingQr(false)
-        }
-    }
-
     return (
         <>
             <Script
@@ -240,48 +218,24 @@ export function CulqiPaymentButton({
                 strategy="lazyOnload"
             />
 
-            <div className="space-y-3">
-                {/* Botón Principal: Pago con Tarjeta o Yape (Modal Culqi Checkout v4) */}
-                <Button
-                    onClick={handlePayCard}
-                    disabled={!isScriptLoaded || disabled || isProcessing || amount <= 0}
-                    className={`w-full bg-[#FF6FA7] hover:bg-[#e0558d] text-white h-14 text-base font-black rounded-2xl shadow-lg shadow-[#FF6FA7]/20 transition-all ${className}`}
-                    type="button"
-                >
-                    {isProcessing ? (
-                        <>
-                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                            Procesando pasarela...
-                        </>
-                    ) : (
-                        <>
-                            <CreditCard className="mr-2 h-5 w-5" />
-                            Pagar S/ {amount.toFixed(2)} con Tarjeta / Yape
-                        </>
-                    )}
-                </Button>
-
-                {/* Botón Secundario: Pagar Escaneando Código QR (Yape / Plin) */}
-                <Button
-                    onClick={handleGenerateQr}
-                    disabled={disabled || generatingQr || amount <= 0}
-                    variant="outline"
-                    className="w-full border-2 border-slate-200 hover:border-purple-300 bg-white hover:bg-purple-50/50 text-slate-800 h-12 text-sm font-bold rounded-2xl transition-all"
-                    type="button"
-                >
-                    {generatingQr ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin text-purple-600" />
-                            Generando Código QR...
-                        </>
-                    ) : (
-                        <>
-                            <QrCode className="mr-2 h-4 w-4 text-purple-600" />
-                            Pagar escaneando Código QR (Yape / Plin)
-                        </>
-                    )}
-                </Button>
-            </div>
+            <Button
+                onClick={handlePay}
+                disabled={!isScriptLoaded || disabled || isProcessing || amount <= 0}
+                className={`w-full bg-[#FF6FA7] hover:bg-[#e0558d] text-white h-14 text-base font-black rounded-2xl shadow-lg shadow-[#FF6FA7]/20 transition-all ${className}`}
+                type="button"
+            >
+                {isProcessing ? (
+                    <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Abriendo pasarela de pago...
+                    </>
+                ) : (
+                    <>
+                        <CreditCard className="mr-2 h-5 w-5" />
+                        Pagar S/ {amount.toFixed(2)} con Tarjeta / Yape / QR
+                    </>
+                )}
+            </Button>
 
             {/* Sello Oficial Culqi */}
             <div className="mt-4 pb-2 flex flex-col items-center justify-center pointer-events-none select-none">
@@ -299,50 +253,6 @@ export function CulqiPaymentButton({
                     <span className="font-extrabold text-[#002A8D] tracking-[0.2em]">Credicorp</span>
                 </div>
             </div>
-
-            {/* MODAL OFICIAL CÓDIGO QR CULQI */}
-            <Dialog open={qrModalOpen} onOpenChange={setQrModalOpen}>
-                <DialogContent className="sm:max-w-md bg-white rounded-3xl p-6 border-none shadow-2xl">
-                    <DialogHeader className="text-center space-y-1">
-                        <DialogTitle className="text-xl font-black text-slate-900 flex items-center justify-center gap-2">
-                            <QrCode className="h-6 w-6 text-purple-600" /> Código QR Culqi
-                        </DialogTitle>
-                        <DialogDescription className="text-xs text-slate-500 font-medium">
-                            Escanea desde tu app de Yape, Plin o tu banca móvil para pagar <strong>S/ {amount.toFixed(2)}</strong>
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    {qrImageUrl ? (
-                        <div className="flex flex-col items-center justify-center space-y-4 py-4">
-                            <div className="p-4 bg-white border-2 border-purple-200 rounded-3xl shadow-md">
-                                <img
-                                    src={qrImageUrl}
-                                    alt="Código QR Culqi Yape Plin"
-                                    className="w-56 h-56 object-contain"
-                                />
-                            </div>
-
-                            <div className="text-center space-y-1">
-                                <p className="text-xs font-bold text-slate-700 flex items-center justify-center gap-1">
-                                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                                    Orden Culqi: <span className="font-mono text-purple-700">{qrOrderId}</span>
-                                </p>
-                                <p className="text-[11px] text-slate-500">
-                                    Al completar tu pago en tu app, tu pedido se confirmará automáticamente.
-                                </p>
-                            </div>
-
-                            <Button
-                                type="button"
-                                onClick={() => setQrModalOpen(false)}
-                                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold h-12 rounded-xl text-xs mt-2"
-                            >
-                                Entendido, ya escaneé el QR
-                            </Button>
-                        </div>
-                    ) : null}
-                </DialogContent>
-            </Dialog>
 
             <style jsx global>{`
                 #culqi_checkout_frame {
