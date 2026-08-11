@@ -4,15 +4,16 @@ import { useEffect, useState, useRef } from "react"
 import Script from "next/script"
 import { Button } from "@/components/ui/button"
 import { Loader2, CreditCard } from "lucide-react"
-import { formatCurrency } from "@/lib/utils"
 
 interface CulqiButtonProps {
     amount: number
-    email?: string // Opcional porque a veces lo sacamos del form
+    email?: string
+    name?: string
+    phone?: string
     title?: string
     onToken: (token: string, email: string) => Promise<void>
     onError: (error: any) => void
-    onBeforeOpen?: () => boolean | Promise<boolean> // Nuevo: Validación previa
+    onBeforeOpen?: () => boolean | Promise<boolean>
     disabled?: boolean
     className?: string
 }
@@ -27,7 +28,9 @@ declare global {
 export function CulqiPaymentButton({
     amount,
     email,
-    title = 'Tienda Blama',
+    name = 'Cliente BLAMA',
+    phone = '900000000',
+    title = 'BLAMA Fitness',
     onToken,
     onError,
     onBeforeOpen,
@@ -37,11 +40,10 @@ export function CulqiPaymentButton({
     const [isScriptLoaded, setIsScriptLoaded] = useState(false)
     const [isProcessing, setIsProcessing] = useState(false)
 
-    // Refs para mantener siempre las últimas versiones de las funciones sin reiniciar el efecto
+    // Refs para callbacks actualizados
     const onTokenRef = useRef(onToken)
     const onErrorRef = useRef(onError)
 
-    // Actualizar refs cuando cambian las props
     useEffect(() => {
         onTokenRef.current = onToken
         onErrorRef.current = onError
@@ -52,43 +54,57 @@ export function CulqiPaymentButton({
         if (window.Culqi) {
             window.Culqi.publicKey = process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY
             window.Culqi.options({
+                lang: "es",
+                installments: false,
+                paymentMethods: {
+                    tarjeta: true,
+                    yape: true,
+                    billetera: true, // <-- Billeteras Móviles y QR Code
+                    bancaMovil: false,
+                    agente: false,
+                    cuotealo: false
+                },
                 style: {
                     logo: "https://static.culqi.com/v2/v2/static/img/logo.png",
-                    maincolor: "#eb5e00", // Naranja Culqi
+                    maincolor: "#FF6FA7", // Rosa BLAMA
                 }
             })
         }
     }
 
-    // Verificar si el script ya estaba cargado de antes (Navegación o re-render)
     useEffect(() => {
         if (window.Culqi) {
             handleScriptLoad()
         }
     }, [])
 
-    // Definir la función global window.culqi UNA SOLA VEZ al montar
     useEffect(() => {
         window.culqi = async () => {
+            console.log("🔔 Callback window.culqi ejecutado. Objeto Culqi:", window.Culqi)
+
             if (window.Culqi.token) {
                 try {
                     const token = window.Culqi.token.id
-                    const tokenEmail = window.Culqi.token.email
+                    const tokenEmail = window.Culqi.token.email || email
 
-                    // Usar la ref para llamar a la función más reciente
                     if (onTokenRef.current) {
                         await onTokenRef.current(token, tokenEmail)
                     }
                 } catch (err) {
-                    console.error('Error procesando token:', err)
+                    console.error('Error procesando token Culqi:', err)
                     if (onErrorRef.current) onErrorRef.current(err)
                 } finally {
-                    window.Culqi.close()
+                    if (window.Culqi.close) window.Culqi.close()
                     setIsProcessing(false)
                 }
+            } else if (window.Culqi.order) {
+                // Pago generado mediante orden/QR
+                console.log("✅ Orden/QR Culqi recibido en window.culqi:", window.Culqi.order)
+                if (window.Culqi.close) window.Culqi.close()
+                setIsProcessing(false)
             } else if (window.Culqi.error) {
                 console.error('❌ Error Culqi:', window.Culqi.error)
-                const userMsg = window.Culqi.error.user_message || "Error en el pago"
+                const userMsg = window.Culqi.error.user_message || window.Culqi.error.merchant_message || "Error en el pago"
                 if (onErrorRef.current) onErrorRef.current(new Error(userMsg))
                 setIsProcessing(false)
             } else {
@@ -96,13 +112,7 @@ export function CulqiPaymentButton({
                 setIsProcessing(false)
             }
         }
-
-        // Cleanup opcional: En teoría no queremos borrarla para no romper nada si el componente se desmonta mientras el modal está abierto,
-        // pero es buena práctica limpiar si el usuario navega fuera totalmente.
-        return () => {
-            // window.culqi = () => {} 
-        }
-    }, []) // Dependencias vacías = Se ejecuta 1 sola vez
+    }, [email])
 
     const handlePay = async (e: React.MouseEvent) => {
         if (e) e.preventDefault()
@@ -112,10 +122,8 @@ export function CulqiPaymentButton({
             return
         }
 
-        // Re-asegurar configuración pública antes de abrir
         window.Culqi.publicKey = process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY
 
-        // Validación previa
         if (onBeforeOpen) {
             const isValid = await onBeforeOpen()
             if (!isValid) return
@@ -126,24 +134,50 @@ export function CulqiPaymentButton({
         try {
             const amountInCents = Math.round(amount * 100)
 
-            window.Culqi.settings({
+            // 1. Configurar Culqi Settings para la transacción
+            const culqiSettings: any = {
                 title: title,
                 currency: 'PEN',
                 amount: amountInCents,
-                email: email || ['cliente', 'blama.shop'].join('@'),
+                email: email || 'cliente@blama.shop',
+            }
+
+            // Llaves RSA para cifrado en Checkout v4
+            if (process.env.NEXT_PUBLIC_CULQI_RSA_ID) {
+                culqiSettings.xculqirsaid = process.env.NEXT_PUBLIC_CULQI_RSA_ID
+            }
+            if (process.env.NEXT_PUBLIC_CULQI_RSA_PUBLIC_KEY) {
+                culqiSettings.rsapublickey = process.env.NEXT_PUBLIC_CULQI_RSA_PUBLIC_KEY.replace(/\\n/g, "\n")
+            }
+
+            window.Culqi.settings(culqiSettings)
+
+            // 2. Configurar opciones de pago habilitando Billeteras Móviles / QR Code
+            window.Culqi.options({
+                lang: "es",
+                installments: false,
+                paymentMethods: {
+                    tarjeta: true,
+                    yape: true,
+                    billetera: true, // <-- Habilita la pestaña de Billeteras Digitales y Código QR nativamente en Checkout v4
+                    bancaMovil: false,
+                    agente: false,
+                    cuotealo: false
+                },
+                style: {
+                    logo: "https://static.culqi.com/v2/v2/static/img/logo.png",
+                    maincolor: "#FF6FA7",
+                }
             })
 
+            // 3. Abrir el modal de pago
             window.Culqi.open()
 
-            // INICIO VIGILANTE: Detectar si el usuario cierra el modal con la X
-            // Culqi a veces no dispara el callback al cerrar, así que vigilamos si el iframe desaparece.
+            // Vigilante de cierre manual del modal
             const checkInterval = setInterval(() => {
                 const iframe = document.getElementById('culqi_checkout_frame')
-                // Solo si ya pasaron unos segundos y el iframe ya no está...
                 if (!iframe && window.Culqi?.close) {
-                    // Asumimos que se cerró manual
                     clearInterval(checkInterval)
-                    // Pequeño delay para dar chance al callback oficial si existiera
                     setTimeout(() => {
                         setIsProcessing((prev) => {
                             if (prev) {
@@ -155,9 +189,6 @@ export function CulqiPaymentButton({
                     }, 1000)
                 }
             }, 1000)
-
-            // Limpieza del intervalo si el componente se desmonta
-            // (Guardamos el ID en una ref si fuera necesario, pero aquí el closure funciona para esta ejecución)
 
         } catch (err) {
             console.error("Error abriendo Culqi:", err)
@@ -176,53 +207,40 @@ export function CulqiPaymentButton({
             <Button
                 onClick={handlePay}
                 disabled={!isScriptLoaded || disabled || isProcessing || amount <= 0}
-                className={`w-full bg-green-700 hover:bg-green-800 h-14 text-base font-bold shadow-md transition-all ${className}`}
-                type="button" // Importante: No type="submit"
+                className={`w-full bg-[#FF6FA7] hover:bg-[#e0558d] text-white h-14 text-base font-black rounded-2xl shadow-lg shadow-[#FF6FA7]/20 transition-all ${className}`}
+                type="button"
             >
                 {isProcessing ? (
                     <>
                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Procesando...
+                        Generando pasarela de pago...
                     </>
                 ) : (
                     <>
                         <CreditCard className="mr-2 h-5 w-5" />
-                        Pagar {formatCurrency(amount)} ahora
+                        Pagar S/ {amount.toFixed(2)} con Tarjeta / Yape / QR
                     </>
                 )}
             </Button>
 
-            {/* --- SELLO OFICIAL CULQI (Desktop & Mobile) --- */}
+            {/* Sello Oficial Culqi */}
             <div className="mt-4 pb-2 flex flex-col items-center justify-center pointer-events-none select-none">
-                <span className="text-[10px] text-gray-400 font-medium mb-1">Powered by</span>
+                <span className="text-[10px] text-slate-400 font-medium mb-1">Pasarela Segura por</span>
                 <div className="flex items-center gap-1 mb-1.5">
-                    {/* Icono Q simplificado de Culqi */}
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C14.3644 22 16.5372 21.1818 18.2562 19.8055L20.8953 22.8643C21.4654 23.5252 22.4633 23.5985 23.1242 23.0284C23.7851 22.4583 23.8584 21.4604 23.2883 20.7995L20.6492 17.7408C21.4746 16.124 22 14.167 22 12C22 6.47715 17.5228 2 12 2ZM6 12C6 8.68629 8.68629 6 12 6C15.3137 6 18 8.68629 18 12C18 15.3137 15.3137 18 12 18C8.68629 18 6 15.3137 6 12Z" fill="#eb5e00" />
                     </svg>
-                    <span className="text-[22px] font-extrabold tracking-tight text-gray-900 leading-none" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                    <span className="text-[22px] font-extrabold tracking-tight text-slate-900 leading-none">
                         Culqi
                     </span>
                 </div>
-                <div className="flex items-center gap-1.5 text-[9px] text-gray-500 uppercase font-medium">
+                <div className="flex items-center gap-1.5 text-[9px] text-slate-500 uppercase font-medium">
                     <span>Con el respaldo de</span>
                     <span className="font-extrabold text-[#002A8D] tracking-[0.2em]">Credicorp</span>
-                </div>
-
-                {/* Badges extra de seguridad requeridas por procesadores */}
-                <div className="mt-3 flex items-center justify-center gap-3 opacity-60">
-                    <div className="flex items-center gap-1 text-[10px] font-medium text-gray-600">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                        </svg>
-                        Compra Segura
-                    </div>
-                    <span className="text-[10px] font-bold text-gray-600">PCI DSS</span>
                 </div>
             </div>
 
             <style jsx global>{`
-                /* Culqi Mobile Fix v2026-ForceUpdate-v3 */
                 #culqi_checkout_frame {
                     max-width: 100vw !important;
                     width: 100% !important;
@@ -233,12 +251,6 @@ export function CulqiPaymentButton({
                     bottom: 0 !important;
                     position: fixed !important;
                     z-index: 99999 !important;
-                }
-                
-                /* Ensure scrolling works on small screens if content overflows */
-                .culqi_checkout_container {
-                     overflow-y: auto !important;
-                     -webkit-overflow-scrolling: touch !important;
                 }
             `}</style>
         </>

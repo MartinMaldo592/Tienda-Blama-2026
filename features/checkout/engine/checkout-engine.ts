@@ -46,6 +46,19 @@ export class CheckoutEngine {
       locationLink ? `[Link: ${locationLink}]` : ""
     }`.trim()
 
+    // 1.5. Buscar usuario_id asociado por email o payload
+    let usuarioId: string | null = (payload as any).usuario_id || null
+    if (!usuarioId && email) {
+      const { data: foundUser } = await supabaseAdmin
+        .from("usuarios")
+        .select("id")
+        .eq("email", email)
+        .maybeSingle()
+      if (foundUser?.id) {
+        usuarioId = foundUser.id
+      }
+    }
+
     // 2. Cliente (Crear registro de cliente)
     const { data: newClient, error: clientError } = await supabaseAdmin
       .from("clientes")
@@ -60,6 +73,7 @@ export class CheckoutEngine {
         provincia: provincia,
         distrito: district,
         email: email,
+        usuario_id: usuarioId,
       })
       .select()
       .single()
@@ -85,6 +99,7 @@ export class CheckoutEngine {
     // 4. Inserción de Pedido
     const commonPedidoData = {
       cliente_id: clienteId,
+      usuario_id: usuarioId,
       nombre_contacto: name,
       dni_contacto: dni,
       telefono_contacto: phone,

@@ -10,6 +10,7 @@ import { useEffect, useState } from "react"
 import dynamic from "next/dynamic"
 import { formatCurrency } from "@/lib/utils"
 import { sendGTMEvent } from "@/lib/gtm"
+import { useRouter } from "next/navigation"
 import {
     Sheet,
     SheetContent,
@@ -44,6 +45,7 @@ const emptyCartAnimation = {
 }
 
 export function CartButton({ isOverlay }: { isOverlay?: boolean }) {
+    const router = useRouter()
     // Use state to avoid hydration mismatch with persisted store
     const [mounted, setMounted] = useState(false)
     const [view, setView] = useState<'cart' | 'checkout' | 'success'>('cart')
@@ -364,7 +366,8 @@ export function CartButton({ isOverlay }: { isOverlay?: boolean }) {
                                                         }))
                                                     }
                                                 })
-                                                setView('checkout')
+                                                setCartOpen(false)
+                                                router.push('/checkout')
                                             }}
                                             className="w-full h-14 text-lg font-bold shadow-md hover:scale-[1.02] transition-all"
                                         >
